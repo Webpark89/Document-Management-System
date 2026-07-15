@@ -5,7 +5,7 @@
 
 import type { DashboardStats, Document } from "./types";
 
-const MOCK_DOCS: Document[] = [
+let MOCK_DOCS: Document[] = [
   {
     id: "PR-2026-0001",
     name: "ขอซื้อวัสดุสำนักงาน Q3/2026",
@@ -78,4 +78,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 export async function getDocuments(): Promise<Document[]> {
   await new Promise((resolve) => setTimeout(resolve, 200));
   return MOCK_DOCS;
+}
+
+export async function addDocument(newDoc: Document): Promise<Document> {
+  await new Promise((resolve) => setTimeout(resolve, 600)); // Simulate realistic network delay
+  MOCK_DOCS = [newDoc, ...MOCK_DOCS];
+  return newDoc;
 }

@@ -25,7 +25,14 @@ type AuthContextValue = {
   logout: () => void;
 };
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const globalForAuth = globalThis as unknown as {
+  AuthContext: React.Context<AuthContextValue | undefined>
+};
+
+const AuthContext = globalForAuth.AuthContext || createContext<AuthContextValue | undefined>(undefined);
+if (process.env.NODE_ENV !== "production") {
+  globalForAuth.AuthContext = AuthContext;
+}
 
 const PUBLIC_ROUTES = ["/auth/login", "/auth", "/login", "/forgot-password", "/reset-password"];
 

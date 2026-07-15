@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, History, FileText, Download, Check, AlertCircle } fro
 import { getDocuments } from "@/features/documents/api";
 import { getWorkflow } from "@/features/workflow/api";
 import { WorkflowTracker } from "@/components/workflow/WorkflowTracker";
+import { DocumentSignerViewer } from "@/components/workflow/DocumentSignerViewer";
 import PageHeader from "@/components/shared/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { getStatusVariant } from "@/lib/document-status";
@@ -108,26 +109,13 @@ export default async function DocumentDetailPage({ params }: PageProps) {
 
           </div>
 
-          {/* SIMULATED DOCUMENT PREVIEW LAYER */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm space-y-4">
-            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Document Preview (Simulation)
-            </h4>
-            <div className="bg-slate-50 rounded-xl p-8 border border-slate-150 text-center min-h-[250px] flex flex-col justify-center items-center">
-              <FileText className="w-10 h-10 text-slate-300 mb-3" />
-              <p className="text-xs font-bold text-slate-600">{doc.name}.pdf</p>
-              <p className="text-[10px] text-slate-400 font-semibold mt-1">
-                Version: {doc.version} | Size: ~1.4 MB
-              </p>
-              <button
-                type="button"
-                className="mt-4 flex items-center gap-1.5 px-4 py-2 border border-slate-200 hover:bg-white text-slate-600 font-bold rounded-xl text-xs transition-colors cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Download Original File
-              </button>
-            </div>
-          </div>
+          {/* E-SIGNATURE PDF VIEWER (MOCK) */}
+          <DocumentSignerViewer 
+            documentId={doc.id}
+            documentName={doc.name}
+            version={doc.version}
+            initialStatus={doc.status}
+          />
         </div>
 
         {/* RIGHT COLUMN: Activity/Workflow */}

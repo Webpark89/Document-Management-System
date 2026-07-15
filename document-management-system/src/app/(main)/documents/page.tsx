@@ -311,14 +311,13 @@ export default function DocumentsPage() {
                     </td>
                     <td className="py-4 pr-4 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <button
-                          type="button"
-                          title="View"
-                          onClick={() => openPreviewModal(doc)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors cursor-pointer"
+                        <Link
+                          href={`/documents/${doc.id}`}
+                          title="View Details"
+                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors cursor-pointer inline-block"
                         >
                           <Eye className="w-4 h-4" />
-                        </button>
+                        </Link>
                         <button
                           type="button"
                           title="Download"
