@@ -7,7 +7,14 @@ type SidebarContextValue = {
   toggle: () => void;
 };
 
-const SidebarContext = createContext<SidebarContextValue | undefined>(undefined);
+const globalForSidebar = globalThis as unknown as {
+  SidebarContext: React.Context<SidebarContextValue | undefined>
+};
+
+const SidebarContext = globalForSidebar.SidebarContext || createContext<SidebarContextValue | undefined>(undefined);
+if (process.env.NODE_ENV !== "production") {
+  globalForSidebar.SidebarContext = SidebarContext;
+}
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(true);

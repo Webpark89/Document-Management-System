@@ -8,67 +8,74 @@ import PageHeader from "@/components/shared/PageHeader";
 import PRForm from "@/components/forms/PRForm";
 import POForm from "@/components/forms/POForm";
 import { useToast } from "@/components/providers/ToastProvider";
-import { getDocuments } from "@/features/documents/api";
+import { addDocument } from "@/features/documents/api";
 
 type FormType = "PR" | "PO" | "Certificate";
 
 export default function DocumentUploadPage() {
   const [docType, setDocType] = useState<FormType>("PR");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const { showToast } = useToast();
 
-  const handlePRSubmit = (data: { title: string; sender: string; amount: string }) => {
-    // Generate mock save
-    const newDoc = {
-      id: `PR-2026-${String(Math.floor(Math.random() * 900) + 100)}`,
-      name: data.title,
-      type: "PR",
-      sender: data.sender,
-      submittedDate: new Date().toLocaleDateString("th-TH", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }),
-      status: "Draft" as const,
-      amount: data.amount,
-      version: "v1.0",
-    };
+  const handlePRSubmit = async (data: { title: string; sender: string; amount: string }) => {
+    setIsSubmitting(true);
+    try {
+      const newDoc = {
+        id: `PR-2026-${String(Math.floor(Math.random() * 900) + 100)}`,
+        name: data.title,
+        type: "PR",
+        sender: data.sender,
+        submittedDate: new Date().toLocaleDateString("th-TH", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }),
+        status: "Draft" as const,
+        amount: data.amount,
+        version: "v1.0",
+      };
 
-    // Update Cache
-    mutate("documents", async (current: any) => {
-      const list = current || [];
-      return [newDoc, ...list];
-    }, { revalidate: false });
-
-    showToast(`Successfully created ${newDoc.id} (Draft)`);
-    router.push("/documents");
+      await addDocument(newDoc);
+      mutate("documents");
+      showToast(`Successfully created ${newDoc.id} (Draft)`);
+      router.push("/documents");
+      router.refresh();
+    } catch (error) {
+      showToast("Error creating document");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handlePOSubmit = (data: { title: string; sender: string; amount: string }) => {
-    // Generate mock save
-    const newDoc = {
-      id: `PO-2026-${String(Math.floor(Math.random() * 900) + 100)}`,
-      name: data.title,
-      type: "PO",
-      sender: data.sender,
-      submittedDate: new Date().toLocaleDateString("th-TH", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }),
-      status: "Draft" as const,
-      amount: data.amount,
-      version: "v1.0",
-    };
+  const handlePOSubmit = async (data: { title: string; sender: string; amount: string }) => {
+    setIsSubmitting(true);
+    try {
+      const newDoc = {
+        id: `PO-2026-${String(Math.floor(Math.random() * 900) + 100)}`,
+        name: data.title,
+        type: "PO",
+        sender: data.sender,
+        submittedDate: new Date().toLocaleDateString("th-TH", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }),
+        status: "Draft" as const,
+        amount: data.amount,
+        version: "v1.0",
+      };
 
-    // Update Cache
-    mutate("documents", async (current: any) => {
-      const list = current || [];
-      return [newDoc, ...list];
-    }, { revalidate: false });
-
-    showToast(`Successfully created ${newDoc.id} (Draft)`);
-    router.push("/documents");
+      await addDocument(newDoc);
+      mutate("documents");
+      showToast(`Successfully created ${newDoc.id} (Draft)`);
+      router.push("/documents");
+      router.refresh();
+    } catch (error) {
+      showToast("Error creating document");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -138,7 +145,15 @@ export default function DocumentUploadPage() {
         </div>
 
         {/* FORMS */}
-        <div className="border-t border-slate-100 pt-6">
+        <div className="border-t border-slate-100 pt-6 relative">
+          {isSubmitting && (
+            <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-2xl">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm font-bold text-blue-600">กำลังบันทึกข้อมูล...</p>
+              </div>
+            </div>
+          )}
           {docType === "PR" && (
             <PRForm onSubmit={handlePRSubmit} onCancel={() => router.push("/documents")} />
           )}

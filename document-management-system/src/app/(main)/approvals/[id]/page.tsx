@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { getStatusVariant } from "@/lib/document-status";
 import { WorkflowTracker } from "@/components/workflow/WorkflowTracker";
 import { ApprovalActions } from "@/components/workflow/ApprovalActions";
+import { DocumentSignerViewer } from "@/components/workflow/DocumentSignerViewer";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -101,27 +102,13 @@ export default async function ApprovalDetailPage({ params }: PageProps) {
 
           </div>
 
-          {/* SIMULATED DOCUMENT PREVIEW LAYER */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm space-y-4">
-            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Document View
-            </h4>
-            <div className="bg-slate-50 rounded-xl p-8 border border-slate-150 text-center min-h-[350px] flex flex-col justify-center items-center relative">
-              <FileText className="w-10 h-10 text-slate-300 mb-3" />
-              <p className="text-xs font-bold text-slate-600">{doc.name}.pdf</p>
-              <p className="text-sm text-slate-500 mt-2">
-                (PDF Viewer will be implemented in Phase 2.3)
-              </p>
-              
-              <button
-                type="button"
-                className="mt-6 flex items-center gap-1.5 px-4 py-2 border border-slate-200 hover:bg-white text-slate-600 font-bold rounded-xl text-xs transition-colors cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Download Original File
-              </button>
-            </div>
-          </div>
+          {/* E-SIGNATURE PDF VIEWER (MOCK) */}
+          <DocumentSignerViewer 
+            documentId={doc.id}
+            documentName={doc.name}
+            version={doc.version}
+            initialStatus={doc.status}
+          />
         </div>
 
         {/* RIGHT COLUMN: Activity/Workflow */}
