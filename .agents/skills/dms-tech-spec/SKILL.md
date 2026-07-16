@@ -233,11 +233,10 @@ po_form_items (
   unit_price, vat DECIMAL, total_price, remark
   -- total_price = unit_price * quantity * (1 + vat/100)
 )
-certificate_forms (
+memo_forms (
   id UUID, document_id FK (1-to-1),
-  certificate_type,
-  issued_to FK→users, issued_by FK→users,
-  issue_date, expiry_date, detail
+  category, detail,
+  department_id FK→departments
 )
 document_versions (
   id UUID, document_id FK,
@@ -309,12 +308,12 @@ GET    /documents/:id/download → stream ไฟล์ล่าสุด
 GET    /documents/:id/versions → list ทุก version
 ```
 
-### Forms (PR / PO / Certificate)
+### Forms (PR / PO / Memo)
 ```
 POST   /pr-forms              → สร้าง PR form + items
 GET    /pr-forms/:documentId  → ดึง PR form ของเอกสาร
 PUT    /pr-forms/:id          → แก้ไข PR form
-(เหมือนกันสำหรับ /po-forms และ /certificate-forms)
+(เหมือนกันสำหรับ /po-forms และ /memo-forms)
 ```
 
 ### Workflows
@@ -350,7 +349,7 @@ GET          /dashboard/stats      → COUNT เอกสารแยก status
 
 ```typescript
 type DocumentStatus = "Draft" | "Pending" | "Approved" | "Rejected" | "Cancelled";
-type DocumentType   = "PR" | "PO" | "Certificate" | "General";
+type DocumentType   = "PR" | "PO" | "Memo" | "Other";
 type UserRole       = "Administrator" | "Manager" | "Employee";
 // Note: Role เป็น Dynamic จาก DB — UserRole type ใช้ แค่ Mock เท่านั้น
 
@@ -390,8 +389,8 @@ Cancelled: "bg-slate-100 text-slate-500 border-slate-200"
 ```typescript
 PR:          "bg-blue-50 text-blue-700 border-blue-200"
 PO:          "bg-purple-50 text-purple-700 border-purple-200"
-Certificate: "bg-emerald-50 text-emerald-700 border-emerald-200"
-General:     "bg-gray-50 text-gray-600 border-gray-200"
+Memo:        "bg-amber-50 text-amber-700 border-amber-200"
+Other:       "bg-gray-50 text-gray-600 border-gray-200"
 ```
 
 ---
@@ -407,7 +406,7 @@ General:     "bg-gray-50 text-gray-600 border-gray-200"
 6. ลบเอกสาร → **Soft Delete** (`is_deleted = true`) เท่านั้น ห้าม DELETE จริง
 
 ### Approval Workflow Rules (หน้าสร้างเอกสาร)
-1. **ห้ามมีปุ่ม Add/Remove Step ในหน้าสร้างเอกสาร (PR, PO, Cert, General)**
+1. **ห้ามมีปุ่ม Add/Remove Step ในหน้าสร้างเอกสาร (PR, PO, Memo, Other)**
 2. จำนวน Step และตำแหน่งผู้อนุมัติ (Role) ต้องถูกดึงมาจาก Master Data เท่านั้น (โชว์เป็น Read-only)
 3. ผู้ขอเอกสารสามารถกำหนด/เปลี่ยนได้เฉพาะ **ชื่อบุคคล (Approver Name)** ในแต่ละ Step ที่ระบบดึงมาให้เท่านั้น
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Trash2, Save, Send } from "lucide-react";
+import { Plus, Trash2, Save, Send, UploadCloud, Briefcase, FileSignature, HelpCircle } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
@@ -27,6 +27,7 @@ export interface POSubmitData {
   paymentTerms: string;
   amount: string;
   items: POItemInput[];
+  attachmentFileName?: string;
   workflowSteps: WorkflowStepInput[];
   isDraft: boolean;
 }
@@ -71,6 +72,7 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
   const [vendorContact, setVendorContact] = useState("");
   const [deliveryDate, setDeliveryDate] = useState(nextMonthStr);
   const [paymentTerms, setPaymentTerms] = useState(PAYMENT_TERMS_OPTIONS[0]);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const [items, setItems] = useState<POItemInput[]>([
     {
@@ -127,6 +129,12 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
     ]);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadedFile(e.target.files[0]);
+    }
+  };
+
   const handleRemoveItem = (id: string) => {
     if (items.length === 1) return;
     setItems(items.filter((item) => item.id !== id));
@@ -169,6 +177,7 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
       paymentTerms,
       amount: `฿${netTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       items,
+      attachmentFileName: uploadedFile ? uploadedFile.name : undefined,
       workflowSteps,
       isDraft,
     });
@@ -183,12 +192,15 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
       className="space-y-6"
     >
       {/* HEADER METADATA */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-linear-to-br from-purple-50 to-white p-5 rounded-3xl border border-purple-100 shadow-xs relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
         <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-purple-600/70 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+            <Briefcase className="w-3.5 h-3.5" />
             Running Number (Preview)
           </label>
-          <div className="bg-white border border-slate-200/80 rounded-xl px-3.5 py-2 font-mono text-sm font-bold text-purple-600 shadow-xs">
+          <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-xl px-4 py-2.5 font-mono text-sm font-bold text-purple-700 shadow-sm flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
             {runningNumberPreview}
           </div>
         </div>
@@ -223,9 +235,11 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
         </div>
       </div>
 
+      <div className="h-px bg-linear-to-r from-transparent via-slate-200 to-transparent my-6"></div>
+
       {/* FORM FIELDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="md:col-span-2">
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
             Document Title / Subject (เรื่องใบสั่งซื้อ) <span className="text-rose-500">*</span>
           </label>
@@ -454,9 +468,53 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
           <span>Total VAT (ภาษีมูลค่าเพิ่ม):</span>
           <span>฿{totalVat.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>
-        <div className="flex justify-between w-full pt-1 text-base font-extrabold text-purple-600">
+        <div className="flex justify-between w-full pt-2 text-lg font-black text-purple-700 items-center">
           <span>Net Total (ราคารวมสุทธิ):</span>
-          <span>฿{netTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="bg-purple-100 px-3 py-1 rounded-xl shadow-xs">฿{netTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+      </div>
+
+      {/* FILE UPLOAD ATTACHMENT */}
+      <div className="bg-linear-to-b from-slate-50/50 to-white p-6 rounded-3xl border border-slate-200 shadow-xs group transition-all hover:border-purple-300">
+        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <FileSignature className="w-4 h-4 text-purple-500" />
+          Attach Reference Document (แนบไฟล์เอกสารอ้างอิง เช่น ใบเสนอราคา)
+        </label>
+        <div className="border-2 border-dashed border-slate-300 group-hover:border-purple-400 group-hover:bg-purple-50/30 rounded-2xl p-8 text-center transition-all cursor-pointer relative bg-white overflow-hidden">
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={handleFileChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+          />
+          
+          {uploadedFile ? (
+            <div className="flex flex-col items-center gap-3 relative z-0">
+              <div className="p-4 bg-purple-100 rounded-full text-purple-600 shadow-sm ring-4 ring-purple-50">
+                <FileSignature className="w-8 h-8" />
+              </div>
+              <div>
+                <p className="text-base font-bold text-slate-800">{uploadedFile.name}</p>
+                <p className="text-xs text-slate-500 mt-1 font-medium bg-slate-100 px-2.5 py-0.5 rounded-full inline-block">
+                  {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 relative z-0">
+              <div className="p-4 bg-slate-100 rounded-full text-slate-400 group-hover:bg-purple-100 group-hover:text-purple-600 group-hover:scale-110 transition-all duration-300">
+                <UploadCloud className="w-8 h-8" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-700 group-hover:text-purple-700 transition-colors">
+                  คลิก หรือ ลากไฟล์เอกสารอ้างอิงมาวางที่นี่
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  รองรับไฟล์ PDF, DOC, DOCX (ขนาดสูงสุดไม่เกิน 25MB)
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

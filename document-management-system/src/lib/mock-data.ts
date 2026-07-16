@@ -1,4 +1,4 @@
-import { Document, DocumentStatus, DocumentType, User, Workflow, Notification, DashboardStats } from "@/types";
+import { Document, DocumentStatus, DocumentType, User, Workflow, Notification, DashboardStats, AuditLog } from "@/types";
 
 // ─── Mock Documents ───────────────────────────────────────────────────────────
 export const MOCK_DOCUMENTS: Document[] = [
@@ -52,9 +52,9 @@ export const MOCK_DOCUMENTS: Document[] = [
   },
   {
     id: "5",
-    doc_number: "CERT-2026-0001",
-    title: "ใบรับรองการผ่านงาน นายสมศักดิ์",
-    type: "Certificate",
+    doc_number: "MM-2026-0001",
+    title: "บันทึกข้อความภายใน",
+    type: "Memo",
     status: "Approved",
     creator_name: "อรทัย สุขใจ",
     department: "แผนก HR",
@@ -148,13 +148,99 @@ export const STATUS_LABELS: Record<string, string> = {
 export const TYPE_LABELS: Record<string, string> = {
   PR: "ใบขอซื้อ (PR)",
   PO: "ใบสั่งซื้อ (PO)",
-  Certificate: "ใบรับรอง",
-  General: "เอกสารทั่วไป",
+  Memo: "บันทึกข้อความ",
+  Other: "เอกสารแนบ",
 };
 
 export const TYPE_COLORS: Record<string, string> = {
   PR: "bg-blue-50 text-blue-700 border-blue-200",
   PO: "bg-purple-50 text-purple-700 border-purple-200",
-  Certificate: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  General: "bg-gray-50 text-gray-600 border-gray-200",
+  Memo: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  Other: "bg-slate-50 text-slate-600 border-slate-200",
 };
+
+// ─── Mock Audit Logs ──────────────────────────────────────────────────────────
+export const MOCK_AUDIT_LOGS: AuditLog[] = [
+  {
+    id: "al-1",
+    user_id: "u1",
+    username: "manager01",
+    user_fullname: "วิภา รักดี",
+    action: "Login",
+    module: "Auth",
+    ip_address: "192.168.1.45",
+    created_at: "2026-07-16T08:00:00Z",
+  },
+  {
+    id: "al-2",
+    user_id: "u2",
+    username: "somchai.j",
+    user_fullname: "สมชาย ใจดี",
+    action: "Upload",
+    module: "Documents",
+    target_id: "PR-2026-0001",
+    target_display: "PR-2026-0001",
+    ip_address: "192.168.1.102",
+    created_at: "2026-07-10T09:00:00Z",
+  },
+  {
+    id: "al-3",
+    user_id: "u1",
+    username: "manager01",
+    user_fullname: "วิภา รักดี",
+    action: "Approve",
+    module: "Approvals",
+    target_id: "PO-2026-0001",
+    target_display: "PO-2026-0001",
+    ip_address: "192.168.1.45",
+    created_at: "2026-07-12T09:30:00Z",
+  },
+  {
+    id: "al-4",
+    user_id: "u1",
+    username: "manager01",
+    user_fullname: "วิภา รักดี",
+    action: "Signature",
+    module: "Approvals",
+    target_id: "PO-2026-0001",
+    target_display: "PO-2026-0001",
+    ip_address: "192.168.1.45",
+    created_at: "2026-07-12T09:31:00Z",
+  },
+  {
+    id: "al-5",
+    user_id: "u3",
+    username: "orathai.s",
+    user_fullname: "อรทัย สุขใจ",
+    action: "View",
+    module: "Documents",
+    target_id: "MM-2026-0001",
+    target_display: "MM-2026-0001",
+    ip_address: "10.0.0.15",
+    created_at: "2026-07-15T14:20:00Z",
+  },
+  {
+    id: "al-6",
+    user_id: "u4",
+    username: "prayut.s",
+    user_fullname: "ประยุทธ์ สร้างชาติ",
+    action: "Reject",
+    module: "Approvals",
+    target_id: "PO-2026-0002",
+    target_display: "PO-2026-0002",
+    ip_address: "192.168.2.11",
+    created_at: "2026-07-07T16:00:00Z",
+  },
+  {
+    id: "al-7",
+    user_id: "u5",
+    username: "admin01",
+    user_fullname: "Admin System",
+    action: "Delete",
+    module: "Users",
+    target_id: "u99",
+    target_display: "test.user",
+    ip_address: "127.0.0.1",
+    created_at: "2026-07-16T11:45:00Z",
+  },
+];

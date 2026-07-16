@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Trash2, Save, Send } from "lucide-react";
+import { Plus, Trash2, Save, Send, UploadCloud } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
@@ -25,6 +25,7 @@ export interface PRSubmitData {
   purpose: string;
   amount: string;
   items: PRItemInput[];
+  attachmentFileName?: string;
   workflowSteps: WorkflowStepInput[];
   isDraft: boolean;
 }
@@ -61,6 +62,7 @@ export default function PRForm({ onSubmit, onCancel, runningNumberPreview }: PRF
   const [requestedDate, setRequestedDate] = useState(todayStr);
   const [requiredDate, setRequiredDate] = useState(nextWeekStr);
   const [purpose, setPurpose] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const [items, setItems] = useState<PRItemInput[]>([
     {
@@ -109,6 +111,12 @@ export default function PRForm({ onSubmit, onCancel, runningNumberPreview }: PRF
     ]);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadedFile(e.target.files[0]);
+    }
+  };
+
   const handleRemoveItem = (id: string) => {
     if (items.length === 1) return;
     setItems(items.filter((item) => item.id !== id));
@@ -143,6 +151,7 @@ export default function PRForm({ onSubmit, onCancel, runningNumberPreview }: PRF
       purpose,
       amount: `฿${grandTotal.toLocaleString()}`,
       items,
+      attachmentFileName: uploadedFile ? uploadedFile.name : undefined,
       workflowSteps,
       isDraft,
     });
@@ -387,6 +396,32 @@ export default function PRForm({ onSubmit, onCancel, runningNumberPreview }: PRF
         <span className="text-2xl font-extrabold text-blue-600">
           ฿{grandTotal.toLocaleString()}
         </span>
+      </div>
+
+      {/* FILE UPLOAD ATTACHMENT */}
+      <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          Attach Reference Document (แนบไฟล์เอกสารอ้างอิง เช่น ใบเสนอราคา)
+        </label>
+        <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:bg-slate-50/50 transition-colors cursor-pointer relative bg-white">
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={handleFileChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          <div className="flex flex-col items-center gap-2">
+            <div className="p-3 bg-slate-100 rounded-full text-slate-500">
+              <UploadCloud className="w-6 h-6" />
+            </div>
+            <p className="text-sm font-bold text-slate-700">
+              {uploadedFile ? uploadedFile.name : "คลิก หรือ ลากไฟล์เอกสารอ้างอิงมาวางที่นี่"}
+            </p>
+            <p className="text-xs text-slate-400">
+              รองรับไฟล์ PDF, DOC, DOCX (ขนาดสูงสุดไม่เกิน 25MB)
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* WORKFLOW MATRIX SELECTION */}
