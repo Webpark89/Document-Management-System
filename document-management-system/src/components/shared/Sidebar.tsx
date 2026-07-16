@@ -11,7 +11,6 @@ import {
   BarChart3,
   Settings,
   ChevronLeft,
-  ChevronDown,
   ChevronRight,
   LogOut,
   FileBox,
@@ -57,6 +56,17 @@ function isConfigRoute(pathname: string) {
   return pathname === CONFIG_GROUP.href || pathname.startsWith(`${CONFIG_GROUP.href}/`);
 }
 
+function isNavItemActive(pathname: string, href: string) {
+  if (isConfigRoute(pathname)) return false;
+  if (pathname === href) return true;
+  return pathname.startsWith(`${href}/`);
+}
+
+function isChildNavActive(pathname: string, href: string) {
+  if (pathname === href) return true;
+  return pathname.startsWith(`${href}/`);
+}
+
 export default function Sidebar() {
   const { isOpen, toggle } = useSidebar();
   const pathname = usePathname();
@@ -92,16 +102,34 @@ export default function Sidebar() {
       .toUpperCase();
   }, [displayName, displaySub]);
 
-  const configParentActive = isConfigRoute(pathname);
-
-  const navLinkCls = (isActive: boolean, indented = false) =>
+  const navLinkCls = (isActive: boolean) =>
     `flex items-center rounded-xl border-l-2 text-sm font-medium transition-all ${
-      isOpen ? `${indented ? "pl-9 pr-4" : "px-4"} py-3 gap-3.5` : "p-3 justify-center"
+      isOpen ? "px-4 py-3 gap-3.5" : "p-3 justify-center"
     } ${
       isActive
         ? "border-blue-600 bg-blue-50 font-semibold text-blue-600"
         : "border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-900"
     }`;
+
+  const childNavLinkCls = (isActive: boolean) =>
+    `flex items-center rounded-lg border-l-2 text-sm transition-all ${
+      isOpen ? "gap-3.5 py-2.5 pl-8 pr-3" : "p-3 justify-center"
+    } ${
+      isActive
+        ? "border-blue-600 bg-blue-50 font-medium text-blue-600"
+        : "border-transparent text-gray-500 hover:bg-gray-50 hover:text-slate-700"
+    }`;
+
+  const configHeaderCls = (isActive: boolean) =>
+    `flex items-center rounded-lg text-sm transition-all ${
+      isOpen ? "px-4 py-3" : "justify-center p-3"
+    } ${
+      isActive
+        ? "border border-blue-200 bg-blue-50 font-medium text-blue-600"
+        : "border border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+    }`;
+
+  const isConfigActive = isConfigRoute(pathname);
 
   return (
     <aside
@@ -130,8 +158,7 @@ export default function Sidebar() {
       <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
         {FLAT_NAV_ITEMS.slice(0, 4).map((item) => {
           const Icon = item.icon;
-          const isActive =
-            pathname === item.href || pathname.startsWith(item.href + "/");
+          const isActive = isNavItemActive(pathname, item.href);
 
           return (
             <Link
@@ -153,23 +180,17 @@ export default function Sidebar() {
         })}
 
         <div>
-          <div
-            className={`flex items-center rounded-xl border-l-2 text-sm font-medium transition-all ${
-              isOpen ? "px-4 py-3 gap-3.5" : "p-3 justify-center"
-            } ${
-              configParentActive
-                ? "border-blue-600 bg-blue-50 font-semibold text-blue-600"
-                : "border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-            }`}
-          >
+          <div className={configHeaderCls(isConfigActive)}>
             <Link
               href={CONFIG_GROUP.href}
-              className={`flex min-w-0 flex-1 items-center gap-3.5 ${isOpen ? "" : "justify-center"}`}
+              className={`flex min-w-0 items-center gap-3.5 ${
+                isOpen ? "flex-1" : "justify-center"
+              }`}
               title={!isOpen ? CONFIG_GROUP.name : undefined}
             >
               <i
-                className={`ti ti-${CONFIG_GROUP.tablerIcon} flex-shrink-0 text-[1.25rem] leading-none ${
-                  configParentActive ? "text-blue-600" : "text-slate-400"
+                className={`ti ti-${CONFIG_GROUP.tablerIcon} flex size-5 shrink-0 items-center justify-center text-[1.25rem] leading-none ${
+                  isConfigActive ? "text-blue-600" : "text-slate-400"
                 }`}
               />
               {isOpen && <span className="truncate">{CONFIG_GROUP.name}</span>}
@@ -178,15 +199,17 @@ export default function Sidebar() {
               <button
                 type="button"
                 onClick={() => setConfigExpanded((prev) => !prev)}
-                className="ml-auto inline-flex size-7 flex-shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                className={`ml-auto inline-flex shrink-0 cursor-pointer items-center rounded-md p-1 transition-colors hover:bg-slate-100 ${
+                  isConfigActive ? "text-blue-600 hover:bg-blue-100/60" : "text-slate-400"
+                }`}
                 aria-label={configExpanded ? "Collapse Config" : "Expand Config"}
                 aria-expanded={configExpanded}
               >
-                {configExpanded ? (
-                  <ChevronDown className="size-4" />
-                ) : (
-                  <ChevronRight className="size-4" />
-                )}
+                <ChevronRight
+                  className={`size-4 transition-transform duration-200 ${
+                    configExpanded ? "rotate-90" : ""
+                  }`}
+                />
               </button>
             )}
           </div>
@@ -194,17 +217,17 @@ export default function Sidebar() {
           {isOpen && configExpanded && (
             <div className="mt-1 space-y-1">
               {CONFIG_GROUP.children.map((child) => {
-                const isChildActive = pathname === child.href;
+                const isChildActive = isChildNavActive(pathname, child.href);
 
                 return (
                   <Link
                     key={child.name}
                     href={child.href}
-                    className={navLinkCls(isChildActive, true)}
+                    className={childNavLinkCls(isChildActive)}
                   >
                     {child.tablerIcon && (
                       <i
-                        className={`ti ti-${child.tablerIcon} flex-shrink-0 text-[1.25rem] leading-none ${
+                        className={`ti ti-${child.tablerIcon} flex size-5 shrink-0 items-center justify-center text-[1.25rem] leading-none ${
                           isChildActive ? "text-blue-600" : "text-slate-400"
                         }`}
                       />
@@ -219,8 +242,7 @@ export default function Sidebar() {
 
         {FLAT_NAV_ITEMS.slice(4).map((item) => {
           const Icon = item.icon;
-          const isActive =
-            pathname === item.href || pathname.startsWith(item.href + "/");
+          const isActive = isNavItemActive(pathname, item.href);
 
           return (
             <Link

@@ -69,7 +69,7 @@ type StatCardRowProps = {
 
 export function StatCardRow({ children, className }: StatCardRowProps) {
   return (
-    <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10", className)}>
+    <div className={cn("mb-10 grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4", className)}>
       {children}
     </div>
   );

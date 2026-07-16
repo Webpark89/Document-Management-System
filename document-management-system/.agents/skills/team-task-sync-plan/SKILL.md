@@ -1,4 +1,4 @@
----
+@---
 name: team-task-sync-plan
 description: >
   แผนงานทีม DMS แยก Developer A (Workflow/PDF) และ Developer B (Admin/Auth)
