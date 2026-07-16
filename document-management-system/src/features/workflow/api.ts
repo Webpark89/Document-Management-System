@@ -13,6 +13,24 @@ export interface Approval {
   status: "Draft" | "Pending" | "Approved" | "Returned for Revision" | "Cancelled";
 }
 
+export interface WorkflowStep {
+  id: string;
+  stepOrder: number;
+  roleName: string;
+  approverName?: string;
+  status: "Pending" | "Approved" | "Rejected";
+  actionDate?: string;
+  comment?: string;
+}
+
+export interface WorkflowData {
+  documentId: string;
+  status: "Pending" | "Approved" | "Rejected";
+  currentStep: number;
+  totalSteps: number;
+  steps: WorkflowStep[];
+}
+
 const MOCK_APPROVALS: Approval[] = [
   {
     id: "PR-2026-0001",
@@ -49,4 +67,53 @@ const MOCK_APPROVALS: Approval[] = [
 export async function getApprovals(): Promise<Approval[]> {
   await new Promise((resolve) => setTimeout(resolve, 300));
   return MOCK_APPROVALS;
+}
+
+// Mock Workflow Data
+const MOCK_WORKFLOWS: Record<string, WorkflowData> = {
+  "PR-2026-0001": {
+    documentId: "PR-2026-0001",
+    status: "Pending",
+    currentStep: 2,
+    totalSteps: 3,
+    steps: [
+      {
+        id: "step-1",
+        stepOrder: 1,
+        roleName: "หัวหน้าแผนก",
+        approverName: "สมชาย ใจดี",
+        status: "Approved",
+        actionDate: "14 ก.ค. 2026 10:30",
+        comment: "เห็นควรอนุมัติ",
+      },
+      {
+        id: "step-2",
+        stepOrder: 2,
+        roleName: "ผู้จัดการฝ่าย",
+        approverName: "วิภา รักดี",
+        status: "Pending",
+      },
+      {
+        id: "step-3",
+        stepOrder: 3,
+        roleName: "ผู้อำนวยการ",
+        status: "Pending",
+      },
+    ],
+  },
+};
+
+export async function getWorkflow(documentId: string): Promise<WorkflowData | null> {
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  return MOCK_WORKFLOWS[documentId] || null;
+}
+
+export async function submitApprove(documentId: string, comment: string): Promise<{ success: boolean; message: string }> {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return { success: true, message: "อนุมัติเอกสารสำเร็จ" };
+}
+
+export async function submitReject(documentId: string, comment: string): Promise<{ success: boolean; message: string }> {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return { success: true, message: "ไม่อนุมัติเอกสารสำเร็จ" };
 }

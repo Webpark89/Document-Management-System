@@ -406,6 +406,11 @@ General:     "bg-gray-50 text-gray-600 border-gray-200"
 5. Reject ที่ Step ใดก็ได้ → `Rejected` + ส่ง Notification + อีเมลกลับผู้จัดทำ
 6. ลบเอกสาร → **Soft Delete** (`is_deleted = true`) เท่านั้น ห้าม DELETE จริง
 
+### Approval Workflow Rules (หน้าสร้างเอกสาร)
+1. **ห้ามมีปุ่ม Add/Remove Step ในหน้าสร้างเอกสาร (PR, PO, Cert, General)**
+2. จำนวน Step และตำแหน่งผู้อนุมัติ (Role) ต้องถูกดึงมาจาก Master Data เท่านั้น (โชว์เป็น Read-only)
+3. ผู้ขอเอกสารสามารถกำหนด/เปลี่ยนได้เฉพาะ **ชื่อบุคคล (Approver Name)** ในแต่ละ Step ที่ระบบดึงมาให้เท่านั้น
+
 ### E-Signature Flow
 1. Approver เปิดหน้าพิจารณาเอกสาร
 2. ดู PDF ใน Browser (react-pdf)
