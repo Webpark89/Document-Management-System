@@ -1,3 +1,8 @@
+---
+description: 
+alwaysApply: true
+---
+
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
@@ -21,4 +26,4 @@ This is the **Document Management & Electronic Approval System (DMS)** project.
 - **Delete**: Always Soft Delete (`is_deleted=true`) — never real DELETE
 - **Icons**: Only `lucide-react` — no other icon libraries
 - **Client Components**: Use sparingly — only when useState/useEffect/events needed
-<!-- END:dms-project-rules -->
+<!-- END:dms-project-rules --> Use caveman skill full
