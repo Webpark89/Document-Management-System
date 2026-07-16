@@ -265,17 +265,13 @@ export default function Sidebar() {
       </nav>
 
       <div className="mt-auto p-4 border-t border-slate-100 flex-shrink-0">
-        <div
-          className={`flex items-center w-full rounded-xl ${
-            isOpen ? "gap-3 px-2 py-1" : "justify-center py-1"
-          }`}
-        >
-          <Avatar className="h-9 w-9 flex-shrink-0">
-            <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold text-sm">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          {isOpen && (
+        {isOpen ? (
+          <div className="flex w-full items-center gap-3 rounded-xl px-2 py-1">
+            <Avatar className="h-9 w-9 flex-shrink-0">
+              <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold text-sm">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
             <div className="min-w-0 flex-1 text-left">
               <p className="text-sm font-semibold text-slate-800 truncate">
                 {displayName}
@@ -284,27 +280,30 @@ export default function Sidebar() {
                 {displaySub}
               </p>
             </div>
-          )}
-          <button
-            onClick={logout}
-            className={`ml-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors ${
-              isOpen ? "" : "hidden"
-            }`}
-            title="Log out"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </div>
-
-        <button
-          onClick={logout}
-          className={`mt-2 flex items-center justify-center text-xs font-semibold text-slate-400 hover:text-rose-600 transition-colors ${
-            isOpen ? "hidden" : ""
-          }`}
-          title="Log out"
-        >
-          <LogOut className="h-4 w-4" />
-        </button>
+            <button
+              onClick={logout}
+              className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              title="Log out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2 rounded-xl py-1">
+            <Avatar className="h-9 w-9 flex-shrink-0">
+              <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold text-sm">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <button
+              onClick={logout}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              title="Log out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       <button

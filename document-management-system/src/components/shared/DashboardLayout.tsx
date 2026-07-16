@@ -15,7 +15,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="min-h-screen">
       <Sidebar />
       <main
-        className={`min-h-screen min-w-0 overflow-y-auto bg-[#EAF2FB] transition-all duration-200 ${
+        className={`min-w-0 overflow-y-auto bg-[#EAF2FB] transition-all duration-200 ${
           isOpen ? "ml-64" : "ml-20"
         }`}
       >

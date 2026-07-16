@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, Suspense } from "react";
 import { Eye, EyeOff, Loader2, Plus } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
+import { MOCK_USERS, prependConfigUser, type ConfigUser } from "@/lib/config-mock";
 
 const DEPARTMENTS = ["Finance", "Purchasing", "Warehouse", "IT"] as const;
 const POSITIONS = ["Employee", "Supervisor", "Manager", "Executive"] as const;
@@ -22,15 +23,7 @@ type UserForm = {
   isActive: boolean;
 };
 
-type SavedUser = {
-  id: string;
-  fullName: string;
-  email: string;
-  department: string;
-  position: string;
-  role: string;
-  isActive: boolean;
-};
+type SavedUser = ConfigUser;
 
 type FormErrors = Partial<Record<keyof UserForm, string>>;
 
@@ -43,27 +36,6 @@ const EMPTY_USER: UserForm = {
   role: ROLE_OPTIONS[0],
   isActive: true,
 };
-
-let MOCK_USERS: SavedUser[] = [
-  {
-    id: "1",
-    fullName: "Somchai Jaidee",
-    email: "somchai@company.com",
-    department: "Purchasing",
-    position: "Manager",
-    role: "Manager",
-    isActive: true,
-  },
-  {
-    id: "2",
-    fullName: "Suda Wongsri",
-    email: "suda@company.com",
-    department: "Finance",
-    position: "Supervisor",
-    role: "Employee",
-    isActive: true,
-  },
-];
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -429,7 +401,7 @@ function UsersPageContent() {
       <CreateUserForm
         onBack={() => router.push("/admin/config/users")}
         onSaved={(saved) => {
-          MOCK_USERS = [saved, ...MOCK_USERS];
+          prependConfigUser(saved);
           setUsers([...MOCK_USERS]);
           router.push("/admin/config/users");
         }}

@@ -14,6 +14,7 @@ import {
   Plus,
   Stamp,
   Trash2,
+  X,
 } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
 
@@ -176,7 +177,7 @@ type FormErrors = Record<string, string>;
 
 const PREFIX_RE = /^[A-Z0-9]{2,5}$/;
 const FORM_CODE_RE = /^[A-Z0-9]+(-[A-Z0-9]+)+$/;
-const DEPT_CODE_RE = /^[A-Z0-9]{2,10}$/;
+const DEPT_CODE_RE = /^[A-Z]{2,6}$/;
 
 function syncApproverRows(levelCount: number, current: string[]): string[] {
   if (current.length === levelCount) return current;
@@ -184,25 +185,100 @@ function syncApproverRows(levelCount: number, current: string[]): string[] {
   return [...current, ...Array(levelCount - current.length).fill("")];
 }
 
+function validateDoctypeName(name: string): string | undefined {
+  const trimmed = name.trim();
+  if (!trimmed) return "กรุณากรอกชื่อประเภทเอกสาร";
+  if (trimmed.length < 2) return "ชื่อต้องมีอย่างน้อย 2 ตัวอักษร";
+  if (trimmed.length > 50) return "ชื่อต้องไม่เกิน 50 ตัวอักษร";
+  return undefined;
+}
+
+function validateDoctypePrefix(
+  prefix: string,
+  rows: DocTypeRow[],
+  editingId: string | null
+): string | undefined {
+  const normalized = prefix.trim().toUpperCase();
+  if (!normalized) return "กรุณากรอก Prefix";
+  if (!PREFIX_RE.test(normalized)) return "Prefix ต้องเป็นตัวอักษรหรือตัวเลข 2-5 ตัว";
+  if (rows.some((r) => r.prefix.toUpperCase() === normalized && r.id !== editingId)) {
+    return "รหัสนี้ถูกใช้งานแล้ว";
+  }
+  return undefined;
+}
+
 function validateDoctypeForm(
   form: FormState,
   rows: DocTypeRow[],
   editingId: string | null
-): Partial<Record<"name" | "prefix", string>> {
-  const errors: Partial<Record<"name" | "prefix", string>> = {};
-  const name = form.name.trim();
-  const prefix = form.prefix.trim().toUpperCase();
-
-  if (!name) errors.name = "กรุณากรอกชื่อ";
-  else if (name.length < 2) errors.name = "ชื่อต้องมีอย่างน้อย 2 ตัวอักษร";
-
-  if (!prefix) errors.prefix = "กรุณากรอก Prefix";
-  else if (!PREFIX_RE.test(prefix)) errors.prefix = "Prefix ต้องเป็นตัวอักษรหรือตัวเลข 2-5 ตัว";
-  else if (rows.some((r) => r.prefix.toUpperCase() === prefix && r.id !== editingId)) {
-    errors.prefix = "Prefix นี้ถูกใช้แล้ว";
-  }
-
+): FormErrors {
+  const errors: FormErrors = {};
+  const nameError = validateDoctypeName(form.name);
+  const prefixError = validateDoctypePrefix(form.prefix, rows, editingId);
+  if (nameError) errors.name = nameError;
+  if (prefixError) errors.prefix = prefixError;
   return errors;
+}
+
+function doctypeFormSnapshot(form: FormState) {
+  return JSON.stringify({
+    name: form.name,
+    prefix: form.prefix,
+    isActive: form.isActive,
+  });
+}
+
+function modalFormSnapshot(form: FormState, tab: TabKey): string {
+  switch (tab) {
+    case "doctype":
+      return doctypeFormSnapshot(form);
+    case "formtype":
+      return JSON.stringify({ name: form.name, code: form.code, isActive: form.isActive });
+    case "department":
+      return JSON.stringify({ name: form.name, code: form.code, isActive: form.isActive });
+    case "position":
+      return JSON.stringify({
+        name: form.name,
+        level: form.level,
+        department: form.department,
+        isActive: form.isActive,
+      });
+    case "workflow": {
+      const levelCount = Number(form.levels) === 4 ? 4 : 3;
+      return JSON.stringify({
+        name: form.name,
+        levels: form.levels,
+        workflowApprovers: form.workflowApprovers.slice(0, levelCount),
+        isActive: form.isActive,
+      });
+    }
+    case "signature":
+      return JSON.stringify({ approverName: form.approverName, isActive: form.isActive });
+    default:
+      return "";
+  }
+}
+
+function validateFormtypeName(name: string): string | undefined {
+  const trimmed = name.trim();
+  if (!trimmed) return "กรุณากรอกชื่อ";
+  if (trimmed.length < 2) return "ชื่อต้องมีอย่างน้อย 2 ตัวอักษร";
+  if (trimmed.length > 50) return "ชื่อต้องไม่เกิน 50 ตัวอักษร";
+  return undefined;
+}
+
+function validateFormtypeCode(
+  code: string,
+  rows: FormTypeRow[],
+  editingId: string | null
+): string | undefined {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) return "กรุณากรอกรหัส";
+  if (!FORM_CODE_RE.test(normalized)) return "รูปแบบรหัสต้องเป็นตัวพิมพ์ใหญ่คั่นด้วย - เช่น PR-FRM";
+  if (rows.some((r) => r.code.toUpperCase() === normalized && r.id !== editingId)) {
+    return "รหัสนี้ถูกใช้งานแล้ว";
+  }
+  return undefined;
 }
 
 function validateFormtypeForm(
@@ -211,19 +287,40 @@ function validateFormtypeForm(
   editingId: string | null
 ): FormErrors {
   const errors: FormErrors = {};
-  const name = form.name.trim();
-  const code = form.code.trim().toUpperCase();
-
-  if (!name) errors.name = "กรุณากรอกชื่อ";
-  else if (name.length < 2) errors.name = "ชื่อต้องมีอย่างน้อย 2 ตัวอักษร";
-
-  if (!code) errors.code = "กรุณากรอกรหัส";
-  else if (!FORM_CODE_RE.test(code)) errors.code = "รูปแบบรหัสต้องเป็นตัวพิมพ์ใหญ่คั่นด้วย - เช่น PR-FRM";
-  else if (rows.some((r) => r.code.toUpperCase() === code && r.id !== editingId)) {
-    errors.code = "รหัสนี้ถูกใช้แล้ว";
-  }
-
+  const nameError = validateFormtypeName(form.name);
+  const codeError = validateFormtypeCode(form.code, rows, editingId);
+  if (nameError) errors.name = nameError;
+  if (codeError) errors.code = codeError;
   return errors;
+}
+
+function validateDepartmentName(
+  name: string,
+  rows: DepartmentRow[],
+  editingId: string | null
+): string | undefined {
+  const trimmed = name.trim();
+  if (!trimmed) return "กรุณากรอกชื่อแผนก";
+  if (trimmed.length < 2) return "ชื่อแผนกต้องมีอย่างน้อย 2 ตัวอักษร";
+  if (trimmed.length > 50) return "ชื่อแผนกต้องไม่เกิน 50 ตัวอักษร";
+  if (rows.some((r) => r.name === trimmed && r.id !== editingId)) {
+    return "ชื่อแผนกนี้ถูกใช้แล้ว";
+  }
+  return undefined;
+}
+
+function validateDepartmentCode(
+  code: string,
+  rows: DepartmentRow[],
+  editingId: string | null
+): string | undefined {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) return "กรุณากรอกรหัส";
+  if (!DEPT_CODE_RE.test(normalized)) return "รหัสต้องเป็นตัวพิมพ์ใหญ่ 2-6 ตัว";
+  if (rows.some((r) => r.code.toUpperCase() === normalized && r.id !== editingId)) {
+    return "รหัสนี้ถูกใช้งานแล้ว";
+  }
+  return undefined;
 }
 
 function validateDepartmentForm(
@@ -232,47 +329,60 @@ function validateDepartmentForm(
   editingId: string | null
 ): FormErrors {
   const errors: FormErrors = {};
-  const name = form.name.trim();
-  const code = form.code.trim().toUpperCase();
-
-  if (!name) errors.name = "กรุณากรอกชื่อแผนก";
-  else if (name.length < 2) errors.name = "ชื่อแผนกต้องมีอย่างน้อย 2 ตัวอักษร";
-
-  if (!code) errors.code = "กรุณากรอกรหัส";
-  else if (!DEPT_CODE_RE.test(code)) errors.code = "รหัสต้องเป็นตัวพิมพ์ใหญ่หรือตัวเลข 2-10 ตัว";
-  else if (rows.some((r) => r.code.toUpperCase() === code && r.id !== editingId)) {
-    errors.code = "รหัสนี้ถูกใช้แล้ว";
-  }
-
+  const nameError = validateDepartmentName(form.name, rows, editingId);
+  const codeError = validateDepartmentCode(form.code, rows, editingId);
+  if (nameError) errors.name = nameError;
+  if (codeError) errors.code = codeError;
   return errors;
+}
+
+function validatePositionName(
+  name: string,
+  rows: PositionRow[],
+  editingId: string | null
+): string | undefined {
+  const trimmed = name.trim();
+  if (!trimmed) return "กรุณากรอกชื่อตำแหน่ง";
+  if (trimmed.length < 2) return "ชื่อตำแหน่งต้องมีอย่างน้อย 2 ตัวอักษร";
+  if (rows.some((r) => r.name === trimmed && r.id !== editingId)) {
+    return "ชื่อตำแหน่งนี้ถูกใช้แล้ว";
+  }
+  return undefined;
 }
 
 function validatePositionForm(form: FormState, rows: PositionRow[], editingId: string | null): FormErrors {
   const errors: FormErrors = {};
-  const name = form.name.trim();
-
-  if (!name) errors.name = "กรุณากรอกชื่อตำแหน่ง";
-  else if (name.length < 2) errors.name = "ชื่อตำแหน่งต้องมีอย่างน้อย 2 ตัวอักษร";
-  else if (rows.some((r) => r.name === name && r.id !== editingId)) {
-    errors.name = "ชื่อตำแหน่งนี้ถูกใช้แล้ว";
-  }
-
+  const nameError = validatePositionName(form.name, rows, editingId);
+  if (nameError) errors.name = nameError;
   if (!form.level) errors.level = "กรุณาเลือกระดับ";
   if (!form.department) errors.department = "กรุณาเลือกแผนก";
-
   return errors;
 }
 
-function validateWorkflowForm(form: FormState): FormErrors {
+function validateWorkflowForm(
+  form: FormState,
+  rows: WorkflowRow[],
+  editingId: string | null
+): FormErrors {
   const errors: FormErrors = {};
   const name = form.name.trim();
   const levelCount = Number(form.levels) === 4 ? 4 : 3;
 
   if (!name) errors.name = "กรุณากรอกชื่อ Workflow";
   else if (name.length < 2) errors.name = "ชื่อต้องมีอย่างน้อย 2 ตัวอักษร";
+  else if (rows.some((r) => r.name === name && r.id !== editingId)) {
+    errors.name = "ชื่อ Workflow นี้ถูกใช้แล้ว";
+  }
 
-  form.workflowApprovers.slice(0, levelCount).forEach((approver, idx) => {
-    if (!approver) errors[`approver_${idx}`] = "กรุณาเลือกผู้อนุมัติ";
+  const selected = form.workflowApprovers.slice(0, levelCount);
+  selected.forEach((approver, idx) => {
+    if (!approver) {
+      errors[`approver_${idx}`] = "กรุณาเลือกผู้อนุมัติ";
+      return;
+    }
+    if (selected.findIndex((a, i) => i !== idx && a === approver) !== -1) {
+      errors[`approver_${idx}`] = "ผู้อนุมัติซ้ำ";
+    }
   });
 
   return errors;
@@ -330,6 +440,7 @@ export default function MasterDataPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm());
   const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [modalBaseline, setModalBaseline] = useState("");
   const [saving, setSaving] = useState(false);
 
   const rows = useMemo(() => {
@@ -349,8 +460,10 @@ export default function MasterDataPage() {
 
   const openAdd = () => {
     setEditingId(null);
-    setForm(buildEmptyForm(data.department));
+    const nextForm = buildEmptyForm(data.department);
+    setForm(nextForm);
     setFormErrors({});
+    setModalBaseline(modalFormSnapshot(nextForm, activeTab));
     setModalOpen(true);
   };
 
@@ -359,9 +472,11 @@ export default function MasterDataPage() {
     const row = data[activeTab].find((r) => r.id === id);
     if (!row) return;
 
+    let nextForm: FormState;
+
     if (activeTab === "workflow") {
       const wf = row as WorkflowRow;
-      setForm({
+      nextForm = {
         name: wf.name,
         prefix: "",
         docCount: "0",
@@ -377,10 +492,10 @@ export default function MasterDataPage() {
         signedCount: "0",
         isActive: wf.isActive,
         workflowApprovers: syncApproverRows(wf.levels, [...wf.approvers]),
-      });
+      };
     } else if (activeTab === "signature") {
       const sig = row as SignatureRow;
-      setForm({
+      nextForm = {
         name: "",
         prefix: "",
         docCount: "0",
@@ -396,9 +511,9 @@ export default function MasterDataPage() {
         signedCount: String(sig.signedCount),
         isActive: sig.isActive,
         workflowApprovers: ["", "", ""],
-      });
+      };
     } else {
-      setForm({
+      nextForm = {
         name: "name" in row ? row.name : "",
         prefix: "prefix" in row ? row.prefix : "",
         docCount: "docCount" in row ? String(row.docCount) : "0",
@@ -414,10 +529,48 @@ export default function MasterDataPage() {
         signedCount: "signedCount" in row ? String(row.signedCount) : "0",
         isActive: row.isActive,
         workflowApprovers: ["", "", ""],
-      });
+      };
     }
+
+    setForm(nextForm);
+    setModalBaseline(modalFormSnapshot(nextForm, activeTab));
     setFormErrors({});
     setModalOpen(true);
+  };
+
+  const isModalDirty = useMemo(() => {
+    if (!modalOpen) return false;
+    return modalFormSnapshot(form, activeTab) !== modalBaseline;
+  }, [modalOpen, form, activeTab, modalBaseline]);
+
+  const isModalValid = useMemo(() => {
+    switch (activeTab) {
+      case "doctype":
+        return Object.keys(validateDoctypeForm(form, data.doctype, editingId)).length === 0;
+      case "formtype":
+        return Object.keys(validateFormtypeForm(form, data.formtype, editingId)).length === 0;
+      case "department":
+        return Object.keys(validateDepartmentForm(form, data.department, editingId)).length === 0;
+      case "position":
+        return Object.keys(validatePositionForm(form, data.position, editingId)).length === 0;
+      case "workflow":
+        return Object.keys(validateWorkflowForm(form, data.workflow, editingId)).length === 0;
+      case "signature":
+        return Object.keys(validateSignatureForm(form, data.signature, editingId)).length === 0;
+      default:
+        return true;
+    }
+  }, [activeTab, form, data, editingId]);
+
+  const closeModal = () => {
+    if (isModalDirty) {
+      if (!confirm("ยังไม่ได้บันทึกข้อมูล ต้องการปิดหน้าต่างนี้หรือไม่?")) return;
+    }
+    setModalOpen(false);
+    setEditingId(null);
+    setForm(buildEmptyForm(data.department));
+    setFormErrors({});
+    setModalBaseline("");
   };
 
   const validateCurrentTab = (): FormErrors => {
@@ -431,7 +584,7 @@ export default function MasterDataPage() {
       case "position":
         return validatePositionForm(form, data.position, editingId);
       case "workflow":
-        return validateWorkflowForm(form);
+        return validateWorkflowForm(form, data.workflow, editingId);
       case "signature":
         return validateSignatureForm(form, data.signature, editingId);
       default:
@@ -444,6 +597,7 @@ export default function MasterDataPage() {
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
+    const wasEditing = !!editingId;
     setSaving(true);
     await new Promise((r) => setTimeout(r, 500));
     const id = editingId ?? uid();
@@ -545,7 +699,11 @@ export default function MasterDataPage() {
     setEditingId(null);
     setForm(buildEmptyForm(data.department));
     setFormErrors({});
-    showToast(editingId ? "บันทึกข้อมูลสำเร็จ" : "เพิ่มข้อมูลสำเร็จ", "success");
+    setModalBaseline("");
+    showToast(
+      wasEditing ? `แก้ไข${tabLabel}สำเร็จ` : `เพิ่ม${tabLabel}สำเร็จ`,
+      "success"
+    );
   };
 
   const softDelete = (id: string) => {
@@ -567,11 +725,11 @@ export default function MasterDataPage() {
 
   const inputCls =
     "w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
-  const thCls = "h-12 px-5 text-left text-xs font-medium uppercase tracking-wide text-slate-500";
+  const thCls = "px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500";
   const thRight = `${thCls} text-right`;
-  const tdCls = "h-12 px-5 text-left text-sm text-slate-700";
-  const tdMuted = "h-12 px-5 text-left text-sm text-slate-500";
-  const tdNum = "h-12 px-5 text-right text-sm text-slate-500 tabular-nums";
+  const tdCls = "px-6 py-3 text-left text-sm text-slate-700";
+  const tdMuted = "px-6 py-3 text-left text-sm text-slate-500";
+  const tdNum = "px-6 py-3 text-right text-sm text-slate-500 tabular-nums";
   const btnGhost = "rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
   const btnDanger = "rounded-md px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50";
 
@@ -711,6 +869,15 @@ export default function MasterDataPage() {
     [data.department]
   );
 
+  const setFieldError = (key: string, err: string | undefined) => {
+    setFormErrors((prev) => {
+      const next = { ...prev };
+      if (err) next[key] = err;
+      else delete next[key];
+      return next;
+    });
+  };
+
   const clearError = (key: string) => {
     if (formErrors[key]) {
       setFormErrors((e) => {
@@ -759,63 +926,131 @@ export default function MasterDataPage() {
 
   const renderFormFields = () => {
     if (activeTab === "doctype") {
+      const prefixPreview = form.prefix.trim().toUpperCase() || "XX";
       return (
         <>
-          <Field
-            label="ชื่อ"
-            value={form.name}
-            onChange={(v) => {
-              setForm((f) => ({ ...f, name: v }));
-              if (formErrors.name) clearError("name");
-            }}
-            inputClassName={formErrors.name ? inputErrorCls : inputCls}
-            error={formErrors.name}
-          />
-          <Field
-            label="Prefix"
-            value={form.prefix}
-            onChange={(v) => {
-              setForm((f) => ({
-                ...f,
-                prefix: v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5),
-              }));
-              if (formErrors.prefix) clearError("prefix");
-            }}
-            inputClassName={formErrors.prefix ? inputErrorCls : inputCls}
-            error={formErrors.prefix}
-            maxLength={5}
-          />
+          <div className="mb-3">
+            <label className="mb-1.5 block text-xs text-slate-500">ชื่อ</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={form.name}
+                maxLength={50}
+                onChange={(e) => {
+                  const value = e.target.value.slice(0, 50);
+                  setForm((f) => ({ ...f, name: value }));
+                  if (formErrors.name) {
+                    const err = validateDoctypeName(value);
+                    setFormErrors((prev) => {
+                      const next = { ...prev };
+                      if (err) next.name = err;
+                      else delete next.name;
+                      return next;
+                    });
+                  }
+                }}
+                onBlur={() => {
+                  const err = validateDoctypeName(form.name);
+                  setFormErrors((prev) => {
+                    const next = { ...prev };
+                    if (err) next.name = err;
+                    else delete next.name;
+                    return next;
+                  });
+                }}
+                className={`${formErrors.name ? inputErrorCls : inputCls} pr-14`}
+              />
+              <span className="pointer-events-none absolute bottom-2 right-2 text-xs text-slate-400">
+                {form.name.length}/50
+              </span>
+            </div>
+            {formErrors.name && <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>}
+          </div>
+          <div className="mb-3">
+            <label className="mb-1.5 block text-xs text-slate-500">Prefix</label>
+            <input
+              type="text"
+              value={form.prefix}
+              maxLength={5}
+              onChange={(e) => {
+                const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
+                setForm((f) => ({ ...f, prefix: value }));
+                if (formErrors.prefix) {
+                  const err = validateDoctypePrefix(value, data.doctype, editingId);
+                  setFormErrors((prev) => {
+                    const next = { ...prev };
+                    if (err) next.prefix = err;
+                    else delete next.prefix;
+                    return next;
+                  });
+                }
+              }}
+              onBlur={() => {
+                const err = validateDoctypePrefix(form.prefix, data.doctype, editingId);
+                setFormErrors((prev) => {
+                  const next = { ...prev };
+                  if (err) next.prefix = err;
+                  else delete next.prefix;
+                  return next;
+                });
+              }}
+              className={formErrors.prefix ? inputErrorCls : inputCls}
+            />
+            <p className="mt-1 text-xs text-slate-400">
+              ตัวอย่าง: {prefixPreview}-2569-0001
+            </p>
+            {formErrors.prefix && <p className="mt-1 text-xs text-red-500">{formErrors.prefix}</p>}
+          </div>
           {editingId && renderReadOnlyCount("จำนวนเอกสาร", form.docCount, "นับอัตโนมัติจากเอกสารที่ใช้ประเภทนี้")}
           {renderStatusToggle()}
         </>
       );
     }
     if (activeTab === "formtype") {
+      const codePreview = form.code.trim().toUpperCase() || "XX-FRM";
       return (
         <>
-          <Field
-            label="ชื่อ"
-            value={form.name}
-            onChange={(v) => {
-              setForm((f) => ({ ...f, name: v }));
-              clearError("name");
-            }}
-            inputClassName={formErrors.name ? inputErrorCls : inputCls}
-            error={formErrors.name}
-          />
-          <Field
-            label="รหัส"
-            value={form.code}
-            onChange={(v) => {
-              setForm((f) => ({
-                ...f,
-                code: v.toUpperCase().replace(/[^A-Z0-9-]/g, ""),
-              }));
-              clearError("code");
-            }}
-            inputClassName={formErrors.code ? inputErrorCls : inputCls}
-            error={formErrors.code}
-          />
+          <div className="mb-3">
+            <label className="mb-1.5 block text-xs text-slate-500">ชื่อ</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={form.name}
+                maxLength={50}
+                onChange={(e) => {
+                  const value = e.target.value.slice(0, 50);
+                  setForm((f) => ({ ...f, name: value }));
+                  if (formErrors.name) setFieldError("name", validateFormtypeName(value));
+                }}
+                onBlur={() => setFieldError("name", validateFormtypeName(form.name))}
+                className={`${formErrors.name ? inputErrorCls : inputCls} pr-14`}
+              />
+              <span className="pointer-events-none absolute bottom-2 right-2 text-xs text-slate-400">
+                {form.name.length}/50
+              </span>
+            </div>
+            {formErrors.name && <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>}
+          </div>
+          <div className="mb-3">
+            <label className="mb-1.5 block text-xs text-slate-500">รหัส</label>
+            <input
+              type="text"
+              value={form.code}
+              onChange={(e) => {
+                const value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+                setForm((f) => ({ ...f, code: value }));
+                if (formErrors.code) {
+                  setFieldError("code", validateFormtypeCode(value, data.formtype, editingId));
+                }
+              }}
+              onBlur={() =>
+                setFieldError("code", validateFormtypeCode(form.code, data.formtype, editingId))
+              }
+              className={formErrors.code ? inputErrorCls : inputCls}
+            />
+            <p className="mt-1 text-xs text-slate-400">ตัวอย่าง: {codePreview}-0001</p>
+            {formErrors.code && <p className="mt-1 text-xs text-red-500">{formErrors.code}</p>}
+          </div>
           {editingId && renderReadOnlyCount("จำนวนฟิลด์", form.fieldsCount, "นับอัตโนมัติจากฟิลด์ที่กำหนดในฟอร์ม")}
           {renderStatusToggle()}
         </>
@@ -824,30 +1059,51 @@ export default function MasterDataPage() {
     if (activeTab === "department") {
       return (
         <>
-          <Field
-            label="ชื่อแผนก"
-            value={form.name}
-            onChange={(v) => {
-              setForm((f) => ({ ...f, name: v }));
-              clearError("name");
-            }}
-            inputClassName={formErrors.name ? inputErrorCls : inputCls}
-            error={formErrors.name}
-          />
-          <Field
-            label="รหัส"
-            value={form.code}
-            onChange={(v) => {
-              setForm((f) => ({
-                ...f,
-                code: v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10),
-              }));
-              clearError("code");
-            }}
-            inputClassName={formErrors.code ? inputErrorCls : inputCls}
-            error={formErrors.code}
-            maxLength={10}
-          />
+          <div className="mb-3">
+            <label className="mb-1.5 block text-xs text-slate-500">ชื่อแผนก</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={form.name}
+                maxLength={50}
+                onChange={(e) => {
+                  const value = e.target.value.slice(0, 50);
+                  setForm((f) => ({ ...f, name: value }));
+                  if (formErrors.name) {
+                    setFieldError("name", validateDepartmentName(value, data.department, editingId));
+                  }
+                }}
+                onBlur={() =>
+                  setFieldError("name", validateDepartmentName(form.name, data.department, editingId))
+                }
+                className={`${formErrors.name ? inputErrorCls : inputCls} pr-14`}
+              />
+              <span className="pointer-events-none absolute bottom-2 right-2 text-xs text-slate-400">
+                {form.name.length}/50
+              </span>
+            </div>
+            {formErrors.name && <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>}
+          </div>
+          <div className="mb-3">
+            <label className="mb-1.5 block text-xs text-slate-500">รหัส</label>
+            <input
+              type="text"
+              value={form.code}
+              maxLength={6}
+              onChange={(e) => {
+                const value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 6);
+                setForm((f) => ({ ...f, code: value }));
+                if (formErrors.code) {
+                  setFieldError("code", validateDepartmentCode(value, data.department, editingId));
+                }
+              }}
+              onBlur={() =>
+                setFieldError("code", validateDepartmentCode(form.code, data.department, editingId))
+              }
+              className={formErrors.code ? inputErrorCls : inputCls}
+            />
+            {formErrors.code && <p className="mt-1 text-xs text-red-500">{formErrors.code}</p>}
+          </div>
           {editingId && renderReadOnlyCount("จำนวนพนักงาน", form.employeeCount, "นับอัตโนมัติจากพนักงานในแผนก")}
           {renderStatusToggle()}
         </>
@@ -861,8 +1117,13 @@ export default function MasterDataPage() {
             value={form.name}
             onChange={(v) => {
               setForm((f) => ({ ...f, name: v }));
-              clearError("name");
+              if (formErrors.name) {
+                setFieldError("name", validatePositionName(v, data.position, editingId));
+              }
             }}
+            onBlur={() =>
+              setFieldError("name", validatePositionName(form.name, data.position, editingId))
+            }
             inputClassName={formErrors.name ? inputErrorCls : inputCls}
             error={formErrors.name}
           />
@@ -874,6 +1135,9 @@ export default function MasterDataPage() {
               onChange={(e) => {
                 setForm((f) => ({ ...f, level: e.target.value }));
                 clearError("level");
+              }}
+              onBlur={() => {
+                if (!form.level) setFieldError("level", "กรุณาเลือกระดับ");
               }}
             >
               {LEVEL_OPTIONS.map((lvl) => (
@@ -893,6 +1157,9 @@ export default function MasterDataPage() {
                 setForm((f) => ({ ...f, department: e.target.value }));
                 clearError("department");
               }}
+              onBlur={() => {
+                if (!form.department) setFieldError("department", "กรุณาเลือกแผนก");
+              }}
             >
               <option value="">เลือกแผนก</option>
               {activeDepartments.map((dept) => (
@@ -909,6 +1176,21 @@ export default function MasterDataPage() {
     }
     if (activeTab === "workflow") {
       const levelCount = Number(form.levels) === 4 ? 4 : 3;
+      const syncApproverErrors = (approvers: string[]) => {
+        const selected = approvers.slice(0, levelCount);
+        const nextErrors = { ...formErrors };
+        for (let i = 0; i < levelCount; i += 1) {
+          delete nextErrors[`approver_${i}`];
+        }
+        selected.forEach((approver, idx) => {
+          if (!approver) nextErrors[`approver_${idx}`] = "กรุณาเลือกผู้อนุมัติ";
+          else if (selected.findIndex((a, i) => i !== idx && a === approver) !== -1) {
+            nextErrors[`approver_${idx}`] = "ผู้อนุมัติซ้ำ";
+          }
+        });
+        setFormErrors(nextErrors);
+      };
+
       return (
         <>
           <Field
@@ -916,7 +1198,20 @@ export default function MasterDataPage() {
             value={form.name}
             onChange={(v) => {
               setForm((f) => ({ ...f, name: v }));
-              clearError("name");
+              if (formErrors.name) {
+                const err = validateWorkflowForm(
+                  { ...form, name: v },
+                  data.workflow,
+                  editingId
+                ).name;
+                setFieldError("name", err);
+              }
+            }}
+            onBlur={() => {
+              setFieldError(
+                "name",
+                validateWorkflowForm(form, data.workflow, editingId).name
+              );
             }}
             inputClassName={formErrors.name ? inputErrorCls : inputCls}
             error={formErrors.name}
@@ -928,11 +1223,13 @@ export default function MasterDataPage() {
               value={form.levels}
               onChange={(e) => {
                 const levels = e.target.value;
+                const nextApprovers = syncApproverRows(Number(levels), form.workflowApprovers);
                 setForm((f) => ({
                   ...f,
                   levels,
-                  workflowApprovers: syncApproverRows(Number(levels), f.workflowApprovers),
+                  workflowApprovers: nextApprovers,
                 }));
+                syncApproverErrors(nextApprovers);
               }}
             >
               <option value="3">3</option>
@@ -943,33 +1240,36 @@ export default function MasterDataPage() {
             <label className="mb-1.5 block text-xs text-slate-500">ผู้อนุมัติ</label>
             <div className="space-y-2">
               {form.workflowApprovers.slice(0, levelCount).map((approver, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <span className="w-8 shrink-0 text-xs font-medium text-slate-400">{idx + 1}</span>
-                  <select
-                    className={formErrors[`approver_${idx}`] ? inputErrorCls : inputCls}
-                    value={approver}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setForm((f) => {
-                        const next = [...f.workflowApprovers];
-                        next[idx] = value;
-                        return { ...f, workflowApprovers: next };
-                      });
-                      clearError(`approver_${idx}`);
-                    }}
-                  >
-                    <option value="">เลือกผู้อนุมัติ</option>
-                    {MOCK_APPROVERS.map((user) => (
-                      <option key={user.name} value={user.name}>
-                        {user.name}
-                      </option>
-                    ))}
-                  </select>
+                <div key={idx}>
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 shrink-0 text-xs font-medium text-slate-400">{idx + 1}</span>
+                    <select
+                      className={formErrors[`approver_${idx}`] ? inputErrorCls : inputCls}
+                      value={approver}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setForm((f) => {
+                          const next = [...f.workflowApprovers];
+                          next[idx] = value;
+                          syncApproverErrors(next);
+                          return { ...f, workflowApprovers: next };
+                        });
+                      }}
+                      onBlur={() => syncApproverErrors(form.workflowApprovers)}
+                    >
+                      <option value="">เลือกผู้อนุมัติ</option>
+                      {MOCK_APPROVERS.map((user) => (
+                        <option key={user.name} value={user.name}>
+                          {user.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {formErrors[`approver_${idx}`] && (
+                    <p className="ml-10 mt-1 text-xs text-red-500">{formErrors[`approver_${idx}`]}</p>
+                  )}
                 </div>
               ))}
-              {Object.keys(formErrors).some((k) => k.startsWith("approver_")) && (
-                <p className="text-xs text-red-500">กรุณาเลือกผู้อนุมัติทุกลำดับ</p>
-              )}
             </div>
           </div>
           {renderReadOnlyCount("จำนวนผู้อนุมัติ", String(levelCount), "อัปเดตอัตโนมัติตามจำนวน Level")}
@@ -992,8 +1292,23 @@ export default function MasterDataPage() {
                 approverName: name,
                 position: user?.position ?? "",
               }));
-              clearError("approverName");
+              if (formErrors.approverName) {
+                setFieldError(
+                  "approverName",
+                  validateSignatureForm(
+                    { ...form, approverName: name, position: user?.position ?? "" },
+                    data.signature,
+                    editingId
+                  ).approverName
+                );
+              }
             }}
+            onBlur={() =>
+              setFieldError(
+                "approverName",
+                validateSignatureForm(form, data.signature, editingId).approverName
+              )
+            }
           >
             <option value="">เลือกผู้อนุมัติ</option>
             {MOCK_APPROVERS.map((user) => (
@@ -1042,9 +1357,9 @@ export default function MasterDataPage() {
         </div>
       </header>
 
-      <div className="flex items-start gap-6 p-6 pb-8">
-        <aside className="flex w-52 shrink-0 flex-col self-start rounded-lg border border-gray-200 bg-white shadow-sm">
-          <nav className="space-y-1 p-3">
+      <div className="flex items-start gap-6 p-6">
+        <aside className="w-[220px] shrink-0 self-start rounded-lg border border-gray-200 bg-white shadow-sm">
+          <nav className="space-y-1 p-6">
             {TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -1063,7 +1378,7 @@ export default function MasterDataPage() {
           </nav>
         </aside>
 
-        <section className="min-w-0 flex-1 space-y-4">
+        <section className="min-w-0 flex-1 space-y-6">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-sm font-medium text-slate-800">{tabLabel}</h2>
             <label className="flex items-center gap-2 text-sm text-slate-500">
@@ -1079,7 +1394,7 @@ export default function MasterDataPage() {
 
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             {rows.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-3 px-5 py-16 text-center">
+              <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
                 <Inbox className="size-10 text-slate-300" />
                 <p className="text-sm text-slate-500">
                   {showDeleted ? "ไม่มีรายการที่ลบ" : "ไม่มีข้อมูล"}
@@ -1100,10 +1415,10 @@ export default function MasterDataPage() {
                   </thead>
                   <tbody>
                     {rows.map((row) => (
-                      <tr key={row.id} className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50">
+                      <tr key={row.id} className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80">
                         {renderCells(row)}
-                        <td className="h-12 px-5 text-left">{statusPill(row.isActive)}</td>
-                        <td className="h-12 px-5 text-right">
+                        <td className="px-6 py-3 text-left">{statusPill(row.isActive)}</td>
+                        <td className="px-6 py-3 text-right">
                           {row.isActive ? (
                             <div className="flex justify-end gap-1">
                               <button type="button" onClick={() => openEdit(row.id)} className={btnGhost}>
@@ -1127,30 +1442,30 @@ export default function MasterDataPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="flex size-9 items-center justify-center rounded-md bg-blue-50">
-                <Layers className="size-4 text-blue-600" />
+          <div className="grid grid-cols-3 gap-4">
+            <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                <Layers className="size-5 text-blue-600" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-lg font-semibold text-slate-800">{tabStats.total}</p>
                 <p className="text-xs text-slate-500">ทั้งหมด</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="flex size-9 items-center justify-center rounded-md bg-green-50">
-                <CheckCircle2 className="size-4 text-green-600" />
+            <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-50">
+                <CheckCircle2 className="size-5 text-green-600" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-lg font-semibold text-slate-800">{tabStats.active}</p>
                 <p className="text-xs text-slate-500">ใช้งาน</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="flex size-9 items-center justify-center rounded-md bg-red-50">
-                <Trash2 className="size-4 text-red-600" />
+            <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50">
+                <Trash2 className="size-5 text-red-600" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-lg font-semibold text-slate-800">{tabStats.deleted}</p>
                 <p className="text-xs text-slate-500">ลบแล้ว</p>
               </div>
@@ -1160,21 +1475,33 @@ export default function MasterDataPage() {
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6">
-          <div className={`w-full rounded-lg border border-gray-200 bg-white p-5 shadow-sm ${activeTab === "workflow" ? "max-w-lg" : "max-w-md"}`}>
-            <h2 className="text-sm font-medium text-slate-800">
-              {editingId ? "แก้ไข" : "เพิ่ม"} {tabLabel}
-            </h2>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6"
+          onClick={closeModal}
+        >
+          <div
+            className={`relative w-full rounded-lg border border-gray-200 bg-white p-5 shadow-sm ${activeTab === "workflow" ? "max-w-lg" : "max-w-md"}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="text-sm font-medium text-slate-800">
+                {editingId ? "แก้ไข" : "เพิ่ม"} {tabLabel}
+              </h2>
+              <button
+                type="button"
+                onClick={closeModal}
+                disabled={saving}
+                className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
+                aria-label="ปิด"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
             <div className="mt-4 space-y-3">{renderFormFields()}</div>
             <div className="mt-6 flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setModalOpen(false);
-                  setEditingId(null);
-                  setForm(buildEmptyForm(data.department));
-                  setFormErrors({});
-                }}
+                onClick={closeModal}
                 disabled={saving}
                 className="rounded-md px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
               >
@@ -1183,7 +1510,7 @@ export default function MasterDataPage() {
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={saving}
+                disabled={saving || !isModalValid}
                 className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
               >
                 {saving && <Loader2 className="size-4 animate-spin" />}
@@ -1205,6 +1532,7 @@ function Field({
   inputClassName,
   error,
   maxLength,
+  onBlur,
 }: {
   label: string;
   value: string;
@@ -1213,6 +1541,7 @@ function Field({
   inputClassName?: string;
   error?: string;
   maxLength?: number;
+  onBlur?: () => void;
 }) {
   return (
     <div className="mb-3">
@@ -1226,6 +1555,7 @@ function Field({
         value={value}
         maxLength={maxLength}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
       />
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
