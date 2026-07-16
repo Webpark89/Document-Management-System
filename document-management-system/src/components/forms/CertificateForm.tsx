@@ -6,6 +6,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
 } from "./ApprovalWorkflowSection";
+import { buildWorkflowStepsForMatrixKey } from "@/lib/config-mock";
 
 export interface CertificateSubmitData {
   title: string;
@@ -63,20 +64,9 @@ export default function CertificateForm({
   const [expiryDate, setExpiryDate] = useState(nextYearStr);
   const [detail, setDetail] = useState("");
 
-  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([
-    {
-      id: "1",
-      stepOrder: 1,
-      roleName: "เจ้าหน้าที่ HR (HR Officer)",
-      approverName: "กิตติศักดิ์ พรหมมา",
-    },
-    {
-      id: "2",
-      stepOrder: 2,
-      roleName: "ผู้จัดการฝ่าย HR (HR Manager)",
-      approverName: "สมชาย ใจดี",
-    },
-  ]);
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>(() =>
+    buildWorkflowStepsForMatrixKey("Certificate")
+  );
 
   const triggerSubmit = (isDraft: boolean) => {
     if (!title.trim() || !issuedTo.trim()) {

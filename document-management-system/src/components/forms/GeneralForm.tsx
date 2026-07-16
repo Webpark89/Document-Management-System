@@ -6,6 +6,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
 } from "./ApprovalWorkflowSection";
+import { buildWorkflowStepsForMatrixKey } from "@/lib/config-mock";
 
 export interface GeneralSubmitData {
   title: string;
@@ -55,14 +56,9 @@ export default function GeneralForm({
   const [detail, setDetail] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
-  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([
-    {
-      id: "1",
-      stepOrder: 1,
-      roleName: "หัวหน้าแผนก (Department Head)",
-      approverName: "สมชาย ใจดี",
-    },
-  ]);
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>(() =>
+    buildWorkflowStepsForMatrixKey("General")
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

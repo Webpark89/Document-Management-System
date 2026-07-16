@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import {
   Building2,
   CheckCircle2,
-  FileType2,
-  FormInput,
+  FileStack,
   GitBranch,
+  Hash,
   Inbox,
   Layers,
   Loader2,
@@ -17,61 +19,34 @@ import {
   X,
 } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
+import {
+  countActivePositionsInDepartment,
+  countUsersInDepartment,
+  countUsersWithPosition,
+  countWorkflowsUsingApprover,
+  createInitialMasterTabData,
+  formatApproverLabel,
+  getApproverUsers,
+  LEVEL_OPTIONS,
+  type DepartmentRecord,
+  type MasterDocumentTypeRecord,
+  type PositionRecord,
+  type SignatureRecord,
+  type WorkflowRecord,
+} from "@/lib/config-mock";
+import DocumentRunningTab from "./DocumentRunningTab";
 
-type TabKey = "doctype" | "formtype" | "department" | "position" | "workflow" | "signature";
+type TabKey = "doctype" | "department" | "position" | "workflow" | "signature" | "running";
+type DataTabKey = Exclude<TabKey, "running">;
 
-interface DocTypeRow {
-  id: string;
-  name: string;
-  prefix: string;
-  docCount: number;
-  isActive: boolean;
-}
-
-interface FormTypeRow {
-  id: string;
-  name: string;
-  code: string;
-  fieldsCount: number;
-  isActive: boolean;
-}
-
-interface DepartmentRow {
-  id: string;
-  name: string;
-  code: string;
-  employeeCount: number;
-  isActive: boolean;
-}
-
-interface PositionRow {
-  id: string;
-  name: string;
-  level: string;
-  department: string;
-  isActive: boolean;
-}
-
-interface WorkflowRow {
-  id: string;
-  name: string;
-  levels: 3 | 4;
-  approverCount: number;
-  approvers: string[];
-  isActive: boolean;
-}
-
-interface SignatureRow {
-  id: string;
-  approverName: string;
-  position: string;
-  signedCount: number;
-  isActive: boolean;
-}
+interface DocTypeRow extends MasterDocumentTypeRecord {}
+interface DepartmentRow extends DepartmentRecord {}
+interface PositionRow extends PositionRecord {}
+interface WorkflowRow extends WorkflowRecord {}
+interface SignatureRow extends SignatureRecord {}
 
 type TabData = {
   doctype: DocTypeRow[];
-  formtype: FormTypeRow[];
   department: DepartmentRow[];
   position: PositionRow[];
   workflow: WorkflowRow[];
@@ -79,81 +54,20 @@ type TabData = {
 };
 
 const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
-  { key: "doctype", label: "ประเภทเอกสาร", icon: FileType2 },
-  { key: "formtype", label: "ประเภทฟอร์ม", icon: FormInput },
   { key: "department", label: "แผนก", icon: Building2 },
   { key: "position", label: "ตำแหน่ง", icon: Stamp },
   { key: "workflow", label: "Workflow", icon: GitBranch },
   { key: "signature", label: "ลายเซ็น", icon: PenLine },
+  { key: "running", label: "รูปแบบเลขที่เอกสาร", icon: Hash },
 ];
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-const SEED: TabData = {
-  doctype: [
-    { id: "1", name: "ใบขอซื้อ (PR)", prefix: "PR", docCount: 24, isActive: true },
-    { id: "2", name: "ใบสั่งซื้อ (PO)", prefix: "PO", docCount: 18, isActive: true },
-    { id: "3", name: "ใบรับรอง", prefix: "CERT", docCount: 5, isActive: true },
-  ],
-  formtype: [
-    { id: "1", name: "ฟอร์ม PR", code: "PR-FRM", fieldsCount: 12, isActive: true },
-    { id: "2", name: "ฟอร์ม PO", code: "PO-FRM", fieldsCount: 15, isActive: true },
-    { id: "3", name: "ฟอร์มใบรับรอง", code: "CERT-FRM", fieldsCount: 8, isActive: true },
-  ],
-  department: [
-    { id: "1", name: "แผนกจัดซื้อ", code: "PROC", employeeCount: 12, isActive: true },
-    { id: "2", name: "แผนกบัญชี", code: "ACC", employeeCount: 8, isActive: true },
-    { id: "3", name: "แผนกคลังสินค้า", code: "WH", employeeCount: 15, isActive: true },
-    { id: "4", name: "แผนก IT", code: "IT", employeeCount: 6, isActive: true },
-  ],
-  position: [
-    { id: "1", name: "ผู้จัดการ", level: "L3", department: "แผนกจัดซื้อ", isActive: true },
-    { id: "2", name: "เจ้าหน้าที่", level: "L1", department: "แผนกบัญชี", isActive: true },
-    { id: "3", name: "หัวหน้าแผนก", level: "L2", department: "แผนกคลังสินค้า", isActive: true },
-  ],
-  workflow: [
-    {
-      id: "1",
-      name: "อนุมัติ PR",
-      levels: 3,
-      approverCount: 3,
-      approvers: ["สมชาย ใจดี", "วิภา รักดี", "ประเสริฐ มีสุข"],
-      isActive: true,
-    },
-    {
-      id: "2",
-      name: "อนุมัติ PO",
-      levels: 4,
-      approverCount: 4,
-      approvers: ["สมชาย ใจดี", "วิภา รักดี", "ประเสริฐ มีสุข", "นภา สุขใจ"],
-      isActive: true,
-    },
-    {
-      id: "3",
-      name: "อนุมัติใบรับรอง",
-      levels: 3,
-      approverCount: 3,
-      approvers: ["สมชาย ใจดี", "วิภา รักดี", "ประเสริฐ มีสุข"],
-      isActive: true,
-    },
-  ],
-  signature: [
-    { id: "1", approverName: "สมชาย ใจดี", position: "ผู้จัดการแผนกจัดซื้อ", signedCount: 42, isActive: true },
-    { id: "2", approverName: "วิภา รักดี", position: "หัวหน้าแผนกบัญชี", signedCount: 28, isActive: true },
-    { id: "3", approverName: "ประเสริฐ มีสุข", position: "ผู้อำนวยการ", signedCount: 15, isActive: true },
-  ],
-};
+const SEED = createInitialMasterTabData();
 
-const MOCK_APPROVERS = [
-  { name: "สมชาย ใจดี", position: "ผู้จัดการแผนกจัดซื้อ" },
-  { name: "วิภา รักดี", position: "หัวหน้าแผนกบัญชี" },
-  { name: "ประเสริฐ มีสุข", position: "ผู้อำนวยการ" },
-  { name: "นภา สุขใจ", position: "เจ้าหน้าที่แผนก IT" },
-] as const;
-
-const LEVEL_OPTIONS = ["L1", "L2", "L3", "L4", "Executive"] as const;
+const APPROVER_USERS = getApproverUsers();
 
 type FormState = {
   name: string;
@@ -176,7 +90,6 @@ type FormState = {
 type FormErrors = Record<string, string>;
 
 const PREFIX_RE = /^[A-Z0-9]{2,5}$/;
-const FORM_CODE_RE = /^[A-Z0-9]+(-[A-Z0-9]+)+$/;
 const DEPT_CODE_RE = /^[A-Z]{2,6}$/;
 
 function syncApproverRows(levelCount: number, current: string[]): string[] {
@@ -232,8 +145,6 @@ function modalFormSnapshot(form: FormState, tab: TabKey): string {
   switch (tab) {
     case "doctype":
       return doctypeFormSnapshot(form);
-    case "formtype":
-      return JSON.stringify({ name: form.name, code: form.code, isActive: form.isActive });
     case "department":
       return JSON.stringify({ name: form.name, code: form.code, isActive: form.isActive });
     case "position":
@@ -257,41 +168,6 @@ function modalFormSnapshot(form: FormState, tab: TabKey): string {
     default:
       return "";
   }
-}
-
-function validateFormtypeName(name: string): string | undefined {
-  const trimmed = name.trim();
-  if (!trimmed) return "กรุณากรอกชื่อ";
-  if (trimmed.length < 2) return "ชื่อต้องมีอย่างน้อย 2 ตัวอักษร";
-  if (trimmed.length > 50) return "ชื่อต้องไม่เกิน 50 ตัวอักษร";
-  return undefined;
-}
-
-function validateFormtypeCode(
-  code: string,
-  rows: FormTypeRow[],
-  editingId: string | null
-): string | undefined {
-  const normalized = code.trim().toUpperCase();
-  if (!normalized) return "กรุณากรอกรหัส";
-  if (!FORM_CODE_RE.test(normalized)) return "รูปแบบรหัสต้องเป็นตัวพิมพ์ใหญ่คั่นด้วย - เช่น PR-FRM";
-  if (rows.some((r) => r.code.toUpperCase() === normalized && r.id !== editingId)) {
-    return "รหัสนี้ถูกใช้งานแล้ว";
-  }
-  return undefined;
-}
-
-function validateFormtypeForm(
-  form: FormState,
-  rows: FormTypeRow[],
-  editingId: string | null
-): FormErrors {
-  const errors: FormErrors = {};
-  const nameError = validateFormtypeName(form.name);
-  const codeError = validateFormtypeCode(form.code, rows, editingId);
-  if (nameError) errors.name = nameError;
-  if (codeError) errors.code = codeError;
-  return errors;
 }
 
 function validateDepartmentName(
@@ -431,9 +307,84 @@ function buildEmptyForm(departments: DepartmentRow[]): FormState {
   };
 }
 
+function getDeleteGuard(
+  tab: DataTabKey,
+  row: TabData[DataTabKey][number],
+  data: TabData
+): { blocked: boolean; tooltip: string } {
+  if (tab === "department") {
+    const r = row as DepartmentRow;
+    const n = Math.max(r.employeeCount, countUsersInDepartment(r.name));
+    if (n > 0) {
+      return {
+        blocked: true,
+        tooltip: `ไม่สามารถลบได้ เนื่องจากมีพนักงาน ${n} คนอยู่ในแผนกนี้ — กรุณาปิดใช้งานแทน`,
+      };
+    }
+  }
+  if (tab === "position") {
+    const r = row as PositionRow;
+    const n = countUsersWithPosition(r.name);
+    if (n > 0) {
+      return {
+        blocked: true,
+        tooltip: `ไม่สามารถลบได้ เนื่องจากมีพนักงาน ${n} คนใช้ตำแหน่งนี้อยู่ — กรุณาปิดใช้งานแทน`,
+      };
+    }
+  }
+  if (tab === "signature") {
+    const r = row as SignatureRow;
+    const n = countWorkflowsUsingApprover(r.approverName, data.workflow);
+    if (n > 0) {
+      return {
+        blocked: true,
+        tooltip: `ไม่สามารถลบได้ เนื่องจากถูกใช้ในสายอนุมัติ ${n} รายการ`,
+      };
+    }
+  }
+  return { blocked: false, tooltip: "ลบรายการ" };
+}
+
+function DeleteGuardButton({
+  blocked,
+  tooltip,
+  onDelete,
+  className,
+}: {
+  blocked: boolean;
+  tooltip: string;
+  onDelete: () => void;
+  className: string;
+}) {
+  return (
+    <span className="group relative inline-flex">
+      <button type="button" onClick={onDelete} disabled={blocked} className={className}>
+        ลบ
+      </button>
+      {blocked && (
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 hidden w-64 rounded-md bg-slate-800 px-2.5 py-1.5 text-xs leading-snug text-white shadow-lg group-hover:block"
+        >
+          {tooltip}
+        </span>
+      )}
+    </span>
+  );
+}
+
 export default function MasterDataPage() {
+  return (
+    <Suspense fallback={<div className="h-fit w-full bg-gray-50" />}>
+      <MasterDataPageContent />
+    </Suspense>
+  );
+}
+
+function MasterDataPageContent() {
+  const searchParams = useSearchParams();
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<TabKey>("doctype");
+  const [activeTab, setActiveTab] = useState<TabKey>("department");
   const [data, setData] = useState<TabData>(SEED);
   const [showDeleted, setShowDeleted] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -443,14 +394,26 @@ export default function MasterDataPage() {
   const [modalBaseline, setModalBaseline] = useState("");
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const valid: TabKey[] = ["department", "position", "workflow", "signature", "running"];
+    if (tab === "formtype") {
+      setActiveTab("department");
+    } else if (tab && valid.includes(tab as TabKey)) {
+      setActiveTab(tab as TabKey);
+    }
+  }, [searchParams]);
+
   const rows = useMemo(() => {
-    const list = data[activeTab];
+    if (activeTab === "running") return [];
+    const list = data[activeTab as DataTabKey];
     return showDeleted ? list.filter((r) => !r.isActive) : list.filter((r) => r.isActive);
   }, [data, activeTab, showDeleted]);
 
   const tabLabel = TABS.find((t) => t.key === activeTab)?.label ?? "Master Data";
   const tabStats = useMemo(() => {
-    const list = data[activeTab];
+    if (activeTab === "running") return { total: 0, active: 0, deleted: 0 };
+    const list = data[activeTab as DataTabKey];
     return {
       total: list.length,
       active: list.filter((r) => r.isActive).length,
@@ -469,7 +432,7 @@ export default function MasterDataPage() {
 
   const openEdit = (id: string) => {
     setEditingId(id);
-    const row = data[activeTab].find((r) => r.id === id);
+    const row = data[activeTab as DataTabKey].find((r) => r.id === id);
     if (!row) return;
 
     let nextForm: FormState;
@@ -547,8 +510,6 @@ export default function MasterDataPage() {
     switch (activeTab) {
       case "doctype":
         return Object.keys(validateDoctypeForm(form, data.doctype, editingId)).length === 0;
-      case "formtype":
-        return Object.keys(validateFormtypeForm(form, data.formtype, editingId)).length === 0;
       case "department":
         return Object.keys(validateDepartmentForm(form, data.department, editingId)).length === 0;
       case "position":
@@ -577,8 +538,6 @@ export default function MasterDataPage() {
     switch (activeTab) {
       case "doctype":
         return validateDoctypeForm(form, data.doctype, editingId);
-      case "formtype":
-        return validateFormtypeForm(form, data.formtype, editingId);
       case "department":
         return validateDepartmentForm(form, data.department, editingId);
       case "position":
@@ -617,20 +576,6 @@ export default function MasterDataPage() {
           if (idx >= 0) list[idx] = row;
           else list.push(row);
           return { ...prev, doctype: list };
-        }
-        case "formtype": {
-          const list = [...prev.formtype];
-          const idx = list.findIndex((r) => r.id === id);
-          const row: FormTypeRow = {
-            id,
-            name: form.name.trim(),
-            code: form.code.trim().toUpperCase(),
-            fieldsCount: idx >= 0 ? list[idx].fieldsCount : 0,
-            isActive: form.isActive,
-          };
-          if (idx >= 0) list[idx] = row;
-          else list.push(row);
-          return { ...prev, formtype: list };
         }
         case "department": {
           const list = [...prev.department];
@@ -691,6 +636,8 @@ export default function MasterDataPage() {
           else list.push(row);
           return { ...prev, signature: list };
         }
+        default:
+          return prev;
       }
     });
 
@@ -707,10 +654,15 @@ export default function MasterDataPage() {
   };
 
   const softDelete = (id: string) => {
+    if (activeTab === "running") return;
+    const row = data[activeTab as DataTabKey].find((r) => r.id === id);
+    if (!row) return;
+    const guard = getDeleteGuard(activeTab as DataTabKey, row, data);
+    if (guard.blocked) return;
     if (!confirm("ยืนยันการลบรายการนี้?")) return;
     setData((prev) => ({
       ...prev,
-      [activeTab]: prev[activeTab].map((r) => (r.id === id ? { ...r, isActive: false } : r)),
+      [activeTab]: prev[activeTab as DataTabKey].map((r) => (r.id === id ? { ...r, isActive: false } : r)),
     }));
     showToast("ลบข้อมูลสำเร็จ", "success");
   };
@@ -718,7 +670,7 @@ export default function MasterDataPage() {
   const restore = (id: string) => {
     setData((prev) => ({
       ...prev,
-      [activeTab]: prev[activeTab].map((r) => (r.id === id ? { ...r, isActive: true } : r)),
+      [activeTab]: prev[activeTab as DataTabKey].map((r) => (r.id === id ? { ...r, isActive: true } : r)),
     }));
     showToast("กู้คืนข้อมูลสำเร็จ", "success");
   };
@@ -731,7 +683,7 @@ export default function MasterDataPage() {
   const tdMuted = "px-6 py-3 text-left text-sm text-slate-500";
   const tdNum = "px-6 py-3 text-right text-sm text-slate-500 tabular-nums";
   const btnGhost = "rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
-  const btnDanger = "rounded-md px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50";
+  const btnDanger = "rounded-md px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40";
 
   const statusPill = (active: boolean) => (
     <span
@@ -743,7 +695,7 @@ export default function MasterDataPage() {
     </span>
   );
 
-  const renderCells = (row: TabData[TabKey][number]) => {
+  const renderCells = (row: TabData[DataTabKey][number]) => {
     switch (activeTab) {
       case "doctype": {
         const r = row as DocTypeRow;
@@ -752,16 +704,6 @@ export default function MasterDataPage() {
             <td className={`${tdCls} font-medium`}>{r.name}</td>
             <td className={tdMuted}>{r.prefix}</td>
             <td className={tdNum}>{r.docCount}</td>
-          </>
-        );
-      }
-      case "formtype": {
-        const r = row as FormTypeRow;
-        return (
-          <>
-            <td className={`${tdCls} font-medium`}>{r.name}</td>
-            <td className={tdMuted}>{r.code}</td>
-            <td className={tdNum}>{r.fieldsCount}</td>
           </>
         );
       }
@@ -816,14 +758,6 @@ export default function MasterDataPage() {
             <th className={thCls}>ชื่อ</th>
             <th className={thCls}>Prefix</th>
             <th className={thRight}>จำนวนเอกสาร</th>
-          </>
-        );
-      case "formtype":
-        return (
-          <>
-            <th className={thCls}>ชื่อ</th>
-            <th className={thCls}>รหัส</th>
-            <th className={thRight}>จำนวนฟิลด์</th>
           </>
         );
       case "department":
@@ -1002,56 +936,6 @@ export default function MasterDataPage() {
             {formErrors.prefix && <p className="mt-1 text-xs text-red-500">{formErrors.prefix}</p>}
           </div>
           {editingId && renderReadOnlyCount("จำนวนเอกสาร", form.docCount, "นับอัตโนมัติจากเอกสารที่ใช้ประเภทนี้")}
-          {renderStatusToggle()}
-        </>
-      );
-    }
-    if (activeTab === "formtype") {
-      const codePreview = form.code.trim().toUpperCase() || "XX-FRM";
-      return (
-        <>
-          <div className="mb-3">
-            <label className="mb-1.5 block text-xs text-slate-500">ชื่อ</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={form.name}
-                maxLength={50}
-                onChange={(e) => {
-                  const value = e.target.value.slice(0, 50);
-                  setForm((f) => ({ ...f, name: value }));
-                  if (formErrors.name) setFieldError("name", validateFormtypeName(value));
-                }}
-                onBlur={() => setFieldError("name", validateFormtypeName(form.name))}
-                className={`${formErrors.name ? inputErrorCls : inputCls} pr-14`}
-              />
-              <span className="pointer-events-none absolute bottom-2 right-2 text-xs text-slate-400">
-                {form.name.length}/50
-              </span>
-            </div>
-            {formErrors.name && <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>}
-          </div>
-          <div className="mb-3">
-            <label className="mb-1.5 block text-xs text-slate-500">รหัส</label>
-            <input
-              type="text"
-              value={form.code}
-              onChange={(e) => {
-                const value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
-                setForm((f) => ({ ...f, code: value }));
-                if (formErrors.code) {
-                  setFieldError("code", validateFormtypeCode(value, data.formtype, editingId));
-                }
-              }}
-              onBlur={() =>
-                setFieldError("code", validateFormtypeCode(form.code, data.formtype, editingId))
-              }
-              className={formErrors.code ? inputErrorCls : inputCls}
-            />
-            <p className="mt-1 text-xs text-slate-400">ตัวอย่าง: {codePreview}-0001</p>
-            {formErrors.code && <p className="mt-1 text-xs text-red-500">{formErrors.code}</p>}
-          </div>
-          {editingId && renderReadOnlyCount("จำนวนฟิลด์", form.fieldsCount, "นับอัตโนมัติจากฟิลด์ที่กำหนดในฟอร์ม")}
           {renderStatusToggle()}
         </>
       );
@@ -1258,9 +1142,9 @@ export default function MasterDataPage() {
                       onBlur={() => syncApproverErrors(form.workflowApprovers)}
                     >
                       <option value="">เลือกผู้อนุมัติ</option>
-                      {MOCK_APPROVERS.map((user) => (
+                      {APPROVER_USERS.map((user) => (
                         <option key={user.name} value={user.name}>
-                          {user.name}
+                          {formatApproverLabel(user)}
                         </option>
                       ))}
                     </select>
@@ -1286,7 +1170,7 @@ export default function MasterDataPage() {
             value={form.approverName}
             onChange={(e) => {
               const name = e.target.value;
-              const user = MOCK_APPROVERS.find((u) => u.name === name);
+              const user = APPROVER_USERS.find((u) => u.name === name);
               setForm((f) => ({
                 ...f,
                 approverName: name,
@@ -1311,9 +1195,9 @@ export default function MasterDataPage() {
             }
           >
             <option value="">เลือกผู้อนุมัติ</option>
-            {MOCK_APPROVERS.map((user) => (
+            {APPROVER_USERS.map((user) => (
               <option key={user.name} value={user.name}>
-                {user.name}
+                {formatApproverLabel(user)}
               </option>
             ))}
           </select>
@@ -1349,7 +1233,9 @@ export default function MasterDataPage() {
           <button
             type="button"
             onClick={openAdd}
-            className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            className={`flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 ${
+              activeTab === "running" ? "hidden" : ""
+            }`}
           >
             <Plus className="size-4" />
             เพิ่ม
@@ -1360,6 +1246,13 @@ export default function MasterDataPage() {
       <div className="flex items-start gap-6 p-6">
         <aside className="w-[220px] shrink-0 self-start rounded-lg border border-gray-200 bg-white shadow-sm">
           <nav className="space-y-1 p-6">
+            <Link
+              href="/admin/master-data/doc-forms"
+              className="flex w-full items-center gap-2 rounded-md border-l-2 border-transparent px-3 py-2 text-left text-sm text-slate-600 transition-colors hover:bg-gray-50 hover:text-slate-800"
+            >
+              <FileStack className="size-4 shrink-0" />
+              จัดการฟอร์มเอกสาร
+            </Link>
             {TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -1379,6 +1272,10 @@ export default function MasterDataPage() {
         </aside>
 
         <section className="min-w-0 flex-1 space-y-6">
+          {activeTab === "running" ? (
+            <DocumentRunningTab showToast={showToast} />
+          ) : (
+            <>
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-sm font-medium text-slate-800">{tabLabel}</h2>
             <label className="flex items-center gap-2 text-sm text-slate-500">
@@ -1424,9 +1321,21 @@ export default function MasterDataPage() {
                               <button type="button" onClick={() => openEdit(row.id)} className={btnGhost}>
                                 แก้ไข
                               </button>
-                              <button type="button" onClick={() => softDelete(row.id)} className={btnDanger}>
-                                ลบ
-                              </button>
+                              {(() => {
+                                const guard = getDeleteGuard(
+                                  activeTab as DataTabKey,
+                                  row,
+                                  data
+                                );
+                                return (
+                                  <DeleteGuardButton
+                                    blocked={guard.blocked}
+                                    tooltip={guard.tooltip}
+                                    onDelete={() => softDelete(row.id)}
+                                    className={btnDanger}
+                                  />
+                                );
+                              })()}
                             </div>
                           ) : (
                             <button type="button" onClick={() => restore(row.id)} className={btnGhost}>
@@ -1471,6 +1380,8 @@ export default function MasterDataPage() {
               </div>
             </div>
           </div>
+            </>
+          )}
         </section>
       </div>
 

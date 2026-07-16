@@ -37,7 +37,6 @@ const ACTION_CARDS = [
 const thCls = "h-12 px-5 text-left text-xs font-medium uppercase tracking-wide text-slate-500";
 const tdCls = "h-12 px-5 text-left text-sm text-slate-700";
 const tdMuted = "h-12 px-5 text-left text-sm text-slate-500";
-const btnGhost = "text-sm text-slate-600 transition-colors hover:text-blue-600";
 
 export default function ConfigPage() {
   const router = useRouter();
@@ -186,15 +185,10 @@ export default function ConfigPage() {
                     <td className={tdMuted}>{role.userCount}</td>
                     <td className="h-12 px-5">{permissionBadge(role.permissionSummary)}</td>
                     <td className="h-12 px-5">{statusBadge(role.isActive)}</td>
-                    <td className="h-12 px-5 text-right">
-                      <div className="flex justify-end gap-3">
-                        <button type="button" className={btnGhost}>
-                          Edit
-                        </button>
-                        <button type="button" className="text-sm text-red-600 transition-colors hover:text-red-700">
-                          Delete
-                        </button>
-                      </div>
+                    <td className="h-12 px-5 text-right text-slate-400">
+                      <Link href="/admin/config/roles" className="text-xs text-blue-600 hover:text-blue-700">
+                        จัดการที่หน้า Roles →
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -233,18 +227,10 @@ export default function ConfigPage() {
                     <td className={tdMuted}>{user.department}</td>
                     <td className={tdMuted}>{user.role}</td>
                     <td className="h-12 px-5">{statusBadge(user.isActive)}</td>
-                    <td className="h-12 px-5 text-right">
-                      <div className="flex justify-end gap-3">
-                        <button type="button" className={btnGhost}>
-                          Edit
-                        </button>
-                        <button type="button" className={btnGhost}>
-                          Reset password
-                        </button>
-                        <button type="button" className="text-sm text-red-600 transition-colors hover:text-red-700">
-                          Disable
-                        </button>
-                      </div>
+                    <td className="h-12 px-5 text-right text-slate-400">
+                      <Link href="/admin/config/users" className="text-xs text-blue-600 hover:text-blue-700">
+                        จัดการที่หน้า Users →
+                      </Link>
                     </td>
                   </tr>
                 ))}

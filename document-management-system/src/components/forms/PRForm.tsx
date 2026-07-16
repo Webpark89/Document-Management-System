@@ -6,6 +6,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
 } from "./ApprovalWorkflowSection";
+import { buildWorkflowStepsForMatrixKey } from "@/lib/config-mock";
 
 export interface PRItemInput {
   id: string;
@@ -73,26 +74,9 @@ export default function PRForm({ onSubmit, onCancel, runningNumberPreview }: PRF
     },
   ]);
 
-  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([
-    {
-      id: "1",
-      stepOrder: 1,
-      roleName: "หัวหน้าแผนก (Department Head)",
-      approverName: "สมชาย ใจดี",
-    },
-    {
-      id: "2",
-      stepOrder: 2,
-      roleName: "ผู้จัดการฝ่ายจัดซื้อ (Procurement Manager)",
-      approverName: "วิภา รักดี",
-    },
-    {
-      id: "3",
-      stepOrder: 3,
-      roleName: "ผู้อำนวยการ (Director / VP)",
-      approverName: "อรทัย สุขใจ",
-    },
-  ]);
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>(() =>
+    buildWorkflowStepsForMatrixKey("PR")
+  );
 
   const handleAddItem = () => {
     const newId = String(items.length + 1);

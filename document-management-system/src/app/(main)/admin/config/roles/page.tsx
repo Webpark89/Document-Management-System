@@ -1,124 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronRight, Loader2, Search } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
+import { Loader2, Plus } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
+import {
+  RolePermissionPanel,
+  RoleProductTypesField,
+  buildPermissions,
+  summarizePermissions,
+  type RoleFormState,
+} from "@/components/admin/role-permissions";
+import {
+  MOCK_ROLES,
+  countUsersByRole,
+  prependRole,
+  type RoleRecord,
+} from "@/lib/config-mock";
 
-type ActionKey = "view" | "create" | "edit" | "delete" | "approve";
-type ProductKey = "all" | "dms" | "esign" | "reports" | "archive";
-
-type PermissionMatrix = Record<string, Record<string, Record<ActionKey, boolean>>>;
-
-type RoleState = {
-  title: string;
-  productTypes: Record<ProductKey, boolean>;
-  permissions: PermissionMatrix;
-};
-
-interface PermissionItem {
-  key: string;
-  label: string;
-}
-
-interface PermissionSection {
-  key: string;
-  label: string;
-  items: PermissionItem[];
-}
-
-const ACTIONS: { key: ActionKey; label: string }[] = [
-  { key: "view", label: "View" },
-  { key: "create", label: "Create" },
-  { key: "edit", label: "Edit" },
-  { key: "delete", label: "Delete" },
-  { key: "approve", label: "Approve" },
-];
-
-const PRODUCT_TYPES: { key: ProductKey; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "dms", label: "DMS" },
-  { key: "esign", label: "eSign" },
-  { key: "reports", label: "Reports" },
-  { key: "archive", label: "Archive" },
-];
-
-const PERMISSION_SCHEMA: PermissionSection[] = [
-  {
-    key: "dashboard",
-    label: "Dashboard",
-    items: [
-      { key: "overview", label: "Overview" },
-      { key: "registrations", label: "Registrations" },
-      { key: "closed_sales", label: "Closed sales" },
-      { key: "my_tasks", label: "My tasks" },
-      { key: "reports", label: "Reports" },
-    ],
-  },
-  {
-    key: "document_management",
-    label: "Document management",
-    items: [
-      { key: "documents", label: "Documents" },
-      { key: "folders", label: "Folders" },
-      { key: "upload", label: "Upload" },
-      { key: "search", label: "Search" },
-      { key: "version_history", label: "Version history" },
-      { key: "pdf_viewer", label: "PDF viewer" },
-    ],
-  },
-  {
-    key: "approval_workflow",
-    label: "Approval workflow",
-    items: [
-      { key: "pending_approvals", label: "Pending approvals" },
-      { key: "approve_reject", label: "Approve/Reject" },
-      { key: "return_for_edit", label: "Return for edit" },
-      { key: "approval_matrix", label: "Approval matrix" },
-    ],
-  },
-  {
-    key: "e_signature",
-    label: "E-Signature",
-    items: [
-      { key: "apply_signature", label: "Apply signature" },
-      { key: "signature_history", label: "Signature history" },
-    ],
-  },
-  {
-    key: "master_data",
-    label: "Master Data",
-    items: [
-      { key: "document_type", label: "Document type" },
-      { key: "form_type", label: "Form type" },
-      { key: "department", label: "Department" },
-      { key: "position", label: "Position" },
-      { key: "workflow", label: "Workflow" },
-      { key: "signature_list", label: "Signature list" },
-    ],
-  },
-  {
-    key: "user_management",
-    label: "User management",
-    items: [
-      { key: "users", label: "Users" },
-      { key: "roles", label: "Roles" },
-      { key: "permissions", label: "Permissions" },
-      { key: "reset_password", label: "Reset password" },
-    ],
-  },
-  {
-    key: "reports",
-    label: "Reports",
-    items: [
-      { key: "document_report", label: "Document report" },
-      { key: "approval_report", label: "Approval report" },
-      { key: "audit_log", label: "Audit log" },
-    ],
-  },
-];
-
-const SENIOR_MANAGER_PRESETS: Record<string, Record<string, Partial<Record<ActionKey, boolean>>>> = {
+const SENIOR_MANAGER_PRESETS: Record<string, Record<string, Partial<Record<string, boolean>>>> = {
   dashboard: {
     overview: { view: true, approve: true },
     registrations: { view: true, edit: true, approve: true },
@@ -165,187 +66,229 @@ const SENIOR_MANAGER_PRESETS: Record<string, Record<string, Partial<Record<Actio
   },
 };
 
-function emptyRow(): Record<ActionKey, boolean> {
-  return { view: false, create: false, edit: false, delete: false, approve: false };
-}
+const EMPTY_ROLE: RoleFormState = {
+  title: "",
+  productTypes: { all: false, dms: false, esign: false, reports: false, archive: false },
+  permissions: buildPermissions(),
+};
 
-function buildPermissions(presets?: Record<string, Record<string, Partial<Record<ActionKey, boolean>>>>): PermissionMatrix {
-  const permissions: PermissionMatrix = {};
-  for (const section of PERMISSION_SCHEMA) {
-    permissions[section.key] = {};
-    for (const item of section.items) {
-      const preset = presets?.[section.key]?.[item.key] ?? {};
-      const row = emptyRow();
-      for (const action of ACTIONS) {
-        row[action.key] = preset[action.key] ?? false;
-      }
-      permissions[section.key][item.key] = row;
-    }
-  }
-  return permissions;
-}
-
-const SEED_ROLE: RoleState = {
+const EDIT_ROLE: RoleFormState = {
   title: "Senior manager",
   productTypes: { all: true, dms: true, esign: true, reports: true, archive: true },
   permissions: buildPermissions(SENIOR_MANAGER_PRESETS),
 };
 
-function countSection(sectionKey: string, permissions: PermissionMatrix): { granted: number; total: number } {
-  const section = PERMISSION_SCHEMA.find((s) => s.key === sectionKey);
-  if (!section) return { granted: 0, total: 0 };
-  let granted = 0;
-  const total = section.items.length * ACTIONS.length;
-  for (const item of section.items) {
-    for (const action of ACTIONS) {
-      if (permissions[sectionKey]?.[item.key]?.[action.key]) granted += 1;
-    }
-  }
-  return { granted, total };
+function uid() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-function countAll(permissions: PermissionMatrix): { granted: number; total: number } {
-  let granted = 0;
-  let total = 0;
-  for (const section of PERMISSION_SCHEMA) {
-    const c = countSection(section.key, permissions);
-    granted += c.granted;
-    total += c.total;
-  }
-  return { granted, total };
-}
+const inputCls =
+  "w-full max-w-md rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+const inputErrorCls =
+  "w-full max-w-md rounded-md border border-red-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500";
 
-function checkState(granted: number, total: number): "none" | "some" | "all" {
-  if (granted === 0) return "none";
-  if (granted === total) return "all";
-  return "some";
-}
+function RolesListView({ onCreate }: { onCreate: () => void }) {
+  const rows = useMemo(
+    () =>
+      MOCK_ROLES.map((role) => ({
+        ...role,
+        userCount: countUsersByRole(role.name),
+      })),
+    []
+  );
 
-function sectionCheckState(sectionKey: string, permissions: PermissionMatrix) {
-  const { granted, total } = countSection(sectionKey, permissions);
-  return checkState(granted, total);
-}
+  const thCls = "px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500";
+  const tdCls = "px-6 py-3 text-left text-sm text-slate-700";
 
-function IndeterminateCheckbox({
-  state,
-  onChange,
-  className,
-}: {
-  state: "none" | "some" | "all";
-  onChange: (checked: boolean) => void;
-  className?: string;
-}) {
-  const ref = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (ref.current) ref.current.indeterminate = state === "some";
-  }, [state]);
   return (
-    <input
-      ref={ref}
-      type="checkbox"
-      checked={state === "all"}
-      onChange={(e) => onChange(e.target.checked)}
-      className={className}
-    />
+    <div className="h-fit w-full bg-gray-50">
+      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
+        <nav className="mb-1 flex items-center gap-1.5 text-xs text-slate-400">
+          <span>Admin</span>
+          <span>/</span>
+          <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+            Config
+          </Link>
+          <span>/</span>
+          <span className="font-medium text-slate-600">Roles</span>
+        </nav>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold text-slate-800">Roles</h1>
+            <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
+          </div>
+          <button
+            type="button"
+            onClick={onCreate}
+            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <Plus className="size-4" />
+            Create role
+          </button>
+        </div>
+      </header>
+      <div className="p-6">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
+              <tr className="border-b border-gray-200">
+                <th className={thCls}>ชื่อ Role</th>
+                <th className={thCls}>จำนวนผู้ใช้งาน</th>
+                <th className={thCls}>สิทธิ์หลัก</th>
+                <th className={thCls}>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((role) => (
+                <tr key={role.id} className="border-b border-gray-100 last:border-b-0 hover:bg-slate-50/80">
+                  <td className={`${tdCls} font-medium`}>{role.name}</td>
+                  <td className="px-6 py-3 text-sm text-slate-500">{role.userCount}</td>
+                  <td className="px-6 py-3">
+                    <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs text-blue-700">
+                      {role.permissionSummary}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3 text-sm text-slate-500">
+                    {role.isActive ? "Active" : "Inactive"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 }
 
-export default function UserRolePage() {
+function CreateRoleForm({
+  onBack,
+  onSaved,
+}: {
+  onBack: () => void;
+  onSaved: (role: RoleRecord) => void;
+}) {
   const { showToast } = useToast();
-  const [role, setRole] = useState<RoleState>(SEED_ROLE);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(PERMISSION_SCHEMA.map((s) => [s.key, true]))
-  );
-  const [searchQuery, setSearchQuery] = useState("");
+  const [role, setRole] = useState<RoleFormState>(EMPTY_ROLE);
+  const [titleError, setTitleError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
 
-  const summary = useMemo(() => countAll(role.permissions), [role.permissions]);
-  const pageSelectState = useMemo(
-    () => checkState(summary.granted, summary.total),
-    [summary]
+  const validateTitle = (title: string) => {
+    const trimmed = title.trim();
+    if (!trimmed) return "กรุณากรอกชื่อ Role";
+    if (MOCK_ROLES.some((r) => r.name.toLowerCase() === trimmed.toLowerCase())) {
+      return "ชื่อ Role นี้ถูกใช้งานแล้ว";
+    }
+    return "";
+  };
+
+  const handleBack = () => {
+    if (dirty && !confirm("ยังไม่ได้บันทึกข้อมูล ต้องการออกจากหน้านี้หรือไม่?")) return;
+    onBack();
+  };
+
+  const handleSave = async () => {
+    const err = validateTitle(role.title);
+    setTitleError(err);
+    if (err) return;
+    setSaving(true);
+    await new Promise((r) => setTimeout(r, 500));
+    const saved: RoleRecord = {
+      id: uid(),
+      name: role.title.trim(),
+      permissionSummary: summarizePermissions(role.permissions),
+      isActive: true,
+    };
+    onSaved(saved);
+    setSaving(false);
+    showToast("สร้าง Role สำเร็จ", "success");
+  };
+
+  return (
+    <div className="h-fit w-full bg-gray-50">
+      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
+        <nav className="mb-1 flex items-center gap-1.5 text-xs text-slate-400">
+          <span>Admin</span>
+          <span>/</span>
+          <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+            Config
+          </Link>
+          <span>/</span>
+          <span className="font-medium text-slate-600">Create role</span>
+        </nav>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold text-slate-800">Create role</h1>
+            <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={handleBack} className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-gray-100">
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+            >
+              {saving && <Loader2 className="size-4 animate-spin" />}
+              {saving ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+      </header>
+      <div className="px-6 py-6">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-medium text-slate-800">Information</h2>
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs text-slate-500">Title</label>
+              <input
+                type="text"
+                value={role.title}
+                onChange={(e) => {
+                  setDirty(true);
+                  setRole((prev) => ({ ...prev, title: e.target.value }));
+                  if (titleError) setTitleError(validateTitle(e.target.value));
+                }}
+                onBlur={() => setTitleError(validateTitle(role.title))}
+                className={titleError ? inputErrorCls : inputCls}
+              />
+              {titleError && <p className="mt-1 text-xs text-red-500">{titleError}</p>}
+            </div>
+            <RoleProductTypesField
+              productTypes={role.productTypes}
+              onChange={(productTypes) => {
+                setDirty(true);
+                setRole((prev) => ({ ...prev, productTypes }));
+              }}
+            />
+          </div>
+        </div>
+        <RolePermissionPanel
+          role={role}
+          onChange={(next) => {
+            setDirty(true);
+            setRole(next);
+          }}
+        />
+      </div>
+    </div>
   );
+}
 
-  const normalizedSearch = searchQuery.trim().toLowerCase();
-
-  const visibleSections = useMemo(() => {
-    if (!normalizedSearch) return PERMISSION_SCHEMA;
-    return PERMISSION_SCHEMA.filter((section) =>
-      section.items.some((item) => item.label.toLowerCase().includes(normalizedSearch))
-    );
-  }, [normalizedSearch]);
-
-  useEffect(() => {
-    if (!normalizedSearch) return;
-    setExpanded((prev) => {
-      const next = { ...prev };
-      for (const section of PERMISSION_SCHEMA) {
-        if (section.items.some((item) => item.label.toLowerCase().includes(normalizedSearch))) {
-          next[section.key] = true;
-        }
-      }
-      return next;
-    });
-  }, [normalizedSearch]);
-
-  const toggleSection = (key: string) => {
-    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const setPermission = (moduleKey: string, itemKey: string, action: ActionKey, value: boolean) => {
-    setRole((prev) => ({
-      ...prev,
-      permissions: {
-        ...prev.permissions,
-        [moduleKey]: {
-          ...prev.permissions[moduleKey],
-          [itemKey]: { ...prev.permissions[moduleKey][itemKey], [action]: value },
-        },
-      },
-    }));
-  };
-
-  const applyPermissions = (checked: boolean, moduleKey?: string) => {
-    const next: PermissionMatrix = { ...role.permissions };
-    const sections = moduleKey
-      ? PERMISSION_SCHEMA.filter((s) => s.key === moduleKey)
-      : PERMISSION_SCHEMA;
-    for (const section of sections) {
-      next[section.key] = { ...next[section.key] };
-      for (const item of section.items) {
-        const row = emptyRow();
-        for (const action of ACTIONS) row[action.key] = checked;
-        next[section.key][item.key] = row;
-      }
-    }
-    setRole((prev) => ({ ...prev, permissions: next }));
-  };
-
-  const toggleProductType = (key: ProductKey, checked: boolean) => {
-    if (key === "all") {
-      setRole((prev) => ({
-        ...prev,
-        productTypes: { all: checked, dms: checked, esign: checked, reports: checked, archive: checked },
-      }));
-      return;
-    }
-    setRole((prev) => {
-      const productTypes = { ...prev.productTypes, [key]: checked };
-      productTypes.all = PRODUCT_TYPES.filter((p) => p.key !== "all").every((p) => productTypes[p.key]);
-      return { ...prev, productTypes };
-    });
-  };
+function EditRoleForm() {
+  const { showToast } = useToast();
+  const [role, setRole] = useState<RoleFormState>(EDIT_ROLE);
+  const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
     await new Promise((r) => setTimeout(r, 500));
-    console.log(role);
     setSaving(false);
     showToast("บันทึกสิทธิ์สำเร็จ", "success");
   };
-
-  const checkboxCls = "size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500";
-  const inputCls =
-    "w-full max-w-md rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 
   return (
     <div className="h-fit w-full bg-gray-50">
@@ -365,17 +308,14 @@ export default function UserRolePage() {
             <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              href="/admin/config"
-              className="rounded-md px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-gray-100"
-            >
+            <Link href="/admin/config/roles" className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-gray-100">
               Back
             </Link>
             <button
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
               {saving ? "Saving..." : "Save"}
@@ -383,7 +323,6 @@ export default function UserRolePage() {
           </div>
         </div>
       </header>
-
       <div className="px-6 py-6">
         <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-medium text-slate-800">Information</h2>
@@ -397,145 +336,48 @@ export default function UserRolePage() {
                 className={inputCls}
               />
             </div>
-            <div>
-              <p className="mb-2 text-xs text-slate-500">Product types</p>
-              <div className="flex flex-wrap gap-4">
-                {PRODUCT_TYPES.map(({ key, label }) => (
-                  <label key={key} className="flex items-center gap-2 text-sm text-slate-600">
-                    <input
-                      type="checkbox"
-                      checked={role.productTypes[key]}
-                      onChange={(e) => toggleProductType(key, e.target.checked)}
-                      className={checkboxCls}
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-            </div>
+            <RoleProductTypesField
+              productTypes={role.productTypes}
+              onChange={(productTypes) => setRole((prev) => ({ ...prev, productTypes }))}
+            />
           </div>
         </div>
-
-        <div className="relative mt-6">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search item..."
-            className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
-
-        <div className="mt-4 rounded-lg border border-gray-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-4">
-            <h2 className="text-sm font-medium text-slate-800">Permission</h2>
-            <div className="flex items-center gap-3">
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                {summary.granted}/{summary.total} permissions granted
-              </span>
-              <label className="flex items-center gap-2 text-sm text-slate-600">
-                <IndeterminateCheckbox
-                  state={pageSelectState}
-                  onChange={(checked) => applyPermissions(checked)}
-                  className={checkboxCls}
-                />
-                Select all
-              </label>
-            </div>
-          </div>
-
-          <div className="divide-y divide-gray-100">
-            {visibleSections.map((section) => {
-              const sectionCounts = countSection(section.key, role.permissions);
-              const sectionState = sectionCheckState(section.key, role.permissions);
-              const filteredItems = normalizedSearch
-                ? section.items.filter((item) =>
-                    item.label.toLowerCase().includes(normalizedSearch)
-                  )
-                : section.items;
-
-              if (filteredItems.length === 0) return null;
-
-              return (
-                <div key={section.key}>
-                  <div className="flex items-center justify-between bg-gray-50 px-5 py-3">
-                    <button
-                      type="button"
-                      onClick={() => toggleSection(section.key)}
-                      className="flex items-center gap-2 text-sm font-medium text-slate-700"
-                    >
-                      <ChevronRight
-                        className={`size-4 text-slate-500 transition-transform duration-200 ${
-                          expanded[section.key] ? "rotate-90" : ""
-                        }`}
-                      />
-                      <span>{section.label}</span>
-                      <span className="text-xs font-normal text-slate-400">
-                        ({sectionCounts.granted}/{sectionCounts.total})
-                      </span>
-                    </button>
-                    <label className="flex items-center gap-2 text-xs text-slate-500">
-                      <IndeterminateCheckbox
-                        state={sectionState}
-                        onChange={(checked) => applyPermissions(checked, section.key)}
-                        className={checkboxCls}
-                      />
-                      Select all
-                    </label>
-                  </div>
-
-                  {expanded[section.key] && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-gray-200 bg-white text-xs text-slate-500">
-                            <th className="h-10 px-5 text-left font-medium">Item</th>
-                            {ACTIONS.map((action) => (
-                              <th key={action.key} className="h-10 w-20 px-2 text-center font-medium">
-                                {action.label}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredItems.map((item) => (
-                            <tr
-                              key={item.key}
-                              className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50"
-                            >
-                              <td className="h-12 px-5 text-slate-700">{item.label}</td>
-                              {ACTIONS.map((action) => (
-                                <td key={action.key} className="h-12 px-2 text-center">
-                                  <input
-                                    type="checkbox"
-                                    checked={
-                                      !!role.permissions[section.key]?.[item.key]?.[action.key]
-                                    }
-                                    onChange={(e) =>
-                                      setPermission(
-                                        section.key,
-                                        item.key,
-                                        action.key,
-                                        e.target.checked
-                                      )
-                                    }
-                                    className={checkboxCls}
-                                  />
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <RolePermissionPanel role={role} onChange={setRole} />
       </div>
     </div>
+  );
+}
+
+function RolesPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const mode = searchParams.get("mode");
+
+  if (mode === "new") {
+    return (
+      <CreateRoleForm
+        onBack={() => router.push("/admin/config/roles")}
+        onSaved={(saved) => {
+          prependRole(saved);
+          router.push("/admin/config/roles");
+        }}
+      />
+    );
+  }
+
+  if (mode === "edit") {
+    return <EditRoleForm />;
+  }
+
+  return (
+    <RolesListView onCreate={() => router.push("/admin/config/roles?mode=new")} />
+  );
+}
+
+export default function RolesPage() {
+  return (
+    <Suspense fallback={<div className="h-fit w-full bg-gray-50" />}>
+      <RolesPageContent />
+    </Suspense>
   );
 }

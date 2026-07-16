@@ -6,6 +6,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
 } from "./ApprovalWorkflowSection";
+import { buildWorkflowStepsForMatrixKey } from "@/lib/config-mock";
 
 export interface POItemInput {
   id: string;
@@ -84,32 +85,9 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
     },
   ]);
 
-  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([
-    {
-      id: "1",
-      stepOrder: 1,
-      roleName: "หัวหน้าแผนก (Department Head)",
-      approverName: "สมชาย ใจดี",
-    },
-    {
-      id: "2",
-      stepOrder: 2,
-      roleName: "ผู้จัดการฝ่าย (Division Manager)",
-      approverName: "กิตติศักดิ์ พรหมมา",
-    },
-    {
-      id: "3",
-      stepOrder: 3,
-      roleName: "ผู้จัดการฝ่ายจัดซื้อ (Procurement Manager)",
-      approverName: "วิภา รักดี",
-    },
-    {
-      id: "4",
-      stepOrder: 4,
-      roleName: "ผู้อำนวยการ (Director / VP)",
-      approverName: "อรทัย สุขใจ",
-    },
-  ]);
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>(() =>
+    buildWorkflowStepsForMatrixKey("PO")
+  );
 
   const handleAddItem = () => {
     const newId = String(items.length + 1);
