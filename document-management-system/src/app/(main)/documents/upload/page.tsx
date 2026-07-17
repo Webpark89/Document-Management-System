@@ -7,14 +7,14 @@ import { FileText, FileCheck, Award, FileCode2, ArrowLeft } from "lucide-react";
 import PageHeader from "@/components/shared/PageHeader";
 import PRForm, { PRSubmitData } from "@/components/forms/PRForm";
 import POForm, { POSubmitData } from "@/components/forms/POForm";
-import CertificateForm, { CertificateSubmitData } from "@/components/forms/CertificateForm";
-import GeneralForm, { GeneralSubmitData } from "@/components/forms/GeneralForm";
+import MemoForm, { MemoSubmitData } from "@/components/forms/MemoForm";
+import UploadOnlyForm, { OtherSubmitData } from "@/components/forms/UploadOnlyForm";
 import { useToast } from "@/components/providers/ToastProvider";
 import { addDocument } from "@/features/documents/api";
 
 import type { DocumentStatus } from "@/types";
 
-type FormType = "PR" | "PO" | "Certificate" | "General";
+type FormType = "PR" | "PO" | "Memo" | "Other";
 
 export default function DocumentUploadPage() {
   const [docType, setDocType] = useState<FormType>("PR");
@@ -24,7 +24,7 @@ export default function DocumentUploadPage() {
 
   const getRunningNumberPreview = (type: FormType) => {
     const randomNum = String(Math.floor(Math.random() * 900) + 100).padStart(4, "0");
-    const prefix = type === "PR" ? "PR" : type === "PO" ? "PO" : type === "Certificate" ? "CERT" : "GEN";
+    const prefix = type === "PR" ? "PR" : type === "PO" ? "PO" : type === "Memo" ? "MM" : "OTH";
     return `${prefix}-2026-${randomNum}`;
   };
 
@@ -172,26 +172,22 @@ export default function DocumentUploadPage() {
     }
   };
 
-  const handleCertSubmit = async (data: CertificateSubmitData) => {
+  const handleMemoSubmit = async (data: MemoSubmitData) => {
     setIsSubmitting(true);
     try {
-      const runningNum = getRunningNumberPreview("Certificate");
+      const runningNum = getRunningNumberPreview("Memo");
       const status: DocumentStatus = data.isDraft ? "Draft" : "Pending";
 
-      // Payload matching database schema: documents + certificate_forms + workflow_steps
       const payload = {
         document: {
           doc_number: runningNum,
           title: data.title,
-          type: "Certificate",
+          type: "Memo",
           status,
           is_deleted: false,
         },
-        certificate_form: {
-          certificate_type: data.certificateType,
-          issued_to: data.issuedTo,
-          issue_date: data.issueDate,
-          expiry_date: data.expiryDate,
+        memo_form: {
+          category: data.category,
           department: data.department,
           detail: data.detail,
         },
@@ -208,7 +204,7 @@ export default function DocumentUploadPage() {
       const newDoc = {
         id: runningNum,
         name: data.title,
-        type: "Certificate" as const,
+        type: "Memo" as const,
         sender: data.sender,
         submittedDate: new Date().toLocaleDateString("th-TH", {
           day: "numeric",
@@ -236,25 +232,22 @@ export default function DocumentUploadPage() {
     }
   };
 
-  const handleGeneralSubmit = async (data: GeneralSubmitData) => {
+  const handleOtherSubmit = async (data: OtherSubmitData) => {
     setIsSubmitting(true);
     try {
-      const runningNum = getRunningNumberPreview("General");
+      const runningNum = getRunningNumberPreview("Other");
       const status: DocumentStatus = data.isDraft ? "Draft" : "Pending";
 
-      // Payload matching database schema: documents + general_forms + workflow_steps
       const payload = {
         document: {
           doc_number: runningNum,
           title: data.title,
-          type: "General",
+          type: "Other",
           status,
           is_deleted: false,
         },
-        general_form: {
-          category: data.category,
-          department: data.department,
-          detail: data.detail,
+        other_form: {
+          description: data.description,
           file_name: data.fileName,
         },
         workflow_steps: data.workflowSteps.map((step) => ({
@@ -270,7 +263,7 @@ export default function DocumentUploadPage() {
       const newDoc = {
         id: runningNum,
         name: data.title,
-        type: "General" as const,
+        type: "Other" as const,
         sender: data.sender,
         submittedDate: new Date().toLocaleDateString("th-TH", {
           day: "numeric",
@@ -377,56 +370,56 @@ export default function DocumentUploadPage() {
               </div>
             </button>
 
-            {/* CERTIFICATE CARD */}
+            {/* MEMO CARD */}
             <button
               type="button"
-              onClick={() => setDocType("Certificate")}
+              onClick={() => setDocType("Memo")}
               className={`p-4 rounded-2xl border text-left flex flex-col gap-3 transition-all cursor-pointer ${
-                docType === "Certificate"
+                docType === "Memo"
                   ? "border-emerald-600 bg-emerald-50/20 ring-2 ring-emerald-600/10 shadow-xs"
                   : "border-slate-100 hover:bg-slate-50/50"
               }`}
             >
               <div
                 className={`p-2.5 rounded-xl self-start ${
-                  docType === "Certificate"
+                  docType === "Memo"
                     ? "bg-emerald-600 text-white"
-                    : "bg-slate-100 text-slate-500"
-                }`}
-              >
-                <Award className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-800">ใบรับรอง (Cert)</p>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">
-                  ใบรับรองเงินเดือน/การทำงาน/ผ่านงาน
-                </p>
-              </div>
-            </button>
-
-            {/* GENERAL CARD */}
-            <button
-              type="button"
-              onClick={() => setDocType("General")}
-              className={`p-4 rounded-2xl border text-left flex flex-col gap-3 transition-all cursor-pointer ${
-                docType === "General"
-                  ? "border-slate-800 bg-slate-100/50 ring-2 ring-slate-800/10 shadow-xs"
-                  : "border-slate-100 hover:bg-slate-50/50"
-              }`}
-            >
-              <div
-                className={`p-2.5 rounded-xl self-start ${
-                  docType === "General"
-                    ? "bg-slate-800 text-white"
                     : "bg-slate-100 text-slate-500"
                 }`}
               >
                 <FileCode2 className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-800">เอกสารทั่วไป</p>
+                <p className="text-sm font-bold text-slate-800">เอกสารบันทึกข้อมูล (Memo)</p>
                 <p className="text-xs text-slate-400 font-medium mt-0.5">
-                  บันทึกข้อความ/ขออนุมัติทั่วไป
+                  บันทึกข้อความภายใน
+                </p>
+              </div>
+            </button>
+
+            {/* OTHER CARD */}
+            <button
+              type="button"
+              onClick={() => setDocType("Other")}
+              className={`p-4 rounded-2xl border text-left flex flex-col gap-3 transition-all cursor-pointer ${
+                docType === "Other"
+                  ? "border-slate-800 bg-slate-100/50 ring-2 ring-slate-800/10 shadow-xs"
+                  : "border-slate-100 hover:bg-slate-50/50"
+              }`}
+            >
+              <div
+                className={`p-2.5 rounded-xl self-start ${
+                  docType === "Other"
+                    ? "bg-slate-800 text-white"
+                    : "bg-slate-100 text-slate-500"
+                }`}
+              >
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-800">เอกสารแนบ (Other)</p>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                  อัปโหลดไฟล์ PDF อนุมัติ
                 </p>
               </div>
             </button>
@@ -460,19 +453,19 @@ export default function DocumentUploadPage() {
             />
           )}
 
-          {docType === "Certificate" && (
-            <CertificateForm
-              onSubmit={handleCertSubmit}
+          {docType === "Memo" && (
+            <MemoForm
+              onSubmit={handleMemoSubmit}
               onCancel={() => router.push("/documents")}
-              runningNumberPreview={getRunningNumberPreview("Certificate")}
+              runningNumberPreview={getRunningNumberPreview("Memo")}
             />
           )}
 
-          {docType === "General" && (
-            <GeneralForm
-              onSubmit={handleGeneralSubmit}
+          {docType === "Other" && (
+            <UploadOnlyForm
+              onSubmit={handleOtherSubmit}
               onCancel={() => router.push("/documents")}
-              runningNumberPreview={getRunningNumberPreview("General")}
+              runningNumberPreview={getRunningNumberPreview("Other")}
             />
           )}
         </div>

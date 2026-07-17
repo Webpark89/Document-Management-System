@@ -1,6 +1,6 @@
 // Document Types
 export type DocumentStatus = "Draft" | "Pending" | "Approved" | "Rejected" | "Cancelled";
-export type DocumentType = "PR" | "PO" | "Certificate" | "General";
+export type DocumentType = "PR" | "PO" | "Memo" | "Other";
 
 export interface Document {
   id: string;
@@ -36,6 +36,7 @@ export interface PRForm {
   purpose: string;
   total_amount: number;
   items: PRFormItem[];
+  attachment_file_name?: string;
 }
 
 // PO Form
@@ -59,6 +60,24 @@ export interface POForm {
   payment_terms: string;
   total_amount: number;
   items: POFormItem[];
+  attachment_file_name?: string;
+}
+
+// Memo Form
+export interface MemoForm {
+  id: string;
+  document_id: string;
+  category: string;
+  department: string;
+  detail: string;
+}
+
+// Other / Generic Upload Form
+export interface OtherForm {
+  id: string;
+  document_id: string;
+  description: string;
+  file_name: string;
 }
 
 // User & Auth
@@ -120,4 +139,18 @@ export interface DashboardStats {
   approved: number;
   rejected: number;
   cancelled: number;
+}
+
+// Audit Log
+export interface AuditLog {
+  id: string;
+  user_id: string;
+  username: string;
+  user_fullname: string;
+  action: "Login" | "Upload" | "Download" | "View" | "Edit" | "Delete" | "Approve" | "Reject" | "Signature";
+  module: string;
+  target_id?: string;
+  target_display?: string;
+  ip_address: string;
+  created_at: string;
 }

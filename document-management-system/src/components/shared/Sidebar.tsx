@@ -14,6 +14,7 @@ import {
   ChevronRight,
   LogOut,
   FileBox,
+  Activity,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -38,8 +39,8 @@ const FLAT_NAV_ITEMS: NavItem[] = [
   { name: "Documents", href: "/documents", icon: FileText },
   { name: "Approvals", href: "/approvals", icon: CheckSquare },
   { name: "Master Data", href: "/admin/master-data", icon: Database },
-  { name: "Reports", href: "/admin/audit-logs", icon: BarChart3 },
-  { name: "Settings", href: "/admin/users", icon: Settings },
+  { name: "Reports", href: "/admin/reports", icon: BarChart3 },
+  { name: "Audit Logs", href: "/admin/audit-logs", icon: Activity },
 ];
 
 const CONFIG_GROUP: NavGroup = {
