@@ -13,39 +13,37 @@ import { useToast } from "@/components/providers/ToastProvider";
 import {
   RolePermissionPanel,
   RoleProductTypesField,
+  PermissionActionGrid,
   buildPermissions,
   summarizePermissions,
   type RoleFormState,
-} from "@/components/admin/role-permissions";
+} from "@/features/roles-users/components";
 import {
   MOCK_ROLES,
   countUsersByRole,
   deactivateRole,
   prependRole,
   type RoleRecord,
-} from "@/lib/config-mock";
+} from "@/features/roles-users";
 import {
   ADMIN_CONTENT,
   AdminPageHeader,
   MD_ADD_BTN,
   MD_TABLE_CARD,
   MD_TD,
-  MD_TD_MUTED,
+  MD_TD_ACTION,
+  MD_TD_NUM_RIGHT,
+  MD_TD_STATUS,
+  MD_TH,
+  MD_TH_RIGHT,
+  MD_TH_STATUS,
+  MD_THEAD,
   MD_TR,
   StatCards,
   StatusBadge,
-} from "../../master-data/master-data-ui";
+} from "@/components/ui/admin";
 
-const PERMISSION_ACTION_TH: Record<string, string> = {
-  View: "ดู",
-  Create: "สร้าง",
-  Edit: "แก้ไข",
-  Delete: "ลบ",
-  Approve: "อนุมัติ",
-};
-
-const permBadgeCls =
-  "inline-flex h-6 shrink-0 items-center rounded-md px-2.5 text-xs font-medium leading-none";
+const tdCls = MD_TD;
 
 const SENIOR_MANAGER_PRESETS: Record<string, Record<string, Partial<Record<string, boolean>>>> = {
   dashboard: {
@@ -110,13 +108,6 @@ function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-const listThCls =
-  "px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500";
-const listThRightCls =
-  "px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500";
-const listTheadCls = "border-b border-slate-100 bg-slate-50";
-const tdCls = MD_TD;
-const tdMuted = MD_TD_MUTED;
 const btnGhost = "rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
 const btnDanger =
   "rounded-md px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent";
@@ -126,40 +117,6 @@ const formInputCls =
   "w-full max-w-md rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 const inputErrorCls =
   "w-full max-w-md rounded-md border border-red-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500";
-
-function translatePermissionParts(summary: string): string[] {
-  if (summary === "Full access") return ["เข้าถึงทั้งหมด"];
-  if (summary === "No permissions") return ["ไม่มีสิทธิ์"];
-  return summary
-    .split(", ")
-    .filter(Boolean)
-    .map((part) => PERMISSION_ACTION_TH[part] ?? part);
-}
-
-function permissionBadges(summary: string, roleName: string) {
-  const isFullAccess = summary === "Full access" || roleName === "Administrator";
-  if (isFullAccess) {
-    return (
-      <span className={`${permBadgeCls} bg-violet-50 text-violet-700 ring-1 ring-violet-200/70`}>
-        เข้าถึงทั้งหมด
-      </span>
-    );
-  }
-  const parts = translatePermissionParts(summary);
-  return (
-    <div className="flex max-w-xs flex-wrap gap-2">
-      {parts.map((part) => (
-        <span key={part} className={`${permBadgeCls} bg-blue-50 text-blue-700 ring-1 ring-blue-100`}>
-          {part}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function statusBadge(active: boolean) {
-  return <StatusBadge active={active} />;
-}
 
 function DeleteRoleButton({
   blocked,
@@ -286,13 +243,13 @@ function RolesListView({
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className={listTheadCls}>
+              <thead className={MD_THEAD}>
                 <tr>
-                  <th className={listThCls}>ชื่อ Role</th>
-                  <th className={listThCls}>จำนวนผู้ใช้งาน</th>
-                  <th className={listThCls}>สิทธิ์หลัก</th>
-                  <th className={listThCls}>สถานะ</th>
-                  <th className={listThRightCls}>จัดการ</th>
+                  <th className={MD_TH}>ชื่อ Role</th>
+                  <th className={MD_TH}>จำนวนผู้ใช้งาน</th>
+                  <th className={MD_TH}>สิทธิ์ (ดู/สร้าง/แก้ไข/ลบ/อนุมัติ)</th>
+                  <th className={MD_TH_STATUS}>สถานะ</th>
+                  <th className={MD_TH_RIGHT}>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -309,10 +266,17 @@ function RolesListView({
                     return (
                       <tr key={role.id} className={MD_TR}>
                         <td className={`${tdCls} font-medium`}>{role.name}</td>
-                        <td className={tdMuted}>{role.userCount}</td>
-                        <td className={tdCls}>{permissionBadges(role.permissionSummary, role.name)}</td>
-                        <td className={tdCls}>{statusBadge(role.isActive)}</td>
-                        <td className={`${tdCls} text-right`}>
+                        <td className={MD_TD_NUM_RIGHT}>{role.userCount}</td>
+                        <td className={tdCls}>
+                          <PermissionActionGrid
+                            summary={role.permissionSummary}
+                            roleName={role.name}
+                          />
+                        </td>
+                        <td className={MD_TD_STATUS}>
+                          <StatusBadge active={role.isActive} />
+                        </td>
+                        <td className={MD_TD_ACTION}>
                           <div className="flex justify-end gap-1">
                             <Link
                               href={`/admin/config/roles?mode=edit&id=${role.id}`}
@@ -397,15 +361,15 @@ function CreateRoleForm({
               Config
             </Link>
             <span>/</span>
-            <span className="font-medium text-slate-600">Create role</span>
+            <span className="font-medium text-slate-600">สร้าง Role</span>
           </nav>
         }
-        title="Create role"
+        title="สร้าง Role"
         subtitle="In-memory demo — resets on refresh"
         actions={
           <div className="flex items-center gap-2">
             <button type="button" onClick={handleBack} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
-              Back
+              ย้อนกลับ
             </button>
             <button
               type="button"
@@ -414,17 +378,17 @@ function CreateRoleForm({
               className={MD_ADD_BTN}
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
-              {saving ? "Saving..." : "Save"}
+              {saving ? "กำลังบันทึก..." : "บันทึก"}
             </button>
           </div>
         }
       />
       <div className="mt-6 px-0">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-800">Information</h2>
+          <h2 className="text-sm font-bold text-slate-800">ข้อมูลทั่วไป</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">Title</label>
+              <label className="mb-1.5 block text-xs text-slate-500">ชื่อ Role</label>
               <input
                 type="text"
                 value={role.title}
@@ -482,15 +446,15 @@ function EditRoleForm() {
               Config
             </Link>
             <span>/</span>
-            <span className="font-medium text-slate-600">User role</span>
+            <span className="font-medium text-slate-600">แก้ไข Role</span>
           </nav>
         }
-        title="User role"
+        title="แก้ไข Role"
         subtitle="In-memory demo — resets on refresh"
         actions={
           <div className="flex items-center gap-2">
             <Link href="/admin/config/roles" className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
-              Back
+              ย้อนกลับ
             </Link>
             <button
               type="button"
@@ -499,17 +463,17 @@ function EditRoleForm() {
               className={MD_ADD_BTN}
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
-              {saving ? "Saving..." : "Save"}
+              {saving ? "กำลังบันทึก..." : "บันทึก"}
             </button>
           </div>
         }
       />
       <div className="mt-6">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-800">Information</h2>
+          <h2 className="text-sm font-bold text-slate-800">ข้อมูลทั่วไป</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">Title</label>
+              <label className="mb-1.5 block text-xs text-slate-500">ชื่อ Role</label>
               <input
                 type="text"
                 value={role.title}

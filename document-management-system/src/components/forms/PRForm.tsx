@@ -6,7 +6,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
 } from "./ApprovalWorkflowSection";
-import { buildWorkflowStepsForMatrixKey } from "@/lib/config-mock";
+import { buildWorkflowStepsForMatrixKey } from "@/features/master-data";
 
 export interface PRItemInput {
   id: string;

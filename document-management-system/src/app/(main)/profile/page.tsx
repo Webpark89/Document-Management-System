@@ -10,7 +10,7 @@ import {
   ADMIN_CONTENT,
   AdminPageHeader,
   MD_ADD_BTN,
-} from "../admin/master-data/master-data-ui";
+} from "@/components/ui/admin";
 
 const ROLE_BADGE: Record<string, string> = {
   Administrator: "bg-violet-50 text-violet-700 ring-1 ring-violet-100",

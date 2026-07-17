@@ -13,7 +13,7 @@ import {
   MOCK_ROLES,
   MOCK_USERS,
   countUsersByRole,
-} from "@/lib/config-mock";
+} from "@/features/roles-users";
 
 const ACTION_CARDS = [
   {

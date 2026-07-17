@@ -18,21 +18,22 @@ import {
 import { useToast } from "@/components/providers/ToastProvider";
 import {
   countActivePositionsInDepartment,
-  countUsersInDepartment,
-  countUsersWithPosition,
   countWorkflowsUsingApprover,
   createInitialMasterTabData,
-  formatApproverLabel,
-  getApproverUsers,
-  LEVEL_OPTIONS,
   type DepartmentRecord,
   type MasterDocumentTypeRecord,
   type PositionRecord,
   type SignatureRecord,
   type WorkflowRecord,
-} from "@/lib/config-mock";
-import DocumentRunningTab from "./DocumentRunningTab";
-import WorkflowTab from "./WorkflowTab";
+} from "@/features/master-data";
+import {
+  countUsersInDepartment,
+  countUsersWithPosition,
+  formatApproverLabel,
+  getApproverUsers,
+  LEVEL_OPTIONS,
+} from "@/features/roles-users";
+import { DocumentRunningTab, WorkflowTab } from "@/features/master-data/components";
 import { useSignatures } from "@/components/providers/SignatureProvider";
 import {
   InactiveFilterCheckbox,
@@ -61,7 +62,7 @@ import {
   StatCards,
   StatusBadge,
   StatusFormToggle,
-} from "./master-data-ui";
+} from "@/components/ui/admin";
 
 type TabKey = "doctype" | "department" | "position" | "workflow" | "signature" | "running";
 type DataTabKey = Exclude<TabKey, "running">;

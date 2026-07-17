@@ -19,27 +19,33 @@ import {
 import { useToast } from "@/components/providers/ToastProvider";
 import {
   DEPARTMENTS,
-  MOCK_USERS,
   POSITIONS,
+} from "@/features/master-data";
+import {
+  MOCK_USERS,
   prependConfigUser,
   syncMockUsers,
   updateConfigUser,
   USER_ROLE_OPTIONS,
   type ConfigUser,
-} from "@/lib/config-mock";
+} from "@/features/roles-users";
 import {
   ADMIN_CONTENT,
   AdminPageHeader,
   MD_ADD_BTN,
   MD_TABLE_CARD,
   MD_TD,
+  MD_TD_ACTION,
   MD_TD_MUTED,
+  MD_TD_STATUS,
   MD_TH,
   MD_TH_RIGHT,
+  MD_TH_STATUS,
   MD_THEAD,
   MD_TR,
   StatCards,
-} from "../../master-data/master-data-ui";
+  StatusBadge,
+} from "@/components/ui/admin";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -215,8 +221,8 @@ function UsersListView({
                 </select>
                 <select className={inputCls} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                   <option value="">ทุกสถานะ</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="active">ใช้งาน</option>
+                  <option value="inactive">ปิดใช้งาน</option>
                 </select>
               </div>
               <label className="flex shrink-0 items-center gap-2 whitespace-nowrap text-sm text-slate-500">
@@ -240,7 +246,7 @@ function UsersListView({
                   <th className={thCls}>แผนก</th>
                   <th className={thCls}>ตำแหน่ง</th>
                   <th className={thCls}>Role</th>
-                  <th className={thCls}>สถานะ</th>
+                  <th className={MD_TH_STATUS}>สถานะ</th>
                   <th className={MD_TH_RIGHT}>จัดการ</th>
                 </tr>
               </thead>
@@ -259,18 +265,10 @@ function UsersListView({
                       <td className={tdMuted}>{user.department}</td>
                       <td className={tdMuted}>{user.position}</td>
                       <td className={tdCls}>{roleBadge(user.role)}</td>
-                      <td className={tdCls}>
-                        <span
-                          className={`rounded-md px-2 py-0.5 text-xs ${
-                            user.isActive
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-slate-100 text-slate-400"
-                          }`}
-                        >
-                          {user.isActive ? "Active" : "Inactive"}
-                        </span>
+                      <td className={MD_TD_STATUS}>
+                        <StatusBadge active={user.isActive} />
                       </td>
-                      <td className={`${tdCls} text-right`}>
+                      <td className={MD_TD_ACTION}>
                         <div className="inline-flex items-center divide-x divide-gray-200 rounded-md border border-transparent">
                           <button
                             type="button"
@@ -607,7 +605,7 @@ function UserFormFields({
 
   const passwordField = includePassword ? (
     <div>
-      <label className={labelCls}>Password</label>
+      <label className={labelCls}>รหัสผ่าน</label>
       <div className="relative">
         <input
           type={showPassword ? "text" : "password"}
@@ -709,7 +707,7 @@ function UserFormFields({
             form.isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-gray-50"
           }`}
         >
-          Active
+          ใช้งาน
         </button>
         <button
           type="button"
@@ -718,7 +716,7 @@ function UserFormFields({
             !form.isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-gray-50"
           }`}
         >
-          Inactive
+          ปิดใช้งาน
         </button>
       </div>
     </div>
@@ -833,15 +831,15 @@ function CreateUserForm({
               Config
             </Link>
             <span>/</span>
-            <span className="font-medium text-slate-600">Create user</span>
+            <span className="font-medium text-slate-600">สร้างผู้ใช้งาน</span>
           </nav>
         }
-        title="Create user"
+        title="สร้างผู้ใช้งาน"
         subtitle="In-memory demo — resets on refresh"
         actions={
           <div className="flex items-center gap-2">
             <button type="button" onClick={handleBack} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
-              Back
+              ย้อนกลับ
             </button>
             <button
               type="button"
@@ -850,14 +848,14 @@ function CreateUserForm({
               className={MD_ADD_BTN}
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
-              {saving ? "Saving..." : "Save"}
+              {saving ? "กำลังบันทึก..." : "บันทึก"}
             </button>
           </div>
         }
       />
       <div className="mt-6 px-0">
         <div className="max-w-2xl rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-medium text-slate-800">Information</h2>
+          <h2 className="text-sm font-medium text-slate-800">ข้อมูลทั่วไป</h2>
           <UserFormFields
             form={user}
             setForm={setUser}
