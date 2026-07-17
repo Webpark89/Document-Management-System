@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { FileType2, HelpCircle, Inbox, Loader2, Plus, X } from "lucide-react";
+import { useSidebar } from "@/components/providers/SidebarProvider";
 import {
   DEFAULT_FORM_META,
   FORM_TYPE_DESCRIPTIONS,
@@ -67,8 +68,8 @@ function formTypeBadge(formType: FormTypeStyle) {
   const colors: Record<FormTypeStyle, string> = {
     "PR-style": "bg-blue-50 text-blue-700",
     "PO-style": "bg-violet-50 text-violet-700",
-    "Certificate-style": "bg-amber-50 text-amber-700",
-    General: "bg-slate-100 text-slate-600",
+    "MEMO-style": "bg-amber-50 text-amber-700",
+    "OTHER-style": "bg-slate-100 text-slate-600",
   };
   return (
     <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${colors[formType]}`}>
@@ -170,6 +171,7 @@ export default function DocumentTypesTab({
   showToast,
   addRequest = 0,
 }: Props & { addRequest?: number }) {
+  const { isOpen } = useSidebar();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>({
@@ -414,15 +416,16 @@ export default function DocumentTypesTab({
 
       {modalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 sm:p-6 backdrop-blur-xs transition-[padding] duration-200"
+          style={{ paddingLeft: isOpen ? "calc(16rem + 1.5rem)" : "calc(5rem + 1.5rem)" }}
           onClick={closeModal}
         >
           <div
-            className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            className="relative flex flex-col max-h-[85vh] w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3">
-              <h2 className="text-sm font-medium text-slate-800">
+            <div className="flex shrink-0 items-start justify-between gap-3 pb-3 border-b border-slate-100">
+              <h2 className="text-sm font-bold text-slate-800">
                 {editingKey ? "แก้ไข" : "เพิ่ม"}ประเภทเอกสาร
               </h2>
               <button
@@ -436,7 +439,7 @@ export default function DocumentTypesTab({
               </button>
             </div>
 
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 flex-1 overflow-y-auto pr-1 space-y-3">
               <div>
                 <label className="mb-1.5 block text-xs text-slate-500">ชื่อประเภทเอกสาร</label>
                 <input
@@ -530,7 +533,7 @@ export default function DocumentTypesTab({
               )}
             </div>
 
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-5 pt-3 border-t border-slate-100 flex shrink-0 justify-end gap-2">
               <button
                 type="button"
                 onClick={closeModal}

@@ -34,9 +34,11 @@ export interface FormTypeRecord {
 export interface WorkflowRecord {
   id: string;
   name: string;
-  levels: 3 | 4;
+  prefix: string;
+  levels: number;
   approverCount: number;
   approvers: string[];
+  steps: RoleOption[];
   isActive: boolean;
 }
 
@@ -62,8 +64,8 @@ export type RoleOption = (typeof ROLE_OPTIONS)[number];
 export const FORM_TYPE_OPTIONS = [
   "PR-style",
   "PO-style",
-  "Certificate-style",
-  "General",
+  "MEMO-style",
+  "OTHER-style",
 ] as const;
 
 export type FormTypeStyle = (typeof FORM_TYPE_OPTIONS)[number];
@@ -71,15 +73,15 @@ export type FormTypeStyle = (typeof FORM_TYPE_OPTIONS)[number];
 export const FORM_TYPE_DESCRIPTIONS: Record<FormTypeStyle, string> = {
   "PR-style": "มีตารางรายการสินค้า + คำนวณยอดรวม",
   "PO-style": "มีตารางรายการสั่งซื้อ + ข้อมูลผู้ขาย + ยอดรวม",
-  "Certificate-style": "ฟอร์มใบรับรองแบบย่อ ไม่มีตารางสินค้า",
-  General: "ฟอร์มทั่วไป ช่องข้อความอิสระ ไม่มีตารางสินค้า",
+  "MEMO-style": "ฟอร์มบันทึกข้อความ (MEMO - ช่องข้อความและคำขอ)",
+  "OTHER-style": "ฟอร์มทั่วไป (OTHER - เอกสารอื่นๆ)",
 };
 
 export const DEFAULT_FORM_META: Record<FormTypeStyle, { formCode: string; fieldsCount: number }> = {
   "PR-style": { formCode: "PR-FRM", fieldsCount: 12 },
   "PO-style": { formCode: "PO-FRM", fieldsCount: 15 },
-  "Certificate-style": { formCode: "CERT-FRM", fieldsCount: 8 },
-  General: { formCode: "GEN-FRM", fieldsCount: 6 },
+  "MEMO-style": { formCode: "MEMO-FRM", fieldsCount: 8 },
+  "OTHER-style": { formCode: "OTHER-FRM", fieldsCount: 6 },
 };
 
 export interface ApprovalMatrixEntry {
@@ -107,7 +109,7 @@ export interface DocumentTypeRecord {
   isActive: boolean;
 }
 
-export type DocFormTypeKey = "PR" | "PO" | "Certificate" | "General";
+export type DocFormTypeKey = "PR" | "PO" | "MEMO" | "OTHER";
 
 export interface MatrixWorkflowStep {
   id: string;

@@ -55,7 +55,7 @@ export default function MemoForm({
   const [detail, setDetail] = useState("");
 
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>(() =>
-    buildWorkflowStepsForMatrixKey("General")
+    buildWorkflowStepsForMatrixKey("MEMO")
   );
 
 

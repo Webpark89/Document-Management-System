@@ -66,7 +66,7 @@ export default function DocumentsPage() {
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 2;
+  const itemsPerPage = 6;
 
   const { showToast } = useToast();
 

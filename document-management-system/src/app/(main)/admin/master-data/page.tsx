@@ -16,13 +16,20 @@ import {
   X,
 } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
+import { useSidebar } from "@/components/providers/SidebarProvider";
 import {
+  APPROVAL_MATRIX,
   countActivePositionsInDepartment,
   countWorkflowsUsingApprover,
   createInitialMasterTabData,
+  matrixToDocumentTypes,
+  ROLE_OPTIONS,
+  type ApprovalMatrixState,
   type DepartmentRecord,
+  type DocumentTypeRecord,
   type MasterDocumentTypeRecord,
   type PositionRecord,
+  type RoleOption,
   type SignatureRecord,
   type WorkflowRecord,
 } from "@/features/master-data";
@@ -113,6 +120,7 @@ type FormState = {
   signedCount: string;
   isActive: boolean;
   workflowApprovers: string[];
+  workflowSteps: RoleOption[];
 };
 
 type FormErrors = Record<string, string>;
@@ -270,24 +278,12 @@ function validateWorkflowForm(
 ): FormErrors {
   const errors: FormErrors = {};
   const name = form.name.trim();
-  const levelCount = Number(form.levels) === 4 ? 4 : 3;
 
   if (!name) errors.name = "กรุณากรอกชื่อ Workflow";
   else if (name.length < 2) errors.name = "ชื่อต้องมีอย่างน้อย 2 ตัวอักษร";
   else if (rows.some((r) => r.name === name && r.id !== editingId)) {
     errors.name = "ชื่อ Workflow นี้ถูกใช้แล้ว";
   }
-
-  const selected = form.workflowApprovers.slice(0, levelCount);
-  selected.forEach((approver, idx) => {
-    if (!approver) {
-      errors[`approver_${idx}`] = "กรุณาเลือกผู้อนุมัติ";
-      return;
-    }
-    if (selected.findIndex((a, i) => i !== idx && a === approver) !== -1) {
-      errors[`approver_${idx}`] = "ผู้อนุมัติซ้ำ";
-    }
-  });
 
   return errors;
 }
@@ -309,7 +305,7 @@ function validateSignatureForm(
 
 const emptyForm = (): FormState => ({
   name: "",
-  prefix: "",
+  prefix: "PR",
   docCount: "0",
   code: "",
   fieldsCount: "0",
@@ -323,6 +319,7 @@ const emptyForm = (): FormState => ({
   signedCount: "0",
   isActive: true,
   workflowApprovers: ["", "", ""],
+  workflowSteps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"],
 });
 
 function buildEmptyForm(departments: DepartmentRow[]): FormState {
@@ -384,9 +381,14 @@ export default function MasterDataPage() {
 function MasterDataPageContent() {
   const searchParams = useSearchParams();
   const { showToast } = useToast();
-  const { signatures } = useSignatures();
+  const { isOpen } = useSidebar();
+  const { signatures, saveSignatureRecord, toggleSignatureActive } = useSignatures();
   const [activeTab, setActiveTab] = useState<TabKey>("department");
   const [data, setData] = useState<TabData>(SEED);
+  const [matrix, setMatrix] = useState<ApprovalMatrixState>(() => ({ ...APPROVAL_MATRIX }));
+  const [docTypes, setDocTypes] = useState<DocumentTypeRecord[]>(() =>
+    matrixToDocumentTypes({ ...APPROVAL_MATRIX })
+  );
   const [showDeleted, setShowDeleted] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -435,16 +437,23 @@ function MasterDataPageContent() {
 
   const openEdit = (id: string) => {
     setEditingId(id);
-    const row = data[activeTab as DataTabKey].find((r) => r.id === id);
+    const list = activeTab === "signature" ? signatures : data[activeTab as DataTabKey];
+    const row = list.find((r) => r.id === id);
     if (!row) return;
 
     let nextForm: FormState;
 
     if (activeTab === "workflow") {
       const wf = row as WorkflowRow;
+      const initialSteps: RoleOption[] = (wf.steps && wf.steps.length > 0)
+        ? [...wf.steps]
+        : ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"];
+      while (initialSteps.length < wf.levels) {
+        initialSteps.push(ROLE_OPTIONS[0]);
+      }
       nextForm = {
         name: wf.name,
-        prefix: "",
+        prefix: wf.prefix || "PR",
         docCount: "0",
         code: "",
         fieldsCount: "0",
@@ -458,6 +467,7 @@ function MasterDataPageContent() {
         signedCount: "0",
         isActive: wf.isActive,
         workflowApprovers: syncApproverRows(wf.levels, [...wf.approvers]),
+        workflowSteps: initialSteps.slice(0, wf.levels),
       };
     } else if (activeTab === "signature") {
       const sig = row as SignatureRow;
@@ -477,6 +487,7 @@ function MasterDataPageContent() {
         signedCount: String(sig.signedCount),
         isActive: sig.isActive,
         workflowApprovers: ["", "", ""],
+        workflowSteps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย"],
       };
     } else {
       nextForm = {
@@ -495,6 +506,7 @@ function MasterDataPageContent() {
         signedCount: "signedCount" in row ? String(row.signedCount) : "0",
         isActive: row.isActive,
         workflowApprovers: ["", "", ""],
+        workflowSteps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย"],
       };
     }
 
@@ -611,33 +623,55 @@ function MasterDataPageContent() {
         case "workflow": {
           const list = [...prev.workflow];
           const idx = list.findIndex((r) => r.id === id);
-          const levels = (Number(form.levels) === 4 ? 4 : 3) as 3 | 4;
-          const approvers = form.workflowApprovers.slice(0, levels);
+          const num = Number(form.levels);
+          const levels = num >= 1 && num <= 4 ? num : 3;
+          const prefix = form.prefix || "PR";
+          const steps: RoleOption[] = (form.workflowSteps && form.workflowSteps.length > 0)
+            ? [...form.workflowSteps.slice(0, levels)]
+            : [ROLE_OPTIONS[0]];
+          while (steps.length < levels) {
+            steps.push(ROLE_OPTIONS[0]);
+          }
+
           const row: WorkflowRow = {
             id,
             name: form.name.trim(),
+            prefix,
             levels,
-            approverCount: approvers.length,
-            approvers,
+            approverCount: levels,
+            approvers: idx >= 0 ? list[idx].approvers : [],
+            steps,
             isActive: form.isActive,
           };
           if (idx >= 0) list[idx] = row;
           else list.push(row);
+
+          setMatrix((prevMatrix) => {
+            const existing = prevMatrix[prefix];
+            if (!existing) return prevMatrix;
+            return {
+              ...prevMatrix,
+              [prefix]: {
+                ...existing,
+                steps: [...steps],
+              },
+            };
+          });
+
           return { ...prev, workflow: list };
         }
         case "signature": {
-          const list = [...prev.signature];
-          const idx = list.findIndex((r) => r.id === id);
+          const existing = signatures.find((r) => r.id === id);
           const row: SignatureRow = {
             id,
             approverName: form.approverName,
             position: form.position,
-            signedCount: idx >= 0 ? list[idx].signedCount : 0,
+            signedCount: existing ? existing.signedCount : 0,
             isActive: form.isActive,
+            imageUrl: existing?.imageUrl,
           };
-          if (idx >= 0) list[idx] = row;
-          else list.push(row);
-          return { ...prev, signature: list };
+          saveSignatureRecord(row);
+          return prev;
         }
         default:
           return prev;
@@ -658,6 +692,11 @@ function MasterDataPageContent() {
 
   const softDelete = (id: string) => {
     if (activeTab === "running") return;
+    if (activeTab === "signature") {
+      toggleSignatureActive(id);
+      showToast("ปิดใช้งานลายเซ็นสำเร็จ", "success");
+      return;
+    }
     const row = data[activeTab as DataTabKey].find((r) => r.id === id);
     if (!row) return;
     const guard = getDeleteGuard(activeTab as DataTabKey, row, data);
@@ -671,6 +710,11 @@ function MasterDataPageContent() {
   };
 
   const restore = (id: string) => {
+    if (activeTab === "signature") {
+      toggleSignatureActive(id);
+      showToast("กู้คืนสถานะลายเซ็นสำเร็จ", "success");
+      return;
+    }
     setData((prev) => ({
       ...prev,
       [activeTab]: prev[activeTab as DataTabKey].map((r) => (r.id === id ? { ...r, isActive: true } : r)),
@@ -814,8 +858,33 @@ function MasterDataPageContent() {
         const r = row as SignatureRow;
         return (
           <>
-            <td className={tdSticky}>{r.approverName}</td>
-            <td className={tdMuted}>{r.position}</td>
+            <td className={tdSticky}>
+              <div className="flex items-center gap-2.5">
+                <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                  {r.approverName.slice(0, 2)}
+                </div>
+                <span className="font-medium text-slate-800">{r.approverName}</span>
+              </div>
+            </td>
+            <td className={tdMuted}>{r.position || "—"}</td>
+            <td className={tdCls}>
+              {r.imageUrl ? (
+                <div className="flex items-center gap-2">
+                  <img
+                    src={r.imageUrl}
+                    alt={r.approverName}
+                    className="h-8 max-w-[120px] object-contain rounded border border-slate-200 bg-white p-1 shadow-2xs"
+                  />
+                  <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
+                    มีลายเซ็น
+                  </span>
+                </div>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/60">
+                  ยังไม่อัปโหลด
+                </span>
+              )}
+            </td>
             <td className={tdNum}>{r.signedCount}</td>
           </>
         );
@@ -860,8 +929,9 @@ function MasterDataPageContent() {
       default:
         return (
           <>
-            <th className={thSticky}>ชื่อผู้อนุมัติ</th>
+            <th className={thSticky}>ชื่อผู้ลงนาม / พนักงาน</th>
             <th className={thCls}>ตำแหน่ง</th>
+            <th className={thCls}>ตัวอย่างลายเซ็น</th>
             <th className={thRight}>จำนวนลงนาม</th>
           </>
         );
@@ -1110,20 +1180,16 @@ function MasterDataPageContent() {
       );
     }
     if (activeTab === "workflow") {
-      const levelCount = Number(form.levels) === 4 ? 4 : 3;
-      const syncApproverErrors = (approvers: string[]) => {
-        const selected = approvers.slice(0, levelCount);
-        const nextErrors = { ...formErrors };
-        for (let i = 0; i < levelCount; i += 1) {
-          delete nextErrors[`approver_${i}`];
-        }
-        selected.forEach((approver, idx) => {
-          if (!approver) nextErrors[`approver_${idx}`] = "กรุณาเลือกผู้อนุมัติ";
-          else if (selected.findIndex((a, i) => i !== idx && a === approver) !== -1) {
-            nextErrors[`approver_${idx}`] = "ผู้อนุมัติซ้ำ";
-          }
-        });
-        setFormErrors(nextErrors);
+      const levelCount = Number(form.levels) || 3;
+      const currentSteps: RoleOption[] = form.workflowSteps && form.workflowSteps.length > 0
+        ? [...form.workflowSteps]
+        : ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"];
+      const steps = currentSteps.slice(0, levelCount);
+
+      const updateStepRole = (idx: number, role: RoleOption) => {
+        const nextSteps: RoleOption[] = [...currentSteps];
+        nextSteps[idx] = role;
+        setForm((f) => ({ ...f, workflowSteps: nextSteps }));
       };
 
       return (
@@ -1151,63 +1217,94 @@ function MasterDataPageContent() {
             inputClassName={formErrors.name ? inputErrorCls : inputCls}
             error={formErrors.name}
           />
+
           <div className="mb-3">
-            <label className="mb-1.5 block text-xs text-slate-500">จำนวน Level</label>
+            <label className="mb-1.5 block text-xs text-slate-500">ประเภทเอกสารที่ผูก (Prefix)</label>
+            <select
+              className={inputCls}
+              value={form.prefix || "PR"}
+              onChange={(e) => {
+                const prefix = e.target.value;
+                setForm((f) => ({ ...f, prefix }));
+              }}
+            >
+              <option value="PR">ใบขอซื้อ (PR)</option>
+              <option value="PO">ใบสั่งซื้อ (PO)</option>
+              <option value="MEMO">บันทึกข้อความ (MEMO)</option>
+              <option value="OTHER">เอกสารอื่นๆ (OTHER)</option>
+            </select>
+          </div>
+
+          <div className="mb-3">
+            <label className="mb-1.5 block text-xs text-slate-500">จำนวน Level (ระดับการตรวจอนุมัติ)</label>
             <select
               className={inputCls}
               value={form.levels}
               onChange={(e) => {
-                const levels = e.target.value;
-                const nextApprovers = syncApproverRows(Number(levels), form.workflowApprovers);
-                setForm((f) => ({
-                  ...f,
-                  levels,
-                  workflowApprovers: nextApprovers,
-                }));
-                syncApproverErrors(nextApprovers);
+                const levelsNum = Number(e.target.value);
+                setForm((f) => {
+                  const nextSteps: RoleOption[] = [...(f.workflowSteps || [])];
+                  while (nextSteps.length < levelsNum) {
+                    nextSteps.push(ROLE_OPTIONS[0]);
+                  }
+                  return {
+                    ...f,
+                    levels: e.target.value,
+                    workflowSteps: nextSteps,
+                  };
+                });
               }}
             >
-              <option value="3">3</option>
-              <option value="4">4</option>
+              <option value="1">1 ระดับ</option>
+              <option value="2">2 ระดับ</option>
+              <option value="3">3 ระดับ</option>
+              <option value="4">4 ระดับ</option>
             </select>
           </div>
-          <div className="mb-3">
-            <label className="mb-1.5 block text-xs text-slate-500">ผู้อนุมัติ</label>
+
+          <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50/70 p-3">
+            <label className="mb-2 block text-xs font-semibold text-slate-700">
+              สายการอนุมัติ (กำหนดบทบาทผู้อนุมัติในแต่ละระดับ)
+            </label>
             <div className="space-y-2">
-              {form.workflowApprovers.slice(0, levelCount).map((approver, idx) => (
-                <div key={idx}>
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 shrink-0 text-xs font-medium text-slate-400">{idx + 1}</span>
+              {Array.from({ length: levelCount }).map((_, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                    {idx + 1}
+                  </span>
+                  <div className="flex-1">
                     <select
-                      className={formErrors[`approver_${idx}`] ? inputErrorCls : inputCls}
-                      value={approver}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setForm((f) => {
-                          const next = [...f.workflowApprovers];
-                          next[idx] = value;
-                          syncApproverErrors(next);
-                          return { ...f, workflowApprovers: next };
-                        });
-                      }}
-                      onBlur={() => syncApproverErrors(form.workflowApprovers)}
+                      className={inputCls}
+                      value={steps[idx] || ROLE_OPTIONS[0]}
+                      onChange={(e) => updateStepRole(idx, e.target.value as RoleOption)}
                     >
-                      <option value="">เลือกผู้อนุมัติ</option>
-                      {APPROVER_USERS.map((user) => (
-                        <option key={user.name} value={user.name}>
-                          {formatApproverLabel(user)}
+                      {ROLE_OPTIONS.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
                         </option>
                       ))}
                     </select>
                   </div>
-                  {formErrors[`approver_${idx}`] && (
-                    <p className="ml-10 mt-1 text-xs text-red-500">{formErrors[`approver_${idx}`]}</p>
-                  )}
                 </div>
               ))}
             </div>
+
+            {/* Step flow preview */}
+            <div className="mt-3 overflow-x-auto rounded-md border border-blue-100 bg-blue-50/50 p-2.5">
+              <p className="mb-1.5 text-[11px] font-medium text-blue-600">ตัวอย่างสายการอนุมัติ:</p>
+              <div className="flex flex-wrap items-center gap-1 text-xs">
+                {steps.map((s, i) => (
+                  <span key={i} className="flex items-center gap-1">
+                    <span className="rounded bg-white px-2 py-0.5 font-medium text-blue-700 border border-blue-200">
+                      {s}
+                    </span>
+                    {i < steps.length - 1 && <span className="text-slate-400 font-bold">›</span>}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-          {renderReadOnlyCount("จำนวนผู้อนุมัติ", String(levelCount), "อัปเดตอัตโนมัติตามจำนวน Level")}
+
           {renderStatusToggle()}
         </>
       );
@@ -1283,7 +1380,7 @@ function MasterDataPageContent() {
       title="Master Data"
       subtitle="In-memory demo — resets on refresh"
       actions={
-        activeTab === "running" || activeTab === "signature" ? undefined : (
+        activeTab === "running" ? undefined : (
           <button type="button" onClick={openAdd} className={MD_ADD_BTN}>
             <Plus className="size-4" />
             เพิ่ม
@@ -1361,7 +1458,7 @@ function MasterDataPageContent() {
                 <tr>
                   {renderHeaders()}
                   <th className={MD_TH_STATUS}>สถานะ</th>
-                  {activeTab !== "signature" ? <th className={thAction}>จัดการ</th> : null}
+                  <th className={thAction}>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -1374,29 +1471,27 @@ function MasterDataPageContent() {
                     <td className={MD_TD_STATUS}>
                       <StatusBadge active={row.isActive} />
                     </td>
-                    {activeTab !== "signature" ? (
-                      <td className={MD_TD_ACTION}>
-                        {row.isActive ? (
-                          (() => {
-                            const guard = getDeleteGuard(
-                              activeTab as DataTabKey,
-                              row,
-                              signatureGuardData
-                            );
-                            return (
-                              <RowActions
-                                onEdit={() => openEdit(row.id)}
-                                onDelete={() => softDelete(row.id)}
-                                deleteBlocked={guard.blocked}
-                                deleteTooltip={guard.tooltip}
-                              />
-                            );
-                          })()
-                        ) : (
-                          <RowActions onRestore={() => restore(row.id)} />
-                        )}
-                      </td>
-                    ) : null}
+                    <td className={MD_TD_ACTION}>
+                      {row.isActive ? (
+                        (() => {
+                          const guard = getDeleteGuard(
+                            activeTab as DataTabKey,
+                            row,
+                            signatureGuardData
+                          );
+                          return (
+                            <RowActions
+                              onEdit={() => openEdit(row.id)}
+                              onDelete={() => softDelete(row.id)}
+                              deleteBlocked={guard.blocked}
+                              deleteTooltip={guard.tooltip}
+                            />
+                          );
+                        })()
+                      ) : (
+                        <RowActions onRestore={() => restore(row.id)} />
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1416,15 +1511,18 @@ function MasterDataPageContent() {
 
       {modalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 sm:p-6 backdrop-blur-xs transition-[padding] duration-200"
+          style={{ paddingLeft: isOpen ? "calc(16rem + 1.5rem)" : "calc(5rem + 1.5rem)" }}
           onClick={closeModal}
         >
           <div
-            className={`relative w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${activeTab === "workflow" ? "max-w-lg" : "max-w-md"}`}
+            className={`relative flex flex-col max-h-[85vh] w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl ${
+              activeTab === "workflow" ? "max-w-lg" : "max-w-md"
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3">
-              <h2 className="text-sm font-medium text-slate-800">
+            <div className="flex shrink-0 items-start justify-between gap-3 pb-3 border-b border-slate-100">
+              <h2 className="text-sm font-bold text-slate-800">
                 {editingId ? "แก้ไข" : "เพิ่ม"} {tabLabel}
               </h2>
               <button
@@ -1437,8 +1535,8 @@ function MasterDataPageContent() {
                 <X className="size-4" />
               </button>
             </div>
-            <div className="mt-4 space-y-3">{renderFormFields()}</div>
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-4 flex-1 overflow-y-auto pr-1 space-y-3">{renderFormFields()}</div>
+            <div className="mt-5 pt-3 border-t border-slate-100 flex shrink-0 justify-end gap-2">
               <button
                 type="button"
                 onClick={closeModal}

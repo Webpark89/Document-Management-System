@@ -314,9 +314,9 @@ function UsersListView({
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
             <span>Admin</span>
             <span>/</span>
-            <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+            <span className="text-slate-500">
               Config
-            </Link>
+            </span>
             <span>/</span>
             <span className="font-medium text-slate-600">Users</span>
           </nav>
@@ -997,9 +997,9 @@ function CreateUserForm({
             <nav className="flex items-center gap-1.5 text-xs text-slate-400">
               <span>Admin</span>
               <span>/</span>
-              <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+              <span className="text-slate-500">
                 Config
-              </Link>
+              </span>
               <span>/</span>
               <Link href="/admin/config/users" className="text-slate-500 hover:text-slate-600">
                 Users

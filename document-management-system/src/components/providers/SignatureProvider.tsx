@@ -12,7 +12,9 @@ type AddSignatureInput = {
 type SignatureContextValue = {
   signatures: SignatureRecord[];
   addSignature: (input: AddSignatureInput) => SignatureRecord;
-  updateSignature: (id: string, patch: Partial<Pick<SignatureRecord, "imageUrl" | "position">>) => void;
+  updateSignature: (id: string, patch: Partial<SignatureRecord>) => void;
+  toggleSignatureActive: (id: string) => void;
+  saveSignatureRecord: (record: SignatureRecord) => void;
   findByApproverName: (name: string) => SignatureRecord | undefined;
 };
 
@@ -48,13 +50,31 @@ export function SignatureProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateSignature = useCallback(
-    (id: string, patch: Partial<Pick<SignatureRecord, "imageUrl" | "position">>) => {
+    (id: string, patch: Partial<SignatureRecord>) => {
       setSignatures((prev) =>
         prev.map((row) => (row.id === id ? { ...row, ...patch } : row))
       );
     },
     []
   );
+
+  const toggleSignatureActive = useCallback((id: string) => {
+    setSignatures((prev) =>
+      prev.map((row) => (row.id === id ? { ...row, isActive: !row.isActive } : row))
+    );
+  }, []);
+
+  const saveSignatureRecord = useCallback((record: SignatureRecord) => {
+    setSignatures((prev) => {
+      const idx = prev.findIndex((r) => r.id === record.id);
+      if (idx >= 0) {
+        const list = [...prev];
+        list[idx] = record;
+        return list;
+      }
+      return [...prev, record];
+    });
+  }, []);
 
   const findByApproverName = useCallback(
     (name: string) => signatures.find((row) => row.approverName === name),
@@ -66,9 +86,11 @@ export function SignatureProvider({ children }: { children: React.ReactNode }) {
       signatures,
       addSignature,
       updateSignature,
+      toggleSignatureActive,
+      saveSignatureRecord,
       findByApproverName,
     }),
-    [signatures, addSignature, updateSignature, findByApproverName]
+    [signatures, addSignature, updateSignature, toggleSignatureActive, saveSignatureRecord, findByApproverName]
   );
 
   return <SignatureContext.Provider value={value}>{children}</SignatureContext.Provider>;

@@ -45,10 +45,16 @@ export function Topbar({ title }: TopbarProps) {
               </div>
               <ul className="max-h-72 overflow-y-auto">
                 {MOCK_NOTIFICATIONS.slice(0, 5).map((n) => (
-                  <li
+                  <Link
                     key={n.id}
+                    href={
+                      n.message.includes("รออนุมัติ")
+                        ? `/approvals/${n.document_id}`
+                        : `/documents/${n.document_id}`
+                    }
+                    onClick={() => setShowNotifications(false)}
                     className={cn(
-                      "border-b border-[--color-border] px-4 py-3 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer",
+                      "block border-b border-[--color-border] px-4 py-3 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer text-left",
                       !n.is_read && "bg-blue-50/30"
                     )}
                   >
@@ -59,7 +65,7 @@ export function Topbar({ title }: TopbarProps) {
                         timeStyle: "short",
                       })}
                     </p>
-                  </li>
+                  </Link>
                 ))}
               </ul>
               <Link 

@@ -24,15 +24,20 @@ export default function DocumentUploadPage() {
   const { showToast } = useToast();
 
   const getRunningNumberPreview = (type: FormType) => {
+    const prefix = type === "PR" ? "PR" : type === "PO" ? "PO" : type === "Memo" ? "MEMO" : "OTHER";
+    return `${prefix}-2026-0001`;
+  };
+
+  const generateActualDocNumber = (type: FormType) => {
     const randomNum = String(Math.floor(Math.random() * 900) + 100).padStart(4, "0");
-    const prefix = type === "PR" ? "PR" : type === "PO" ? "PO" : type === "Memo" ? "MM" : "OTH";
+    const prefix = type === "PR" ? "PR" : type === "PO" ? "PO" : type === "Memo" ? "MEMO" : "OTHER";
     return `${prefix}-2026-${randomNum}`;
   };
 
   const handlePRSubmit = async (data: PRSubmitData) => {
     setIsSubmitting(true);
     try {
-      const runningNum = getRunningNumberPreview("PR");
+      const runningNum = generateActualDocNumber("PR");
       const status: DocumentStatus = data.isDraft ? "Draft" : "Pending";
 
       // Payload matching database schema: documents + pr_forms + pr_form_items + workflow_steps
@@ -103,7 +108,7 @@ export default function DocumentUploadPage() {
   const handlePOSubmit = async (data: POSubmitData) => {
     setIsSubmitting(true);
     try {
-      const runningNum = getRunningNumberPreview("PO");
+      const runningNum = generateActualDocNumber("PO");
       const status: DocumentStatus = data.isDraft ? "Draft" : "Pending";
 
       // Payload matching database schema: documents + po_forms + po_form_items + workflow_steps
@@ -176,7 +181,7 @@ export default function DocumentUploadPage() {
   const handleMemoSubmit = async (data: MemoSubmitData) => {
     setIsSubmitting(true);
     try {
-      const runningNum = getRunningNumberPreview("Memo");
+      const runningNum = generateActualDocNumber("Memo");
       const status: DocumentStatus = data.isDraft ? "Draft" : "Pending";
 
       const payload = {
@@ -236,7 +241,7 @@ export default function DocumentUploadPage() {
   const handleOtherSubmit = async (data: OtherSubmitData) => {
     setIsSubmitting(true);
     try {
-      const runningNum = getRunningNumberPreview("Other");
+      const runningNum = generateActualDocNumber("Other");
       const status: DocumentStatus = data.isDraft ? "Draft" : "Pending";
 
       const payload = {

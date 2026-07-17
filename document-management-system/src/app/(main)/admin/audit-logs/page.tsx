@@ -288,7 +288,7 @@ function AuditLogsContent() {
           <div className="flex flex-col xl:flex-row gap-4">
             
             {/* Left: Standard Filters */}
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date From</label>
                 <input 
@@ -306,17 +306,6 @@ function AuditLogsContent() {
                   onChange={(e) => setDateTo(e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none" 
                 />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Module</label>
-                <select 
-                  value={selectedModule}
-                  onChange={(e) => setSelectedModule(e.target.value as ModuleType)}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                >
-                  <option value="All">All Modules</option>
-                  {ALL_MODULES.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Search User</label>
@@ -391,13 +380,13 @@ function AuditLogsContent() {
           <table className="w-full table-fixed min-w-[900px] text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                <DataTableHeader title="Timestamp" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-48" />
-                <DataTableHeader title="User" sortKey="userName" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-48" />
-                <DataTableHeader title="Action" sortKey="action" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-32" />
-                <DataTableHeader title="Module" sortKey="module" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-32" />
-                <th className="py-3 px-4 min-w-[200px] font-bold">Target</th>
-                <DataTableHeader title="IP Address" sortKey="ipAddress" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-40" />
-                <th className="py-3 px-4 w-20 text-center font-bold">Details</th>
+                <DataTableHeader title="Timestamp" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-44" />
+                <DataTableHeader title="User" sortKey="userName" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-40" />
+                <DataTableHeader title="Action" sortKey="action" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
+                <DataTableHeader title="Module" sortKey="module" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
+                <th className="py-3 px-4 w-48 font-bold">Target</th>
+                <DataTableHeader title="IP Address" sortKey="ipAddress" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-32" />
+                <th className="py-3 px-4 w-16 text-center font-bold">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -435,7 +424,7 @@ function AuditLogsContent() {
                       <td className="py-3 px-4">
                         {log.targetType !== "none" ? (
                           <div className="flex flex-col">
-                            <Link href={getTargetLink(log.targetType, log.targetId)} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors truncate max-w-[250px]">
+                            <Link href={getTargetLink(log.targetType, log.targetId)} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors truncate block">
                               {log.targetLabel}
                             </Link>
                             <span className="text-[10px] text-slate-400 font-mono">{log.targetId}</span>

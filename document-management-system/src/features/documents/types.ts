@@ -10,7 +10,7 @@ export type DocumentStatus =
   | "Returned for Revision"
   | "Cancelled";
 
-export type DocumentType = "PR" | "PO" | "Certificate" | "General" | "Data Record" | "PDF" | "Other" | string;
+export type DocumentType = "PR" | "PO" | "MEMO" | "OTHER" | "Certificate" | "General" | "Data Record" | "PDF" | "Other" | string;
 
 export interface Document {
   id: string;              // doc_number, e.g. "PR-2026-0001"

@@ -10,11 +10,13 @@ import PageHeader from "@/components/shared/PageHeader";
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from "@/components/ui/design-system";
 import { MOCK_DOCUMENT_VERSIONS } from "@/lib/mock-data";
 import { useToast } from "@/components/providers/ToastProvider";
+import { useSidebar } from "@/components/providers/SidebarProvider";
 
 export default function DocumentVersionsPage() {
   const params = useParams();
   const id = params.id as string;
   const { showToast } = useToast();
+  const { isOpen } = useSidebar();
   
   const [doc, setDoc] = useState<Document | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -106,39 +108,39 @@ export default function DocumentVersionsPage() {
     <div className={APP_PAGE_SHELL}>
       <div className={APP_PAGE_CONTENT}>
       
-      <div>
+      <div className="mb-2">
         <Link
           href={`/documents/${doc.id}`}
-          className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           กลับไปยังรายละเอียดเอกสาร (Back to Document Details)
         </Link>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <PageHeader
-          size="compact"
-          title={`ประวัติการแก้ไข (Version History): ${doc.id}`}
-          subtitle={`ติดตามการเปลี่ยนแปลงของ "${doc.name}"`}
-        />
-        {showCheckboxes && (
-          <button 
-            onClick={() => setShowCompareModal(true)}
-            disabled={selectedVersions.length !== 2}
-            title={selectedVersions.length !== 2 ? "เลือก 2 เวอร์ชันเพื่อเปรียบเทียบ" : ""}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm transition-all shadow-sm"
-          >
-            <FileText className="w-4 h-4" />
-            Compare Selected Versions
-          </button>
-        )}
-      </div>
+      <PageHeader
+        size="compact"
+        title={`ประวัติการแก้ไข (Version History): ${doc.id}`}
+        subtitle={`ติดตามการเปลี่ยนแปลงของ "${doc.name}"`}
+        actions={
+          showCheckboxes ? (
+            <button 
+              onClick={() => setShowCompareModal(true)}
+              disabled={selectedVersions.length !== 2}
+              title={selectedVersions.length !== 2 ? "เลือก 2 เวอร์ชันเพื่อเปรียบเทียบ" : ""}
+              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm transition-all shadow-sm shrink-0"
+            >
+              <FileText className="w-4 h-4" />
+              Compare Selected Versions
+            </button>
+          ) : undefined
+        }
+      />
 
       <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col space-y-6">
         
-        <div className="overflow-x-auto border border-slate-100 rounded-2xl">
-          <table className="w-full text-left border-collapse min-w-[800px]">
+        <div className="overflow-x-auto border border-slate-100 rounded-2xl w-full">
+          <table className="w-full table-fixed text-left border-collapse min-w-[800px]">
             <thead>
               <tr className="bg-[#eef2f9] border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 {showCheckboxes && (
@@ -148,10 +150,10 @@ export default function DocumentVersionsPage() {
                 )}
                 <th className={`py-4 w-28 ${!showCheckboxes ? 'pl-6' : ''}`}>Version</th>
                 <th className="py-4 w-40">Updated Date</th>
-                <th className="py-4 w-48">Modifier</th>
+                <th className="py-4 w-44">Modifier</th>
                 <th className="py-4 min-w-[200px]">Changes / Remarks</th>
                 <th className="py-4 w-28 text-center">Status</th>
-                <th className="py-4 pr-4 w-24 text-center">Actions</th>
+                <th className="py-4 pr-4 w-28 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -229,7 +231,10 @@ export default function DocumentVersionsPage() {
 
       {/* COMPARE MODAL */}
       {showCompareModal && selectedData.length === 2 && diff && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in transition-[padding] duration-200"
+          style={{ paddingLeft: isOpen ? "calc(16rem + 1rem)" : "calc(5rem + 1rem)" }}
+        >
           {/* Backdrop Click */}
           <div className="absolute inset-0 cursor-pointer" onClick={() => setShowCompareModal(false)}></div>
           
@@ -393,7 +398,10 @@ export default function DocumentVersionsPage() {
 
       {/* VIEW SINGLE VERSION MODAL */}
       {viewingVersion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in transition-[padding] duration-200"
+          style={{ paddingLeft: isOpen ? "calc(16rem + 1rem)" : "calc(5rem + 1rem)" }}
+        >
           <div className="absolute inset-0 cursor-pointer" onClick={() => setViewingVersion(null)}></div>
           
           <div className="relative bg-white rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col h-[85vh]">

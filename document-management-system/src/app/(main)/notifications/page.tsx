@@ -28,12 +28,12 @@ interface NotificationExt {
 
 const INITIAL_NOTIFICATIONS: NotificationExt[] = [
   { id: "n1", type: "pending", message: "เอกสาร PR-2026-0001 รออนุมัติจากคุณ", document_id: "PR-2026-0001", is_read: false, created_at: "2026-07-17T09:30:00Z" },
-  { id: "n2", type: "new", message: "มีเอกสารใหม่ PO-2026-0045 ถูกสร้างในแผนกของคุณ", document_id: "PO-2026-0045", is_read: false, created_at: "2026-07-17T08:15:00Z" },
+  { id: "n2", type: "pending", message: "เอกสาร PR-2026-0003 รออนุมัติจากคุณ", document_id: "PR-2026-0003", is_read: false, created_at: "2026-07-17T08:15:00Z" },
   { id: "n3", type: "returned", message: "เอกสาร PR-2026-0002 ของคุณถูกส่งกลับแก้ไข", document_id: "PR-2026-0002", is_read: true, created_at: "2026-07-16T15:45:00Z" },
-  { id: "n4", type: "approved", message: "เอกสาร Memo-2026-0010 ได้รับการอนุมัติเรียบร้อยแล้ว", document_id: "Memo-2026-0010", is_read: true, created_at: "2026-07-16T11:20:00Z" },
-  { id: "n5", type: "cancelled", message: "เอกสาร PO-2026-0003 ถูกยกเลิกโดยผู้จัดทำ", document_id: "PO-2026-0003", is_read: true, created_at: "2026-07-15T14:10:00Z" },
+  { id: "n4", type: "approved", message: "เอกสาร MEMO-2026-0001 ได้รับการอนุมัติเรียบร้อยแล้ว", document_id: "MEMO-2026-0001", is_read: true, created_at: "2026-07-16T11:20:00Z" },
+  { id: "n5", type: "pending", message: "เอกสาร PO-2026-0003 รออนุมัติจากคุณ", document_id: "PO-2026-0003", is_read: true, created_at: "2026-07-15T14:10:00Z" },
   { id: "n6", type: "pending", message: "เอกสาร PR-2026-0004 รออนุมัติจากคุณ", document_id: "PR-2026-0004", is_read: true, created_at: "2026-07-14T09:00:00Z" },
-  { id: "n7", type: "approved", message: "เอกสาร PR-2026-0005 ได้รับการอนุมัติเรียบร้อยแล้ว", document_id: "PR-2026-0005", is_read: true, created_at: "2026-07-13T10:30:00Z" },
+  { id: "n7", type: "approved", message: "เอกสาร PO-2026-0001 ได้รับการอนุมัติเรียบร้อยแล้ว", document_id: "PO-2026-0001", is_read: true, created_at: "2026-07-13T10:30:00Z" },
 ];
 
 export default function NotificationsPage() {

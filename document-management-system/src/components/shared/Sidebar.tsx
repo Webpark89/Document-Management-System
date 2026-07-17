@@ -57,13 +57,15 @@ function isConfigRoute(pathname: string) {
   return pathname === CONFIG_GROUP.href || pathname.startsWith(`${CONFIG_GROUP.href}/`);
 }
 
-function isNavItemActive(pathname: string, href: string) {
+function isNavItemActive(pathname: string, href: string, configSelectedManual: boolean) {
+  if (configSelectedManual) return false;
   if (isConfigRoute(pathname)) return false;
   if (pathname === href) return true;
   return pathname.startsWith(`${href}/`);
 }
 
-function isChildNavActive(pathname: string, href: string) {
+function isChildNavActive(pathname: string, href: string, configSelectedManual: boolean) {
+  if (configSelectedManual) return false;
   if (pathname === href) return true;
   return pathname.startsWith(`${href}/`);
 }
@@ -95,8 +97,10 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [configExpanded, setConfigExpanded] = useState(() => isConfigRoute(pathname));
+  const [configSelectedManual, setConfigSelectedManual] = useState(false);
 
   useEffect(() => {
+    setConfigSelectedManual(false);
     if (isConfigRoute(pathname)) {
       setConfigExpanded(true);
     }
@@ -125,7 +129,8 @@ export default function Sidebar() {
       .toUpperCase();
   }, [displayName, displaySub]);
 
-  const isConfigActive = isConfigRoute(pathname);
+  const isConfigActive =
+    configSelectedManual || (isConfigRoute(pathname) && !configExpanded);
 
   return (
     <aside
@@ -154,12 +159,13 @@ export default function Sidebar() {
       <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-2">
         {FLAT_NAV_ITEMS.slice(0, 4).map((item) => {
           const Icon = item.icon;
-          const isActive = isNavItemActive(pathname, item.href);
+          const isActive = isNavItemActive(pathname, item.href, configSelectedManual);
 
           return (
             <Link
               key={item.name}
               href={item.href}
+              onClick={() => setConfigSelectedManual(false)}
               className={navItemClass(isActive, isOpen)}
               title={!isOpen ? item.name : undefined}
             >
@@ -176,45 +182,47 @@ export default function Sidebar() {
         })}
 
         <div className="space-y-2">
-          <div className={`${navItemClass(isConfigActive, isOpen)} ${isOpen ? "gap-0 pr-2" : ""}`}>
-            <Link
-              href={CONFIG_GROUP.href}
-              className={`flex min-w-0 items-center gap-3.5 ${isOpen ? "min-w-0 flex-1" : ""}`}
-              title={!isOpen ? CONFIG_GROUP.name : undefined}
-            >
+          <div 
+            className={`${navItemClass(isConfigActive, isOpen)} ${isOpen ? "cursor-pointer gap-0 pr-2" : "cursor-pointer"}`}
+            onClick={() => {
+              if (!isOpen) toggle();
+              setConfigExpanded((prev) => {
+                const next = !prev;
+                setConfigSelectedManual(next);
+                return next;
+              });
+            }}
+            title={!isOpen ? CONFIG_GROUP.name : undefined}
+          >
+            <div className={`flex min-w-0 items-center gap-3.5 ${isOpen ? "min-w-0 flex-1" : ""}`}>
               <i
                 className={`${TABLER_ICON} ti-${CONFIG_GROUP.tablerIcon} ${
                   isConfigActive ? "text-blue-600" : "text-slate-400"
                 }`}
               />
               {isOpen && <span className="truncate">{CONFIG_GROUP.name}</span>}
-            </Link>
+            </div>
             {isOpen && (
-              <button
-                type="button"
-                onClick={() => setConfigExpanded((prev) => !prev)}
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                aria-label={configExpanded ? "Collapse Config" : "Expand Config"}
-                aria-expanded={configExpanded}
-              >
+              <div className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors">
                 <ChevronRight
                   className={`size-4 shrink-0 transition-transform duration-200 ${
                     configExpanded ? "rotate-90" : ""
                   }`}
                 />
-              </button>
+              </div>
             )}
           </div>
 
           {isOpen && configExpanded && (
             <div className="space-y-2">
               {CONFIG_GROUP.children.map((child) => {
-                const isChildActive = isChildNavActive(pathname, child.href);
+                const isChildActive = isChildNavActive(pathname, child.href, configSelectedManual);
 
                 return (
                   <Link
                     key={child.name}
                     href={child.href}
+                    onClick={() => setConfigSelectedManual(false)}
                     className={navItemClass(isChildActive, isOpen, true)}
                   >
                     {child.tablerIcon && (
@@ -234,12 +242,13 @@ export default function Sidebar() {
 
         {FLAT_NAV_ITEMS.slice(4).map((item) => {
           const Icon = item.icon;
-          const isActive = isNavItemActive(pathname, item.href);
+          const isActive = isNavItemActive(pathname, item.href, configSelectedManual);
 
           return (
             <Link
               key={item.name}
               href={item.href}
+              onClick={() => setConfigSelectedManual(false)}
               className={navItemClass(isActive, isOpen)}
               title={!isOpen ? item.name : undefined}
             >
@@ -261,6 +270,7 @@ export default function Sidebar() {
           <div className="flex w-full items-center gap-3 rounded-xl px-2 py-1">
             <Link
               href="/profile"
+              onClick={() => setConfigSelectedManual(false)}
               className="flex min-w-0 flex-1 items-center gap-3 rounded-lg transition-colors hover:bg-slate-50"
             >
               <Avatar className="h-9 w-9 flex-shrink-0">
@@ -308,7 +318,7 @@ export default function Sidebar() {
       <button
         type="button"
         onClick={toggle}
-        className="absolute top-1/2 right-1.5 z-40 h-6 w-6 -translate-y-1/2 rounded-full border border-slate-200 bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-colors"
+        className="absolute top-1/2 -right-3 z-40 h-6 w-6 -translate-y-1/2 rounded-full border border-slate-200 bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-colors"
         aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
       >
         <ChevronLeft className={`h-3.5 w-3.5 transition-transform ${isOpen ? "" : "rotate-180"}`} />

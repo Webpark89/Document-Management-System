@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { CheckSquare, Eye, SlidersHorizontal, Search } from "lucide-react";
+import { CheckSquare, Eye, SlidersHorizontal, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import PageHeader from "@/components/shared/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { getApprovals, Approval } from "@/features/workflow/api";
@@ -107,6 +107,18 @@ export default function ApprovalsInboxPage() {
         return parseThaiDate(b.submittedDate) - parseThaiDate(a.submittedDate);
       }
     });
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery]);
+
+  const totalPages = Math.ceil(filteredApprovals.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedApprovals = filteredApprovals.slice(startIndex, startIndex + itemsPerPage);
 
   const getTypeBadgeClass = (id: string) => {
     if (id.startsWith("PR")) return "bg-blue-50 text-blue-700 border-blue-200";
@@ -259,7 +271,7 @@ export default function ApprovalsInboxPage() {
             </thead>
             <tbody className="divide-y divide-slate-50/80">
               {filteredApprovals.length > 0 ? (
-                filteredApprovals.map((item) => (
+                paginatedApprovals.map((item) => (
                   <tr
                     key={item.id}
                     className="hover:bg-slate-50/50 transition-colors group"
@@ -326,6 +338,51 @@ export default function ApprovalsInboxPage() {
             </tbody>
           </table>
         </div>
+
+        {/* PAGINATION */}
+        {filteredApprovals.length > 0 && (
+          <div className="flex items-center justify-between pt-4 border-t border-slate-50 text-xs font-semibold text-slate-500">
+            <span>
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredApprovals.length)} of{" "}
+              {filteredApprovals.length} items
+            </span>
+            
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="p-2 border border-slate-100 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition-all cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  type="button"
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-lg border text-center transition-all cursor-pointer ${
+                    currentPage === page
+                      ? "bg-blue-600 border-blue-600 text-white shadow-xs"
+                      : "border-slate-100 hover:bg-slate-50 text-slate-600"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="p-2 border border-slate-100 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition-all cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       </div>
     </div>

@@ -33,9 +33,11 @@ import {
   MD_TABLE_CARD,
   MD_TD,
   MD_TD_ACTION,
+  MD_TD_NUM,
   MD_TD_NUM_RIGHT,
   MD_TD_STATUS,
   MD_TH,
+  MD_TH_CENTER,
   MD_TH_RIGHT,
   MD_TH_STATUS,
   MD_THEAD,
@@ -202,9 +204,9 @@ function RolesListView({
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
             <span>Admin</span>
             <span>/</span>
-            <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+            <span className="text-slate-500">
               Config
-            </Link>
+            </span>
             <span>/</span>
             <span className="font-medium text-slate-600">Roles</span>
           </nav>
@@ -250,10 +252,10 @@ function RolesListView({
               <thead className={MD_THEAD}>
                 <tr>
                   <th className={MD_TH}>ชื่อ Role</th>
-                  <th className={MD_TH}>จำนวนผู้ใช้งาน</th>
+                  <th className={MD_TH_CENTER}>จำนวนผู้ใช้งาน</th>
                   <th className={MD_TH}>สิทธิ์ (ดู/สร้าง/แก้ไข/ลบ/อนุมัติ)</th>
                   <th className={MD_TH_STATUS}>สถานะ</th>
-                  <th className={MD_TH_RIGHT}>จัดการ</th>
+                  <th className={MD_TH_CENTER}>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -270,7 +272,7 @@ function RolesListView({
                     return (
                       <tr key={role.id} className={MD_TR}>
                         <td className={`${tdCls} font-medium`}>{role.name}</td>
-                        <td className={MD_TD_NUM_RIGHT}>{role.userCount}</td>
+                        <td className={MD_TD_NUM}>{role.userCount}</td>
                         <td className={tdCls}>
                           <PermissionActionGrid
                             summary={role.permissionSummary}
@@ -280,8 +282,8 @@ function RolesListView({
                         <td className={MD_TD_STATUS}>
                           <StatusBadge active={role.isActive} />
                         </td>
-                        <td className={MD_TD_ACTION}>
-                          <div className="flex justify-end gap-1">
+                        <td className="px-6 py-4 text-center align-middle text-sm">
+                          <div className="flex justify-center gap-1">
                             <Link
                               href={`/admin/config/roles?mode=edit&id=${role.id}`}
                               className={btnGhost}
@@ -359,9 +361,9 @@ function CreateRoleForm({
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
             <span>Admin</span>
             <span>/</span>
-            <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+            <span className="text-slate-500">
               Config
-            </Link>
+            </span>
             <span>/</span>
             <span className="font-medium text-slate-600">สร้าง Role</span>
           </nav>
@@ -444,9 +446,9 @@ function EditRoleForm() {
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
             <span>Admin</span>
             <span>/</span>
-            <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+            <span className="text-slate-500">
               Config
-            </Link>
+            </span>
             <span>/</span>
             <span className="font-medium text-slate-600">แก้ไข Role</span>
           </nav>

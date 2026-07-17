@@ -8,12 +8,10 @@ import {
   MasterDataTableWrap,
   MD_TD_ACTION,
   MD_TD_NUM,
-  MD_TD_NUM_RIGHT,
   MD_TD_STICKY,
   MD_TD_STATUS,
   MD_TH_ACTION,
   MD_TH_CENTER,
-  MD_TH_RIGHT,
   MD_TH_STICKY,
   MD_TH_STATUS,
   MD_TABLE,
@@ -60,8 +58,12 @@ export default function WorkflowTab({
     title: row.name,
     badge: <StatusBadge active={row.isActive} />,
     fields: [
-      { label: "จำนวน Level", value: row.levels },
-      { label: "ผู้อนุมัติ", value: row.approverCount },
+      { label: "ประเภทเอกสาร", value: row.prefix || "-" },
+      { label: "จำนวน Level (ระดับ)", value: `${row.levels} ระดับ` },
+      {
+        label: "สายการอนุมัติ",
+        value: (row.steps || []).join(" ➔ ") || "-",
+      },
     ],
     actions: row.isActive ? (
       <RowActions onEdit={() => onEdit(row.id)} onDelete={() => onDelete(row.id)} />
@@ -73,7 +75,7 @@ export default function WorkflowTab({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-sm font-medium text-slate-800">Workflow</h2>
+        <h2 className="text-sm font-medium text-slate-800">รายการ Workflow และสายการอนุมัติ</h2>
         <InactiveFilterCheckbox checked={showDeleted} onChange={onShowDeletedChange} />
       </div>
 
@@ -86,21 +88,39 @@ export default function WorkflowTab({
           <thead className={MD_THEAD}>
             <tr>
               <th className={MD_TH_STICKY}>ชื่อ Workflow</th>
-              <th className={MD_TH_CENTER}>จำนวน Level</th>
-              <th className={MD_TH_RIGHT}>ผู้อนุมัติ</th>
+              <th className={MD_TH_CENTER}>ประเภทเอกสาร</th>
+              <th className={MD_TH_CENTER}>จำนวน Level (ระดับ)</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                สายการอนุมัติ (บทบาทอนุมัติ)
+              </th>
               <th className={MD_TH_STATUS}>สถานะ</th>
               <th className={MD_TH_ACTION}>จัดการ</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr
-                key={row.id}
-                className={`group ${MD_TR}`}
-              >
+              <tr key={row.id} className={`group ${MD_TR}`}>
                 <td className={MD_TD_STICKY}>{row.name}</td>
-                <td className={MD_TD_NUM}>{row.levels}</td>
-                <td className={MD_TD_NUM_RIGHT}>{row.approverCount}</td>
+                <td className="px-3 py-2.5 text-center text-xs font-medium text-slate-600">
+                  <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-slate-700">
+                    {row.prefix || "-"}
+                  </span>
+                </td>
+                <td className={MD_TD_NUM}>{row.levels} ระดับ</td>
+                <td className="px-3 py-2.5 text-xs">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {(row.steps || []).map((step, idx) => (
+                      <div key={idx} className="flex items-center gap-1">
+                        <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 font-medium text-blue-700">
+                          {step}
+                        </span>
+                        {idx < (row.steps || []).length - 1 && (
+                          <span className="text-slate-400 font-bold">›</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </td>
                 <td className={MD_TD_STATUS}>
                   <StatusBadge active={row.isActive} />
                 </td>

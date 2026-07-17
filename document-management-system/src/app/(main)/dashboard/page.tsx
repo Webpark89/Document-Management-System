@@ -297,11 +297,11 @@ export default function DashboardPage() {
               <table className="w-full table-fixed min-w-[800px] text-left border-collapse whitespace-nowrap">
                 <thead>
                   <tr className={MD_THEAD}>
-                    <DataTableHeader title="รหัสเอกสาร" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-6 py-4 w-44" />
-                    <th className="py-4 px-4 font-bold text-[11px] uppercase tracking-wider text-slate-400">ชื่อเรื่อง</th>
-                    <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-48" />
-                    <DataTableHeader title="ผู้สร้าง" sortKey="submittedBy" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-40" />
-                    <DataTableHeader title="วันที่" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 pr-6 pl-4 w-36" />
+                    <DataTableHeader title="รหัสเอกสาร" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-6 py-4 w-[15%]" />
+                    <th className="py-4 px-4 font-bold text-[11px] uppercase tracking-wider text-slate-400 w-[40%]">ชื่อเรื่อง</th>
+                    <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-[15%]" />
+                    <DataTableHeader title="ผู้สร้าง" sortKey="submittedBy" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-[18%]" />
+                    <DataTableHeader title="วันที่" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 pr-6 pl-4 w-[12%]" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50/80">
