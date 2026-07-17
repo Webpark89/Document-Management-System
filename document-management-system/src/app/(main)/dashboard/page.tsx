@@ -25,6 +25,8 @@ import {
 } from "recharts";
 import { MOCK_REPORT_DATA } from "@/lib/mock-data";
 import { useAuth } from "@/components/providers/AuthProvider";
+import PageHeader from "@/components/shared/PageHeader";
+import DataTableHeader from "@/components/ui/DataTableHeader";
 
 const STATUS_COLORS = {
   Approved: "#10b981", // emerald-500
@@ -45,6 +47,23 @@ type Role = "employee" | "admin";
 export default function DashboardPage() {
   const [role, setRole] = useState<Role>("admin");
   const { user } = useAuth();
+
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+
+  const handleSort = (key: string) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDirection("desc"); // 1st click: desc
+    } else {
+      if (sortDirection === "desc") {
+        setSortDirection("asc"); // 2nd click: asc
+      } else {
+        setSortKey(null); // 3rd click: reset
+        setSortDirection(null);
+      }
+    }
+  };
   
   // Use mock current user from the requirements
   const currentUserFullname = "วิภา รักดี"; 
@@ -63,8 +82,50 @@ export default function DashboardPage() {
     return cleanData.filter(d => d.submittedBy === currentUserFullname);
   }, [role, cleanData]);
 
-  // Sort by date desc
-  const recentActivity = [...dashboardData].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+  // Sort and filter activity
+  const recentActivity = useMemo(() => {
+    const data = [...dashboardData];
+
+    const statusPriority: Record<string, number> = {
+      "Pending": 4,
+      "Draft": 3,
+      "Returned for Revision": 2,
+      "Returned": 2,
+      "Approved": 1,
+      "Cancelled": 0,
+      "Rejected": 0
+    };
+
+    if (sortKey && sortDirection) {
+      data.sort((a, b) => {
+        let comparison = 0;
+        if (sortKey === "id") {
+          comparison = a.id.localeCompare(b.id);
+        } else if (sortKey === "status") {
+          const priorityA = statusPriority[a.status] ?? 0;
+          const priorityB = statusPriority[b.status] ?? 0;
+          comparison = priorityA - priorityB;
+        } else if (sortKey === "submittedBy") {
+          comparison = a.submittedBy.localeCompare(b.submittedBy);
+        } else if (sortKey === "date") {
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+      });
+    } else {
+      // Default: Status priority weight (desc) -> date (desc)
+      data.sort((a, b) => {
+        const priorityA = statusPriority[a.status] ?? 0;
+        const priorityB = statusPriority[b.status] ?? 0;
+        if (priorityA !== priorityB) {
+          return priorityB - priorityA;
+        }
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+    }
+
+    return data.slice(0, 8);
+  }, [dashboardData, sortKey, sortDirection]);
 
   // Stats
   const total = dashboardData.length;
@@ -105,29 +166,26 @@ export default function DashboardPage() {
     <div className="flex-1 flex flex-col min-w-0 w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       
       {/* HEADER & ROLE TOGGLE */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Dashboard Overview</h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">
-            Welcome back, {displayName}
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl self-start sm:self-auto shrink-0">
-          <button 
-            onClick={() => setRole("employee")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${role === 'employee' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            Employee View
-          </button>
-          <button 
-            onClick={() => setRole("admin")}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${role === 'admin' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            Admin View
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Dashboard Overview"
+        subtitle={`Welcome back, ${displayName}`}
+        actions={
+          <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl self-start sm:self-auto shrink-0 mr-2">
+            <button 
+              onClick={() => setRole("employee")}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${role === 'employee' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Employee View
+            </button>
+            <button 
+              onClick={() => setRole("admin")}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${role === 'admin' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Admin View
+            </button>
+          </div>
+        }
+      />
 
       {role === "employee" && dashboardData.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center flex flex-col items-center justify-center shadow-sm">
@@ -255,14 +313,14 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="overflow-x-auto w-full">
-              <table className="w-full min-w-[800px] text-left border-collapse whitespace-nowrap">
-                <thead className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <tr>
-                    <th className="py-4 pl-6 font-bold">Document ID</th>
-                    <th className="py-4 font-bold">Title</th>
-                    <th className="py-4 font-bold">Status</th>
-                    <th className="py-4 font-bold">Creator</th>
-                    <th className="py-4 font-bold pr-6">Date</th>
+              <table className="w-full table-fixed min-w-[800px] text-left border-collapse whitespace-nowrap">
+                <thead>
+                  <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <DataTableHeader title="Document ID" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-6 py-4 w-44" />
+                    <th className="py-4 px-4 font-bold">Title</th>
+                    <DataTableHeader title="Status" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-48" />
+                    <DataTableHeader title="Creator" sortKey="submittedBy" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-40" />
+                    <DataTableHeader title="Date" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 pr-6 pl-4 w-36" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50/80">
@@ -273,13 +331,13 @@ export default function DashboardPage() {
                           {doc.id}
                         </Link>
                       </td>
-                      <td className="py-4">
+                      <td className="py-4 px-4">
                         <Link href={`/documents/${doc.id}`} className="flex flex-col">
                           <span className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{doc.title}</span>
                           <span className="text-[10px] font-semibold text-slate-400 mt-0.5">{doc.type} • {doc.department}</span>
                         </Link>
                       </td>
-                      <td className="py-4">
+                      <td className="py-4 px-4">
                         <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold border ${
                           doc.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                           doc.status === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
@@ -289,8 +347,8 @@ export default function DashboardPage() {
                           {doc.status}
                         </span>
                       </td>
-                      <td className="py-4 text-sm font-semibold text-slate-700">{doc.submittedBy}</td>
-                      <td className="py-4 pr-6 text-sm text-slate-400 font-medium">{doc.date}</td>
+                      <td className="py-4 px-4 text-sm font-semibold text-slate-700">{doc.submittedBy}</td>
+                      <td className="py-4 pr-6 pl-4 text-sm text-slate-400 font-medium">{doc.date}</td>
                     </tr>
                   ))}
                   {recentActivity.length === 0 && (

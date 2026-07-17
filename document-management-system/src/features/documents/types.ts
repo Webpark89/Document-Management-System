@@ -23,6 +23,18 @@ export interface Document {
   version: string;         // e.g. "v1.0"
 }
 
+export interface DocumentVersion {
+  id: string;
+  document_id: string;
+  version_number: string;
+  uploaded_by: string;
+  created_at: string;
+  file_size_kb: number;
+  remarks: string;
+  is_active: boolean;
+  file_preview_url?: string;
+}
+
 export interface DashboardStats {
   total: number;
   approved: number;
