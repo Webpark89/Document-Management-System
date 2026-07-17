@@ -27,6 +27,16 @@ import { MOCK_REPORT_DATA } from "@/lib/mock-data";
 import { useAuth } from "@/components/providers/AuthProvider";
 import PageHeader from "@/components/shared/PageHeader";
 import DataTableHeader from "@/components/ui/DataTableHeader";
+import { AppStatCard, StatCardGrid } from "@/components/ui/AppStatCard";
+import {
+  APP_PAGE_CONTENT,
+  APP_PAGE_SHELL,
+  APP_TABLE_CARD,
+  APP_CARD,
+  APP_CARD_LG,
+  MD_THEAD,
+  MD_TR,
+} from "@/components/ui/design-system";
 
 const STATUS_COLORS = {
   Approved: "#10b981", // emerald-500
@@ -163,32 +173,33 @@ export default function DashboardPage() {
   const displayName = user?.full_name || user?.username || currentUserFullname;
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className={APP_PAGE_SHELL}>
+      <div className={APP_PAGE_CONTENT}>
       
       {/* HEADER & ROLE TOGGLE */}
       <PageHeader
-        title="Dashboard Overview"
-        subtitle={`Welcome back, ${displayName}`}
+        title="ภาพรวมแดชบอร์ด"
+        subtitle={`ยินดีต้อนรับกลับ, ${displayName}`}
         actions={
-          <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl self-start sm:self-auto shrink-0 mr-2">
+          <div className="flex shrink-0 items-center gap-2 self-start rounded-xl bg-slate-100 p-1.5 sm:self-auto">
             <button 
               onClick={() => setRole("employee")}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${role === 'employee' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`rounded-lg px-4 py-2 text-sm font-bold transition-all ${role === 'employee' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
-              Employee View
+              มุมมองพนักงาน
             </button>
             <button 
               onClick={() => setRole("admin")}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${role === 'admin' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`rounded-lg px-4 py-2 text-sm font-bold transition-all ${role === 'admin' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
-              Admin View
+              มุมมองผู้ดูแล
             </button>
           </div>
         }
       />
 
       {role === "employee" && dashboardData.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center flex flex-col items-center justify-center shadow-sm">
+        <div className={`${APP_CARD_LG} flex flex-col items-center justify-center p-12 text-center`}>
           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
             <FileText className="w-8 h-8" />
           </div>
@@ -201,43 +212,13 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* STATS ROW */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col">
-              <div className="flex items-center gap-3 mb-3 text-slate-500">
-                <FileText className="w-5 h-5 text-blue-500" />
-                <span className="text-[11px] font-bold uppercase tracking-wider">Total Documents</span>
-              </div>
-              <span className="text-3xl font-black text-slate-800 mt-auto">{total}</span>
-            </div>
-            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col">
-              <div className="flex items-center gap-3 mb-3 text-slate-500">
-                <Clock className="w-5 h-5 text-amber-500" />
-                <span className="text-[11px] font-bold uppercase tracking-wider">Pending</span>
-              </div>
-              <span className="text-3xl font-black text-slate-800 mt-auto">{pending}</span>
-            </div>
-            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col">
-              <div className="flex items-center gap-3 mb-3 text-slate-500">
-                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                <span className="text-[11px] font-bold uppercase tracking-wider">Approved</span>
-              </div>
-              <span className="text-3xl font-black text-slate-800 mt-auto">{approved}</span>
-            </div>
-            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col">
-              <div className="flex items-center gap-3 mb-3 text-slate-500">
-                <XCircle className="w-5 h-5 text-rose-500" />
-                <span className="text-[11px] font-bold uppercase tracking-wider">Rejected</span>
-              </div>
-              <span className="text-3xl font-black text-slate-800 mt-auto">{rejected}</span>
-            </div>
-            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col">
-              <div className="flex items-center gap-3 mb-3 text-slate-500">
-                <AlertCircle className="w-5 h-5 text-slate-400" />
-                <span className="text-[11px] font-bold uppercase tracking-wider">Cancelled</span>
-              </div>
-              <span className="text-3xl font-black text-slate-800 mt-auto">{cancelled}</span>
-            </div>
-          </div>
+          <StatCardGrid columns={5}>
+            <AppStatCard label="เอกสารทั้งหมด" value={total} icon={FileText} iconBg="bg-blue-50" iconColor="text-blue-600" />
+            <AppStatCard label="รออนุมัติ" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" />
+            <AppStatCard label="อนุมัติแล้ว" value={approved} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
+            <AppStatCard label="ปฏิเสธ" value={rejected} icon={XCircle} iconBg="bg-rose-50" iconColor="text-rose-600" />
+            <AppStatCard label="ยกเลิก" value={cancelled} icon={AlertCircle} iconBg="bg-slate-100" iconColor="text-slate-500" />
+          </StatCardGrid>
 
           {/* MIDDLE SECTION: Employee Task Card + Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -260,8 +241,8 @@ export default function DashboardPage() {
               </div>
             )}
 
-            <div className={`${role === 'employee' ? 'lg:col-span-1' : 'lg:col-span-2'} bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col`}>
-              <h3 className="text-sm font-bold text-slate-800 mb-6">Documents by Type</h3>
+            <div className={`${role === 'employee' ? 'lg:col-span-1' : 'lg:col-span-2'} ${APP_CARD_LG} flex flex-col`}>
+              <h3 className="text-sm font-bold text-slate-800 mb-6">เอกสารตามประเภท</h3>
               <div className="flex-1 min-h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={typeData} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
@@ -278,8 +259,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-1 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col">
-              <h3 className="text-sm font-bold text-slate-800 mb-2">Approval Status Distribution</h3>
+            <div className={`${APP_CARD_LG} flex flex-col lg:col-span-1`}>
+              <h3 className="text-sm font-bold text-slate-800 mb-2">สัดส่วนสถานะอนุมัติ</h3>
               <div className="flex-1 min-h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -305,27 +286,27 @@ export default function DashboardPage() {
           </div>
 
           {/* RECENT ACTIVITY TABLE */}
-          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900">Recent Activity</h3>
-              <Link href="/documents" className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1">
-                View All <ChevronRight className="w-4 h-4" />
+          <div className={`${APP_TABLE_CARD} flex flex-col`}>
+            <div className="flex items-center justify-between border-b border-slate-100 p-6">
+              <h3 className="text-base font-bold text-slate-900">กิจกรรมล่าสุด</h3>
+              <Link href="/documents" className="flex items-center gap-1 text-xs font-bold text-blue-600 transition-colors hover:text-blue-800">
+                ดูทั้งหมด <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
             <div className="overflow-x-auto w-full">
               <table className="w-full table-fixed min-w-[800px] text-left border-collapse whitespace-nowrap">
                 <thead>
-                  <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    <DataTableHeader title="Document ID" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-6 py-4 w-44" />
-                    <th className="py-4 px-4 font-bold">Title</th>
-                    <DataTableHeader title="Status" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-48" />
-                    <DataTableHeader title="Creator" sortKey="submittedBy" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-40" />
-                    <DataTableHeader title="Date" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 pr-6 pl-4 w-36" />
+                  <tr className={MD_THEAD}>
+                    <DataTableHeader title="รหัสเอกสาร" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-6 py-4 w-44" />
+                    <th className="py-4 px-4 font-bold text-[11px] uppercase tracking-wider text-slate-400">ชื่อเรื่อง</th>
+                    <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-48" />
+                    <DataTableHeader title="ผู้สร้าง" sortKey="submittedBy" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-40" />
+                    <DataTableHeader title="วันที่" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 pr-6 pl-4 w-36" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50/80">
                   {recentActivity.map(doc => (
-                    <tr key={doc.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <tr key={doc.id} className={`${MD_TR} group`}>
                       <td className="py-4 pl-6 text-sm font-bold text-slate-500">
                         <Link href={`/documents/${doc.id}`} className="hover:text-blue-600 transition-colors">
                           {doc.id}
@@ -365,6 +346,7 @@ export default function DashboardPage() {
         </>
       )}
 
+      </div>
     </div>
   );
 }

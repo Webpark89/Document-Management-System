@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { getApprovals, Approval } from "@/features/workflow/api";
 import { getStatusVariant } from "@/lib/document-status";
 import DataTableHeader from "@/components/ui/DataTableHeader";
+import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from "@/components/ui/design-system";
 
 type TabStatus = "Pending" | "Approved" | "Returned for Revision" | "All";
 
@@ -122,7 +123,8 @@ export default function ApprovalsInboxPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className={APP_PAGE_SHELL}>
+      <div className={APP_PAGE_CONTENT}>
       <PageHeader
         title="กล่องข้อความรออนุมัติ (Inbox)"
         subtitle="จัดการเอกสารที่รอให้คุณพิจารณาอนุมัติ"
@@ -137,7 +139,7 @@ export default function ApprovalsInboxPage() {
         }
       />
 
-      <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col h-full space-y-6">
+      <div className={`${APP_TABLE_CARD} flex flex-col p-6 space-y-6`}>
         {/* TOOLBAR: TAB BUTTONS & SEARCH */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           {/* Status Tabs with Counts */}
@@ -324,6 +326,7 @@ export default function ApprovalsInboxPage() {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -37,11 +37,11 @@ export default function PageHeader({
     .toUpperCase();
 
   return (
-    <header className={cn("flex items-center justify-between gap-4 mb-8", className)}>
-      <div>
+    <header className={cn("mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between", className)}>
+      <div className="min-w-0 flex-1 shrink">
         <h2
           className={cn(
-            "font-bold text-slate-900",
+            "font-black tracking-tight text-slate-900",
             size === "compact" ? "text-xl" : "text-2xl"
           )}
         >
@@ -50,7 +50,7 @@ export default function PageHeader({
         {subtitle && (
           <p
             className={cn(
-              "text-slate-400 font-semibold",
+              "mt-1 font-medium text-slate-500",
               size === "compact" ? "text-xs" : "text-sm"
             )}
           >
@@ -59,9 +59,9 @@ export default function PageHeader({
         )}
       </div>
 
-      <div className="flex items-center gap-4">
-        {actions}
-        <div className="relative">
+      <div className="relative z-20 flex min-w-0 flex-wrap items-center justify-end gap-3 sm:gap-4">
+        {actions ? <div className="flex shrink-0 items-center">{actions}</div> : null}
+        <div className="relative shrink-0">
           <button
             type="button"
             aria-label="Notifications"
@@ -111,8 +111,8 @@ export default function PageHeader({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2.5">
-          <Avatar>
+        <div className="flex shrink-0 items-center gap-2.5 pl-1">
+          <Avatar className="size-9">
             <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold text-sm">
               {initials}
             </AvatarFallback>

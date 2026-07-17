@@ -308,7 +308,7 @@ export default function Sidebar() {
       <button
         type="button"
         onClick={toggle}
-        className="absolute top-1/2 -right-3 h-6 w-6 -translate-y-1/2 rounded-full border border-slate-200 bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-colors"
+        className="absolute top-1/2 right-1.5 z-40 h-6 w-6 -translate-y-1/2 rounded-full border border-slate-200 bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-colors"
         aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
       >
         <ChevronLeft className={`h-3.5 w-3.5 transition-transform ${isOpen ? "" : "rotate-180"}`} />

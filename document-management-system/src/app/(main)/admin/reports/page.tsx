@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import PageHeader from "@/components/shared/PageHeader";
 import DataTableHeader from "@/components/ui/DataTableHeader";
+import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from "@/components/ui/design-system";
 
 // ─── MOCK DATA ─────────────────────────────────────────────────────────────────
 const DEPARTMENTS = [
@@ -351,9 +352,10 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className={APP_PAGE_SHELL}>
+      <div className={APP_PAGE_CONTENT}>
       <PageHeader 
-        title="Management Reports" 
+        title="รายงานการจัดการ" 
         subtitle="รายงานสรุปแบบมาตรฐานที่ถูกจัดเตรียมไว้สำหรับดูสถิติและสถานะการทำงาน" 
       />
 
@@ -369,8 +371,8 @@ export default function ReportsPage() {
         
         {/* LEFT COLUMN: REPORT CATALOG */}
         <div className="lg:w-[260px] shrink-0 space-y-2">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-1">
-            Available Reports
+          <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 px-1">
+            รายงานที่มีให้ใช้
           </div>
           {REPORT_TYPES.map(rt => {
             const Icon = rt.icon;
@@ -482,6 +484,7 @@ export default function ReportsPage() {
           </div>
           
         </div>
+      </div>
       </div>
     </div>
   );

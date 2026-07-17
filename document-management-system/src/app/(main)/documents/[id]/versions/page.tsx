@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, AlertCircle, Eye, Download, FileText, X, Clock, 
 import { getDocuments } from "@/features/documents/api";
 import { Document, DocumentVersion } from "@/features/documents/types";
 import PageHeader from "@/components/shared/PageHeader";
+import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from "@/components/ui/design-system";
 import { MOCK_DOCUMENT_VERSIONS } from "@/lib/mock-data";
 import { useToast } from "@/components/providers/ToastProvider";
 
@@ -102,7 +103,8 @@ export default function DocumentVersionsPage() {
   const showCheckboxes = versions.length > 1;
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 w-full">
+    <div className={APP_PAGE_SHELL}>
+      <div className={APP_PAGE_CONTENT}>
       
       <div>
         <Link
@@ -440,6 +442,7 @@ export default function DocumentVersionsPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

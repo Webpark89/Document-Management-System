@@ -1,14 +1,41 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Shield,
+  ShieldPlus,
   UserCheck,
+  UserPlus,
   UserX,
   Users,
 } from "lucide-react";
+import { AppStatCard, StatCardGrid } from "@/components/ui/AppStatCard";
+import {
+  APP_CARD,
+  APP_PRIMARY_BTN,
+  MD_TABLE,
+  MD_TABLE_CARD,
+  MD_TABLE_SCROLL,
+  MD_THEAD,
+  MD_TH,
+  MD_TH_ACTION,
+  MD_TH_CENTER,
+  MD_TH_STATUS,
+  MD_TD,
+  MD_TD_ACTION,
+  MD_TD_MUTED,
+  MD_TD_NUM,
+  MD_TD_STATUS,
+  MD_TR,
+} from "@/components/ui/design-system";
+import {
+  ADMIN_CONTENT,
+  ADMIN_PAGE_SHELL,
+  AdminPageHeader,
+  StatusBadge,
+} from "@/app/(main)/admin/master-data/master-data-ui";
 import {
   MOCK_ROLES,
   MOCK_USERS,
@@ -17,39 +44,25 @@ import {
 
 const ACTION_CARDS = [
   {
-    title: "Create role",
-    subtitle: "Define permissions and access levels",
-    icon: "shield-plus",
+    title: "สร้าง Role",
+    subtitle: "กำหนดสิทธิ์และระดับการเข้าถึง",
+    icon: ShieldPlus,
     href: "/admin/config/roles?mode=new",
     iconBg: "bg-indigo-50",
     iconColor: "text-indigo-600",
   },
   {
-    title: "Create user",
-    subtitle: "Add a new user account",
-    icon: "user-plus",
+    title: "สร้างผู้ใช้งาน",
+    subtitle: "เพิ่มบัญชีผู้ใช้งานใหม่",
+    icon: UserPlus,
     href: "/admin/config/users?mode=new",
     iconBg: "bg-blue-50",
     iconColor: "text-blue-600",
   },
 ] as const;
 
-const thCls = "h-12 px-5 text-left text-xs font-medium uppercase tracking-wide text-slate-500";
-const tdCls = "h-12 px-5 text-left text-sm text-slate-700";
-const tdMuted = "h-12 px-5 text-left text-sm text-slate-500";
-
 export default function ConfigPage() {
   const router = useRouter();
-
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css";
-    document.head.appendChild(link);
-    return () => {
-      document.head.removeChild(link);
-    };
-  }, []);
 
   const stats = useMemo(() => {
     const activeUsers = MOCK_USERS.filter((u) => u.isActive).length;
@@ -72,121 +85,127 @@ export default function ConfigPage() {
 
   const userRows = useMemo(() => MOCK_USERS.slice(0, 5), []);
 
-  const statusBadge = (active: boolean) => (
-    <span
-      className={`rounded-md px-2 py-0.5 text-xs ${
-        active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-400"
-      }`}
-    >
-      {active ? "Active" : "Inactive"}
+  const permissionBadge = (summary: string) => (
+    <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs text-blue-700">
+      {summary === "Full access" ? "เข้าถึงทั้งหมด" : summary}
     </span>
   );
 
-  const permissionBadge = (summary: string) => (
-    <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{summary}</span>
-  );
-
   return (
-    <div className="h-fit w-full bg-gray-50">
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
-        <nav className="mb-1 flex items-center gap-1.5 text-xs text-slate-400">
-          <span>Admin</span>
-          <span>/</span>
-          <span className="font-medium text-slate-600">Config</span>
-        </nav>
-        <h1 className="text-xl font-semibold text-slate-800">Config</h1>
-        <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
-      </header>
-
-      <div className="space-y-6 px-6 py-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {ACTION_CARDS.map((card) => (
+    <div className={ADMIN_PAGE_SHELL}>
+      <div className={ADMIN_CONTENT}>
+        <AdminPageHeader
+          breadcrumb={
+            <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+              <span>Admin</span>
+              <span>/</span>
+              <span className="font-medium text-slate-600">การตั้งค่า</span>
+            </nav>
+          }
+          title="การตั้งค่าระบบ"
+          subtitle="In-memory demo — resets on refresh"
+          actions={
             <button
-              key={card.title}
               type="button"
-              onClick={() => router.push(card.href)}
-              className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-50/40"
+              onClick={() => router.push("/admin/config/users?mode=new")}
+              className={APP_PRIMARY_BTN}
             >
-              <div className={`flex size-9 items-center justify-center rounded-md ${card.iconBg}`}>
-                <i className={`ti ti-${card.icon} text-[1.125rem] leading-none ${card.iconColor}`} />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-800">{card.title}</p>
-                <p className="text-xs text-slate-500">{card.subtitle}</p>
-              </div>
+              <UserPlus className="size-4" />
+              สร้างผู้ใช้งาน
             </button>
-          ))}
+          }
+        />
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {ACTION_CARDS.map((card) => {
+            const Icon = card.icon;
+            return (
+              <button
+                key={card.title}
+                type="button"
+                onClick={() => router.push(card.href)}
+                className={`flex items-center gap-4 text-left transition-colors hover:border-blue-200 hover:bg-blue-50/30 ${APP_CARD}`}
+              >
+                <div
+                  className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${card.iconBg}`}
+                >
+                  <Icon className={`size-5 ${card.iconColor}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800">{card.title}</p>
+                  <p className="text-xs text-slate-500">{card.subtitle}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="flex size-9 items-center justify-center rounded-md bg-indigo-50">
-              <Shield className="size-4 text-indigo-600" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-800">{stats.totalRoles}</p>
-              <p className="text-xs text-slate-500">จำนวน Role ทั้งหมด</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="flex size-9 items-center justify-center rounded-md bg-blue-50">
-              <Users className="size-4 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-800">{stats.totalUsers}</p>
-              <p className="text-xs text-slate-500">จำนวนผู้ใช้งานทั้งหมด</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="flex size-9 items-center justify-center rounded-md bg-green-50">
-              <UserCheck className="size-4 text-green-600" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-800">{stats.activeUsers}</p>
-              <p className="text-xs text-slate-500">ผู้ใช้งาน Active</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="flex size-9 items-center justify-center rounded-md bg-red-50">
-              <UserX className="size-4 text-red-600" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-800">{stats.inactiveUsers}</p>
-              <p className="text-xs text-slate-500">ผู้ใช้งานถูกปิดใช้งาน</p>
-            </div>
-          </div>
-        </div>
+        <StatCardGrid columns={4}>
+          <AppStatCard
+            label="Role ทั้งหมด"
+            value={stats.totalRoles}
+            icon={Shield}
+            iconBg="bg-indigo-50"
+            iconColor="text-indigo-600"
+          />
+          <AppStatCard
+            label="ผู้ใช้งานทั้งหมด"
+            value={stats.totalUsers}
+            icon={Users}
+            iconBg="bg-blue-50"
+            iconColor="text-blue-600"
+          />
+          <AppStatCard
+            label="ใช้งาน"
+            value={stats.activeUsers}
+            icon={UserCheck}
+            iconBg="bg-emerald-50"
+            iconColor="text-emerald-600"
+          />
+          <AppStatCard
+            label="ปิดใช้งาน"
+            value={stats.inactiveUsers}
+            icon={UserX}
+            iconBg="bg-rose-50"
+            iconColor="text-rose-600"
+          />
+        </StatCardGrid>
 
-        <section className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-            <h2 className="text-sm font-medium text-slate-800">Roles</h2>
-            <Link href="/admin/config/roles" className="text-xs font-medium text-blue-600 hover:text-blue-700">
+        <section className={MD_TABLE_CARD}>
+          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+            <h2 className="text-sm font-bold text-slate-800">Roles</h2>
+            <Link
+              href="/admin/config/roles"
+              className="text-xs font-bold text-blue-600 hover:text-blue-700"
+            >
               ดูทั้งหมด
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr className="border-b border-gray-200">
-                  <th className={thCls}>ชื่อ Role</th>
-                  <th className={thCls}>จำนวนผู้ใช้งาน</th>
-                  <th className={thCls}>สิทธิ์หลัก</th>
-                  <th className={thCls}>สถานะ</th>
-                  <th className={`${thCls} text-right`}>จัดการ</th>
+          <div className={MD_TABLE_SCROLL}>
+            <table className={MD_TABLE}>
+              <thead>
+                <tr className={MD_THEAD}>
+                  <th className={MD_TH}>ชื่อ Role</th>
+                  <th className={MD_TH_CENTER}>จำนวนผู้ใช้งาน</th>
+                  <th className={MD_TH}>สิทธิ์หลัก</th>
+                  <th className={MD_TH_STATUS}>สถานะ</th>
+                  <th className={MD_TH_ACTION}>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
                 {roleRows.map((role) => (
-                  <tr
-                    key={role.id}
-                    className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50"
-                  >
-                    <td className={`${tdCls} font-medium`}>{role.name}</td>
-                    <td className={tdMuted}>{role.userCount}</td>
-                    <td className="h-12 px-5">{permissionBadge(role.permissionSummary)}</td>
-                    <td className="h-12 px-5">{statusBadge(role.isActive)}</td>
-                    <td className="h-12 px-5 text-right text-slate-400">
-                      <Link href="/admin/config/roles" className="text-xs text-blue-600 hover:text-blue-700">
+                  <tr key={role.id} className={MD_TR}>
+                    <td className={`${MD_TD} font-medium text-slate-800`}>{role.name}</td>
+                    <td className={MD_TD_NUM}>{role.userCount}</td>
+                    <td className={MD_TD}>{permissionBadge(role.permissionSummary)}</td>
+                    <td className={MD_TD_STATUS}>
+                      <StatusBadge active={role.isActive} />
+                    </td>
+                    <td className={MD_TD_ACTION}>
+                      <Link
+                        href="/admin/config/roles"
+                        className="text-xs font-medium text-blue-600 hover:text-blue-700"
+                      >
                         จัดการที่หน้า Roles →
                       </Link>
                     </td>
@@ -197,38 +216,43 @@ export default function ConfigPage() {
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-            <h2 className="text-sm font-medium text-slate-800">Users</h2>
-            <Link href="/admin/config/users" className="text-xs font-medium text-blue-600 hover:text-blue-700">
+        <section className={MD_TABLE_CARD}>
+          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+            <h2 className="text-sm font-bold text-slate-800">ผู้ใช้งาน</h2>
+            <Link
+              href="/admin/config/users"
+              className="text-xs font-bold text-blue-600 hover:text-blue-700"
+            >
               ดูทั้งหมด
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr className="border-b border-gray-200">
-                  <th className={thCls}>ชื่อ</th>
-                  <th className={thCls}>อีเมล</th>
-                  <th className={thCls}>แผนก</th>
-                  <th className={thCls}>Role</th>
-                  <th className={thCls}>สถานะ</th>
-                  <th className={`${thCls} text-right`}>จัดการ</th>
+          <div className={MD_TABLE_SCROLL}>
+            <table className={MD_TABLE}>
+              <thead>
+                <tr className={MD_THEAD}>
+                  <th className={MD_TH}>ชื่อ</th>
+                  <th className={MD_TH}>อีเมล</th>
+                  <th className={MD_TH}>แผนก</th>
+                  <th className={MD_TH}>Role</th>
+                  <th className={MD_TH_STATUS}>สถานะ</th>
+                  <th className={MD_TH_ACTION}>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
                 {userRows.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50"
-                  >
-                    <td className={`${tdCls} font-medium`}>{user.fullName}</td>
-                    <td className={tdMuted}>{user.email}</td>
-                    <td className={tdMuted}>{user.department}</td>
-                    <td className={tdMuted}>{user.role}</td>
-                    <td className="h-12 px-5">{statusBadge(user.isActive)}</td>
-                    <td className="h-12 px-5 text-right text-slate-400">
-                      <Link href="/admin/config/users" className="text-xs text-blue-600 hover:text-blue-700">
+                  <tr key={user.id} className={MD_TR}>
+                    <td className={`${MD_TD} font-medium text-slate-800`}>{user.fullName}</td>
+                    <td className={MD_TD_MUTED}>{user.email}</td>
+                    <td className={MD_TD_MUTED}>{user.department}</td>
+                    <td className={MD_TD_MUTED}>{user.role}</td>
+                    <td className={MD_TD_STATUS}>
+                      <StatusBadge active={user.isActive} />
+                    </td>
+                    <td className={MD_TD_ACTION}>
+                      <Link
+                        href="/admin/config/users"
+                        className="text-xs font-medium text-blue-600 hover:text-blue-700"
+                      >
                         จัดการที่หน้า Users →
                       </Link>
                     </td>

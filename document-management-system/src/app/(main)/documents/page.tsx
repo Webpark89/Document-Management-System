@@ -24,6 +24,7 @@ import { useToast } from "@/components/providers/ToastProvider";
 import { getStatusVariant } from "@/lib/document-status";
 import { DocumentTypeIcon } from "@/lib/document-type-icon";
 import DataTableHeader from "@/components/ui/DataTableHeader";
+import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from "@/components/ui/design-system";
 
 export default function DocumentsPage() {
   const { data: initialDocs, error } = useSWR("documents", getDocuments, {
@@ -258,16 +259,27 @@ export default function DocumentsPage() {
   }, [search, typeFilter, statusFilter]);
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 w-full px-4 sm:px-6 lg:px-8 py-6">
+    <div className={APP_PAGE_SHELL}>
+      <div className={APP_PAGE_CONTENT}>
       
       <PageHeader
         size="compact"
-        title="Documents Center"
-        subtitle="Store, organize, manage, and edit company document assets."
+        title="ศูนย์เอกสาร"
+        subtitle="จัดเก็บ จัดระเบียบ และจัดการเอกสารขององค์กร"
+        actions={
+          <button
+            type="button"
+            onClick={() => setIsUploadOpen(true)}
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700"
+          >
+            <Plus className="size-4" />
+            อัปโหลดเอกสาร
+          </button>
+        }
       />
 
       {/* WORKSPACE CARD */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm flex flex-col h-full space-y-6">
+      <div className={`${APP_TABLE_CARD} flex flex-col p-6 space-y-6`}>
         
         {/* TOOLBAR */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -472,6 +484,7 @@ export default function DocumentsPage() {
 
       </div>
 
+      </div>
     </div>
   );
 }

@@ -274,7 +274,7 @@ export default function ApprovalMatrixTab({
         <div className={`${MD_TABLE_CARD} space-y-3 p-4 md:p-6`}>
           {draftSteps.length === 0 && (
             <p className="py-4 text-center text-sm text-slate-400">
-              ยังไม่ได้กำหนดสายอนุมัติ — กด Add Step เพื่อเริ่มต้น
+              ยังไม่ได้กำหนดสายอนุมัติ — กด เพิ่มขั้นตอน เพื่อเริ่มต้น
             </p>
           )}
           {draftSteps.map((role, index) => {
@@ -334,7 +334,7 @@ export default function ApprovalMatrixTab({
               className="hidden w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 py-3 text-sm text-slate-500 transition-colors hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40 md:flex"
             >
               <Plus className="size-4" />
-              Add Step
+              เพิ่มขั้นตอน
             </button>
           )}
 
@@ -359,7 +359,7 @@ export default function ApprovalMatrixTab({
             className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-60"
           >
             {saving && <Loader2 className="size-4 animate-spin" />}
-            {saving ? "กำลังบันทึก..." : "Save Approval Matrix"}
+            {saving ? "กำลังบันทึก..." : "บันทึกเมทริกซ์อนุมัติ"}
           </button>
         </div>
       </section>
@@ -373,7 +373,7 @@ export default function ApprovalMatrixTab({
             className="flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-200 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-gray-50 disabled:opacity-40"
           >
             <Plus className="size-4" />
-            Add Step
+            เพิ่มขั้นตอน
           </button>
         )}
         <button
@@ -385,7 +385,7 @@ export default function ApprovalMatrixTab({
           }`}
         >
           {saving && <Loader2 className="size-4 animate-spin" />}
-          {saving ? "กำลังบันทึก..." : "Save"}
+          {saving ? "กำลังบันทึก..." : "บันทึก"}
         </button>
       </div>
     </div>

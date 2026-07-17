@@ -8,9 +8,11 @@ import { useSignatures } from "@/components/providers/SignatureProvider";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
   ADMIN_CONTENT,
+  ADMIN_PAGE_SHELL,
   AdminPageHeader,
   MD_ADD_BTN,
 } from "../admin/master-data/master-data-ui";
+import { APP_CARD_LG } from "@/components/ui/design-system";
 
 const ROLE_BADGE: Record<string, string> = {
   Administrator: "bg-violet-50 text-violet-700 ring-1 ring-violet-100",
@@ -19,7 +21,7 @@ const ROLE_BADGE: Record<string, string> = {
   Employee: "bg-slate-100 text-slate-600 ring-1 ring-slate-200/80",
 };
 
-const CARD = "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm";
+const CARD = APP_CARD_LG;
 const CARD_HEADER_LABEL =
   "text-[11px] font-bold uppercase tracking-wider text-slate-400";
 const PANEL_BOX =
@@ -171,8 +173,8 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
-      <div className="border-b border-slate-200 pb-6">
+    <div className={ADMIN_PAGE_SHELL}>
+      <div className={ADMIN_CONTENT}>
         <AdminPageHeader
           breadcrumb={
             <nav className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -184,9 +186,8 @@ export default function ProfilePage() {
           title="โปรไฟล์"
           subtitle="In-memory demo — resets on refresh"
         />
-      </div>
 
-      <div className={`${ADMIN_CONTENT} mt-6`}>
+      <div className="mt-0">
           <section className={CARD}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex min-w-0 flex-1 items-center gap-5">
@@ -349,6 +350,7 @@ export default function ProfilePage() {
             </div>
           </section>
         </div>
+      </div>
     </div>
   );
 }

@@ -11,11 +11,13 @@ import {
   Pencil,
   Plus,
   Search,
+  User,
   UserCheck,
   UserX,
   Users,
   X,
 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
   DEPARTMENTS,
@@ -29,17 +31,37 @@ import {
 } from "@/lib/config-mock";
 import {
   ADMIN_CONTENT,
+  ADMIN_PAGE_SHELL,
   AdminPageHeader,
   MD_ADD_BTN,
   MD_TABLE_CARD,
   MD_TD,
+  MD_TD_ACTION,
   MD_TD_MUTED,
+  MD_TD_STATUS,
   MD_TH,
+  MD_TH_CENTER,
   MD_TH_RIGHT,
+  MD_TH_STATUS,
   MD_THEAD,
   MD_TR,
   StatCards,
+  StatusBadge,
+  StatusFormToggle,
 } from "../../master-data/master-data-ui";
+import { APP_CARD_LG } from "@/components/ui/design-system";
+
+const CARD = APP_CARD_LG;
+const CARD_HEADER_LABEL = "text-[11px] font-bold uppercase tracking-wider text-slate-400";
+const BTN_SECONDARY =
+  "inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50";
+
+const ROLE_BADGE: Record<string, string> = {
+  Administrator: "bg-violet-50 text-violet-700 ring-1 ring-violet-100",
+  Executive: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
+  Manager: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
+  Employee: "bg-slate-100 text-slate-600 ring-1 ring-slate-200/80",
+};
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -47,6 +69,8 @@ type UserForm = {
   fullName: string;
   email: string;
   password: string;
+  phone: string;
+  joinedAt: string;
   department: string;
   position: string;
   role: string;
@@ -61,11 +85,18 @@ const EMPTY_USER: UserForm = {
   fullName: "",
   email: "",
   password: "",
+  phone: "",
+  joinedAt: "",
   department: DEPARTMENT_OPTIONS[0] ?? "",
   position: "",
   role: USER_ROLE_OPTIONS[0],
   isActive: true,
 };
+
+const inputClsCreate =
+  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+const inputErrorClsCreate =
+  "w-full rounded-xl border border-red-300 px-3.5 py-2.5 text-sm text-slate-700 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100";
 
 const thCls = MD_TH;
 const tdCls = MD_TD;
@@ -88,6 +119,8 @@ function userToForm(user: ConfigUser): UserForm {
     fullName: user.fullName,
     email: user.email,
     password: "",
+    phone: user.phone ?? "",
+    joinedAt: user.joinedAt ?? "",
     department: user.department,
     position: user.position,
     role: user.role,
@@ -95,15 +128,129 @@ function userToForm(user: ConfigUser): UserForm {
   };
 }
 
+function CardSectionHeader({
+  icon: Icon,
+  iconBg,
+  iconColor,
+  label,
+  description,
+}: {
+  icon: typeof User;
+  iconBg: string;
+  iconColor: string;
+  label: string;
+  description?: string;
+}) {
+  return (
+    <div className="mb-6 border-b border-slate-100 pb-5">
+      <div className="flex items-center gap-3">
+        <div className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
+          <Icon className={`size-5 ${iconColor}`} />
+        </div>
+        <span className={CARD_HEADER_LABEL}>{label}</span>
+      </div>
+      {description ? <p className="mt-3 text-sm text-slate-500">{description}</p> : null}
+    </div>
+  );
+}
+
+function CreateUserPreview({ form }: { form: UserForm }) {
+  const displayName = form.fullName.trim() || "ชื่อผู้ใช้งาน";
+  const initials = useMemo(() => {
+    const parts = displayName.split(" ").filter(Boolean);
+    if (parts.length === 0) return "?";
+    return parts
+      .map((p) => p[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }, [displayName]);
+
+  const joinedLabel = form.joinedAt
+    ? new Date(form.joinedAt).toLocaleDateString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "—";
+
+  return (
+    <div className="flex min-h-[280px] flex-col rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+      <div className="flex items-start gap-4">
+        <Avatar className="size-16 shrink-0 ring-2 ring-white">
+          <AvatarFallback className="bg-indigo-100 text-lg font-semibold text-indigo-700">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-lg font-bold tracking-tight text-slate-900">{displayName}</p>
+          <p className="mt-0.5 truncate text-sm text-slate-500">
+            {form.email.trim() || "อีเมล@company.com"}
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-medium ${
+                ROLE_BADGE[form.role] ?? "bg-slate-100 text-slate-600 ring-1 ring-slate-200/80"
+              }`}
+            >
+              {form.role}
+            </span>
+            <StatusBadge active={form.isActive} />
+          </div>
+        </div>
+      </div>
+
+      <dl className="mt-5 space-y-3 border-t border-slate-200/80 pt-5 text-sm">
+        <div className="flex items-start justify-between gap-4">
+          <dt className="shrink-0 text-slate-500">แผนก</dt>
+          <dd className="text-right font-medium text-slate-800">{form.department || "—"}</dd>
+        </div>
+        <div className="flex items-start justify-between gap-4">
+          <dt className="shrink-0 text-slate-500">ตำแหน่ง</dt>
+          <dd className="text-right font-medium text-slate-800">{form.position || "—"}</dd>
+        </div>
+        <div className="flex items-start justify-between gap-4">
+          <dt className="shrink-0 text-slate-500">เบอร์โทร</dt>
+          <dd className="text-right font-medium text-slate-800">{form.phone.trim() || "—"}</dd>
+        </div>
+        <div className="flex items-start justify-between gap-4">
+          <dt className="shrink-0 text-slate-500">วันที่เริ่มงาน</dt>
+          <dd className="text-right font-medium text-slate-800">{joinedLabel}</dd>
+        </div>
+      </dl>
+
+      <p className="mt-auto pt-4 text-xs text-slate-400">
+        ตัวอย่างการแสดงผล — อัปเดตตามข้อมูลที่กรอก
+      </p>
+    </div>
+  );
+}
+
+function isCreateFormComplete(form: UserForm): boolean {
+  return (
+    !!form.fullName.trim() &&
+    !!form.email.trim() &&
+    EMAIL_RE.test(form.email.trim()) &&
+    form.password.length >= 8 &&
+    !!form.department &&
+    !!form.position &&
+    !!form.role
+  );
+}
+
 function roleBadge(role: string) {
   const colors: Record<string, string> = {
-    Administrator: "bg-violet-50 text-violet-700",
-    Executive: "bg-amber-50 text-amber-700",
-    Manager: "bg-blue-50 text-blue-700",
-    Employee: "bg-slate-100 text-slate-600",
+    Administrator: "bg-violet-50 text-violet-700 ring-1 ring-violet-100",
+    Executive: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
+    Manager: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
+    Employee: "bg-slate-100 text-slate-600 ring-1 ring-slate-200/80",
   };
   return (
-    <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${colors[role] ?? "bg-slate-100 text-slate-600"}`}>
+    <span
+      className={`inline-flex min-w-[5.5rem] items-center justify-center rounded-md px-2.5 py-0.5 text-xs font-medium ${
+        colors[role] ?? "bg-slate-100 text-slate-600 ring-1 ring-slate-200/80"
+      }`}
+    >
       {role}
     </span>
   );
@@ -159,7 +306,7 @@ function UsersListView({
   };
 
   return (
-    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+    <div className={ADMIN_PAGE_SHELL}>
       <AdminPageHeader
         breadcrumb={
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -182,8 +329,10 @@ function UsersListView({
         }
       />
 
-      <div className={`${ADMIN_CONTENT} mt-6`}>
-        <div className={`${MD_TABLE_CARD}`}>
+      <div className={`${ADMIN_CONTENT} mt-6 space-y-6`}>
+        <StatCards total={stats.total} active={stats.active} inactive={stats.inactive} icon={Users} />
+
+        <div className={MD_TABLE_CARD}>
           <div className="space-y-3 border-b border-slate-100 bg-slate-50/40 p-4">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
@@ -215,8 +364,8 @@ function UsersListView({
                 </select>
                 <select className={inputCls} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                   <option value="">ทุกสถานะ</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="active">ใช้งาน</option>
+                  <option value="inactive">ปิดใช้งาน</option>
                 </select>
               </div>
               <label className="flex shrink-0 items-center gap-2 whitespace-nowrap text-sm text-slate-500">
@@ -239,8 +388,8 @@ function UsersListView({
                   <th className={thCls}>อีเมล</th>
                   <th className={thCls}>แผนก</th>
                   <th className={thCls}>ตำแหน่ง</th>
-                  <th className={thCls}>Role</th>
-                  <th className={thCls}>สถานะ</th>
+                  <th className={MD_TH_CENTER}>Role</th>
+                  <th className={MD_TH_STATUS}>สถานะ</th>
                   <th className={MD_TH_RIGHT}>จัดการ</th>
                 </tr>
               </thead>
@@ -258,19 +407,11 @@ function UsersListView({
                       <td className={tdMuted}>{user.email}</td>
                       <td className={tdMuted}>{user.department}</td>
                       <td className={tdMuted}>{user.position}</td>
-                      <td className={tdCls}>{roleBadge(user.role)}</td>
-                      <td className={tdCls}>
-                        <span
-                          className={`rounded-md px-2 py-0.5 text-xs ${
-                            user.isActive
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-slate-100 text-slate-400"
-                          }`}
-                        >
-                          {user.isActive ? "Active" : "Inactive"}
-                        </span>
+                      <td className={`${tdCls} text-center`}>{roleBadge(user.role)}</td>
+                      <td className={MD_TD_STATUS}>
+                        <StatusBadge active={user.isActive} />
                       </td>
-                      <td className={`${tdCls} text-right`}>
+                      <td className={MD_TD_ACTION}>
                         <div className="inline-flex items-center divide-x divide-gray-200 rounded-md border border-transparent">
                           <button
                             type="button"
@@ -312,8 +453,6 @@ function UsersListView({
             </table>
           </div>
         </div>
-
-        <StatCards total={stats.total} active={stats.active} inactive={stats.inactive} icon={Users} />
       </div>
 
       {editUser && (
@@ -556,7 +695,6 @@ function UserFormFields({
   layout?: "default" | "create";
 }) {
   const [showPassword, setShowPassword] = useState(false);
-  const fieldCls = (key: keyof UserForm) => (errors[key] ? inputErrorCls : inputCls);
 
   const positionsForDept = useMemo(
     () =>
@@ -570,8 +708,16 @@ function UserFormFields({
     positionsForDept.length > 0 ? positionsForDept : POSITIONS.filter((p) => p.isActive).map((p) => p.name);
 
   const isCreateLayout = layout === "create";
-  const fieldStackCls = isCreateLayout ? "mt-5 flex flex-col gap-5" : "mt-4 space-y-3";
-  const labelCls = "mb-1.5 block text-xs text-slate-500";
+  const fieldStackCls = isCreateLayout ? "flex flex-col gap-5" : "mt-4 space-y-3";
+  const labelCls = "mb-1.5 block text-xs font-medium text-slate-500";
+  const fieldInputCls = (key: keyof UserForm) =>
+    isCreateLayout
+      ? errors[key]
+        ? inputErrorClsCreate
+        : inputClsCreate
+      : errors[key]
+        ? inputErrorCls
+        : inputCls;
 
   const fullNameField = (
     <div>
@@ -583,7 +729,7 @@ function UserFormFields({
           setForm((p) => ({ ...p, fullName: e.target.value }));
           if (errors.fullName) setErrors((p) => ({ ...p, fullName: undefined }));
         }}
-        className={fieldCls("fullName")}
+        className={fieldInputCls("fullName")}
       />
       {errors.fullName && <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>}
     </div>
@@ -599,7 +745,7 @@ function UserFormFields({
           setForm((p) => ({ ...p, email: e.target.value }));
           if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
         }}
-        className={fieldCls("email")}
+        className={fieldInputCls("email")}
       />
       {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
     </div>
@@ -607,7 +753,7 @@ function UserFormFields({
 
   const passwordField = includePassword ? (
     <div>
-      <label className={labelCls}>Password</label>
+      <label className={labelCls}>รหัสผ่าน</label>
       <div className="relative">
         <input
           type={showPassword ? "text" : "password"}
@@ -616,7 +762,7 @@ function UserFormFields({
             setForm((p) => ({ ...p, password: e.target.value }));
             if (errors.password) setErrors((p) => ({ ...p, password: undefined }));
           }}
-          className={`${fieldCls("password")} pr-10`}
+          className={`${fieldInputCls("password")} pr-10`}
         />
         <button
           type="button"
@@ -627,9 +773,37 @@ function UserFormFields({
           {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>
       </div>
+      {isCreateLayout && !errors.password ? (
+        <p className="mt-1.5 text-xs text-slate-400">รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร</p>
+      ) : null}
       {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
     </div>
   ) : null;
+
+  const phoneField = (
+    <div>
+      <label className={labelCls}>เบอร์โทร</label>
+      <input
+        type="tel"
+        value={form.phone}
+        onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+        placeholder="081-234-5678"
+        className={fieldInputCls("phone")}
+      />
+    </div>
+  );
+
+  const joinedAtField = (
+    <div>
+      <label className={labelCls}>วันที่เริ่มงาน</label>
+      <input
+        type="date"
+        value={form.joinedAt}
+        onChange={(e) => setForm((p) => ({ ...p, joinedAt: e.target.value }))}
+        className={fieldInputCls("joinedAt")}
+      />
+    </div>
+  );
 
   const departmentField = (
     <div>
@@ -648,7 +822,7 @@ function UserFormFields({
           }));
           if (errors.department) setErrors((p) => ({ ...p, department: undefined }));
         }}
-        className={fieldCls("department")}
+        className={fieldInputCls("department")}
       >
         {DEPARTMENT_OPTIONS.map((d) => (
           <option key={d} value={d}>
@@ -669,7 +843,7 @@ function UserFormFields({
           setForm((p) => ({ ...p, position: e.target.value }));
           if (errors.position) setErrors((p) => ({ ...p, position: undefined }));
         }}
-        className={fieldCls("position")}
+        className={fieldInputCls("position")}
       >
         {positionOptions.map((p) => (
           <option key={p} value={p}>
@@ -687,7 +861,7 @@ function UserFormFields({
       <select
         value={form.role}
         onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))}
-        className={fieldCls("role")}
+        className={fieldInputCls("role")}
       >
         {USER_ROLE_OPTIONS.map((r) => (
           <option key={r} value={r}>
@@ -699,29 +873,10 @@ function UserFormFields({
   );
 
   const statusField = (
-    <div>
-      <p className={labelCls}>สถานะ</p>
-      <div className="inline-flex rounded-md border border-gray-200 p-0.5">
-        <button
-          type="button"
-          onClick={() => setForm((p) => ({ ...p, isActive: true }))}
-          className={`rounded px-4 py-1.5 text-sm font-medium ${
-            form.isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-gray-50"
-          }`}
-        >
-          Active
-        </button>
-        <button
-          type="button"
-          onClick={() => setForm((p) => ({ ...p, isActive: false }))}
-          className={`rounded px-4 py-1.5 text-sm font-medium ${
-            !form.isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-gray-50"
-          }`}
-        >
-          Inactive
-        </button>
-      </div>
-    </div>
+    <StatusFormToggle
+      active={form.isActive}
+      onChange={(isActive) => setForm((p) => ({ ...p, isActive }))}
+    />
   );
 
   if (isCreateLayout) {
@@ -730,11 +885,15 @@ function UserFormFields({
         {fullNameField}
         {emailField}
         {passwordField}
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 border-t border-slate-100 pt-5 md:grid-cols-2">
+          {phoneField}
+          {joinedAtField}
+        </div>
+        <div className="grid grid-cols-1 gap-5 border-t border-slate-100 pt-5 md:grid-cols-2">
           {departmentField}
           {positionField}
         </div>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:items-end">
+        <div className="grid grid-cols-1 gap-5 border-t border-slate-100 pt-5 md:grid-cols-2 md:items-end">
           {roleField}
           {statusField}
         </div>
@@ -775,6 +934,8 @@ function CreateUserForm({
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
 
+  const canSave = useMemo(() => isCreateFormComplete(user), [user]);
+
   const validate = (): FormErrors => {
     const next: FormErrors = {};
     if (!user.fullName.trim()) next.fullName = "กรุณากรอกชื่อ-สกุล";
@@ -793,6 +954,8 @@ function CreateUserForm({
       user.fullName.trim() ||
       user.email.trim() ||
       user.password ||
+      user.phone.trim() ||
+      user.joinedAt ||
       user.department !== initialDept ||
       user.position !== (initialPositions[0] ?? "") ||
       user.role !== USER_ROLE_OPTIONS[0] ||
@@ -816,6 +979,8 @@ function CreateUserForm({
       role: user.role,
       isActive: user.isActive,
       password: user.password,
+      ...(user.phone.trim() ? { phone: user.phone.trim() } : {}),
+      ...(user.joinedAt ? { joinedAt: user.joinedAt } : {}),
     };
     onSaved(saved);
     setSaving(false);
@@ -823,49 +988,75 @@ function CreateUserForm({
   };
 
   return (
-    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
-      <AdminPageHeader
-        breadcrumb={
-          <nav className="flex items-center gap-1.5 text-xs text-slate-400">
-            <span>Admin</span>
-            <span>/</span>
-            <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
-              Config
-            </Link>
-            <span>/</span>
-            <span className="font-medium text-slate-600">Create user</span>
-          </nav>
-        }
-        title="Create user"
-        subtitle="In-memory demo — resets on refresh"
-        actions={
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={handleBack} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
-              Back
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className={MD_ADD_BTN}
-            >
-              {saving && <Loader2 className="size-4 animate-spin" />}
-              {saving ? "Saving..." : "Save"}
-            </button>
-          </div>
-        }
-      />
-      <div className="mt-6 px-0">
-        <div className="max-w-2xl rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-medium text-slate-800">Information</h2>
-          <UserFormFields
-            form={user}
-            setForm={setUser}
-            errors={errors}
-            setErrors={setErrors}
-            includePassword={true}
-            layout="create"
-          />
+    <div className={ADMIN_PAGE_SHELL}>
+      <div className="border-b border-slate-200 pb-6">
+        <AdminPageHeader
+          breadcrumb={
+            <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+              <span>Admin</span>
+              <span>/</span>
+              <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+                Config
+              </Link>
+              <span>/</span>
+              <Link href="/admin/config/users" className="text-slate-500 hover:text-slate-600">
+                Users
+              </Link>
+              <span>/</span>
+              <span className="font-medium text-slate-600">สร้างผู้ใช้งาน</span>
+            </nav>
+          }
+          title="สร้างผู้ใช้งาน"
+          subtitle="In-memory demo — resets on refresh"
+          actions={
+            <div className="relative z-30 flex shrink-0 items-center gap-3">
+              <button type="button" onClick={handleBack} className={BTN_SECONDARY}>
+                ย้อนกลับ
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving || !canSave}
+                className={`${MD_ADD_BTN} disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                {saving && <Loader2 className="size-4 animate-spin" />}
+                {saving ? "กำลังบันทึก..." : "บันทึก"}
+              </button>
+            </div>
+          }
+        />
+      </div>
+
+      <div className={`${ADMIN_CONTENT} mt-6`}>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,380px)]">
+          <section className={CARD}>
+            <CardSectionHeader
+              icon={User}
+              iconBg="bg-blue-50"
+              iconColor="text-blue-600"
+              label="ข้อมูลทั่วไป"
+              description="กรอกข้อมูลผู้ใช้งานใหม่ — ช่องที่มี * จำเป็นต้องกรอก"
+            />
+            <UserFormFields
+              form={user}
+              setForm={setUser}
+              errors={errors}
+              setErrors={setErrors}
+              includePassword={true}
+              layout="create"
+            />
+          </section>
+
+          <section className={CARD}>
+            <CardSectionHeader
+              icon={Eye}
+              iconBg="bg-violet-50"
+              iconColor="text-violet-600"
+              label="ตัวอย่าง"
+              description="แสดงตัวอย่างโปรไฟล์ผู้ใช้งานตามข้อมูลที่กรอก"
+            />
+            <CreateUserPreview form={user} />
+          </section>
         </div>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { getWorkflow } from "@/features/workflow/api";
 import { WorkflowTracker } from "@/components/workflow/WorkflowTracker";
 import { DocumentSignerViewer } from "@/components/workflow/DocumentSignerViewer";
 import PageHeader from "@/components/shared/PageHeader";
+import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from "@/components/ui/design-system";
 import { Badge } from "@/components/ui/badge";
 import { getStatusVariant } from "@/lib/document-status";
 import { CancelDocumentButton } from "@/components/documents/CancelDocumentButton";
@@ -43,7 +44,8 @@ export default async function DocumentDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className={APP_PAGE_SHELL}>
+      <div className={APP_PAGE_CONTENT}>
       
       <div className="flex justify-between items-center">
         <Link
@@ -148,6 +150,7 @@ export default async function DocumentDetailPage({ params }: PageProps) {
 
       </div>
 
+      </div>
     </div>
   );
 }

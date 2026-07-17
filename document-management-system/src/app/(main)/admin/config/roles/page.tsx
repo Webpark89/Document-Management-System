@@ -26,15 +26,24 @@ import {
 } from "@/lib/config-mock";
 import {
   ADMIN_CONTENT,
+  ADMIN_PAGE_SHELL,
   AdminPageHeader,
   MD_ADD_BTN,
   MD_TABLE_CARD,
   MD_TD,
+  MD_TD_ACTION,
   MD_TD_MUTED,
+  MD_TD_NUM_RIGHT,
+  MD_TD_STATUS,
+  MD_TH,
+  MD_TH_RIGHT,
+  MD_TH_STATUS,
+  MD_THEAD,
   MD_TR,
   StatCards,
   StatusBadge,
 } from "../../master-data/master-data-ui";
+import { APP_CARD_LG } from "@/components/ui/design-system";
 
 const PERMISSION_ACTION_TH: Record<string, string> = {
   View: "ดู",
@@ -110,11 +119,6 @@ function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-const listThCls =
-  "px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500";
-const listThRightCls =
-  "px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500";
-const listTheadCls = "border-b border-slate-100 bg-slate-50";
 const tdCls = MD_TD;
 const tdMuted = MD_TD_MUTED;
 const btnGhost = "rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
@@ -147,7 +151,7 @@ function permissionBadges(summary: string, roleName: string) {
   }
   const parts = translatePermissionParts(summary);
   return (
-    <div className="flex max-w-xs flex-wrap gap-2">
+    <div className="flex min-w-[11rem] flex-wrap gap-1.5">
       {parts.map((part) => (
         <span key={part} className={`${permBadgeCls} bg-blue-50 text-blue-700 ring-1 ring-blue-100`}>
           {part}
@@ -237,7 +241,7 @@ function RolesListView({
   };
 
   return (
-    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+    <div className={ADMIN_PAGE_SHELL}>
       <AdminPageHeader
         breadcrumb={
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -260,7 +264,9 @@ function RolesListView({
         }
       />
 
-      <div className={`${ADMIN_CONTENT} mt-6`}>
+      <div className={`${ADMIN_CONTENT} mt-6 space-y-6`}>
+        <StatCards total={stats.total} active={stats.active} inactive={stats.inactive} icon={Shield} />
+
         <div className={MD_TABLE_CARD}>
           <div className="space-y-3 border-b border-slate-100 bg-slate-50/40 p-4">
             <div className="relative">
@@ -286,13 +292,13 @@ function RolesListView({
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className={listTheadCls}>
+              <thead className={MD_THEAD}>
                 <tr>
-                  <th className={listThCls}>ชื่อ Role</th>
-                  <th className={listThCls}>จำนวนผู้ใช้งาน</th>
-                  <th className={listThCls}>สิทธิ์หลัก</th>
-                  <th className={listThCls}>สถานะ</th>
-                  <th className={listThRightCls}>จัดการ</th>
+                  <th className={MD_TH}>ชื่อ Role</th>
+                  <th className={MD_TH}>จำนวนผู้ใช้งาน</th>
+                  <th className={MD_TH}>สิทธิ์ (ดู/สร้าง/แก้ไข/ลบ/อนุมัติ)</th>
+                  <th className={MD_TH_STATUS}>สถานะ</th>
+                  <th className={MD_TH_RIGHT}>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -309,10 +315,10 @@ function RolesListView({
                     return (
                       <tr key={role.id} className={MD_TR}>
                         <td className={`${tdCls} font-medium`}>{role.name}</td>
-                        <td className={tdMuted}>{role.userCount}</td>
+                        <td className={MD_TD_NUM_RIGHT}>{role.userCount}</td>
                         <td className={tdCls}>{permissionBadges(role.permissionSummary, role.name)}</td>
-                        <td className={tdCls}>{statusBadge(role.isActive)}</td>
-                        <td className={`${tdCls} text-right`}>
+                        <td className={MD_TD_STATUS}>{statusBadge(role.isActive)}</td>
+                        <td className={MD_TD_ACTION}>
                           <div className="flex justify-end gap-1">
                             <Link
                               href={`/admin/config/roles?mode=edit&id=${role.id}`}
@@ -335,8 +341,6 @@ function RolesListView({
             </table>
           </div>
         </div>
-
-        <StatCards total={stats.total} active={stats.active} inactive={stats.inactive} icon={Shield} />
       </div>
     </div>
   );
@@ -387,7 +391,7 @@ function CreateRoleForm({
   };
 
   return (
-    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+    <div className={ADMIN_PAGE_SHELL}>
       <AdminPageHeader
         breadcrumb={
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -397,15 +401,15 @@ function CreateRoleForm({
               Config
             </Link>
             <span>/</span>
-            <span className="font-medium text-slate-600">Create role</span>
+            <span className="font-medium text-slate-600">สร้าง Role</span>
           </nav>
         }
-        title="Create role"
+        title="สร้าง Role"
         subtitle="In-memory demo — resets on refresh"
         actions={
           <div className="flex items-center gap-2">
             <button type="button" onClick={handleBack} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
-              Back
+              ย้อนกลับ
             </button>
             <button
               type="button"
@@ -414,17 +418,17 @@ function CreateRoleForm({
               className={MD_ADD_BTN}
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
-              {saving ? "Saving..." : "Save"}
+              {saving ? "กำลังบันทึก..." : "บันทึก"}
             </button>
           </div>
         }
       />
       <div className="mt-6 px-0">
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-800">Information</h2>
+        <div className={APP_CARD_LG}>
+          <h2 className="text-sm font-bold text-slate-800">ข้อมูลทั่วไป</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">Title</label>
+              <label className="mb-1.5 block text-xs text-slate-500">ชื่อ Role</label>
               <input
                 type="text"
                 value={role.title}
@@ -472,7 +476,7 @@ function EditRoleForm() {
   };
 
   return (
-    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+    <div className={ADMIN_PAGE_SHELL}>
       <AdminPageHeader
         breadcrumb={
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -482,15 +486,15 @@ function EditRoleForm() {
               Config
             </Link>
             <span>/</span>
-            <span className="font-medium text-slate-600">User role</span>
+            <span className="font-medium text-slate-600">แก้ไข Role</span>
           </nav>
         }
-        title="User role"
+        title="แก้ไข Role"
         subtitle="In-memory demo — resets on refresh"
         actions={
           <div className="flex items-center gap-2">
             <Link href="/admin/config/roles" className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
-              Back
+              ย้อนกลับ
             </Link>
             <button
               type="button"
@@ -499,17 +503,17 @@ function EditRoleForm() {
               className={MD_ADD_BTN}
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
-              {saving ? "Saving..." : "Save"}
+              {saving ? "กำลังบันทึก..." : "บันทึก"}
             </button>
           </div>
         }
       />
       <div className="mt-6">
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-800">Information</h2>
+        <div className={APP_CARD_LG}>
+          <h2 className="text-sm font-bold text-slate-800">ข้อมูลทั่วไป</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">Title</label>
+              <label className="mb-1.5 block text-xs text-slate-500">ชื่อ Role</label>
               <input
                 type="text"
                 value={role.title}

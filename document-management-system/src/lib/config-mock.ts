@@ -91,6 +91,8 @@ export type ConfigUser = {
   role: string;
   isActive: boolean;
   password?: string;
+  phone?: string;
+  joinedAt?: string;
 };
 
 export const LEVEL_OPTIONS = ["L1", "L2", "L3", "L4", "Executive"] as const;

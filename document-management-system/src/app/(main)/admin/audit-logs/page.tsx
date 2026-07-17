@@ -15,6 +15,14 @@ import {
   X
 } from "lucide-react";
 import DataTableHeader from "@/components/ui/DataTableHeader";
+import {
+  APP_PAGE_CONTENT,
+  APP_PAGE_SHELL,
+  APP_TABLE_CARD,
+  MD_THEAD,
+  MD_TR,
+} from "@/components/ui/design-system";
+import { AdminPageHeader } from "@/app/(main)/admin/master-data/master-data-ui";
 
 // ─── TYPES & MOCK DATA ────────────────────────────────────────────────────────
 type ActionType = "Login" | "Upload" | "Download" | "View" | "Edit" | "Delete" | "Approve" | "Reject" | "Signature";
@@ -246,23 +254,34 @@ function AuditLogsContent() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className={APP_PAGE_SHELL}>
+      <div className={APP_PAGE_CONTENT}>
       
       {/* ⚠️ NOTE FOR DEVELOPERS: This page must be guarded by AdminRoleGuard on backend ⚠️ */}
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2 tracking-tight">
-            <Activity className="w-6 h-6 text-indigo-600" />
-            System Audit Log
-          </h1>
-          <p className="text-sm text-slate-500 mt-1 font-medium">
-            บันทึกประวัติการใช้งานและตรวจสอบความปลอดภัยของระบบ (Security & Compliance)
-          </p>
-        </div>
-      </div>
+      <AdminPageHeader
+        breadcrumb={
+          <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>Admin</span>
+            <span>/</span>
+            <span className="font-medium text-slate-600">Audit Logs</span>
+          </nav>
+        }
+        title="บันทึกการตรวจสอบระบบ"
+        subtitle="บันทึกประวัติการใช้งานและตรวจสอบความปลอดภัยของระบบ (Security & Compliance)"
+        actions={
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700"
+          >
+            <Download className="size-4" />
+            ส่งออก CSV
+          </button>
+        }
+      />
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+      <div className={`${APP_TABLE_CARD} flex flex-col overflow-hidden`}>
         
         {/* FILTER BAR */}
         <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col gap-4">
@@ -510,6 +529,7 @@ function AuditLogsContent() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

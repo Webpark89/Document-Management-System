@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { mutate } from "swr";
 import { FileText, FileCheck, Award, FileCode2, ArrowLeft } from "lucide-react";
 import PageHeader from "@/components/shared/PageHeader";
+import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from "@/components/ui/design-system";
 import PRForm, { PRSubmitData } from "@/components/forms/PRForm";
 import POForm, { POSubmitData } from "@/components/forms/POForm";
 import MemoForm, { MemoSubmitData } from "@/components/forms/MemoForm";
@@ -292,7 +293,8 @@ export default function DocumentUploadPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className={APP_PAGE_SHELL}>
+      <div className={APP_PAGE_CONTENT}>
       <div className="mb-4">
         <button
           onClick={() => router.back()}
@@ -469,6 +471,7 @@ export default function DocumentUploadPage() {
             />
           )}
         </div>
+      </div>
       </div>
     </div>
   );
