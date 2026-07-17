@@ -260,3 +260,49 @@ export const MOCK_AUDIT_LOGS: AuditLog[] = [
     created_at: "2026-07-16T11:45:00Z",
   },
 ];
+
+// ─── Mock Document Versions ───────────────────────────────────────────────────
+import { DocumentVersion } from "@/features/documents/types";
+
+export const MOCK_DOCUMENT_VERSIONS: DocumentVersion[] = [
+  {
+    id: "v3",
+    document_id: "PR-2026-0001",
+    version_number: "V.3",
+    uploaded_by: "วิภา รักดี",
+    created_at: "2026-07-16T10:00:00Z",
+    file_size_kb: 1450,
+    remarks: "แก้ไขตามคอมเมนต์จากฝ่ายจัดซื้อเรื่องราคาประเมินใหม่",
+    is_active: true,
+  },
+  {
+    id: "v2",
+    document_id: "PR-2026-0001",
+    version_number: "V.2",
+    uploaded_by: "สมชาย ใจดี",
+    created_at: "2026-07-15T15:30:00Z",
+    file_size_kb: 1405,
+    remarks: "แนบเอกสารใบเสนอราคาเพิ่มเติม (Vendor A และ B)",
+    is_active: false,
+  },
+  {
+    id: "v1",
+    document_id: "PR-2026-0001",
+    version_number: "V.1",
+    uploaded_by: "วิภา รักดี",
+    created_at: "2026-07-14T09:00:00Z",
+    file_size_kb: 1200,
+    remarks: "สร้างเอกสารร่างเริ่มต้น (Initial Draft)",
+    is_active: false,
+  },
+  {
+    id: "v1_po1",
+    document_id: "PO-2026-0001",
+    version_number: "V.1",
+    uploaded_by: "วิภา รักดี",
+    created_at: "2026-07-05T09:00:00Z",
+    file_size_kb: 2048,
+    remarks: "Initial PO",
+    is_active: true,
+  }
+];

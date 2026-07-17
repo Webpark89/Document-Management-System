@@ -8,6 +8,7 @@ import { DocumentSignerViewer } from "@/components/workflow/DocumentSignerViewer
 import PageHeader from "@/components/shared/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { getStatusVariant } from "@/lib/document-status";
+import { CancelDocumentButton } from "@/components/documents/CancelDocumentButton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -53,13 +54,17 @@ export default async function DocumentDetailPage({ params }: PageProps) {
           Back to Documents
         </Link>
 
-        <Link
-          href={`/documents/${doc.id}/versions`}
-          className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
-        >
-          <History className="w-4 h-4" />
-          Version History
-        </Link>
+        <div className="flex items-center gap-3">
+          <CancelDocumentButton document={doc} />
+          
+          <Link
+            href={`/documents/${doc.id}/versions`}
+            className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+          >
+            <History className="w-4 h-4" />
+            Version History
+          </Link>
+        </div>
       </div>
 
       <PageHeader
@@ -105,7 +110,16 @@ export default async function DocumentDetailPage({ params }: PageProps) {
               </div>
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Version</p>
-                <p className="text-sm font-bold text-slate-800 mt-1">{doc.version}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-sm font-bold text-slate-800">{doc.version}</p>
+                  <Link
+                    href={`/documents/${doc.id}/versions`}
+                    title="View Version History"
+                    className="p-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                  >
+                    <History className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
             </div>
 

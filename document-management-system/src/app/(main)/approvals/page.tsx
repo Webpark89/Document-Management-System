@@ -7,6 +7,7 @@ import PageHeader from "@/components/shared/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { getApprovals, Approval } from "@/features/workflow/api";
 import { getStatusVariant } from "@/lib/document-status";
+import DataTableHeader from "@/components/ui/DataTableHeader";
 
 type TabStatus = "Pending" | "Approved" | "Returned for Revision" | "All";
 
@@ -14,7 +15,22 @@ export default function ApprovalsInboxPage() {
   const [approvals, setApprovals] = useState<Approval[]>([]);
   const [activeTab, setActiveTab] = useState<TabStatus>("Pending");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+
+  const handleSort = (key: string) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDirection("desc"); // 1st click: desc
+    } else {
+      if (sortDirection === "desc") {
+        setSortDirection("asc"); // 2nd click: asc
+      } else {
+        setSortKey(null); // 3rd click: reset
+        setSortDirection(null);
+      }
+    }
+  };
 
   useEffect(() => {
     getApprovals().then((data) => setApprovals(data));
@@ -44,8 +60,51 @@ export default function ApprovalsInboxPage() {
       return true;
     })
     .sort((a, b) => {
-      if (sortOrder === "newest") return b.id.localeCompare(a.id);
-      return a.id.localeCompare(b.id);
+      const statusPriority: Record<string, number> = {
+        "Pending": 4,
+        "Draft": 3,
+        "Returned for Revision": 2,
+        "Returned": 2,
+        "Approved": 1,
+        "Cancelled": 0
+      };
+
+      const parseThaiDate = (dateStr: string) => {
+        const months: Record<string, number> = {
+          "ม.ค.": 0, "ก.พ.": 1, "มี.ค.": 2, "เม.ย.": 3, "พ.ค.": 4, "มิ.ย.": 5,
+          "ก.ค.": 6, "ส.ค.": 7, "ก.ย.": 8, "ต.ค.": 9, "พ.ย.": 10, "ธ.ค.": 11
+        };
+        const parts = dateStr.split(" ");
+        if (parts.length < 3) return 0;
+        const day = parseInt(parts[0]);
+        const month = months[parts[1]] || 0;
+        const year = parseInt(parts[2]) - 543; // BE to AD
+        return new Date(year, month, day).getTime();
+      };
+
+      if (sortKey && sortDirection) {
+        let comparison = 0;
+        if (sortKey === "id") {
+          comparison = a.id.localeCompare(b.id);
+        } else if (sortKey === "submittedDate") {
+          comparison = parseThaiDate(a.submittedDate) - parseThaiDate(b.submittedDate);
+        } else if (sortKey === "requester") {
+          comparison = a.requester.localeCompare(b.requester);
+        } else if (sortKey === "status") {
+          const priorityA = statusPriority[a.status] ?? 0;
+          const priorityB = statusPriority[b.status] ?? 0;
+          comparison = priorityA - priorityB;
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+      } else {
+        // Default fallback: Status priority weight (desc) -> date (desc)
+        const priorityA = statusPriority[a.status] ?? 0;
+        const priorityB = statusPriority[b.status] ?? 0;
+        if (priorityA !== priorityB) {
+          return priorityB - priorityA;
+        }
+        return parseThaiDate(b.submittedDate) - parseThaiDate(a.submittedDate);
+      }
     });
 
   const getTypeBadgeClass = (id: string) => {
@@ -179,36 +238,21 @@ export default function ApprovalsInboxPage() {
               />
             </div>
 
-            <div className="relative shrink-0">
-              <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-              </span>
-              <select
-                value={sortOrder}
-                onChange={(e) =>
-                  setSortOrder(e.target.value as "newest" | "oldest")
-                }
-                className="appearance-none bg-slate-50 border border-slate-200 rounded-xl py-2 pl-3 pr-9 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
-              >
-                <option value="newest">ใหม่ล่าสุด</option>
-                <option value="oldest">เก่าที่สุด</option>
-              </select>
-            </div>
           </div>
         </div>
 
         {/* TABLE */}
         <div className="overflow-x-auto border border-slate-100/50 rounded-2xl">
-          <table className="w-full text-left border-collapse min-w-[800px]">
+          <table className="w-full table-fixed text-left border-collapse min-w-[800px]">
             <thead>
               <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                <th className="py-4 pl-4">ข้อมูลเอกสาร</th>
-                <th className="py-4">รหัส (ID)</th>
-                <th className="py-4">ผู้ขอ</th>
-                <th className="py-4">วันที่ส่ง</th>
-                <th className="py-4 text-center">ขั้นที่</th>
-                <th className="py-4 text-center">สถานะ</th>
-                <th className="py-4 pr-4 text-center">ดำเนินการ</th>
+                <th className="py-4 pl-4 font-bold">ข้อมูลเอกสาร</th>
+                <DataTableHeader title="รหัส (ID)" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
+                <DataTableHeader title="ผู้ขอ" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-36" />
+                <DataTableHeader title="วันที่ส่ง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-40" />
+                <th className="py-4 text-center font-bold w-24">ขั้นที่</th>
+                <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 text-center w-48" />
+                <th className="py-4 pr-4 text-center font-bold w-28">ดำเนินการ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50/80">

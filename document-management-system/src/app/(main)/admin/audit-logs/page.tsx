@@ -14,6 +14,7 @@ import {
   ChevronUp,
   X
 } from "lucide-react";
+import DataTableHeader from "@/components/ui/DataTableHeader";
 
 // ─── TYPES & MOCK DATA ────────────────────────────────────────────────────────
 type ActionType = "Login" | "Upload" | "Download" | "View" | "Edit" | "Delete" | "Approve" | "Reject" | "Signature";
@@ -63,6 +64,23 @@ function AuditLogsContent() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selectedModule, setSelectedModule] = useState<ModuleType | "All">("All");
+
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+
+  const handleSort = (key: string) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDirection("desc"); // 1st click: desc
+    } else {
+      if (sortDirection === "desc") {
+        setSortDirection("asc"); // 2nd click: asc
+      } else {
+        setSortKey(null); // 3rd click: reset
+        setSortDirection(null);
+      }
+    }
+  };
   
   // Multi-select for actions
   const [selectedActions, setSelectedActions] = useState<Set<ActionType>>(new Set());
@@ -107,12 +125,14 @@ function AuditLogsContent() {
     setDateTo("");
     setSelectedModule("All");
     setSelectedActions(new Set());
+    setSortKey(null);
+    setSortDirection(null);
     setCurrentPage(1);
   };
 
-  // 1. Filter Data
+  // 1. Filter & Sort Data
   const filteredLogs = useMemo(() => {
-    return EXTENDED_MOCK_LOGS.filter(log => {
+    const data = EXTENDED_MOCK_LOGS.filter(log => {
       // 1. Search
       if (searchTerm) {
         const lowerTerm = searchTerm.toLowerCase();
@@ -121,7 +141,6 @@ function AuditLogsContent() {
         }
       }
       // 2. Date Range
-      // Using basic string comparison since format is ISO YYYY-MM-DD
       const logDate = log.timestamp.substring(0, 10);
       if (dateFrom && logDate < dateFrom) return false;
       if (dateTo && logDate > dateTo) return false;
@@ -133,8 +152,31 @@ function AuditLogsContent() {
       if (selectedActions.size > 0 && !selectedActions.has(log.action)) return false;
 
       return true;
-    }).sort((a, b) => b.timestamp.localeCompare(a.timestamp)); // Always newest first
-  }, [searchTerm, dateFrom, dateTo, selectedModule, selectedActions]);
+    });
+
+    if (sortKey && sortDirection) {
+      data.sort((a, b) => {
+        let comparison = 0;
+        if (sortKey === "timestamp") {
+          comparison = a.timestamp.localeCompare(b.timestamp);
+        } else if (sortKey === "userName") {
+          comparison = a.userName.localeCompare(b.userName);
+        } else if (sortKey === "action") {
+          comparison = a.action.localeCompare(b.action);
+        } else if (sortKey === "module") {
+          comparison = a.module.localeCompare(b.module);
+        } else if (sortKey === "ipAddress") {
+          comparison = a.ipAddress.localeCompare(b.ipAddress);
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+      });
+    } else {
+      // Default: Newest first
+      data.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+    }
+
+    return data;
+  }, [searchTerm, dateFrom, dateTo, selectedModule, selectedActions, sortKey, sortDirection]);
 
   // 2. Pagination
   const totalItems = filteredLogs.length;
@@ -327,16 +369,16 @@ function AuditLogsContent() {
 
         {/* TABLE */}
         <div className="overflow-x-auto w-full">
-          <table className="w-full min-w-[900px] text-left border-collapse whitespace-nowrap">
+          <table className="w-full table-fixed min-w-[900px] text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-3 px-4 w-48">Timestamp</th>
-                <th className="py-3 px-4 w-48">User</th>
-                <th className="py-3 px-4 w-32">Action</th>
-                <th className="py-3 px-4 w-32">Module</th>
-                <th className="py-3 px-4 min-w-[200px]">Target</th>
-                <th className="py-3 px-4 w-40">IP Address</th>
-                <th className="py-3 px-4 w-12 text-center">Details</th>
+                <DataTableHeader title="Timestamp" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-48" />
+                <DataTableHeader title="User" sortKey="userName" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-48" />
+                <DataTableHeader title="Action" sortKey="action" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-32" />
+                <DataTableHeader title="Module" sortKey="module" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-32" />
+                <th className="py-3 px-4 min-w-[200px] font-bold">Target</th>
+                <DataTableHeader title="IP Address" sortKey="ipAddress" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-40" />
+                <th className="py-3 px-4 w-20 text-center font-bold">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

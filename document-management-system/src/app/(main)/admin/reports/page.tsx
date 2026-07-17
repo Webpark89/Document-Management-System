@@ -17,6 +17,7 @@ import {
   Search
 } from "lucide-react";
 import PageHeader from "@/components/shared/PageHeader";
+import DataTableHeader from "@/components/ui/DataTableHeader";
 
 // ─── MOCK DATA ─────────────────────────────────────────────────────────────────
 const DEPARTMENTS = [
@@ -46,6 +47,23 @@ export default function ReportsPage() {
   const [filterType, setFilterType] = useState("All");
   const [filterDept, setFilterDept] = useState("All");
 
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+
+  const handleSort = (key: string) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDirection("desc"); // 1st click: desc
+    } else {
+      if (sortDirection === "desc") {
+        setSortDirection("asc"); // 2nd click: asc
+      } else {
+        setSortKey(null); // 3rd click: reset
+        setSortDirection(null);
+      }
+    }
+  };
+
   // Validate Dates: if from > to, reset to
   const handleDateFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -59,9 +77,9 @@ export default function ReportsPage() {
     if (dateFrom && val < dateFrom) setDateFrom("");
   };
 
-  // Filter Data
+  // Filter & Sort Data
   const filteredData = useMemo(() => {
-    return MOCK_REPORT_DATA.filter((item) => {
+    const data = MOCK_REPORT_DATA.filter((item) => {
       let pass = true;
       if (filterType !== "All" && item.type !== filterType) pass = false;
       if (filterDept !== "All" && item.department !== filterDept) pass = false;
@@ -69,7 +87,49 @@ export default function ReportsPage() {
       if (dateTo && item.date > dateTo) pass = false;
       return pass;
     });
-  }, [dateFrom, dateTo, filterType, filterDept]);
+
+    const statusPriority: Record<string, number> = {
+      "Pending": 4,
+      "Draft": 3,
+      "Returned for Revision": 2,
+      "Returned": 2,
+      "Approved": 1,
+      "Cancelled": 0,
+      "Rejected": 0,
+    };
+
+    if (sortKey && sortDirection) {
+      data.sort((a, b) => {
+        let comparison = 0;
+        if (sortKey === "id") {
+          comparison = a.id.localeCompare(b.id);
+        } else if (sortKey === "type") {
+          comparison = a.type.localeCompare(b.type);
+        } else if (sortKey === "department") {
+          comparison = a.department.localeCompare(b.department);
+        } else if (sortKey === "status") {
+          const priorityA = statusPriority[a.status] ?? 0;
+          const priorityB = statusPriority[b.status] ?? 0;
+          comparison = priorityA - priorityB;
+        } else if (sortKey === "date") {
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+      });
+    } else {
+      // Default: Status priority weight (desc) -> date (desc)
+      data.sort((a, b) => {
+        const priorityA = statusPriority[a.status] ?? 0;
+        const priorityB = statusPriority[b.status] ?? 0;
+        if (priorityA !== priorityB) {
+          return priorityB - priorityA;
+        }
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+    }
+
+    return data;
+  }, [dateFrom, dateTo, filterType, filterDept, sortKey, sortDirection]);
 
   // Export CSV
   const handleExportCSV = () => {
@@ -143,13 +203,13 @@ export default function ReportsPage() {
 
         <div className="overflow-x-auto border border-slate-100/50 rounded-2xl w-full">
           <table className="w-full min-w-[600px] text-left border-collapse whitespace-nowrap">
-            <thead className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              <tr>
-                <th className="py-4 pl-4 font-bold">Document ID</th>
-                <th className="py-4 font-bold">Type</th>
-                <th className="py-4 font-bold">Department</th>
-                <th className="py-4 font-bold">Status</th>
-                <th className="py-4 font-bold pr-4">Date</th>
+            <thead>
+              <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                <DataTableHeader title="Document ID" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-4 py-4 w-32" />
+                <DataTableHeader title="Type" sortKey="type" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-24" />
+                <DataTableHeader title="Department" sortKey="department" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4" />
+                <DataTableHeader title="Status" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-28" />
+                <DataTableHeader title="Date" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 pr-4 w-32" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50/80">
