@@ -1,352 +1,312 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import {
-  Search,
-  Bell,
-  Clock,
-  AlertTriangle,
-  ChevronDown,
   FileText,
-  CheckSquare,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  ChevronRight,
+  ArrowRight,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
+} from "recharts";
+import { MOCK_REPORT_DATA } from "@/lib/mock-data";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-// Import sub-components
-import StatCard, { StatCardRow } from "@/components/dashboard/StatCard";
-import StatusBanner from "@/components/dashboard/StatusBanner";
-import RecentDocumentsTable from "@/components/dashboard/RecentDocumentsTable";
-import DocumentTypesChart from "@/components/dashboard/DocumentTypesChart";
-import WorkflowTrendChart from "@/components/dashboard/WorkflowTrendChart";
-import ApprovalGoalsPanel from "@/components/dashboard/ApprovalGoalsPanel";
-import ActivityFeed from "@/components/dashboard/ActivityFeed";
-import { getDashboardStats } from "@/features/documents/api";
-import { DashboardStats, Document } from "@/features/documents/types";
+const STATUS_COLORS = {
+  Approved: "#10b981", // emerald-500
+  Pending: "#f59e0b",  // amber-500
+  Rejected: "#f43f5e", // rose-500
+  Cancelled: "#64748b" // slate-500
+};
 
-const NOTIFICATIONS = (activity: { id: string; delta: string }[]) =>
-  activity.slice(0, 2).map((item) => ({
-    id: item.id,
-    title: "Document Activity",
-    detail: `${item.id} ${item.delta}`,
-  }));
+const TYPE_COLORS = {
+  PR: "#3b82f6", // blue-500
+  PO: "#a855f7", // purple-500
+  Memo: "#10b981", // emerald-500
+  Other: "#64748b" // slate-500
+};
+
+type Role = "employee" | "admin";
 
 export default function DashboardPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [statsError, setStatsError] = useState(false);
-  const { user, logout } = useAuth();
-
-  // Interaction UI states
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-
-  const userMenuRef = useRef<HTMLDivElement>(null);
-  const notificationsRef = useRef<HTMLDivElement>(null);
-
-  // Close any open dropdown on Escape for keyboard users
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setIsUserMenuOpen(false);
-        setIsNotificationsOpen(false);
-      }
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+  const [role, setRole] = useState<Role>("admin");
+  const { user } = useAuth();
+  
+  // Use mock current user from the requirements
+  const currentUserFullname = "วิภา รักดี"; 
+  
+  // Clean Data based on prompt rules: Map Returned to Rejected
+  const cleanData = useMemo(() => {
+    return MOCK_REPORT_DATA.map(d => ({
+      ...d,
+      status: d.status === "Returned" ? "Rejected" : d.status
+    }));
   }, []);
 
-  // Handle outside click to close dropdowns
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(event.target as Node)
-      ) {
-        setIsUserMenuOpen(false);
-      }
-      if (
-        notificationsRef.current &&
-        !notificationsRef.current.contains(event.target as Node)
-      ) {
-        setIsNotificationsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Filter Data based on role
+  const dashboardData = useMemo(() => {
+    if (role === "admin") return cleanData;
+    return cleanData.filter(d => d.submittedBy === currentUserFullname);
+  }, [role, cleanData]);
 
-  // Fetch dashboard stats
-  useEffect(() => {
-    getDashboardStats()
-      .then((data) => {
-        setStats(data);
-        setStatsError(false);
-      })
-      .catch(() => setStatsError(true));
-  }, []);
+  // Sort by date desc
+  const recentActivity = [...dashboardData].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
 
-  const documents: Document[] = stats?.documents ?? [];
-  const filteredDocuments = documents.filter((doc) => {
-    const query = searchQuery.trim().toLowerCase();
-    const matchesSearch =
-      query.length === 0 ||
-      doc.name.toLowerCase().includes(query) ||
-      doc.id.toLowerCase().includes(query) ||
-      doc.sender.toLowerCase().includes(query);
+  // Stats
+  const total = dashboardData.length;
+  const approved = dashboardData.filter(d => d.status === "Approved").length;
+  const pending = dashboardData.filter(d => d.status === "Pending").length;
+  const rejected = dashboardData.filter(d => d.status === "Rejected").length;
+  const cancelled = dashboardData.filter(d => d.status === "Cancelled").length;
 
-    if (statusFilter === "All") return matchesSearch;
-    return matchesSearch && doc.status === statusFilter;
-  });
+  // Chart 1: Type Distribution
+  const typeData = useMemo(() => {
+    const counts: Record<string, number> = { PR: 0, PO: 0, Memo: 0, Other: 0 };
+    dashboardData.forEach(d => {
+      if (counts[d.type] !== undefined) counts[d.type]++;
+      else counts["Other"]++;
+    });
+    return [
+      { name: "PR", value: counts.PR, fill: TYPE_COLORS.PR },
+      { name: "PO", value: counts.PO, fill: TYPE_COLORS.PO },
+      { name: "Memo", value: counts.Memo, fill: TYPE_COLORS.Memo },
+      { name: "Other", value: counts.Other, fill: TYPE_COLORS.Other }
+    ];
+  }, [dashboardData]);
 
-  const handleLogout = () => {
-    setIsUserMenuOpen(false);
-    logout();
-  };
+  // Chart 2: Status Distribution
+  const statusData = useMemo(() => {
+    return [
+      { name: "Approved", value: approved, fill: STATUS_COLORS.Approved },
+      { name: "Pending", value: pending, fill: STATUS_COLORS.Pending },
+      { name: "Rejected", value: rejected, fill: STATUS_COLORS.Rejected },
+      { name: "Cancelled", value: cancelled, fill: STATUS_COLORS.Cancelled }
+    ].filter(d => d.value > 0);
+  }, [approved, pending, rejected, cancelled]);
 
-  const displayName = user?.full_name || user?.username || "User";
-  const displaySub = user?.username || "user@dms.local";
-  const notifications = NOTIFICATIONS(stats?.activity ?? []);
-  const initials = displayName
-    .split(" ")
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  // Top header mock
+  const displayName = user?.full_name || user?.username || currentUserFullname;
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 w-full px-6 lg:px-8 xl:px-10 py-10">
-      {/* TOP HEADER */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8 py-2">
+    <div className="flex-1 flex flex-col min-w-0 w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      
+      {/* HEADER & ROLE TOGGLE */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Dashboard Overview
-          </h2>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Dashboard Overview</h1>
           <p className="text-sm text-slate-500 font-medium mt-1">
-            Hello, {displayName}. Here&apos;s your overview.
+            Welcome back, {displayName}
           </p>
         </div>
-
-        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-          {/* Search Bar */}
-          <div className="relative flex-1 sm:flex-initial">
-            <label htmlFor="doc-search" className="sr-only">
-              Search documents, IDs, or senders
-            </label>
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-              <Search className="w-5 h-5" aria-hidden="true" />
-            </span>
-            <input
-              id="doc-search"
-              type="text"
-              placeholder="Search documents, IDs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-72 bg-white border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-base font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-xs"
-            />
-          </div>
-
-          {/* Notification Bell Dropdown */}
-          <div className="relative" ref={notificationsRef}>
-            <button
-              type="button"
-              onClick={() => {
-                setIsNotificationsOpen((v) => !v);
-                setIsUserMenuOpen(false);
-              }}
-              className="relative p-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 shadow-xs"
-              aria-haspopup="true"
-              aria-expanded={isNotificationsOpen}
-              aria-label={`Notifications, ${notifications.length} unread`}
-            >
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white" />
-              <Bell className="w-6 h-6 text-slate-500" />
-            </button>
-
-            {isNotificationsOpen && (
-              <div
-                role="menu"
-                className="absolute right-0 mt-2 w-80 bg-white border border-slate-100 rounded-2xl shadow-xl p-4 z-20 space-y-3 origin-top-right transition-all animate-in fade-in slide-in-from-top-2 duration-150"
-              >
-                <div className="flex items-center justify-between border-b border-slate-50 pb-2">
-                  <span className="text-sm font-bold text-slate-900">
-                    Recent Notifications
-                  </span>
-                  <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                    {notifications.length} New
-                  </span>
-                </div>
-                <div className="space-y-2.5">
-                  {notifications.map((n) => (
-                    <div
-                      key={n.id}
-                      className="text-sm hover:bg-slate-50 p-1.5 rounded-lg transition-colors"
-                    >
-                      <p className="font-bold text-slate-800">{n.title}</p>
-                      <p className="text-slate-400 font-medium mt-0.5">
-                        {n.detail}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* User Profile Dropdown */}
-          <div className="relative" ref={userMenuRef}>
-            <button
-              type="button"
-              onClick={() => {
-                setIsUserMenuOpen((v) => !v);
-                setIsNotificationsOpen(false);
-              }}
-              className="flex items-center gap-2.5 p-1.5 pr-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 shadow-xs"
-              aria-haspopup="true"
-              aria-expanded={isUserMenuOpen}
-              aria-label="User menu"
-            >
-              <Avatar className="w-8 h-8">
-                <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold text-sm">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-base font-semibold text-slate-700 truncate max-w-[80px] sm:max-w-none">
-                {displayName}
-              </span>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
-            </button>
-
-            {isUserMenuOpen && (
-              <div
-                role="menu"
-                className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-xl p-2.5 z-20 space-y-1 origin-top-right transition-all animate-in fade-in slide-in-from-top-2 duration-150"
-              >
-                <div className="px-3 py-2 border-b border-slate-50 mb-1">
-                  <p className="text-sm font-bold text-slate-800">{displayName}</p>
-                  <p className="text-xs text-slate-400 font-medium">
-                    {displaySub}
-                  </p>
-                </div>
-                <Link
-                  href="/admin/users"
-                  role="menuitem"
-                  onClick={() => setIsUserMenuOpen(false)}
-                  className="w-full text-left block px-3 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-                >
-                  System Settings
-                </Link>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setIsUserMenuOpen(false);
-                    handleLogout();
-                  }}
-                  className="w-full text-left block px-3 py-2 rounded-xl text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* STATUS BANNER */}
-      {statsError && (
-        <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700">
-          Cannot reach API server. Run backend:{" "}
-          <code className="font-mono text-xs">cd dms-backend &amp;&amp; npm run start:dev</code>
-        </div>
-      )}
-      <StatusBanner pendingCount={stats?.pending ?? 0} />
-
-      {/* STAT CARDS GRID */}
-      <StatCardRow>
-        <StatCard
-          title="Total Submissions"
-          value={stats?.total ?? 0}
-          isActive={statusFilter === "All"}
-          onClick={() => setStatusFilter("All")}
-          trend={`${stats?.approved ?? 0} approved`}
-          trendType="neutral"
-          icon={
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 shrink-0">
-              <FileText className="w-6 h-6" />
-            </div>
-          }
-        />
-
-        <StatCard
-          title="Approved"
-          value={stats?.approved ?? 0}
-          isActive={statusFilter === "Approved"}
-          onClick={() => setStatusFilter("Approved")}
-          trend={`${stats?.pending ?? 0} pending`}
-          trendType="neutral"
-          icon={
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 shrink-0">
-              <CheckSquare className="w-6 h-6" />
-            </div>
-          }
-        />
-
-        <StatCard
-          title="Pending Review"
-          value={stats?.pending ?? 0}
-          isActive={statusFilter === "Pending"}
-          onClick={() => setStatusFilter("Pending")}
-          trend={`${stats?.actionRequired ?? 0} action required`}
-          trendType="neutral"
-          icon={
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 shrink-0">
-              <Clock className="w-6 h-6" />
-            </div>
-          }
-        />
-
-        <StatCard
-          title="Action Required"
-          value={stats?.actionRequired ?? 0}
-          isActive={statusFilter === "Returned for Revision"}
-          onClick={() => setStatusFilter("Returned for Revision")}
-          trend={`${stats?.pending ?? 0} pending`}
-          trendType="down"
-          icon={
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 shrink-0">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-          }
-        />
-      </StatCardRow>
-
-      {/* DUAL COLUMN LAYOUT */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-        {/* LEFT COLUMNS */}
-        <div className="xl:col-span-8 space-y-8">
-          <WorkflowTrendChart data={stats?.trend ?? []} />
-          <RecentDocumentsTable
-            documents={filteredDocuments}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            searchQuery={searchQuery}
-            onSearchQueryChange={setSearchQuery}
-          />
-        </div>
-
-        {/* RIGHT COLUMN */}
-        <div className="xl:col-span-4 space-y-8">
-          <DocumentTypesChart data={stats?.types ?? []} />
-          <div className="grid grid-cols-1 gap-8">
-            <ApprovalGoalsPanel goals={stats?.goals ?? []} />
-            <ActivityFeed items={stats?.activity ?? []} />
-          </div>
+        
+        <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl self-start sm:self-auto shrink-0">
+          <button 
+            onClick={() => setRole("employee")}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${role === 'employee' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Employee View
+          </button>
+          <button 
+            onClick={() => setRole("admin")}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${role === 'admin' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Admin View
+          </button>
         </div>
       </div>
+
+      {role === "employee" && dashboardData.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center flex flex-col items-center justify-center shadow-sm">
+          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
+            <FileText className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">คุณยังไม่มีเอกสารในระบบ</h2>
+          <p className="text-slate-500 mb-6 max-w-md mx-auto">เริ่มสร้างเอกสารแรกของคุณเพื่อเข้าสู่กระบวนการอนุมัติได้ทันที</p>
+          <Link href="/documents/upload" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-sm">
+            + สร้างเอกสารใหม่
+          </Link>
+        </div>
+      ) : (
+        <>
+          {/* STATS ROW */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col">
+              <div className="flex items-center gap-3 mb-3 text-slate-500">
+                <FileText className="w-5 h-5 text-blue-500" />
+                <span className="text-[11px] font-bold uppercase tracking-wider">Total Documents</span>
+              </div>
+              <span className="text-3xl font-black text-slate-800 mt-auto">{total}</span>
+            </div>
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col">
+              <div className="flex items-center gap-3 mb-3 text-slate-500">
+                <Clock className="w-5 h-5 text-amber-500" />
+                <span className="text-[11px] font-bold uppercase tracking-wider">Pending</span>
+              </div>
+              <span className="text-3xl font-black text-slate-800 mt-auto">{pending}</span>
+            </div>
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col">
+              <div className="flex items-center gap-3 mb-3 text-slate-500">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                <span className="text-[11px] font-bold uppercase tracking-wider">Approved</span>
+              </div>
+              <span className="text-3xl font-black text-slate-800 mt-auto">{approved}</span>
+            </div>
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col">
+              <div className="flex items-center gap-3 mb-3 text-slate-500">
+                <XCircle className="w-5 h-5 text-rose-500" />
+                <span className="text-[11px] font-bold uppercase tracking-wider">Rejected</span>
+              </div>
+              <span className="text-3xl font-black text-slate-800 mt-auto">{rejected}</span>
+            </div>
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col">
+              <div className="flex items-center gap-3 mb-3 text-slate-500">
+                <AlertCircle className="w-5 h-5 text-slate-400" />
+                <span className="text-[11px] font-bold uppercase tracking-wider">Cancelled</span>
+              </div>
+              <span className="text-3xl font-black text-slate-800 mt-auto">{cancelled}</span>
+            </div>
+          </div>
+
+          {/* MIDDLE SECTION: Employee Task Card + Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {role === "employee" && (
+              <div className="lg:col-span-1 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl p-6 text-white shadow-sm flex flex-col relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-10">
+                  <CheckCircle2 className="w-32 h-32" />
+                </div>
+                <div className="relative z-10 flex-1">
+                  <p className="text-indigo-100 font-bold uppercase text-[11px] tracking-wider mb-2">งานของฉันที่ต้องทำวันนี้</p>
+                  <h3 className="text-2xl font-black mb-1">เอกสารรอฉันอนุมัติ</h3>
+                  <div className="text-5xl font-black my-4">2</div>
+                  <p className="text-xs text-indigo-100 font-medium">กรุณาตรวจสอบและอนุมัติเอกสารเพื่อให้กระบวนการทำงานดำเนินการต่อ</p>
+                </div>
+                <Link href="/approvals" className="relative z-10 mt-6 bg-white text-indigo-700 hover:bg-indigo-50 px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between transition-colors shadow-sm">
+                  <span>ไปที่ Approval Inbox</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            )}
+
+            <div className={`${role === 'employee' ? 'lg:col-span-1' : 'lg:col-span-2'} bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col`}>
+              <h3 className="text-sm font-bold text-slate-800 mb-6">Documents by Type</h3>
+              <div className="flex-1 min-h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={typeData} layout="vertical" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600, fill: '#64748b' }} width={60} />
+                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
+                      {typeData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="lg:col-span-1 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col">
+              <h3 className="text-sm font-bold text-slate-800 mb-2">Approval Status Distribution</h3>
+              <div className="flex-1 min-h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      innerRadius={55}
+                      outerRadius={75}
+                      paddingAngle={5}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+          </div>
+
+          {/* RECENT ACTIVITY TABLE */}
+          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900">Recent Activity</h3>
+              <Link href="/documents" className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1">
+                View All <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[800px] text-left border-collapse whitespace-nowrap">
+                <thead className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <tr>
+                    <th className="py-4 pl-6 font-bold">Document ID</th>
+                    <th className="py-4 font-bold">Title</th>
+                    <th className="py-4 font-bold">Status</th>
+                    <th className="py-4 font-bold">Creator</th>
+                    <th className="py-4 font-bold pr-6">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50/80">
+                  {recentActivity.map(doc => (
+                    <tr key={doc.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <td className="py-4 pl-6 text-sm font-bold text-slate-500">
+                        <Link href={`/documents/${doc.id}`} className="hover:text-blue-600 transition-colors">
+                          {doc.id}
+                        </Link>
+                      </td>
+                      <td className="py-4">
+                        <Link href={`/documents/${doc.id}`} className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{doc.title}</span>
+                          <span className="text-[10px] font-semibold text-slate-400 mt-0.5">{doc.type} • {doc.department}</span>
+                        </Link>
+                      </td>
+                      <td className="py-4">
+                        <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold border ${
+                          doc.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                          doc.status === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                          doc.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                          'bg-slate-50 text-slate-700 border-slate-200'
+                        }`}>
+                          {doc.status}
+                        </span>
+                      </td>
+                      <td className="py-4 text-sm font-semibold text-slate-700">{doc.submittedBy}</td>
+                      <td className="py-4 pr-6 text-sm text-slate-400 font-medium">{doc.date}</td>
+                    </tr>
+                  ))}
+                  {recentActivity.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="py-12 text-center text-sm font-medium text-slate-400">
+                        ไม่มีประวัติการทำรายการล่าสุด
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
     </div>
   );
 }
