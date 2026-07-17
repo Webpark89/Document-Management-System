@@ -7,11 +7,15 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
-  Layers,
+  KeyRound,
   Loader2,
+  Pencil,
   Plus,
   Search,
   Trash2,
+  UserCheck,
+  UserX,
+  Users,
   X,
 } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -55,7 +59,10 @@ const EMPTY_USER: UserForm = {
 const thCls = "px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500";
 const tdCls = "px-6 py-3 text-left text-sm text-slate-700";
 const tdMuted = "px-6 py-3 text-left text-sm text-slate-500";
-const btnGhost = "rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
+const btnIcon =
+  "rounded-md p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50";
+const btnIconDanger =
+  "rounded-md p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50";
 const inputCls =
   "w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 const inputErrorCls =
@@ -160,7 +167,7 @@ function UsersListView({
           <span>/</span>
           <span className="font-medium text-slate-600">Users</span>
         </nav>
-        <div className="flex items-center justify-between gap-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-semibold text-slate-800">Users</h1>
             <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
@@ -168,7 +175,7 @@ function UsersListView({
           <button
             type="button"
             onClick={onCreate}
-            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            className="inline-flex shrink-0 items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           >
             <Plus className="size-4" />
             สร้างผู้ใช้งาน
@@ -176,81 +183,55 @@ function UsersListView({
         </div>
       </header>
 
-      <div className="space-y-6 p-6">
-        <div className="grid grid-cols-3 gap-4">
-          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
-              <Layers className="size-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-800">{stats.total}</p>
-              <p className="text-xs text-slate-500">ผู้ใช้งานทั้งหมด</p>
-            </div>
-          </div>
-          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-50">
-              <CheckCircle2 className="size-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-800">{stats.active}</p>
-              <p className="text-xs text-slate-500">Active</p>
-            </div>
-          </div>
-          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50">
-              <Trash2 className="size-5 text-red-600" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-800">{stats.inactive}</p>
-              <p className="text-xs text-slate-500">Inactive</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative min-w-[200px] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="ค้นหาชื่อหรืออีเมล..."
-              className={`${inputCls} pl-9`}
-            />
-          </div>
-          <select className={inputCls} value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}>
-            <option value="">ทุกแผนก</option>
-            {DEPARTMENT_OPTIONS.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-          <select className={inputCls} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-            <option value="">ทุก Role</option>
-            {USER_ROLE_OPTIONS.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
-          <select className={inputCls} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">ทุกสถานะ</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <label className="flex items-center gap-2 text-sm text-slate-500">
-            <input
-              type="checkbox"
-              checked={showInactive}
-              onChange={(e) => setShowInactive(e.target.checked)}
-              className="rounded border-gray-200"
-            />
-            แสดงรายการที่ปิดใช้งาน
-          </label>
-        </div>
-
+      <div className="mx-auto max-w-7xl space-y-6 p-6">
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="space-y-3 border-b border-gray-200 bg-slate-50/80 p-4">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="ค้นหาชื่อหรืออีเมล..."
+                className={`${inputCls} pl-9`}
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
+                <select className={inputCls} value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}>
+                  <option value="">ทุกแผนก</option>
+                  {DEPARTMENT_OPTIONS.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+                <select className={inputCls} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                  <option value="">ทุก Role</option>
+                  {USER_ROLE_OPTIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+                <select className={inputCls} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="">ทุกสถานะ</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <label className="flex shrink-0 items-center gap-2 whitespace-nowrap text-sm text-slate-500">
+                <input
+                  type="checkbox"
+                  checked={showInactive}
+                  onChange={(e) => setShowInactive(e.target.checked)}
+                  className="rounded border-gray-200"
+                />
+                แสดงรายการที่ปิดใช้งาน
+              </label>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
@@ -294,29 +275,42 @@ function UsersListView({
                         </span>
                       </td>
                       <td className="px-6 py-3 text-right">
-                        <div className="flex justify-end gap-1">
-                          <button type="button" onClick={() => setEditUser(user)} className={btnGhost}>
-                            Edit
+                        <div className="inline-flex items-center divide-x divide-gray-200 rounded-md border border-transparent">
+                          <button
+                            type="button"
+                            title="แก้ไข"
+                            onClick={() => setEditUser(user)}
+                            className={btnIcon}
+                          >
+                            <Pencil className="size-4" />
                           </button>
                           <button
                             type="button"
+                            title="รีเซ็ตรหัสผ่าน"
                             onClick={() => handleResetPassword(user)}
                             disabled={resettingId === user.id}
-                            className={btnGhost}
+                            className={btnIcon}
                           >
-                            {resettingId === user.id ? "..." : "Reset password"}
+                            {resettingId === user.id ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <KeyRound className="size-4" />
+                            )}
                           </button>
                           <button
                             type="button"
+                            title={user.isActive ? "ปิดใช้งาน" : "เปิดใช้งาน"}
                             onClick={() => handleToggleStatus(user)}
                             disabled={togglingId === user.id}
-                            className="rounded-md px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                            className={btnIconDanger}
                           >
-                            {togglingId === user.id
-                              ? "..."
-                              : user.isActive
-                                ? "Disable"
-                                : "Enable"}
+                            {togglingId === user.id ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : user.isActive ? (
+                              <UserX className="size-4" />
+                            ) : (
+                              <UserCheck className="size-4" />
+                            )}
                           </button>
                         </div>
                       </td>
@@ -325,6 +319,36 @@ function UsersListView({
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+              <Users className="size-5 text-blue-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-semibold text-slate-800">{stats.total}</p>
+              <p className="text-xs text-slate-500">ผู้ใช้งานทั้งหมด</p>
+            </div>
+          </div>
+          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-50">
+              <CheckCircle2 className="size-5 text-green-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-semibold text-slate-800">{stats.active}</p>
+              <p className="text-xs text-slate-500">Active</p>
+            </div>
+          </div>
+          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50">
+              <Trash2 className="size-5 text-red-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-semibold text-slate-800">{stats.inactive}</p>
+              <p className="text-xs text-slate-500">Inactive</p>
+            </div>
           </div>
         </div>
       </div>
