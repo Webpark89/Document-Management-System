@@ -68,6 +68,28 @@ function isChildNavActive(pathname: string, href: string) {
   return pathname.startsWith(`${href}/`);
 }
 
+const NAV_ICON = "size-5 shrink-0";
+const TABLER_ICON = `ti flex ${NAV_ICON} items-center justify-center text-[1.25rem] leading-none`;
+
+function navItemClass(isActive: boolean, isOpen: boolean, isChild = false) {
+  const layout = isOpen
+    ? isChild
+      ? "gap-3.5 py-2.5 pl-12 pr-4"
+      : "gap-3.5 px-4 py-2.5"
+    : "justify-center p-3";
+
+  const activeCls = isChild
+    ? "bg-blue-50 font-semibold text-blue-600"
+    : "border-blue-600 bg-blue-50 font-semibold text-blue-600";
+  const inactiveCls = isChild
+    ? "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+    : "border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-900";
+
+  return `flex items-center rounded-xl text-sm font-medium transition-colors ${isChild ? "" : "border-l-2"} ${layout} ${
+    isActive ? activeCls : inactiveCls
+  }`;
+}
+
 export default function Sidebar() {
   const { isOpen, toggle } = useSidebar();
   const pathname = usePathname();
@@ -103,33 +125,6 @@ export default function Sidebar() {
       .toUpperCase();
   }, [displayName, displaySub]);
 
-  const navLinkCls = (isActive: boolean) =>
-    `flex items-center rounded-xl border-l-2 text-sm font-medium transition-all ${
-      isOpen ? "px-4 py-3 gap-3.5" : "p-3 justify-center"
-    } ${
-      isActive
-        ? "border-blue-600 bg-blue-50 font-semibold text-blue-600"
-        : "border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-    }`;
-
-  const childNavLinkCls = (isActive: boolean) =>
-    `flex items-center rounded-lg border-l-2 text-sm transition-all ${
-      isOpen ? "gap-3.5 py-2.5 pl-8 pr-3" : "p-3 justify-center"
-    } ${
-      isActive
-        ? "border-blue-600 bg-blue-50 font-medium text-blue-600"
-        : "border-transparent text-gray-500 hover:bg-gray-50 hover:text-slate-700"
-    }`;
-
-  const configHeaderCls = (isActive: boolean) =>
-    `flex items-center rounded-lg text-sm transition-all ${
-      isOpen ? "px-4 py-3" : "justify-center p-3"
-    } ${
-      isActive
-        ? "border border-blue-200 bg-blue-50 font-medium text-blue-600"
-        : "border border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-    }`;
-
   const isConfigActive = isConfigRoute(pathname);
 
   return (
@@ -156,7 +151,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-2">
         {FLAT_NAV_ITEMS.slice(0, 4).map((item) => {
           const Icon = item.icon;
           const isActive = isNavItemActive(pathname, item.href);
@@ -165,12 +160,12 @@ export default function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={navLinkCls(isActive)}
+              className={navItemClass(isActive, isOpen)}
               title={!isOpen ? item.name : undefined}
             >
               {Icon && (
                 <Icon
-                  className={`h-5 w-5 flex-shrink-0 ${
+                  className={`${NAV_ICON} ${
                     isActive ? "text-blue-600" : "text-slate-400"
                   }`}
                 />
@@ -180,17 +175,15 @@ export default function Sidebar() {
           );
         })}
 
-        <div>
-          <div className={configHeaderCls(isConfigActive)}>
+        <div className="space-y-2">
+          <div className={`${navItemClass(isConfigActive, isOpen)} ${isOpen ? "gap-0 pr-2" : ""}`}>
             <Link
               href={CONFIG_GROUP.href}
-              className={`flex min-w-0 items-center gap-3.5 ${
-                isOpen ? "flex-1" : "justify-center"
-              }`}
+              className={`flex min-w-0 items-center gap-3.5 ${isOpen ? "min-w-0 flex-1" : ""}`}
               title={!isOpen ? CONFIG_GROUP.name : undefined}
             >
               <i
-                className={`ti ti-${CONFIG_GROUP.tablerIcon} flex size-5 shrink-0 items-center justify-center text-[1.25rem] leading-none ${
+                className={`${TABLER_ICON} ti-${CONFIG_GROUP.tablerIcon} ${
                   isConfigActive ? "text-blue-600" : "text-slate-400"
                 }`}
               />
@@ -200,14 +193,12 @@ export default function Sidebar() {
               <button
                 type="button"
                 onClick={() => setConfigExpanded((prev) => !prev)}
-                className={`ml-auto inline-flex shrink-0 cursor-pointer items-center rounded-md p-1 transition-colors hover:bg-slate-100 ${
-                  isConfigActive ? "text-blue-600 hover:bg-blue-100/60" : "text-slate-400"
-                }`}
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
                 aria-label={configExpanded ? "Collapse Config" : "Expand Config"}
                 aria-expanded={configExpanded}
               >
                 <ChevronRight
-                  className={`size-4 transition-transform duration-200 ${
+                  className={`size-4 shrink-0 transition-transform duration-200 ${
                     configExpanded ? "rotate-90" : ""
                   }`}
                 />
@@ -216,7 +207,7 @@ export default function Sidebar() {
           </div>
 
           {isOpen && configExpanded && (
-            <div className="mt-1 space-y-1">
+            <div className="space-y-2">
               {CONFIG_GROUP.children.map((child) => {
                 const isChildActive = isChildNavActive(pathname, child.href);
 
@@ -224,11 +215,11 @@ export default function Sidebar() {
                   <Link
                     key={child.name}
                     href={child.href}
-                    className={childNavLinkCls(isChildActive)}
+                    className={navItemClass(isChildActive, isOpen, true)}
                   >
                     {child.tablerIcon && (
                       <i
-                        className={`ti ti-${child.tablerIcon} flex size-5 shrink-0 items-center justify-center text-[1.25rem] leading-none ${
+                        className={`${TABLER_ICON} ti-${child.tablerIcon} ${
                           isChildActive ? "text-blue-600" : "text-slate-400"
                         }`}
                       />
@@ -249,12 +240,12 @@ export default function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={navLinkCls(isActive)}
+              className={navItemClass(isActive, isOpen)}
               title={!isOpen ? item.name : undefined}
             >
               {Icon && (
                 <Icon
-                  className={`h-5 w-5 flex-shrink-0 ${
+                  className={`${NAV_ICON} ${
                     isActive ? "text-blue-600" : "text-slate-400"
                   }`}
                 />
@@ -265,25 +256,26 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-auto p-4 border-t border-slate-100 flex-shrink-0">
+      <div className="mt-auto flex-shrink-0 border-t border-slate-100 p-4">
         {isOpen ? (
           <div className="flex w-full items-center gap-3 rounded-xl px-2 py-1">
-            <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold text-sm">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1 text-left">
-              <p className="text-sm font-semibold text-slate-800 truncate">
-                {displayName}
-              </p>
-              <p className="text-xs text-slate-400 font-medium truncate">
-                {displaySub}
-              </p>
-            </div>
+            <Link
+              href="/profile"
+              className="flex min-w-0 flex-1 items-center gap-3 rounded-lg transition-colors hover:bg-slate-50"
+            >
+              <Avatar className="h-9 w-9 flex-shrink-0">
+                <AvatarFallback className="bg-indigo-100 text-sm font-semibold text-indigo-700">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="truncate text-sm font-semibold text-slate-800">{displayName}</p>
+                <p className="truncate text-xs font-medium text-slate-400">{displaySub}</p>
+              </div>
+            </Link>
             <button
               onClick={logout}
-              className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
               title="Log out"
             >
               <LogOut className="h-4 w-4" />
@@ -291,14 +283,20 @@ export default function Sidebar() {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 rounded-xl py-1">
-            <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold text-sm">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <Link
+              href="/profile"
+              className="rounded-lg transition-colors hover:bg-slate-50"
+              title={displayName}
+            >
+              <Avatar className="h-9 w-9 flex-shrink-0">
+                <AvatarFallback className="bg-indigo-100 text-sm font-semibold text-indigo-700">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
             <button
               onClick={logout}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
               title="Log out"
             >
               <LogOut className="h-4 w-4" />
