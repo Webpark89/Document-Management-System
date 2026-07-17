@@ -1,204 +1,483 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search, Download, Filter, Calendar, ChevronLeft, ChevronRight, Activity } from "lucide-react";
-import { MOCK_AUDIT_LOGS } from "@/lib/mock-data";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { 
+  Search, 
+  Download, 
+  Filter, 
+  ChevronLeft, 
+  ChevronRight, 
+  Activity,
+  ChevronDown,
+  ChevronUp,
+  X
+} from "lucide-react";
 
-export default function AuditLogsPage() {
+// ─── TYPES & MOCK DATA ────────────────────────────────────────────────────────
+type ActionType = "Login" | "Upload" | "Download" | "View" | "Edit" | "Delete" | "Approve" | "Reject" | "Signature";
+type ModuleType = "Documents" | "Users" | "Roles" | "Approvals" | "Master Data" | "Auth" | "All";
+
+interface AuditLogExtended {
+  id: string;
+  timestamp: string;
+  userId: string;
+  userName: string;
+  action: ActionType;
+  module: ModuleType;
+  targetId: string;
+  targetLabel: string;
+  targetType: "document" | "user" | "role" | "none";
+  ipAddress: string;
+  details: Record<string, any>;
+}
+
+const EXTENDED_MOCK_LOGS: AuditLogExtended[] = [
+  { id: "al-01", timestamp: "2026-07-17T09:15:00Z", userId: "u1", userName: "วิภา รักดี", action: "Login", module: "Auth", targetId: "", targetLabel: "-", targetType: "none", ipAddress: "192.168.1.45", details: { browser: "Chrome 120", os: "Windows 11" } },
+  { id: "al-02", timestamp: "2026-07-17T09:30:22Z", userId: "u2", userName: "สมชาย ใจดี", action: "Upload", module: "Documents", targetId: "PR-2026-0005", targetLabel: "ขอซื้อเมาส์และคีย์บอร์ด", targetType: "document", ipAddress: "192.168.1.102", details: { fileName: "pr_mouse_kb.pdf", fileSize: "2.4 MB" } },
+  { id: "al-03", timestamp: "2026-07-17T10:05:11Z", userId: "u1", userName: "วิภา รักดี", action: "View", module: "Documents", targetId: "PR-2026-0005", targetLabel: "ขอซื้อเมาส์และคีย์บอร์ด", targetType: "document", ipAddress: "192.168.1.45", details: { duration: "45s" } },
+  { id: "al-04", timestamp: "2026-07-17T10:12:44Z", userId: "u1", userName: "วิภา รักดี", action: "Approve", module: "Approvals", targetId: "PR-2026-0005", targetLabel: "ขอซื้อเมาส์และคีย์บอร์ด", targetType: "document", ipAddress: "192.168.1.45", details: { level: 1, comment: "อนุมัติเบื้องต้น" } },
+  { id: "al-05", timestamp: "2026-07-17T11:00:00Z", userId: "u3", userName: "อรทัย สุขใจ", action: "Login", module: "Auth", targetId: "", targetLabel: "-", targetType: "none", ipAddress: "10.0.0.15", details: { browser: "Safari 17", os: "macOS Sonoma" } },
+  { id: "al-06", timestamp: "2026-07-17T11:15:30Z", userId: "u3", userName: "อรทัย สุขใจ", action: "Edit", module: "Users", targetId: "u2", targetLabel: "สมชาย ใจดี", targetType: "user", ipAddress: "10.0.0.15", details: { field: "department", oldValue: "พนักงานทั่วไป", newValue: "แผนกจัดซื้อ" } },
+  { id: "al-07", timestamp: "2026-07-17T13:20:10Z", userId: "u4", userName: "ประยุทธ์ สร้างชาติ", action: "Reject", module: "Approvals", targetId: "PO-2026-0004", targetLabel: "จัดจ้างที่ปรึกษา HR", targetType: "document", ipAddress: "192.168.2.11", details: { reason: "งบประมาณไตรมาสนี้ไม่เพียงพอ โปรดเลื่อนไป Q4" } },
+  { id: "al-08", timestamp: "2026-07-16T08:45:00Z", userId: "u5", userName: "Admin System", action: "Delete", module: "Users", targetId: "u99", targetLabel: "test.user", targetType: "user", ipAddress: "127.0.0.1", details: { reason: "พ้นสภาพพนักงาน" } },
+  { id: "al-09", timestamp: "2026-07-16T14:30:00Z", userId: "u1", userName: "วิภา รักดี", action: "Signature", module: "Approvals", targetId: "PO-2026-0001", targetLabel: "ใบสั่งซื้อ Laptop Dell สำหรับทีม IT", targetType: "document", ipAddress: "192.168.1.45", details: { certId: "CERT-9921", method: "Digital Certificate" } },
+  { id: "al-10", timestamp: "2026-07-16T15:10:00Z", userId: "u2", userName: "สมชาย ใจดี", action: "Download", module: "Documents", targetId: "MM-2026-0001", targetLabel: "บันทึกข้อความภายใน", targetType: "document", ipAddress: "192.168.1.102", details: { format: "PDF", isWatermarked: true } },
+  { id: "al-11", timestamp: "2026-07-15T09:00:00Z", userId: "u1", userName: "วิภา รักดี", action: "Login", module: "Auth", targetId: "", targetLabel: "-", targetType: "none", ipAddress: "192.168.1.45", details: { browser: "Chrome 120", os: "Windows 11" } },
+  { id: "al-12", timestamp: "2026-07-15T10:20:00Z", userId: "u5", userName: "Admin System", action: "Edit", module: "Roles", targetId: "r2", targetLabel: "Manager Role", targetType: "role", ipAddress: "127.0.0.1", details: { permissionAdded: ["approve_level_2"] } },
+  { id: "al-13", timestamp: "2026-07-15T11:45:00Z", userId: "u4", userName: "ประยุทธ์ สร้างชาติ", action: "View", module: "Documents", targetId: "PO-2026-0002", targetLabel: "ใบสั่งซื้อวัตถุดิบ เดือนกรกฎาคม", targetType: "document", ipAddress: "192.168.2.11", details: { duration: "120s" } },
+  { id: "al-14", timestamp: "2026-07-14T14:15:00Z", userId: "u3", userName: "อรทัย สุขใจ", action: "Upload", module: "Master Data", targetId: "md-1", targetLabel: "Vendor List", targetType: "none", ipAddress: "10.0.0.15", details: { recordsAdded: 15, fileName: "vendors_july.xlsx" } },
+  { id: "al-15", timestamp: "2026-07-14T16:30:00Z", userId: "u2", userName: "สมชาย ใจดี", action: "Edit", module: "Documents", targetId: "PR-2026-0001", targetLabel: "ขอซื้ออุปกรณ์สำนักงาน Q3/2026", targetType: "document", ipAddress: "192.168.1.102", details: { field: "value", oldValue: 12000, newValue: 15000 } },
+];
+
+const ALL_ACTIONS: ActionType[] = ["Login", "Upload", "Download", "View", "Edit", "Delete", "Approve", "Reject", "Signature"];
+const ALL_MODULES: ModuleType[] = ["Documents", "Users", "Roles", "Approvals", "Master Data", "Auth"];
+
+// ─── MAIN COMPONENT ───────────────────────────────────────────────────────
+function AuditLogsContent() {
+  const searchParams = useSearchParams();
+  
+  // States
   const [searchTerm, setSearchTerm] = useState("");
-  const [actionFilter, setActionFilter] = useState("All");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [selectedModule, setSelectedModule] = useState<ModuleType | "All">("All");
+  
+  // Multi-select for actions
+  const [selectedActions, setSelectedActions] = useState<Set<ActionType>>(new Set());
 
-  const filteredLogs = MOCK_AUDIT_LOGS.filter((log) => {
-    const matchesSearch =
-      log.user_fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.username.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesAction = actionFilter === "All" || log.action === actionFilter;
-    return matchesSearch && matchesAction;
-  });
+  // Expanded rows for Details
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  const getActionBadge = (action: string) => {
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Pre-apply filters from URL if coming from e.g. /approvals
+  useEffect(() => {
+    const pModule = searchParams.get("module") as ModuleType;
+    const pActions = searchParams.get("action");
+    
+    if (pModule && ALL_MODULES.includes(pModule)) {
+      setSelectedModule(pModule);
+    }
+    if (pActions) {
+      const actionsArr = pActions.split(",").filter(a => ALL_ACTIONS.includes(a as ActionType)) as ActionType[];
+      if (actionsArr.length > 0) {
+        setSelectedActions(new Set(actionsArr));
+      }
+    }
+  }, [searchParams]);
+
+  const toggleActionFilter = (action: ActionType) => {
+    const newSet = new Set(selectedActions);
+    if (newSet.has(action)) {
+      newSet.delete(action);
+    } else {
+      newSet.add(action);
+    }
+    setSelectedActions(newSet);
+    setCurrentPage(1);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setDateFrom("");
+    setDateTo("");
+    setSelectedModule("All");
+    setSelectedActions(new Set());
+    setCurrentPage(1);
+  };
+
+  // 1. Filter Data
+  const filteredLogs = useMemo(() => {
+    return EXTENDED_MOCK_LOGS.filter(log => {
+      // 1. Search
+      if (searchTerm) {
+        const lowerTerm = searchTerm.toLowerCase();
+        if (!log.userName.toLowerCase().includes(lowerTerm) && !log.userId.toLowerCase().includes(lowerTerm)) {
+          return false;
+        }
+      }
+      // 2. Date Range
+      // Using basic string comparison since format is ISO YYYY-MM-DD
+      const logDate = log.timestamp.substring(0, 10);
+      if (dateFrom && logDate < dateFrom) return false;
+      if (dateTo && logDate > dateTo) return false;
+      
+      // 3. Module
+      if (selectedModule !== "All" && log.module !== selectedModule) return false;
+
+      // 4. Action
+      if (selectedActions.size > 0 && !selectedActions.has(log.action)) return false;
+
+      return true;
+    }).sort((a, b) => b.timestamp.localeCompare(a.timestamp)); // Always newest first
+  }, [searchTerm, dateFrom, dateTo, selectedModule, selectedActions]);
+
+  // 2. Pagination
+  const totalItems = filteredLogs.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // 3. Styling Helpers
+  const getActionBadge = (action: ActionType) => {
     switch (action) {
       case "Approve":
         return "bg-emerald-50 text-emerald-700 border-emerald-200";
       case "Reject":
+      case "Delete":
         return "bg-rose-50 text-rose-700 border-rose-200";
-      case "Upload":
+      case "View":
       case "Download":
         return "bg-blue-50 text-blue-700 border-blue-200";
+      case "Edit":
+      case "Upload":
+        return "bg-amber-50 text-amber-700 border-amber-200";
       case "Login":
-        return "bg-indigo-50 text-indigo-700 border-indigo-200";
       case "Signature":
-        return "bg-purple-50 text-purple-700 border-purple-200";
-      case "Delete":
-        return "bg-red-50 text-red-700 border-red-200";
+        return "bg-slate-100 text-slate-700 border-slate-200";
       default:
         return "bg-slate-50 text-slate-700 border-slate-200";
     }
   };
 
-  const getInitials = (name: string) => {
-    return name.substring(0, 2).toUpperCase();
+  const getTargetLink = (targetType: string, targetId: string) => {
+    if (!targetId) return "#";
+    if (targetType === "document") return `/documents/${targetId}`;
+    if (targetType === "user") return `/admin/config/users`; // Placeholder
+    return "#";
+  };
+
+  const formatDateTimeTH = (isoString: string) => {
+    const d = new Date(isoString);
+    // Simple mock formatting for TH layout (e.g. 17 ก.ค. 2026, 16:30)
+    return d.toLocaleString('th-TH', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
+  // 4. Export CSV
+  const handleExportCSV = () => {
+    if (filteredLogs.length === 0) return;
+    const headers = ["Timestamp", "User", "Action", "Module", "Target ID", "Target Label", "IP Address", "Details"];
+    let csvContent = headers.join(",") + "\\n";
+    filteredLogs.forEach(log => {
+      const detailsStr = JSON.stringify(log.details).replace(/"/g, '""');
+      csvContent += `"${log.timestamp}","${log.userName}","${log.action}","${log.module}","${log.targetId}","${log.targetLabel}","${log.ipAddress}","${detailsStr}"\\n`;
+    });
+
+    const blob = new Blob(["\\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `audit_log_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="flex-1 flex flex-col min-w-0 w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      
+      {/* ⚠️ NOTE FOR DEVELOPERS: This page must be guarded by AdminRoleGuard on backend ⚠️ */}
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2 tracking-tight">
             <Activity className="w-6 h-6 text-indigo-600" />
             System Audit Log
           </h1>
           <p className="text-sm text-slate-500 mt-1 font-medium">
-            Monitor system activities, user actions, and security events.
+            บันทึกประวัติการใช้งานและตรวจสอบความปลอดภัยของระบบ (Security & Compliance)
           </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        {/* Filters Bar */}
-        <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col md:flex-row gap-4">
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Calendar className="h-4 w-4 text-slate-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Date Range (e.g. 20/05/2026 - 26/05/2026)"
-                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all"
-              />
-            </div>
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        
+        {/* FILTER BAR */}
+        <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col gap-4">
+          <div className="flex flex-col xl:flex-row gap-4">
             
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Filter className="h-4 w-4 text-slate-400" />
+            {/* Left: Standard Filters */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date From</label>
+                <input 
+                  type="date" 
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none" 
+                />
               </div>
-              <select
-                value={actionFilter}
-                onChange={(e) => setActionFilter(e.target.value)}
-                className="block w-full pl-10 pr-10 py-2 border border-slate-200 rounded-xl leading-5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all appearance-none cursor-pointer"
-              >
-                <option value="All">All Actions</option>
-                <option value="Login">Login</option>
-                <option value="Upload">Upload</option>
-                <option value="Download">Download</option>
-                <option value="View">View</option>
-                <option value="Approve">Approve</option>
-                <option value="Reject">Reject</option>
-                <option value="Signature">Signature</option>
-                <option value="Delete">Delete</option>
-              </select>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date To</label>
+                <input 
+                  type="date" 
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none" 
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Module</label>
+                <select 
+                  value={selectedModule}
+                  onChange={(e) => setSelectedModule(e.target.value as ModuleType)}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                >
+                  <option value="All">All Modules</option>
+                  {ALL_MODULES.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Search User</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search name or ID"
+                    className="w-full border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-slate-400" />
-              </div>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by name or username"
-                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all"
-              />
+            {/* Right: Actions */}
+            <div className="flex xl:flex-col gap-2 justify-end xl:w-32 shrink-0">
+              <button 
+                onClick={clearFilters}
+                className="flex-1 xl:flex-none flex items-center justify-center gap-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition-colors"
+              >
+                <X className="w-3.5 h-3.5" /> Clear Filters
+              </button>
+              <button 
+                onClick={handleExportCSV}
+                disabled={filteredLogs.length === 0}
+                className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs transition-colors shadow-sm disabled:opacity-50"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Export CSV
+              </button>
             </div>
           </div>
-          <div className="flex-shrink-0">
-            <button className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-sm transition-colors shadow-sm">
-              <Download className="w-4 h-4" />
-              Export CSV
-            </button>
+
+          {/* Multi-select Action Badges */}
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Action Types (Multi-select)</label>
+            <div className="flex flex-wrap gap-2">
+              {ALL_ACTIONS.map(action => {
+                const isSelected = selectedActions.has(action);
+                return (
+                  <button
+                    key={action}
+                    onClick={() => toggleActionFilter(action)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                      isSelected 
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' 
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'
+                    }`}
+                  >
+                    {action}
+                  </button>
+                );
+              })}
+              {selectedActions.size > 0 && (
+                <button 
+                  onClick={() => setSelectedActions(new Set())}
+                  className="px-3 py-1.5 text-[10px] font-bold text-slate-400 hover:text-slate-600 underline"
+                >
+                  Clear Selection
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Table */}
+        {/* TABLE */}
         <div className="overflow-x-auto w-full">
-          <table className="w-full min-w-[800px] text-left border-collapse whitespace-nowrap">
+          <table className="w-full min-w-[900px] text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-3 px-4">Timestamp</th>
-                <th className="py-3 px-4">User</th>
-                <th className="py-3 px-4">Action</th>
-                <th className="py-3 px-4">Module</th>
-                <th className="py-3 px-4">Target</th>
-                <th className="py-3 px-4">IP Address</th>
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3 px-4 w-48">Timestamp</th>
+                <th className="py-3 px-4 w-48">User</th>
+                <th className="py-3 px-4 w-32">Action</th>
+                <th className="py-3 px-4 w-32">Module</th>
+                <th className="py-3 px-4 min-w-[200px]">Target</th>
+                <th className="py-3 px-4 w-40">IP Address</th>
+                <th className="py-3 px-4 w-12 text-center">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredLogs.map((log) => {
-                const dateObj = new Date(log.created_at);
-                const dateStr = dateObj.toLocaleDateString("en-GB");
-                const timeStr = dateObj.toLocaleTimeString("en-GB");
-
-                return (
-                  <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3 px-4">
-                      <div className="text-sm font-semibold text-slate-700">{dateStr}</div>
-                      <div className="text-xs text-slate-400">{timeStr}</div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0">
-                          {getInitials(log.user_fullname)}
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-slate-800">{log.user_fullname}</div>
-                          <div className="text-xs text-slate-500">{log.username}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold border ${getActionBadge(log.action)}`}>
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-sm font-medium text-slate-600">
-                      {log.module}
-                    </td>
-                    <td className="py-3 px-4">
-                      {log.target_display ? (
-                        <a href="#" className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 hover:underline">
-                          {log.target_display}
-                        </a>
-                      ) : (
-                        <span className="text-sm text-slate-400">-</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-500 font-mono">
-                      {log.ip_address}
-                    </td>
-                  </tr>
-                );
-              })}
-              {filteredLogs.length === 0 && (
+              {paginatedLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-500 text-sm">
-                    No audit logs found matching your criteria.
+                  <td colSpan={7} className="py-16 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3">
+                        <Search className="w-6 h-6" />
+                      </div>
+                      <p className="text-slate-600 font-bold text-sm">ไม่พบข้อมูล Audit Log</p>
+                      <p className="text-slate-400 text-xs mt-1">ลองปรับเงื่อนไขการค้นหาหรือช่วงเวลาใหม่อีกครั้ง</p>
+                    </div>
                   </td>
                 </tr>
+              ) : (
+                paginatedLogs.map((log) => (
+                  <React.Fragment key={log.id}>
+                    <tr className="hover:bg-slate-50/50 transition-colors group">
+                      <td className="py-3 px-4">
+                        <div className="text-sm font-semibold text-slate-700">{formatDateTimeTH(log.timestamp)}</div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="text-sm font-bold text-slate-800">{log.userName}</div>
+                        <div className="text-[10px] text-slate-500 font-medium">ID: {log.userId}</div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold border ${getActionBadge(log.action)}`}>
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-sm font-bold text-slate-600">
+                        {log.module}
+                      </td>
+                      <td className="py-3 px-4">
+                        {log.targetType !== "none" ? (
+                          <div className="flex flex-col">
+                            <Link href={getTargetLink(log.targetType, log.targetId)} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors truncate max-w-[250px]">
+                              {log.targetLabel}
+                            </Link>
+                            <span className="text-[10px] text-slate-400 font-mono">{log.targetId}</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-xs text-slate-500 font-mono">
+                        {log.ipAddress}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <button 
+                          onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
+                          className={`p-1.5 rounded-lg transition-colors ${expandedRow === log.id ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                        >
+                          {expandedRow === log.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </button>
+                      </td>
+                    </tr>
+                    
+                    {/* EXPANDED DETAILS ROW */}
+                    {expandedRow === log.id && (
+                      <tr className="bg-slate-50/80 border-b border-slate-100">
+                        <td colSpan={7} className="p-0">
+                          <div className="px-6 py-4 border-l-4 border-indigo-400 ml-4 my-2 rounded-r-xl bg-white shadow-xs">
+                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Transaction Details</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3">
+                              {Object.entries(log.details).map(([key, value]) => (
+                                <div key={key} className="flex flex-col">
+                                  <span className="text-xs text-slate-500 font-semibold">{key}</span>
+                                  <span className="text-sm font-bold text-slate-800 break-words">
+                                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between flex-wrap gap-4">
-          <p className="text-sm text-slate-500 font-medium">
-            Showing <span className="font-bold text-slate-700">1</span> to <span className="font-bold text-slate-700">{filteredLogs.length}</span> of <span className="font-bold text-slate-700">{filteredLogs.length}</span> entries
-          </p>
-          <div className="flex items-center gap-2">
-            <button className="p-1 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors disabled:opacity-50">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div className="flex gap-1">
-              <button className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 font-bold text-sm">1</button>
+        {/* PAGINATION */}
+        {filteredLogs.length > 0 && (
+          <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between flex-wrap gap-4">
+            <p className="text-sm text-slate-500 font-medium">
+              Showing <span className="font-bold text-slate-700">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-slate-700">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="font-bold text-slate-700">{totalItems}</span> entries
+            </p>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }).map((_, i) => {
+                  const page = i + 1;
+                  const isActive = currentPage === page;
+                  return (
+                    <button 
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors shadow-sm ${
+                        isActive 
+                          ? 'bg-indigo-600 text-white border-transparent' 
+                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
-            <button className="p-1 rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors disabled:opacity-50">
-              <ChevronRight className="w-5 h-5" />
-            </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
+  );
+}
+
+// Wrap in Suspense since it uses useSearchParams
+export default function AuditLogsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading Audit Logs...</div>}>
+      <AuditLogsContent />
+    </Suspense>
   );
 }

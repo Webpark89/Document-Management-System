@@ -63,13 +63,13 @@ export default function ApprovalsInboxPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="flex-1 flex flex-col min-w-0 w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <PageHeader
         title="กล่องข้อความรออนุมัติ (Inbox)"
         subtitle="จัดการเอกสารที่รอให้คุณพิจารณาอนุมัติ"
         actions={
           <Link
-            href="/documents"
+            href="/admin/audit-logs?module=Approvals&action=Approve,Reject"
             className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
           >
             <CheckSquare className="w-4 h-4" />

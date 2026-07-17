@@ -128,6 +128,22 @@ export const MOCK_DASHBOARD_STATS: DashboardStats = {
   cancelled: 0,
 };
 
+export const MOCK_REPORT_DATA = [
+  { id: "PR-2026-0001", type: "PR", department: "ฝ่ายจัดซื้อและพัสดุ", status: "Approved", date: "2026-07-01", value: 15000, approvalDays: 2, title: "ขอซื้ออุปกรณ์สำนักงาน Q3/2026", submittedBy: "สมชาย ใจดี" },
+  { id: "PO-2026-0001", type: "PO", department: "ฝ่ายเทคโนโลยีสารสนเทศ (IT)", status: "Pending", date: "2026-07-05", value: 45000, approvalDays: null, title: "ใบสั่งซื้อ Laptop Dell สำหรับทีม IT", submittedBy: "วิภา รักดี" },
+  { id: "MM-2026-0001", type: "Memo", department: "ฝ่ายบริหารทรัพยากรบุคคล (HR)", status: "Approved", date: "2026-07-10", value: 0, approvalDays: 1, title: "บันทึกข้อความภายใน", submittedBy: "อรทัย สุขใจ" },
+  { id: "OT-2026-0001", type: "Other", department: "ฝ่ายบริหารทั่วไป", status: "Rejected", date: "2026-07-12", value: 0, approvalDays: 3, title: "ขออนุมัติเบิกค่าเดินทาง", submittedBy: "วิภา รักดี" },
+  { id: "PR-2026-0002", type: "PR", department: "ฝ่ายวิศวกรรมและซ่อมบำรุง", status: "Returned", date: "2026-07-14", value: 25000, approvalDays: null, title: "ขอซื้ออะไหล่เครื่องจักร", submittedBy: "มานะ ทำงาน" },
+  { id: "PO-2026-0002", type: "PO", department: "ฝ่ายจัดซื้อและพัสดุ", status: "Approved", date: "2026-06-25", value: 120000, approvalDays: 5, title: "ใบสั่งซื้อวัตถุดิบ เดือนกรกฎาคม", submittedBy: "ประยุทธ์ สร้างชาติ" },
+  { id: "MM-2026-0002", type: "Memo", department: "ฝ่ายบัญชีและการเงิน", status: "Pending", date: "2026-07-15", value: 0, approvalDays: null, title: "แจ้งปรับปรุงระบบบัญชี", submittedBy: "สมชาย ใจดี" },
+  { id: "PR-2026-0003", type: "PR", department: "ฝ่ายเทคโนโลยีสารสนเทศ (IT)", status: "Approved", date: "2026-06-30", value: 8500, approvalDays: 1, title: "ขอซื้อ Software License", submittedBy: "วิภา รักดี" },
+  { id: "PO-2026-0003", type: "PO", department: "ฝ่ายวิศวกรรมและซ่อมบำรุง", status: "Approved", date: "2026-07-02", value: 210000, approvalDays: 4, title: "ใบสั่งซื้อเครื่องจักรใหม่", submittedBy: "มานะ ทำงาน" },
+  { id: "OT-2026-0002", type: "Other", department: "ฝ่ายบริหารทั่วไป", status: "Approved", date: "2026-07-08", value: 0, approvalDays: 2, title: "รายงานการประชุมประจำเดือน", submittedBy: "นภา มีสุข" },
+  { id: "PR-2026-0004", type: "PR", department: "ฝ่ายบริหารทั่วไป", status: "Approved", date: "2026-07-16", value: 5000, approvalDays: 1, title: "ขอซื้อกระดาษ A4", submittedBy: "อรทัย สุขใจ" },
+  { id: "PO-2026-0004", type: "PO", department: "ฝ่ายบริหารทรัพยากรบุคคล (HR)", status: "Rejected", date: "2026-07-17", value: 35000, approvalDays: 3, title: "จัดจ้างที่ปรึกษา HR", submittedBy: "ประยุทธ์ สร้างชาติ" },
+  { id: "PR-2026-0005", type: "PR", department: "ฝ่ายเทคโนโลยีสารสนเทศ (IT)", status: "Cancelled", date: "2026-07-18", value: 12000, approvalDays: null, title: "ขอซื้อเมาส์และคีย์บอร์ด", submittedBy: "วิภา รักดี" },
+];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 export const STATUS_COLORS: Record<string, string> = {
   Draft: "bg-gray-100 text-gray-600 border-gray-200",
