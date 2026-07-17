@@ -21,6 +21,7 @@ export interface AdminUser {
   email: string;
   role: "Employee" | "Manager" | "Executive" | "Administrator";
   status: UserStatus;
+  password?: string;
 }
 
 export interface DepartmentRecord {
@@ -89,6 +90,7 @@ export type ConfigUser = {
   position: string;
   role: string;
   isActive: boolean;
+  password?: string;
 };
 
 export const LEVEL_OPTIONS = ["L1", "L2", "L3", "L4", "Executive"] as const;
@@ -253,6 +255,7 @@ export function toConfigUser(user: AdminUser): ConfigUser {
     position: user.position,
     role: user.role,
     isActive: user.status === "active",
+    password: user.password,
   };
 }
 
@@ -265,6 +268,7 @@ export function fromConfigUser(user: ConfigUser): AdminUser {
     position: user.position,
     role: user.role as AdminUser["role"],
     status: user.isActive ? "active" : "inactive",
+    password: user.password,
   };
 }
 

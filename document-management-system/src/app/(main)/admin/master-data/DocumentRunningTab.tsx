@@ -30,6 +30,8 @@ import {
   MD_TH_STICKY,
   MD_TH_STATUS,
   MD_TABLE,
+  MD_THEAD,
+  MD_TR,
   RowActions,
   StatCards,
   StatusBadge,
@@ -202,8 +204,8 @@ export default function DocumentRunningTab({ showToast }: Props) {
         mobile={<MasterDataMobileCardList rows={mobileRows} />}
       >
         <table className={MD_TABLE}>
-          <thead className="bg-gray-50">
-            <tr className="border-b border-gray-200">
+          <thead className={MD_THEAD}>
+            <tr>
               <th className={MD_TH_STICKY}>ประเภทเอกสาร</th>
               <th className={thCls}>รูปแบบ</th>
               <th className={thCls}>รอบรีเซ็ตเลขที่</th>
@@ -218,7 +220,7 @@ export default function DocumentRunningTab({ showToast }: Props) {
               return (
                 <tr
                   key={row.matrixKey}
-                  className="group border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80"
+                  className={`group ${MD_TR}`}
                 >
                   <td className={MD_TD_STICKY}>{row.typeName}</td>
                   <td className={tdCls}>
@@ -253,7 +255,7 @@ export default function DocumentRunningTab({ showToast }: Props) {
           onClick={closeModal}
         >
           <div
-            className="relative w-full max-w-md rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+            className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3">

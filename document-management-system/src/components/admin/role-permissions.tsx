@@ -2,6 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, Search } from "lucide-react";
+import {
+  MD_TH,
+  MD_TH_CENTER,
+  MD_THEAD,
+  MD_TR,
+} from "@/app/(main)/admin/master-data/master-data-ui";
 
 export type ActionKey = "view" | "create" | "edit" | "delete" | "approve";
 export type ProductKey = "all" | "dms" | "esign" | "reports" | "archive";
@@ -214,7 +220,13 @@ function IndeterminateCheckbox({
   );
 }
 
-const checkboxCls = "size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500";
+const checkboxCls =
+  "size-4 shrink-0 rounded border-slate-300 text-blue-600 accent-blue-600 focus:ring-2 focus:ring-blue-100 focus:ring-offset-0";
+const countPillCls =
+  "inline-flex shrink-0 items-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium tabular-nums text-slate-500";
+/** Matches permission table action columns (5 × w-20) for aligned Select all controls */
+const ACTION_COLS_W = "w-[25rem]";
+const ACTION_COL_W = "w-20";
 
 export function RolePermissionPanel({
   role,
@@ -298,29 +310,34 @@ export function RolePermissionPanel({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search item..."
-          className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
       </div>
 
-      <div className="mt-4 rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-4">
-          <h2 className="text-sm font-medium text-slate-800">Permission</h2>
-          <div className="flex items-center gap-3">
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-              {summary.granted}/{summary.total} permissions granted
-            </span>
-            <label className="flex items-center gap-2 text-sm text-slate-600">
-              <IndeterminateCheckbox
-                state={pageSelectState}
-                onChange={(checked) => applyPermissions(checked)}
-                className={checkboxCls}
-              />
-              Select all
-            </label>
-          </div>
+      <div className="mt-4 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center border-b border-slate-100 px-6 py-4">
+          <h2 className="min-w-0 flex-1 text-sm font-bold text-slate-800">Permission</h2>
+          <span className={`${countPillCls} mr-4 hidden sm:inline-flex`}>
+            {summary.granted}/{summary.total} permissions granted
+          </span>
+          <label
+            className={`flex ${ACTION_COLS_W} shrink-0 items-center justify-end gap-2 text-sm font-medium text-slate-600`}
+          >
+            <IndeterminateCheckbox
+              state={pageSelectState}
+              onChange={(checked) => applyPermissions(checked)}
+              className={checkboxCls}
+            />
+            Select all
+          </label>
+        </div>
+        <div className="border-b border-slate-100 px-6 py-2 sm:hidden">
+          <span className={countPillCls}>
+            {summary.granted}/{summary.total} permissions granted
+          </span>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-slate-100">
           {visibleSections.map((section) => {
             const sectionCounts = countSection(section.key, role.permissions);
             const sectionState = sectionCheckState(section.key, role.permissions);
@@ -334,23 +351,25 @@ export function RolePermissionPanel({
 
             return (
               <div key={section.key}>
-                <div className="flex items-center justify-between bg-gray-50 px-5 py-3">
+                <div className="flex items-center bg-slate-50/60 px-6 py-3">
                   <button
                     type="button"
                     onClick={() => toggleSection(section.key)}
-                    className="flex items-center gap-2 text-sm font-medium text-slate-700"
+                    className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm font-semibold text-slate-700"
                   >
                     <ChevronRight
-                      className={`size-4 text-slate-500 transition-transform duration-200 ${
+                      className={`size-4 shrink-0 text-slate-500 transition-transform duration-200 ${
                         expanded[section.key] ? "rotate-90" : ""
                       }`}
                     />
                     <span>{section.label}</span>
-                    <span className="text-xs font-normal text-slate-400">
-                      ({sectionCounts.granted}/{sectionCounts.total})
+                    <span className={countPillCls}>
+                      {sectionCounts.granted}/{sectionCounts.total}
                     </span>
                   </button>
-                  <label className="flex items-center gap-2 text-xs text-slate-500">
+                  <label
+                    className={`flex ${ACTION_COLS_W} shrink-0 items-center justify-end gap-2 text-xs font-medium text-slate-500`}
+                  >
                     <IndeterminateCheckbox
                       state={sectionState}
                       onChange={(checked) => applyPermissions(checked, section.key)}
@@ -362,12 +381,12 @@ export function RolePermissionPanel({
 
                 {expanded[section.key] && (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-gray-200 bg-white text-xs text-slate-500">
-                          <th className="h-10 px-5 text-left font-medium">Item</th>
+                    <table className="w-full min-w-[640px] text-sm">
+                      <thead className={MD_THEAD}>
+                        <tr>
+                          <th className={`${MD_TH} min-w-[12rem]`}>Item</th>
                           {PERMISSION_ACTIONS.map((action) => (
-                            <th key={action.key} className="h-10 w-20 px-2 text-center font-medium">
+                            <th key={action.key} className={`${MD_TH_CENTER} ${ACTION_COL_W}`}>
                               {action.label}
                             </th>
                           ))}
@@ -375,28 +394,29 @@ export function RolePermissionPanel({
                       </thead>
                       <tbody>
                         {filteredItems.map((item) => (
-                          <tr
-                            key={item.key}
-                            className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50"
-                          >
-                            <td className="h-12 px-5 text-slate-700">{item.label}</td>
+                          <tr key={item.key} className={MD_TR}>
+                            <td className="px-6 py-3.5 text-sm font-medium text-slate-700">
+                              {item.label}
+                            </td>
                             {PERMISSION_ACTIONS.map((action) => (
-                              <td key={action.key} className="h-12 px-2 text-center">
-                                <input
-                                  type="checkbox"
-                                  checked={
-                                    !!role.permissions[section.key]?.[item.key]?.[action.key]
-                                  }
-                                  onChange={(e) =>
-                                    setPermission(
-                                      section.key,
-                                      item.key,
-                                      action.key,
-                                      e.target.checked
-                                    )
-                                  }
-                                  className={checkboxCls}
-                                />
+                              <td key={action.key} className={`${ACTION_COL_W} px-2 py-3.5`}>
+                                <div className="flex items-center justify-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={
+                                      !!role.permissions[section.key]?.[item.key]?.[action.key]
+                                    }
+                                    onChange={(e) =>
+                                      setPermission(
+                                        section.key,
+                                        item.key,
+                                        action.key,
+                                        e.target.checked
+                                      )
+                                    }
+                                    className={checkboxCls}
+                                  />
+                                </div>
                               </td>
                             ))}
                           </tr>

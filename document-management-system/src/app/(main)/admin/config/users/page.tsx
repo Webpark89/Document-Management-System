@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import {
-  CheckCircle2,
   Eye,
   EyeOff,
   KeyRound,
@@ -12,7 +11,6 @@ import {
   Pencil,
   Plus,
   Search,
-  Trash2,
   UserCheck,
   UserX,
   Users,
@@ -29,6 +27,19 @@ import {
   USER_ROLE_OPTIONS,
   type ConfigUser,
 } from "@/lib/config-mock";
+import {
+  ADMIN_CONTENT,
+  AdminPageHeader,
+  MD_ADD_BTN,
+  MD_TABLE_CARD,
+  MD_TD,
+  MD_TD_MUTED,
+  MD_TH,
+  MD_TH_RIGHT,
+  MD_THEAD,
+  MD_TR,
+  StatCards,
+} from "../../master-data/master-data-ui";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -56,9 +67,9 @@ const EMPTY_USER: UserForm = {
   isActive: true,
 };
 
-const thCls = "px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500";
-const tdCls = "px-6 py-3 text-left text-sm text-slate-700";
-const tdMuted = "px-6 py-3 text-left text-sm text-slate-500";
+const thCls = MD_TH;
+const tdCls = MD_TD;
+const tdMuted = MD_TD_MUTED;
 const btnIcon =
   "rounded-md p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50";
 const btnIconDanger =
@@ -114,7 +125,7 @@ function UsersListView({
   const [statusFilter, setStatusFilter] = useState("");
   const [showInactive, setShowInactive] = useState(false);
   const [editUser, setEditUser] = useState<ConfigUser | null>(null);
-  const [resettingId, setResettingId] = useState<string | null>(null);
+  const [resetUser, setResetUser] = useState<ConfigUser | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
@@ -136,14 +147,6 @@ function UsersListView({
     return { total: users.length, active, inactive: users.length - active };
   }, [users]);
 
-  const handleResetPassword = async (user: ConfigUser) => {
-    if (!confirm(`รีเซ็ตรหัสผ่านสำหรับ ${user.fullName}?`)) return;
-    setResettingId(user.id);
-    await new Promise((r) => setTimeout(r, 500));
-    setResettingId(null);
-    showToast("รีเซ็ตรหัสผ่านสำเร็จ (รหัสผ่านชั่วคราวถูกส่งไปยังอีเมล)", "success");
-  };
-
   const handleToggleStatus = async (user: ConfigUser) => {
     const next = !user.isActive;
     if (!confirm(`${next ? "เปิดใช้งาน" : "ปิดใช้งาน"} ${user.fullName}?`)) return;
@@ -156,36 +159,32 @@ function UsersListView({
   };
 
   return (
-    <div className="h-fit w-full bg-gray-50">
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
-        <nav className="mb-1 flex items-center gap-1.5 text-xs text-slate-400">
-          <span>Admin</span>
-          <span>/</span>
-          <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
-            Config
-          </Link>
-          <span>/</span>
-          <span className="font-medium text-slate-600">Users</span>
-        </nav>
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-800">Users</h1>
-            <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
-          </div>
-          <button
-            type="button"
-            onClick={onCreate}
-            className="inline-flex shrink-0 items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-          >
+    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <AdminPageHeader
+        breadcrumb={
+          <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>Admin</span>
+            <span>/</span>
+            <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+              Config
+            </Link>
+            <span>/</span>
+            <span className="font-medium text-slate-600">Users</span>
+          </nav>
+        }
+        title="Users"
+        subtitle="In-memory demo — resets on refresh"
+        actions={
+          <button type="button" onClick={onCreate} className={MD_ADD_BTN}>
             <Plus className="size-4" />
             สร้างผู้ใช้งาน
           </button>
-        </div>
-      </header>
+        }
+      />
 
-      <div className="mx-auto max-w-7xl space-y-6 p-6">
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-          <div className="space-y-3 border-b border-gray-200 bg-slate-50/80 p-4">
+      <div className={`${ADMIN_CONTENT} mt-6`}>
+        <div className={`${MD_TABLE_CARD}`}>
+          <div className="space-y-3 border-b border-slate-100 bg-slate-50/40 p-4">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
               <input
@@ -234,15 +233,15 @@ function UsersListView({
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr className="border-b border-gray-200">
+              <thead className={MD_THEAD}>
+                <tr>
                   <th className={thCls}>ชื่อ-สกุล</th>
                   <th className={thCls}>อีเมล</th>
                   <th className={thCls}>แผนก</th>
                   <th className={thCls}>ตำแหน่ง</th>
                   <th className={thCls}>Role</th>
                   <th className={thCls}>สถานะ</th>
-                  <th className={`${thCls} text-right`}>จัดการ</th>
+                  <th className={MD_TH_RIGHT}>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -254,10 +253,7 @@ function UsersListView({
                   </tr>
                 ) : (
                   filtered.map((user) => (
-                    <tr
-                      key={user.id}
-                      className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80"
-                    >
+                    <tr key={user.id} className={MD_TR}>
                       <td className={`${tdCls} font-medium`}>{user.fullName}</td>
                       <td className={tdMuted}>{user.email}</td>
                       <td className={tdMuted}>{user.department}</td>
@@ -274,7 +270,7 @@ function UsersListView({
                           {user.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-right">
+                      <td className={`${tdCls} text-right`}>
                         <div className="inline-flex items-center divide-x divide-gray-200 rounded-md border border-transparent">
                           <button
                             type="button"
@@ -287,15 +283,10 @@ function UsersListView({
                           <button
                             type="button"
                             title="รีเซ็ตรหัสผ่าน"
-                            onClick={() => handleResetPassword(user)}
-                            disabled={resettingId === user.id}
+                            onClick={() => setResetUser(user)}
                             className={btnIcon}
                           >
-                            {resettingId === user.id ? (
-                              <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                              <KeyRound className="size-4" />
-                            )}
+                            <KeyRound className="size-4" />
                           </button>
                           <button
                             type="button"
@@ -322,35 +313,7 @@ function UsersListView({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
-              <Users className="size-5 text-blue-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-lg font-semibold text-slate-800">{stats.total}</p>
-              <p className="text-xs text-slate-500">ผู้ใช้งานทั้งหมด</p>
-            </div>
-          </div>
-          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-50">
-              <CheckCircle2 className="size-5 text-green-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-lg font-semibold text-slate-800">{stats.active}</p>
-              <p className="text-xs text-slate-500">Active</p>
-            </div>
-          </div>
-          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50">
-              <Trash2 className="size-5 text-red-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-lg font-semibold text-slate-800">{stats.inactive}</p>
-              <p className="text-xs text-slate-500">Inactive</p>
-            </div>
-          </div>
-        </div>
+        <StatCards total={stats.total} active={stats.active} inactive={stats.inactive} icon={Users} />
       </div>
 
       {editUser && (
@@ -362,6 +325,18 @@ function UsersListView({
             onUsersChange([...MOCK_USERS]);
             setEditUser(null);
             showToast("แก้ไขผู้ใช้งานสำเร็จ", "success");
+          }}
+        />
+      )}
+
+      {resetUser && (
+        <ResetPasswordModal
+          user={resetUser}
+          onClose={() => setResetUser(null)}
+          onSaved={() => {
+            onUsersChange([...MOCK_USERS]);
+            setResetUser(null);
+            showToast("เปลี่ยนรหัสผ่านสำเร็จ", "success");
           }}
         />
       )}
@@ -414,7 +389,7 @@ function EditUserModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6" onClick={onClose}>
       <div
-        className="relative w-full max-w-md rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+        className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
@@ -436,6 +411,128 @@ function EditUserModal({
           >
             {saving && <Loader2 className="size-4 animate-spin" />}
             {saving ? "กำลังบันทึก..." : "บันทึก"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type ResetPasswordForm = {
+  newPassword: string;
+  confirmPassword: string;
+};
+
+type ResetPasswordErrors = Partial<Record<keyof ResetPasswordForm, string>>;
+
+function ResetPasswordModal({
+  user,
+  onClose,
+  onSaved,
+}: {
+  user: ConfigUser;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [form, setForm] = useState<ResetPasswordForm>({ newPassword: "", confirmPassword: "" });
+  const [errors, setErrors] = useState<ResetPasswordErrors>({});
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const validate = (): ResetPasswordErrors => {
+    const next: ResetPasswordErrors = {};
+    if (!form.newPassword) next.newPassword = "กรุณากรอกรหัสผ่านใหม่";
+    else if (form.newPassword.length < 8) next.newPassword = "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร";
+    if (!form.confirmPassword) next.confirmPassword = "กรุณายืนยันรหัสผ่านใหม่";
+    else if (form.newPassword !== form.confirmPassword) {
+      next.confirmPassword = "รหัสผ่านไม่ตรงกัน";
+    }
+    return next;
+  };
+
+  const handleSave = async () => {
+    const nextErrors = validate();
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+    setSaving(true);
+    await new Promise((r) => setTimeout(r, 500));
+    updateConfigUser(user.id, { password: form.newPassword });
+    setSaving(false);
+    onSaved();
+  };
+
+  const labelCls = "mb-1.5 block text-xs text-slate-500";
+
+  const renderPasswordField = (
+    key: keyof ResetPasswordForm,
+    label: string,
+    show: boolean,
+    onToggle: () => void
+  ) => (
+    <div>
+      <label className={labelCls}>{label}</label>
+      <div className="relative">
+        <input
+          type={show ? "text" : "password"}
+          value={form[key]}
+          onChange={(e) => {
+            setForm((p) => ({ ...p, [key]: e.target.value }));
+            if (errors[key]) setErrors((p) => ({ ...p, [key]: undefined }));
+          }}
+          className={`${errors[key] ? inputErrorCls : inputCls} pr-10`}
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-600"
+          tabIndex={-1}
+        >
+          {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </button>
+      </div>
+      {errors[key] && <p className="mt-1 text-xs text-red-500">{errors[key]}</p>}
+    </div>
+  );
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6" onClick={onClose}>
+      <div
+        className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-medium text-slate-800">ตั้งรหัสผ่านใหม่</h2>
+            <p className="mt-1 text-xs text-slate-500">{user.fullName}</p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+            <X className="size-4" />
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {renderPasswordField("newPassword", "รหัสผ่านใหม่", showNew, () => setShowNew((v) => !v))}
+          {renderPasswordField(
+            "confirmPassword",
+            "ยืนยันรหัสผ่านใหม่",
+            showConfirm,
+            () => setShowConfirm((v) => !v)
+          )}
+        </div>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+            ยกเลิก
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className={MD_ADD_BTN}
+          >
+            {saving && <Loader2 className="size-4 animate-spin" />}
+            {saving ? "กำลังบันทึก..." : "บันทึกรหัสผ่าน"}
           </button>
         </div>
       </div>
@@ -718,6 +815,7 @@ function CreateUserForm({
       position: user.position,
       role: user.role,
       isActive: user.isActive,
+      password: user.password,
     };
     onSaved(saved);
     setSaving(false);
@@ -725,40 +823,40 @@ function CreateUserForm({
   };
 
   return (
-    <div className="h-fit w-full bg-gray-50">
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
-        <nav className="mb-1 flex items-center gap-1.5 text-xs text-slate-400">
-          <span>Admin</span>
-          <span>/</span>
-          <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
-            Config
-          </Link>
-          <span>/</span>
-          <span className="font-medium text-slate-600">Create user</span>
-        </nav>
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-800">Create user</h1>
-            <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
-          </div>
+    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <AdminPageHeader
+        breadcrumb={
+          <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>Admin</span>
+            <span>/</span>
+            <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+              Config
+            </Link>
+            <span>/</span>
+            <span className="font-medium text-slate-600">Create user</span>
+          </nav>
+        }
+        title="Create user"
+        subtitle="In-memory demo — resets on refresh"
+        actions={
           <div className="flex items-center gap-2">
-            <button type="button" onClick={handleBack} className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-gray-100">
+            <button type="button" onClick={handleBack} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
               Back
             </button>
             <button
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              className={MD_ADD_BTN}
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
               {saving ? "Saving..." : "Save"}
             </button>
           </div>
-        </div>
-      </header>
-      <div className="px-6 py-6">
-        <div className="max-w-2xl rounded-lg border border-gray-200 bg-white px-6 py-5 shadow-sm">
+        }
+      />
+      <div className="mt-6 px-0">
+        <div className="max-w-2xl rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-medium text-slate-800">Information</h2>
           <UserFormFields
             form={user}
@@ -805,7 +903,7 @@ function UsersPageContent() {
 
 export default function UsersPage() {
   return (
-    <Suspense fallback={<div className="h-fit w-full bg-gray-50" />}>
+    <Suspense fallback={<div className="h-fit w-full" />}>
       <UsersPageContent />
     </Suspense>
   );

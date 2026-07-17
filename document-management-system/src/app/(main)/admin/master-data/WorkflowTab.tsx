@@ -17,6 +17,8 @@ import {
   MD_TH_STICKY,
   MD_TH_STATUS,
   MD_TABLE,
+  MD_THEAD,
+  MD_TR,
   RowActions,
   StatCards,
   StatusBadge,
@@ -81,8 +83,8 @@ export default function WorkflowTab({
         mobile={<MasterDataMobileCardList rows={mobileRows} />}
       >
         <table className={MD_TABLE}>
-          <thead className="bg-gray-50">
-            <tr className="border-b border-gray-200">
+          <thead className={MD_THEAD}>
+            <tr>
               <th className={MD_TH_STICKY}>ชื่อ Workflow</th>
               <th className={MD_TH_CENTER}>จำนวน Level</th>
               <th className={MD_TH_RIGHT}>ผู้อนุมัติ</th>
@@ -94,7 +96,7 @@ export default function WorkflowTab({
             {rows.map((row) => (
               <tr
                 key={row.id}
-                className="group border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80"
+                className={`group ${MD_TR}`}
               >
                 <td className={MD_TD_STICKY}>{row.name}</td>
                 <td className={MD_TD_NUM}>{row.levels}</td>

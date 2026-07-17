@@ -8,6 +8,7 @@ import {
   type DocumentTypeRecord,
   type RoleOption,
 } from "@/lib/config-mock";
+import { MD_SIDEBAR_PANEL, MD_TABLE_CARD } from "../master-data-ui";
 
 type Props = {
   matrix: ApprovalMatrixState;
@@ -174,7 +175,7 @@ export default function ApprovalMatrixTab({
 
   if (activeTypes.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-12 text-center shadow-sm">
+      <div className={`${MD_TABLE_CARD} p-12 text-center`}>
         <p className="text-sm text-slate-500">
           ไม่มีประเภทเอกสารที่ใช้งาน — เพิ่มประเภทเอกสารในแท็บแรกก่อน
         </p>
@@ -200,8 +201,9 @@ export default function ApprovalMatrixTab({
         </select>
       </div>
 
-      <aside className="hidden w-[220px] shrink-0 space-y-1 rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:block">
-        <p className="mb-2 px-2 text-xs font-medium uppercase tracking-wide text-slate-400">
+      <aside className={`hidden w-[220px] shrink-0 md:block ${MD_SIDEBAR_PANEL}`}>
+        <div className="space-y-1 p-4">
+        <p className="mb-2 px-2 text-xs font-bold uppercase tracking-wider text-slate-400">
           ประเภทเอกสาร
         </p>
         {activeTypes.map((type) => {
@@ -237,6 +239,7 @@ export default function ApprovalMatrixTab({
             </button>
           );
         })}
+        </div>
       </aside>
 
       <section className="min-w-0 flex-1 space-y-4">
@@ -268,7 +271,7 @@ export default function ApprovalMatrixTab({
           </span>
         </div>
 
-        <div className="space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:p-6">
+        <div className={`${MD_TABLE_CARD} space-y-3 p-4 md:p-6`}>
           {draftSteps.length === 0 && (
             <p className="py-4 text-center text-sm text-slate-400">
               ยังไม่ได้กำหนดสายอนุมัติ — กด Add Step เพื่อเริ่มต้น
@@ -353,7 +356,7 @@ export default function ApprovalMatrixTab({
             type="button"
             onClick={handleSave}
             disabled={saving || !canSave}
-            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-60"
           >
             {saving && <Loader2 className="size-4 animate-spin" />}
             {saving ? "กำลังบันทึก..." : "Save Approval Matrix"}

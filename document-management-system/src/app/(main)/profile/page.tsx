@@ -1,11 +1,66 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Loader2, PenLine, Upload, User } from "lucide-react";
+import { Building2, KeyRound, Loader2, Pencil, PenLine, Upload, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useSignatures } from "@/components/providers/SignatureProvider";
 import { useToast } from "@/components/providers/ToastProvider";
+import {
+  ADMIN_CONTENT,
+  AdminPageHeader,
+  MD_ADD_BTN,
+} from "../admin/master-data/master-data-ui";
+
+const ROLE_BADGE: Record<string, string> = {
+  Administrator: "bg-violet-50 text-violet-700 ring-1 ring-violet-100",
+  Executive: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
+  Manager: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
+  Employee: "bg-slate-100 text-slate-600 ring-1 ring-slate-200/80",
+};
+
+const CARD = "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm";
+const CARD_HEADER_LABEL =
+  "text-[11px] font-bold uppercase tracking-wider text-slate-400";
+const PANEL_BOX =
+  "flex min-h-[220px] flex-col rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm";
+const BTN_SECONDARY =
+  "inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50";
+
+function MetaField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+      <p className="mt-1 text-sm font-medium text-slate-800">{value}</p>
+    </div>
+  );
+}
+
+function CardSectionHeader({
+  icon: Icon,
+  iconBg,
+  iconColor,
+  label,
+  description,
+}: {
+  icon: typeof User;
+  iconBg: string;
+  iconColor: string;
+  label: string;
+  description?: string;
+}) {
+  return (
+    <div className="mb-5">
+      <div className="flex items-center gap-3">
+        <div className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
+          <Icon className={`size-5 ${iconColor}`} />
+        </div>
+        <span className={CARD_HEADER_LABEL}>{label}</span>
+      </div>
+      {description ? <p className="mt-3 text-sm text-slate-500">{description}</p> : null}
+    </div>
+  );
+}
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -29,6 +84,7 @@ export default function ProfilePage() {
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(mySignature?.imageUrl ?? null);
   const [saving, setSaving] = useState(false);
+  const [sendingResetLink, setSendingResetLink] = useState(false);
 
   const initials = useMemo(
     () =>
@@ -85,115 +141,214 @@ export default function ProfilePage() {
     setSaving(false);
   };
 
-  return (
-    <div className="min-w-0 w-full bg-gray-50">
-      <div className="mx-auto w-full max-w-[960px] px-4 py-6 sm:px-6 lg:px-8">
-        <div className="border-b border-gray-200 pb-4">
-          <nav className="mb-2 flex items-center gap-1.5 text-xs text-slate-400">
-            <span>Account</span>
-            <span>/</span>
-            <span className="font-medium text-slate-600">Profile</span>
-          </nav>
-          <h1 className="text-xl font-semibold text-slate-800">โปรไฟล์</h1>
-          <p className="mt-2 text-xs text-slate-400">In-memory demo — resets on refresh</p>
-        </div>
+  const handleSendResetLink = async () => {
+    setSendingResetLink(true);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setSendingResetLink(false);
+    showToast("ลิงก์รีเซ็ตรหัสผ่านถูกส่งไปยังอีเมลของคุณ", "success");
+  };
 
-        <div className="mt-6 space-y-6">
-          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex items-start gap-4">
-              <Avatar className="size-14">
-                <AvatarFallback className="bg-indigo-100 text-lg font-semibold text-indigo-700">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 space-y-1">
-                <p className="text-lg font-semibold text-slate-800">{displayName}</p>
-                <p className="text-sm text-slate-500">{user?.username ?? "—"}</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 text-sm text-slate-600">
-                  <span className="inline-flex items-center gap-1.5">
-                    <User className="size-4 text-slate-400" />
-                    {displayRole}
-                  </span>
-                  <span>แผนก: {displayDepartment}</span>
+  const displayEmail = user?.email ?? (user?.username ? `${user.username}@company.com` : "—");
+
+  const profileMeta = useMemo(
+    () => ({
+      email: displayEmail,
+      employeeId: user?.employee_id ?? user?.id ?? "—",
+      position: user?.position ?? "—",
+      joinedAt: user?.joined_at
+        ? new Date(user.joined_at).toLocaleDateString("th-TH", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+        : "—",
+    }),
+    [displayEmail, user?.employee_id, user?.id, user?.position, user?.joined_at]
+  );
+
+  const handleEditInfo = () => {
+    showToast("ฟีเจอร์แก้ไขข้อมูลจะเปิดใช้งานในเฟสถัดไป", "success");
+  };
+
+  return (
+    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <div className="border-b border-slate-200 pb-6">
+        <AdminPageHeader
+          breadcrumb={
+            <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+              <span>Account</span>
+              <span>/</span>
+              <span className="font-medium text-slate-600">Profile</span>
+            </nav>
+          }
+          title="โปรไฟล์"
+          subtitle="In-memory demo — resets on refresh"
+        />
+      </div>
+
+      <div className={`${ADMIN_CONTENT} mt-6`}>
+          <section className={CARD}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex min-w-0 flex-1 items-center gap-5">
+                <Avatar className="size-16 shrink-0 ring-2 ring-blue-50">
+                  <AvatarFallback className="bg-indigo-100 text-lg font-semibold text-indigo-700">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold tracking-tight text-slate-900">{displayName}</p>
+                  <p className="mt-1 text-sm font-medium text-slate-500">@{user?.username ?? "—"}</p>
                 </div>
               </div>
+              <button type="button" onClick={handleEditInfo} className={BTN_SECONDARY}>
+                <Pencil className="size-4" />
+                แก้ไขข้อมูล
+              </button>
+            </div>
+
+            <div className="mt-5 border-t border-slate-100 pt-5">
+              <div className="flex flex-wrap items-center gap-3">
+                <span
+                  className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-medium ${
+                    ROLE_BADGE[displayRole] ?? "bg-slate-100 text-slate-600 ring-1 ring-slate-200/80"
+                  }`}
+                >
+                  {displayRole}
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+                  <Building2 className="size-4 shrink-0 text-slate-400" />
+                  {displayDepartment}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-5 border-t border-slate-100 pt-5">
+              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <MetaField label="อีเมล" value={profileMeta.email} />
+                <MetaField label="รหัสพนักงาน" value={profileMeta.employeeId} />
+                <MetaField label="ตำแหน่ง" value={profileMeta.position} />
+                <MetaField label="วันที่เริ่มงาน" value={profileMeta.joinedAt} />
+              </dl>
             </div>
           </section>
 
-          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center gap-2">
-              <PenLine className="size-4 text-slate-500" />
-              <h2 className="text-sm font-medium text-slate-800">ลายเซ็นของฉัน</h2>
-            </div>
-            <p className="mb-4 text-sm text-slate-500">
-              อัปโหลดลายเซ็นสำหรับใช้ในเอกสาร — รายการจะแสดงใน Master Data &gt; ลายเซ็น
-            </p>
+          <section className={CARD}>
+            <CardSectionHeader
+              icon={PenLine}
+              iconBg="bg-indigo-50"
+              iconColor="text-indigo-600"
+              label="ลายเซ็นของฉัน"
+              description="อัปโหลดลายเซ็นสำหรับใช้ในเอกสาร — รายการจะแสดงใน Master Data > ลายเซ็น"
+            />
 
-            <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_220px]">
-              <div className="space-y-4">
-                <div
-                  className="flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-6 transition-colors hover:border-blue-300 hover:bg-blue-50/40"
-                  onClick={() => fileInputRef.current?.click()}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      fileInputRef.current?.click();
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <Upload className="mb-2 size-8 text-slate-300" />
-                  <p className="text-sm font-medium text-slate-600">คลิกเพื่ออัปโหลดลายเซ็น</p>
-                  <p className="mt-1 text-xs text-slate-400">PNG, JPG — mock in-memory only</p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,13fr)_minmax(0,7fr)] md:items-stretch">
+              <div
+                className={`${PANEL_BOX} cursor-pointer items-center justify-center border-2 border-dashed transition-colors hover:border-blue-300 hover:bg-blue-50/50`}
+                onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    fileInputRef.current?.click();
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="mb-3 flex size-12 items-center justify-center rounded-xl bg-blue-50">
+                  <Upload className="size-6 text-blue-600" />
                 </div>
-
-                <div className="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={saving || !previewUrl}
-                    className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
-                  >
-                    {saving && <Loader2 className="size-4 animate-spin" />}
-                    {saving ? "กำลังบันทึก..." : mySignature ? "อัปเดตลายเซ็น" : "บันทึกลายเซ็น"}
-                  </button>
-                </div>
+                <p className="text-sm font-semibold text-slate-700">คลิกเพื่ออัปโหลดลายเซ็น</p>
+                <p className="mt-1 text-xs text-slate-400">PNG, JPG — mock in-memory only</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
               </div>
 
-              <div className="rounded-lg border border-gray-200 bg-white p-4">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
-                  ตัวอย่าง
-                </p>
-                <div className="flex min-h-[100px] items-center justify-center rounded-md border border-gray-100 bg-gray-50 p-3">
+              <div className={PANEL_BOX}>
+                <p className={`mb-3 ${CARD_HEADER_LABEL}`}>ตัวอย่าง</p>
+                <div className="flex flex-1 flex-col rounded-xl border border-slate-200 bg-white p-4">
                   {previewUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={previewUrl}
-                      alt="ลายเซ็น"
-                      className="max-h-20 max-w-full object-contain"
-                    />
+                    <>
+                      <dl className="mb-3 space-y-2 border-b border-slate-100 pb-3 text-xs">
+                        <div>
+                          <dt className="text-slate-400">ชื่อผู้อนุมัติ</dt>
+                          <dd className="mt-0.5 font-medium text-slate-800">{displayName}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-400">วันที่/เวลาที่ลงนาม</dt>
+                          <dd className="mt-0.5 text-slate-400">—</dd>
+                        </div>
+                      </dl>
+                      <div className="flex flex-1 items-center justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={previewUrl}
+                          alt="ลายเซ็น"
+                          className="max-h-20 max-w-full object-contain"
+                        />
+                      </div>
+                    </>
                   ) : (
-                    <p className="text-center text-xs text-slate-400">ยังไม่มีลายเซ็น</p>
+                    <div className="flex flex-1 items-center justify-center">
+                      <p className="text-center text-xs text-slate-400">ยังไม่มีลายเซ็น</p>
+                    </div>
                   )}
                 </div>
                 {mySignature ? (
-                  <p className="mt-2 text-xs text-emerald-600">
+                  <p className="mt-3 text-xs font-medium text-emerald-600">
                     ลงทะเบียนแล้ว — สถานะ {mySignature.isActive ? "ใช้งาน" : "ปิดใช้งาน"}
                   </p>
                 ) : null}
               </div>
             </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving || !previewUrl}
+                className={MD_ADD_BTN}
+              >
+                {saving && <Loader2 className="size-4 animate-spin" />}
+                {saving ? "กำลังบันทึก..." : mySignature ? "อัปเดตลายเซ็น" : "บันทึกลายเซ็น"}
+              </button>
+            </div>
+          </section>
+
+          <section className={CARD}>
+            <CardSectionHeader
+              icon={KeyRound}
+              iconBg="bg-amber-50"
+              iconColor="text-amber-600"
+              label="รีเซ็ตรหัสผ่าน"
+              description="ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณ — จำลองการส่งอีเมลเท่านั้น (mock in-memory)"
+            />
+
+            <div className={PANEL_BOX}>
+              <p className={CARD_HEADER_LABEL}>อีเมลที่ลงทะเบียน</p>
+              <p className="mt-2 text-sm font-medium text-slate-800">{displayEmail}</p>
+              <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                ระบบจะส่งลิงก์ให้คุณตั้งรหัสผ่านใหม่ผ่านอีเมล — ไม่มีการส่งอีเมลจริงใน demo นี้
+              </p>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={handleSendResetLink}
+                disabled={sendingResetLink || !user}
+                className={MD_ADD_BTN}
+              >
+                {sendingResetLink && <Loader2 className="size-4 animate-spin" />}
+                {sendingResetLink ? "กำลังส่ง..." : "ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมล"}
+              </button>
+            </div>
           </section>
         </div>
-      </div>
     </div>
   );
 }

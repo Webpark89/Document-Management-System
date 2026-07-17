@@ -4,12 +4,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import {
-  CheckCircle2,
   Loader2,
   Plus,
   Search,
   Shield,
-  Trash2,
 } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
@@ -26,6 +24,28 @@ import {
   prependRole,
   type RoleRecord,
 } from "@/lib/config-mock";
+import {
+  ADMIN_CONTENT,
+  AdminPageHeader,
+  MD_ADD_BTN,
+  MD_TABLE_CARD,
+  MD_TD,
+  MD_TD_MUTED,
+  MD_TR,
+  StatCards,
+  StatusBadge,
+} from "../../master-data/master-data-ui";
+
+const PERMISSION_ACTION_TH: Record<string, string> = {
+  View: "ดู",
+  Create: "สร้าง",
+  Edit: "แก้ไข",
+  Delete: "ลบ",
+  Approve: "อนุมัติ",
+};
+
+const permBadgeCls =
+  "inline-flex h-6 shrink-0 items-center rounded-md px-2.5 text-xs font-medium leading-none";
 
 const SENIOR_MANAGER_PRESETS: Record<string, Record<string, Partial<Record<string, boolean>>>> = {
   dashboard: {
@@ -90,36 +110,46 @@ function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-const thCls = "px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500";
-const tdCls = "px-6 py-3 text-left text-sm text-slate-700";
-const tdMuted = "px-6 py-3 text-left text-sm text-slate-500";
+const listThCls =
+  "px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500";
+const listThRightCls =
+  "px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500";
+const listTheadCls = "border-b border-slate-100 bg-slate-50";
+const tdCls = MD_TD;
+const tdMuted = MD_TD_MUTED;
 const btnGhost = "rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
 const btnDanger =
   "rounded-md px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent";
 const inputCls =
-  "w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+  "w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 const formInputCls =
   "w-full max-w-md rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 const inputErrorCls =
   "w-full max-w-md rounded-md border border-red-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500";
 
+function translatePermissionParts(summary: string): string[] {
+  if (summary === "Full access") return ["เข้าถึงทั้งหมด"];
+  if (summary === "No permissions") return ["ไม่มีสิทธิ์"];
+  return summary
+    .split(", ")
+    .filter(Boolean)
+    .map((part) => PERMISSION_ACTION_TH[part] ?? part);
+}
+
 function permissionBadges(summary: string, roleName: string) {
   const isFullAccess = summary === "Full access" || roleName === "Administrator";
   if (isFullAccess) {
     return (
-      <span className="inline-flex shrink-0 items-center rounded-md bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 ring-1 ring-violet-200/70">
-        Full access
+      <span className={`${permBadgeCls} bg-violet-50 text-violet-700 ring-1 ring-violet-200/70`}>
+        เข้าถึงทั้งหมด
       </span>
     );
   }
-  const parts = summary.split(", ").filter(Boolean);
+  const parts = translatePermissionParts(summary);
   return (
-    <div className="flex max-w-xs flex-wrap gap-1">
+    <div className="flex max-w-xs flex-wrap gap-2">
       {parts.map((part) => (
-        <span
-          key={part}
-          className="inline-flex shrink-0 items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs text-blue-700"
-        >
+        <span key={part} className={`${permBadgeCls} bg-blue-50 text-blue-700 ring-1 ring-blue-100`}>
           {part}
         </span>
       ))}
@@ -128,15 +158,7 @@ function permissionBadges(summary: string, roleName: string) {
 }
 
 function statusBadge(active: boolean) {
-  return (
-    <span
-      className={`rounded-md px-2 py-0.5 text-xs ${
-        active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-400"
-      }`}
-    >
-      {active ? "Active" : "Inactive"}
-    </span>
-  );
+  return <StatusBadge active={active} />;
 }
 
 function DeleteRoleButton({
@@ -215,66 +237,62 @@ function RolesListView({
   };
 
   return (
-    <div className="h-fit w-full bg-gray-50">
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
-        <nav className="mb-1 flex items-center gap-1.5 text-xs text-slate-400">
-          <span>Admin</span>
-          <span>/</span>
-          <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
-            Config
-          </Link>
-          <span>/</span>
-          <span className="font-medium text-slate-600">Roles</span>
-        </nav>
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-800">Roles</h1>
-            <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
-          </div>
-          <button
-            type="button"
-            onClick={onCreate}
-            className="inline-flex shrink-0 items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-          >
+    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <AdminPageHeader
+        breadcrumb={
+          <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>Admin</span>
+            <span>/</span>
+            <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+              Config
+            </Link>
+            <span>/</span>
+            <span className="font-medium text-slate-600">Roles</span>
+          </nav>
+        }
+        title="Roles"
+        subtitle="In-memory demo — resets on refresh"
+        actions={
+          <button type="button" onClick={onCreate} className={MD_ADD_BTN}>
             <Plus className="size-4" />
-            Create role
+            สร้าง Role
           </button>
-        </div>
-      </header>
+        }
+      />
 
-      <div className="mx-auto max-w-7xl space-y-6 p-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative min-w-[200px] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="ค้นหาชื่อ Role..."
-              className={`${inputCls} pl-9`}
-            />
+      <div className={`${ADMIN_CONTENT} mt-6`}>
+        <div className={MD_TABLE_CARD}>
+          <div className="space-y-3 border-b border-slate-100 bg-slate-50/40 p-4">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="ค้นหาชื่อ Role..."
+                className={`${inputCls} pl-9`}
+              />
+            </div>
+            <label className="flex shrink-0 items-center gap-2 text-sm font-medium text-slate-700">
+              <input
+                type="checkbox"
+                checked={showInactive}
+                onChange={(e) => setShowInactive(e.target.checked)}
+                className="rounded border-gray-200 text-blue-600 focus:ring-2 focus:ring-blue-100"
+              />
+              แสดง Role ที่ปิดใช้งาน
+            </label>
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-500">
-            <input
-              type="checkbox"
-              checked={showInactive}
-              onChange={(e) => setShowInactive(e.target.checked)}
-              className="rounded border-gray-200"
-            />
-            แสดง Role ที่ปิดใช้งาน
-          </label>
-        </div>
 
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr className="border-b border-gray-200">
-                  <th className={thCls}>ชื่อ Role</th>
-                  <th className={thCls}>จำนวนผู้ใช้งาน</th>
-                  <th className={thCls}>สิทธิ์หลัก</th>
-                  <th className={thCls}>สถานะ</th>
-                  <th className={`${thCls} text-right`}>จัดการ</th>
+              <thead className={listTheadCls}>
+                <tr>
+                  <th className={listThCls}>ชื่อ Role</th>
+                  <th className={listThCls}>จำนวนผู้ใช้งาน</th>
+                  <th className={listThCls}>สิทธิ์หลัก</th>
+                  <th className={listThCls}>สถานะ</th>
+                  <th className={listThRightCls}>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -289,15 +307,12 @@ function RolesListView({
                     const deleteBlocked = role.userCount > 0;
                     const deleteTooltip = `ไม่สามารถลบได้ เนื่องจากมีผู้ใช้งาน ${role.userCount} คนใช้ Role นี้อยู่`;
                     return (
-                      <tr
-                        key={role.id}
-                        className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80"
-                      >
+                      <tr key={role.id} className={MD_TR}>
                         <td className={`${tdCls} font-medium`}>{role.name}</td>
                         <td className={tdMuted}>{role.userCount}</td>
-                        <td className="px-6 py-3">{permissionBadges(role.permissionSummary, role.name)}</td>
-                        <td className="px-6 py-3">{statusBadge(role.isActive)}</td>
-                        <td className="px-6 py-3 text-right">
+                        <td className={tdCls}>{permissionBadges(role.permissionSummary, role.name)}</td>
+                        <td className={tdCls}>{statusBadge(role.isActive)}</td>
+                        <td className={`${tdCls} text-right`}>
                           <div className="flex justify-end gap-1">
                             <Link
                               href={`/admin/config/roles?mode=edit&id=${role.id}`}
@@ -321,35 +336,7 @@ function RolesListView({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50">
-              <Shield className="size-5 text-indigo-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-lg font-semibold text-slate-800">{stats.total}</p>
-              <p className="text-xs text-slate-500">จำนวน Role ทั้งหมด</p>
-            </div>
-          </div>
-          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-50">
-              <CheckCircle2 className="size-5 text-green-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-lg font-semibold text-slate-800">{stats.active}</p>
-              <p className="text-xs text-slate-500">Active</p>
-            </div>
-          </div>
-          <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50">
-              <Trash2 className="size-5 text-red-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-lg font-semibold text-slate-800">{stats.inactive}</p>
-              <p className="text-xs text-slate-500">Inactive</p>
-            </div>
-          </div>
-        </div>
+        <StatCards total={stats.total} active={stats.active} inactive={stats.inactive} icon={Shield} />
       </div>
     </div>
   );
@@ -400,41 +387,41 @@ function CreateRoleForm({
   };
 
   return (
-    <div className="h-fit w-full bg-gray-50">
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
-        <nav className="mb-1 flex items-center gap-1.5 text-xs text-slate-400">
-          <span>Admin</span>
-          <span>/</span>
-          <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
-            Config
-          </Link>
-          <span>/</span>
-          <span className="font-medium text-slate-600">Create role</span>
-        </nav>
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-800">Create role</h1>
-            <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
-          </div>
+    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <AdminPageHeader
+        breadcrumb={
+          <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>Admin</span>
+            <span>/</span>
+            <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+              Config
+            </Link>
+            <span>/</span>
+            <span className="font-medium text-slate-600">Create role</span>
+          </nav>
+        }
+        title="Create role"
+        subtitle="In-memory demo — resets on refresh"
+        actions={
           <div className="flex items-center gap-2">
-            <button type="button" onClick={handleBack} className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-gray-100">
+            <button type="button" onClick={handleBack} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
               Back
             </button>
             <button
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              className={MD_ADD_BTN}
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
               {saving ? "Saving..." : "Save"}
             </button>
           </div>
-        </div>
-      </header>
-      <div className="px-6 py-6">
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-medium text-slate-800">Information</h2>
+        }
+      />
+      <div className="mt-6 px-0">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-sm font-bold text-slate-800">Information</h2>
           <div className="mt-4 space-y-4">
             <div>
               <label className="mb-1.5 block text-xs text-slate-500">Title</label>
@@ -485,41 +472,41 @@ function EditRoleForm() {
   };
 
   return (
-    <div className="h-fit w-full bg-gray-50">
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
-        <nav className="mb-1 flex items-center gap-1.5 text-xs text-slate-400">
-          <span>Admin</span>
-          <span>/</span>
-          <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
-            Config
-          </Link>
-          <span>/</span>
-          <span className="font-medium text-slate-600">User role</span>
-        </nav>
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-800">User role</h1>
-            <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
-          </div>
+    <div className="flex min-w-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <AdminPageHeader
+        breadcrumb={
+          <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>Admin</span>
+            <span>/</span>
+            <Link href="/admin/config" className="text-slate-500 hover:text-slate-600">
+              Config
+            </Link>
+            <span>/</span>
+            <span className="font-medium text-slate-600">User role</span>
+          </nav>
+        }
+        title="User role"
+        subtitle="In-memory demo — resets on refresh"
+        actions={
           <div className="flex items-center gap-2">
-            <Link href="/admin/config/roles" className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-gray-100">
+            <Link href="/admin/config/roles" className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
               Back
             </Link>
             <button
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              className={MD_ADD_BTN}
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
               {saving ? "Saving..." : "Save"}
             </button>
           </div>
-        </div>
-      </header>
-      <div className="px-6 py-6">
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-medium text-slate-800">Information</h2>
+        }
+      />
+      <div className="mt-6">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-sm font-bold text-slate-800">Information</h2>
           <div className="mt-4 space-y-4">
             <div>
               <label className="mb-1.5 block text-xs text-slate-500">Title</label>
@@ -576,7 +563,7 @@ function RolesPageContent() {
 
 export default function RolesPage() {
   return (
-    <Suspense fallback={<div className="h-fit w-full bg-gray-50" />}>
+    <Suspense fallback={<div className="h-fit w-full" />}>
       <RolesPageContent />
     </Suspense>
   );

@@ -52,6 +52,8 @@ import {
   MD_TH_STATUS,
   MD_TH_STICKY,
   MD_TABLE,
+  MD_THEAD,
+  MD_TR,
   MasterDataLayout,
   MasterDataMobileCardList,
   MasterDataTableWrap,
@@ -372,7 +374,7 @@ function getDeleteGuard(
 
 export default function MasterDataPage() {
   return (
-    <Suspense fallback={<div className="h-fit w-full bg-gray-50" />}>
+    <Suspense fallback={<div className="h-fit w-full" />}>
       <MasterDataPageContent />
     </Suspense>
   );
@@ -1354,8 +1356,8 @@ function MasterDataPageContent() {
             mobile={<MasterDataMobileCardList rows={mobileRows} />}
           >
             <table className={MD_TABLE}>
-              <thead className="bg-gray-50">
-                <tr className="border-b border-gray-200">
+              <thead className={MD_THEAD}>
+                <tr>
                   {renderHeaders()}
                   <th className={MD_TH_STATUS}>สถานะ</th>
                   {activeTab !== "signature" ? <th className={thAction}>จัดการ</th> : null}
@@ -1365,7 +1367,7 @@ function MasterDataPageContent() {
                 {rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="group border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80"
+                    className={`group ${MD_TR}`}
                   >
                     {renderCells(row)}
                     <td className={MD_TD_STATUS}>
@@ -1417,7 +1419,7 @@ function MasterDataPageContent() {
           onClick={closeModal}
         >
           <div
-            className={`relative w-full rounded-lg border border-gray-200 bg-white p-5 shadow-sm ${activeTab === "workflow" ? "max-w-lg" : "max-w-md"}`}
+            className={`relative w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${activeTab === "workflow" ? "max-w-lg" : "max-w-md"}`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3">
