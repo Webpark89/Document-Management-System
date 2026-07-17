@@ -18,16 +18,15 @@ import {
   matrixToDocumentTypes,
   type ApprovalMatrixState,
   type DocumentTypeRecord,
-} from "@/lib/config-mock";
-import DocumentTypesTab from "./DocumentTypesTab";
-import ApprovalMatrixTab from "./ApprovalMatrixTab";
+} from "@/features/master-data";
+import { ApprovalMatrixTab, DocumentTypesTab } from "@/features/master-data/components";
 import {
   MD_ADD_BTN,
   MD_SECTION,
   MD_SIDEBAR_NAV,
   MasterDataLayout,
   PageTabSwitcher,
-} from "../master-data-ui";
+} from "@/components/ui/admin";
 
 type PageTab = "types" | "matrix";
 

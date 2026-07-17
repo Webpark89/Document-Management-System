@@ -21,14 +21,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
   DEPARTMENTS,
-  MOCK_USERS,
   POSITIONS,
+} from "@/features/master-data";
+import {
+  MOCK_USERS,
   prependConfigUser,
   syncMockUsers,
   updateConfigUser,
   USER_ROLE_OPTIONS,
   type ConfigUser,
-} from "@/lib/config-mock";
+} from "@/features/roles-users";
 import {
   ADMIN_CONTENT,
   ADMIN_PAGE_SHELL,
@@ -48,7 +50,7 @@ import {
   StatCards,
   StatusBadge,
   StatusFormToggle,
-} from "../../master-data/master-data-ui";
+} from "@/components/ui/admin";
 import { APP_CARD_LG } from "@/components/ui/design-system";
 
 const CARD = APP_CARD_LG;
@@ -989,7 +991,7 @@ function CreateUserForm({
 
   return (
     <div className={ADMIN_PAGE_SHELL}>
-      <div className="border-b border-slate-200 pb-6">
+      <div className={ADMIN_CONTENT}>
         <AdminPageHeader
           breadcrumb={
             <nav className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -1025,9 +1027,7 @@ function CreateUserForm({
             </div>
           }
         />
-      </div>
 
-      <div className={`${ADMIN_CONTENT} mt-6`}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,380px)]">
           <section className={CARD}>
             <CardSectionHeader

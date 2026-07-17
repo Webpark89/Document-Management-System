@@ -11,7 +11,7 @@ import {
   ADMIN_PAGE_SHELL,
   AdminPageHeader,
   MD_ADD_BTN,
-} from "../admin/master-data/master-data-ui";
+} from "@/components/ui/admin";
 import { APP_CARD_LG } from "@/components/ui/design-system";
 
 const ROLE_BADGE: Record<string, string> = {

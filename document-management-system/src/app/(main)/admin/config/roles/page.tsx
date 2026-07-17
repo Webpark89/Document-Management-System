@@ -13,17 +13,18 @@ import { useToast } from "@/components/providers/ToastProvider";
 import {
   RolePermissionPanel,
   RoleProductTypesField,
+  PermissionActionGrid,
   buildPermissions,
   summarizePermissions,
   type RoleFormState,
-} from "@/components/admin/role-permissions";
+} from "@/features/roles-users/components";
 import {
   MOCK_ROLES,
   countUsersByRole,
   deactivateRole,
   prependRole,
   type RoleRecord,
-} from "@/lib/config-mock";
+} from "@/features/roles-users";
 import {
   ADMIN_CONTENT,
   ADMIN_PAGE_SHELL,
@@ -32,7 +33,6 @@ import {
   MD_TABLE_CARD,
   MD_TD,
   MD_TD_ACTION,
-  MD_TD_MUTED,
   MD_TD_NUM_RIGHT,
   MD_TD_STATUS,
   MD_TH,
@@ -42,19 +42,10 @@ import {
   MD_TR,
   StatCards,
   StatusBadge,
-} from "../../master-data/master-data-ui";
+} from "@/components/ui/admin";
 import { APP_CARD_LG } from "@/components/ui/design-system";
 
-const PERMISSION_ACTION_TH: Record<string, string> = {
-  View: "ดู",
-  Create: "สร้าง",
-  Edit: "แก้ไข",
-  Delete: "ลบ",
-  Approve: "อนุมัติ",
-};
-
-const permBadgeCls =
-  "inline-flex h-6 shrink-0 items-center rounded-md px-2.5 text-xs font-medium leading-none";
+const tdCls = MD_TD;
 
 const SENIOR_MANAGER_PRESETS: Record<string, Record<string, Partial<Record<string, boolean>>>> = {
   dashboard: {
@@ -119,8 +110,6 @@ function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-const tdCls = MD_TD;
-const tdMuted = MD_TD_MUTED;
 const btnGhost = "rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
 const btnDanger =
   "rounded-md px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent";
@@ -130,40 +119,6 @@ const formInputCls =
   "w-full max-w-md rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 const inputErrorCls =
   "w-full max-w-md rounded-md border border-red-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500";
-
-function translatePermissionParts(summary: string): string[] {
-  if (summary === "Full access") return ["เข้าถึงทั้งหมด"];
-  if (summary === "No permissions") return ["ไม่มีสิทธิ์"];
-  return summary
-    .split(", ")
-    .filter(Boolean)
-    .map((part) => PERMISSION_ACTION_TH[part] ?? part);
-}
-
-function permissionBadges(summary: string, roleName: string) {
-  const isFullAccess = summary === "Full access" || roleName === "Administrator";
-  if (isFullAccess) {
-    return (
-      <span className={`${permBadgeCls} bg-violet-50 text-violet-700 ring-1 ring-violet-200/70`}>
-        เข้าถึงทั้งหมด
-      </span>
-    );
-  }
-  const parts = translatePermissionParts(summary);
-  return (
-    <div className="flex min-w-[11rem] flex-wrap gap-1.5">
-      {parts.map((part) => (
-        <span key={part} className={`${permBadgeCls} bg-blue-50 text-blue-700 ring-1 ring-blue-100`}>
-          {part}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function statusBadge(active: boolean) {
-  return <StatusBadge active={active} />;
-}
 
 function DeleteRoleButton({
   blocked,
@@ -316,8 +271,15 @@ function RolesListView({
                       <tr key={role.id} className={MD_TR}>
                         <td className={`${tdCls} font-medium`}>{role.name}</td>
                         <td className={MD_TD_NUM_RIGHT}>{role.userCount}</td>
-                        <td className={tdCls}>{permissionBadges(role.permissionSummary, role.name)}</td>
-                        <td className={MD_TD_STATUS}>{statusBadge(role.isActive)}</td>
+                        <td className={tdCls}>
+                          <PermissionActionGrid
+                            summary={role.permissionSummary}
+                            roleName={role.name}
+                          />
+                        </td>
+                        <td className={MD_TD_STATUS}>
+                          <StatusBadge active={role.isActive} />
+                        </td>
                         <td className={MD_TD_ACTION}>
                           <div className="flex justify-end gap-1">
                             <Link

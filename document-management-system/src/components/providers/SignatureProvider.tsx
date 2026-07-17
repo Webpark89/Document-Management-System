@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
-import { SIGNATURES, type SignatureRecord } from "@/lib/config-mock";
+import { SIGNATURES, type SignatureRecord } from "@/features/master-data";
 
 type AddSignatureInput = {
   approverName: string;
