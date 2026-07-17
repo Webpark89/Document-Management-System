@@ -1,5 +1,11 @@
 // Unified in-memory mock data for Admin Config + Master Data + Approval Matrix.
 // Single source of truth — do not duplicate these arrays elsewhere.
+//
+// Volatile runtime copies (Soft Create — reset on refresh):
+// - Signatures: SignatureProvider seeds from SIGNATURES
+// - Master Data tabs: page.tsx seeds from createInitialMasterTabData()
+// - Doc forms matrix: doc-forms/page.tsx seeds from APPROVAL_MATRIX
+// - Running numbers: DocumentRunningTab seeds from getRunningConfigs() / RUNNING_CONFIGS
 
 // ---------------------------------------------------------------------------
 // Users, roles, master-data entities
@@ -65,6 +71,7 @@ export interface SignatureRecord {
   position: string;
   signedCount: number;
   isActive: boolean;
+  imageUrl?: string;
 }
 
 export interface RoleRecord {
@@ -317,6 +324,10 @@ export function countWorkflowsUsingApprover(
 
 export function prependRole(role: RoleRecord) {
   ROLES.unshift(role);
+}
+
+export function deactivateRole(id: string) {
+  ROLES = ROLES.map((r) => (r.id === id ? { ...r, isActive: false } : r));
 }
 
 export const MOCK_ROLES = ROLES;
