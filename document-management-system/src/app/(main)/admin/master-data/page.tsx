@@ -5,17 +5,14 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import {
   Building2,
-  CheckCircle2,
   FileStack,
   GitBranch,
   Hash,
   Inbox,
-  Layers,
   Loader2,
   PenLine,
   Plus,
   Stamp,
-  Trash2,
   X,
 } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -35,6 +32,34 @@ import {
   type WorkflowRecord,
 } from "@/lib/config-mock";
 import DocumentRunningTab from "./DocumentRunningTab";
+import WorkflowTab from "./WorkflowTab";
+import { useSignatures } from "@/components/providers/SignatureProvider";
+import {
+  InactiveFilterCheckbox,
+  MD_ADD_BTN,
+  MD_SECTION,
+  MD_SIDEBAR_NAV,
+  MD_TD,
+  MD_TD_ACTION,
+  MD_TD_MUTED,
+  MD_TD_NUM,
+  MD_TD_NUM_RIGHT,
+  MD_TD_STATUS,
+  MD_TD_STICKY,
+  MD_TH,
+  MD_TH_ACTION,
+  MD_TH_RIGHT,
+  MD_TH_STATUS,
+  MD_TH_STICKY,
+  MD_TABLE,
+  MasterDataLayout,
+  MasterDataMobileCardList,
+  MasterDataTableWrap,
+  RowActions,
+  StatCards,
+  StatusBadge,
+  StatusFormToggle,
+} from "./master-data-ui";
 
 type TabKey = "doctype" | "department" | "position" | "workflow" | "signature" | "running";
 type DataTabKey = Exclude<TabKey, "running">;
@@ -345,34 +370,6 @@ function getDeleteGuard(
   return { blocked: false, tooltip: "ลบรายการ" };
 }
 
-function DeleteGuardButton({
-  blocked,
-  tooltip,
-  onDelete,
-  className,
-}: {
-  blocked: boolean;
-  tooltip: string;
-  onDelete: () => void;
-  className: string;
-}) {
-  return (
-    <span className="group relative inline-flex">
-      <button type="button" onClick={onDelete} disabled={blocked} className={className}>
-        ลบ
-      </button>
-      {blocked && (
-        <span
-          role="tooltip"
-          className="pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 hidden w-64 rounded-md bg-slate-800 px-2.5 py-1.5 text-xs leading-snug text-white shadow-lg group-hover:block"
-        >
-          {tooltip}
-        </span>
-      )}
-    </span>
-  );
-}
-
 export default function MasterDataPage() {
   return (
     <Suspense fallback={<div className="h-fit w-full bg-gray-50" />}>
@@ -384,6 +381,7 @@ export default function MasterDataPage() {
 function MasterDataPageContent() {
   const searchParams = useSearchParams();
   const { showToast } = useToast();
+  const { signatures } = useSignatures();
   const [activeTab, setActiveTab] = useState<TabKey>("department");
   const [data, setData] = useState<TabData>(SEED);
   const [showDeleted, setShowDeleted] = useState(false);
@@ -406,20 +404,22 @@ function MasterDataPageContent() {
 
   const rows = useMemo(() => {
     if (activeTab === "running") return [];
-    const list = data[activeTab as DataTabKey];
+    const list =
+      activeTab === "signature" ? signatures : data[activeTab as DataTabKey];
     return showDeleted ? list.filter((r) => !r.isActive) : list.filter((r) => r.isActive);
-  }, [data, activeTab, showDeleted]);
+  }, [data, activeTab, showDeleted, signatures]);
 
   const tabLabel = TABS.find((t) => t.key === activeTab)?.label ?? "Master Data";
   const tabStats = useMemo(() => {
     if (activeTab === "running") return { total: 0, active: 0, deleted: 0 };
-    const list = data[activeTab as DataTabKey];
+    const list =
+      activeTab === "signature" ? signatures : data[activeTab as DataTabKey];
     return {
       total: list.length,
       active: list.filter((r) => r.isActive).length,
       deleted: list.filter((r) => !r.isActive).length,
     };
-  }, [data, activeTab]);
+  }, [data, activeTab, signatures]);
 
   const openAdd = () => {
     setEditingId(null);
@@ -675,25 +675,95 @@ function MasterDataPageContent() {
     showToast("กู้คืนข้อมูลสำเร็จ", "success");
   };
 
+  const signatureGuardData = useMemo(
+    () => ({ ...data, signature: signatures }),
+    [data, signatures]
+  );
+
+  const mobileRows = useMemo(() => {
+    if (activeTab === "running" || activeTab === "workflow") return [];
+
+    return rows.map((row) => {
+      const guard = getDeleteGuard(activeTab as DataTabKey, row, signatureGuardData);
+      const actions =
+        activeTab === "signature" ? undefined : row.isActive ? (
+        <RowActions
+          onEdit={() => openEdit(row.id)}
+          onDelete={() => softDelete(row.id)}
+          deleteBlocked={guard.blocked}
+          deleteTooltip={guard.tooltip}
+        />
+      ) : (
+        <RowActions onRestore={() => restore(row.id)} />
+      );
+
+      switch (activeTab) {
+        case "doctype": {
+          const r = row as DocTypeRow;
+          return {
+            id: r.id,
+            title: r.name,
+            badge: <StatusBadge active={r.isActive} />,
+            fields: [
+              { label: "Prefix", value: r.prefix },
+              { label: "จำนวนเอกสาร", value: r.docCount },
+            ],
+            actions,
+          };
+        }
+        case "department": {
+          const r = row as DepartmentRow;
+          return {
+            id: r.id,
+            title: r.name,
+            badge: <StatusBadge active={r.isActive} />,
+            fields: [
+              { label: "รหัส", value: r.code },
+              { label: "จำนวนพนักงาน", value: r.employeeCount },
+            ],
+            actions,
+          };
+        }
+        case "position": {
+          const r = row as PositionRow;
+          return {
+            id: r.id,
+            title: r.name,
+            badge: <StatusBadge active={r.isActive} />,
+            fields: [
+              { label: "ระดับ", value: r.level },
+              { label: "แผนก", value: r.department },
+            ],
+            actions,
+          };
+        }
+        default: {
+          const r = row as SignatureRow;
+          return {
+            id: r.id,
+            title: r.approverName,
+            badge: <StatusBadge active={r.isActive} />,
+            fields: [
+              { label: "ตำแหน่ง", value: r.position },
+              { label: "จำนวนลงนาม", value: r.signedCount },
+            ],
+            actions,
+          };
+        }
+      }
+    });
+  }, [rows, activeTab, signatureGuardData]);
+
   const inputCls =
     "w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
-  const thCls = "px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500";
-  const thRight = `${thCls} text-right`;
-  const tdCls = "px-6 py-3 text-left text-sm text-slate-700";
-  const tdMuted = "px-6 py-3 text-left text-sm text-slate-500";
-  const tdNum = "px-6 py-3 text-right text-sm text-slate-500 tabular-nums";
-  const btnGhost = "rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
-  const btnDanger = "rounded-md px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40";
-
-  const statusPill = (active: boolean) => (
-    <span
-      className={`rounded-md px-2 py-0.5 text-xs ${
-        active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-400"
-      }`}
-    >
-      {active ? "ใช้งาน" : "ลบแล้ว"}
-    </span>
-  );
+  const thCls = MD_TH;
+  const thSticky = MD_TH_STICKY;
+  const thRight = MD_TH_RIGHT;
+  const thAction = MD_TH_ACTION;
+  const tdCls = MD_TD;
+  const tdSticky = MD_TD_STICKY;
+  const tdMuted = MD_TD_MUTED;
+  const tdNum = MD_TD_NUM_RIGHT;
 
   const renderCells = (row: TabData[DataTabKey][number]) => {
     switch (activeTab) {
@@ -701,7 +771,7 @@ function MasterDataPageContent() {
         const r = row as DocTypeRow;
         return (
           <>
-            <td className={`${tdCls} font-medium`}>{r.name}</td>
+            <td className={tdSticky}>{r.name}</td>
             <td className={tdMuted}>{r.prefix}</td>
             <td className={tdNum}>{r.docCount}</td>
           </>
@@ -711,7 +781,7 @@ function MasterDataPageContent() {
         const r = row as DepartmentRow;
         return (
           <>
-            <td className={`${tdCls} font-medium`}>{r.name}</td>
+            <td className={tdSticky}>{r.name}</td>
             <td className={tdMuted}>{r.code}</td>
             <td className={tdNum}>{r.employeeCount}</td>
           </>
@@ -721,7 +791,7 @@ function MasterDataPageContent() {
         const r = row as PositionRow;
         return (
           <>
-            <td className={`${tdCls} font-medium`}>{r.name}</td>
+            <td className={tdSticky}>{r.name}</td>
             <td className={tdMuted}>{r.level}</td>
             <td className={tdMuted}>{r.department}</td>
           </>
@@ -731,8 +801,8 @@ function MasterDataPageContent() {
         const r = row as WorkflowRow;
         return (
           <>
-            <td className={`${tdCls} font-medium`}>{r.name}</td>
-            <td className={tdMuted}>{r.levels}</td>
+            <td className={tdSticky}>{r.name}</td>
+            <td className={MD_TD_NUM}>{r.levels}</td>
             <td className={tdNum}>{r.approverCount}</td>
           </>
         );
@@ -741,7 +811,7 @@ function MasterDataPageContent() {
         const r = row as SignatureRow;
         return (
           <>
-            <td className={`${tdCls} font-medium`}>{r.approverName}</td>
+            <td className={tdSticky}>{r.approverName}</td>
             <td className={tdMuted}>{r.position}</td>
             <td className={tdNum}>{r.signedCount}</td>
           </>
@@ -755,7 +825,7 @@ function MasterDataPageContent() {
       case "doctype":
         return (
           <>
-            <th className={thCls}>ชื่อ</th>
+            <th className={thSticky}>ชื่อ</th>
             <th className={thCls}>Prefix</th>
             <th className={thRight}>จำนวนเอกสาร</th>
           </>
@@ -763,7 +833,7 @@ function MasterDataPageContent() {
       case "department":
         return (
           <>
-            <th className={thCls}>ชื่อแผนก</th>
+            <th className={thSticky}>ชื่อแผนก</th>
             <th className={thCls}>รหัส</th>
             <th className={thRight}>จำนวนพนักงาน</th>
           </>
@@ -771,7 +841,7 @@ function MasterDataPageContent() {
       case "position":
         return (
           <>
-            <th className={thCls}>ชื่อตำแหน่ง</th>
+            <th className={thSticky}>ชื่อตำแหน่ง</th>
             <th className={thCls}>ระดับ</th>
             <th className={thCls}>แผนก</th>
           </>
@@ -779,15 +849,15 @@ function MasterDataPageContent() {
       case "workflow":
         return (
           <>
-            <th className={thCls}>ชื่อ Workflow</th>
-            <th className={thCls}>จำนวน Level</th>
+            <th className={thSticky}>ชื่อ Workflow</th>
+            <th className={`${thCls} text-center`}>จำนวน Level</th>
             <th className={thRight}>ผู้อนุมัติ</th>
           </>
         );
       default:
         return (
           <>
-            <th className={thCls}>ชื่อผู้อนุมัติ</th>
+            <th className={thSticky}>ชื่อผู้อนุมัติ</th>
             <th className={thCls}>ตำแหน่ง</th>
             <th className={thRight}>จำนวนลงนาม</th>
           </>
@@ -823,29 +893,7 @@ function MasterDataPageContent() {
   };
 
   const renderStatusToggle = () => (
-    <div className="mb-3">
-      <p className="mb-2 text-xs text-slate-500">สถานะ</p>
-      <div className="inline-flex rounded-md border border-gray-200 p-0.5">
-        <button
-          type="button"
-          onClick={() => setForm((f) => ({ ...f, isActive: true }))}
-          className={`rounded px-4 py-1.5 text-sm font-medium transition-colors ${
-            form.isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-gray-50"
-          }`}
-        >
-          ใช้งาน
-        </button>
-        <button
-          type="button"
-          onClick={() => setForm((f) => ({ ...f, isActive: false }))}
-          className={`rounded px-4 py-1.5 text-sm font-medium transition-colors ${
-            !form.isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-gray-50"
-          }`}
-        >
-          ปิดใช้งาน
-        </button>
-      </div>
-    </div>
+    <StatusFormToggle active={form.isActive} onChange={(isActive) => setForm((f) => ({ ...f, isActive }))} />
   );
 
   const renderReadOnlyCount = (label: string, value: string, hint: string) => (
@@ -1215,175 +1263,153 @@ function MasterDataPageContent() {
     );
   };
 
+  const TabIcon = TABS.find((t) => t.key === activeTab)?.icon ?? Building2;
+
   return (
-    <div className="h-fit w-full bg-gray-50">
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <nav className="mb-1 flex items-center gap-1.5 text-xs text-slate-400">
-              <span>Admin</span>
-              <span>/</span>
-              <span className="text-slate-500">Master Data</span>
-              <span>/</span>
-              <span className="font-medium text-slate-600">{tabLabel}</span>
-            </nav>
-            <h1 className="text-xl font-semibold text-slate-800">Master Data</h1>
-            <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
-          </div>
-          <button
-            type="button"
-            onClick={openAdd}
-            className={`flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 ${
-              activeTab === "running" ? "hidden" : ""
-            }`}
-          >
+    <>
+    <MasterDataLayout
+      breadcrumb={
+        <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+          <span>Admin</span>
+          <span>/</span>
+          <span className="text-slate-500">Master Data</span>
+          <span>/</span>
+          <span className="font-medium text-slate-600">{tabLabel}</span>
+        </nav>
+      }
+      title="Master Data"
+      subtitle="In-memory demo — resets on refresh"
+      actions={
+        activeTab === "running" || activeTab === "signature" ? undefined : (
+          <button type="button" onClick={openAdd} className={MD_ADD_BTN}>
             <Plus className="size-4" />
             เพิ่ม
           </button>
-        </div>
-      </header>
-
-      <div className="flex items-start gap-6 p-6">
-        <aside className="w-[220px] shrink-0 self-start rounded-lg border border-gray-200 bg-white shadow-sm">
-          <nav className="space-y-1 p-6">
-            <Link
-              href="/admin/master-data/doc-forms"
-              className="flex w-full items-center gap-2 rounded-md border-l-2 border-transparent px-3 py-2 text-left text-sm text-slate-600 transition-colors hover:bg-gray-50 hover:text-slate-800"
+        )
+      }
+      sidebar={
+        <nav className={MD_SIDEBAR_NAV}>
+          <Link
+            href="/admin/master-data/doc-forms"
+            className="flex w-full items-center gap-2 rounded-md border-l-2 border-transparent px-3 py-2 text-left text-sm text-slate-600 transition-colors hover:bg-gray-50 hover:text-slate-800"
+          >
+            <FileStack className="size-4 shrink-0" />
+            จัดการฟอร์มเอกสาร
+          </Link>
+          {TABS.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setActiveTab(key)}
+              className={`flex w-full items-center gap-2 rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${
+                activeTab === key
+                  ? "border-blue-600 bg-blue-50 font-semibold text-blue-700"
+                  : "border-transparent text-slate-600 hover:bg-gray-50 hover:text-slate-800"
+              }`}
             >
-              <FileStack className="size-4 shrink-0" />
-              จัดการฟอร์มเอกสาร
-            </Link>
-            {TABS.map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setActiveTab(key)}
-                className={`flex w-full items-center gap-2 rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${
-                  activeTab === key
-                    ? "border-blue-600 bg-blue-50 font-semibold text-blue-700"
-                    : "border-transparent text-slate-600 hover:bg-gray-50 hover:text-slate-800"
-                }`}
-              >
-                <Icon className="size-4 shrink-0" />
-                {label}
-              </button>
-            ))}
-          </nav>
-        </aside>
-
-        <section className="min-w-0 flex-1 space-y-6">
+              <Icon className="size-4 shrink-0" />
+              {label}
+            </button>
+          ))}
+        </nav>
+      }
+    >
+      <section className={MD_SECTION}>
           {activeTab === "running" ? (
             <DocumentRunningTab showToast={showToast} />
+          ) : activeTab === "workflow" ? (
+            <WorkflowTab
+              rows={rows as WorkflowRow[]}
+              showDeleted={showDeleted}
+              onShowDeletedChange={setShowDeleted}
+              stats={tabStats}
+              onEdit={openEdit}
+              onDelete={softDelete}
+              onRestore={restore}
+            />
           ) : (
             <>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <h2 className="text-sm font-medium text-slate-800">{tabLabel}</h2>
-            <label className="flex items-center gap-2 text-sm text-slate-500">
-              <input
-                type="checkbox"
-                checked={showDeleted}
-                onChange={(e) => setShowDeleted(e.target.checked)}
-                className="rounded border-gray-200"
-              />
-              แสดงรายการที่ลบ
-            </label>
+            <InactiveFilterCheckbox checked={showDeleted} onChange={setShowDeleted} />
           </div>
 
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-            {rows.length === 0 ? (
+          <MasterDataTableWrap
+            empty={rows.length === 0}
+            emptyContent={
               <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
                 <Inbox className="size-10 text-slate-300" />
                 <p className="text-sm text-slate-500">
-                  {showDeleted ? "ไม่มีรายการที่ลบ" : "ไม่มีข้อมูล"}
+                  {showDeleted ? "ไม่มีรายการที่ปิดใช้งาน" : "ไม่มีข้อมูล"}
                 </p>
                 <p className="text-xs text-slate-400">
-                  {showDeleted ? "รายการที่กู้คืนจะแสดงในรายการปกติ" : "กดปุ่ม เพิ่ม เพื่อสร้างรายการใหม่"}
+                  {showDeleted
+                    ? "รายการที่กู้คืนจะแสดงในรายการปกติ"
+                    : activeTab === "signature"
+                      ? "เพิ่มลายเซ็นได้ที่หน้าโปรไฟล์"
+                      : "กดปุ่ม เพิ่ม เพื่อสร้างรายการใหม่"}
                 </p>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr className="border-b border-gray-200">
-                      {renderHeaders()}
-                      <th className={thCls}>สถานะ</th>
-                      <th className={`${thCls} text-right`}>จัดการ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((row) => (
-                      <tr key={row.id} className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80">
-                        {renderCells(row)}
-                        <td className="px-6 py-3 text-left">{statusPill(row.isActive)}</td>
-                        <td className="px-6 py-3 text-right">
-                          {row.isActive ? (
-                            <div className="flex justify-end gap-1">
-                              <button type="button" onClick={() => openEdit(row.id)} className={btnGhost}>
-                                แก้ไข
-                              </button>
-                              {(() => {
-                                const guard = getDeleteGuard(
-                                  activeTab as DataTabKey,
-                                  row,
-                                  data
-                                );
-                                return (
-                                  <DeleteGuardButton
-                                    blocked={guard.blocked}
-                                    tooltip={guard.tooltip}
-                                    onDelete={() => softDelete(row.id)}
-                                    className={btnDanger}
-                                  />
-                                );
-                              })()}
-                            </div>
-                          ) : (
-                            <button type="button" onClick={() => restore(row.id)} className={btnGhost}>
-                              กู้คืน
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+            }
+            mobile={<MasterDataMobileCardList rows={mobileRows} />}
+          >
+            <table className={MD_TABLE}>
+              <thead className="bg-gray-50">
+                <tr className="border-b border-gray-200">
+                  {renderHeaders()}
+                  <th className={MD_TH_STATUS}>สถานะ</th>
+                  {activeTab !== "signature" ? <th className={thAction}>จัดการ</th> : null}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="group border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80"
+                  >
+                    {renderCells(row)}
+                    <td className={MD_TD_STATUS}>
+                      <StatusBadge active={row.isActive} />
+                    </td>
+                    {activeTab !== "signature" ? (
+                      <td className={MD_TD_ACTION}>
+                        {row.isActive ? (
+                          (() => {
+                            const guard = getDeleteGuard(
+                              activeTab as DataTabKey,
+                              row,
+                              signatureGuardData
+                            );
+                            return (
+                              <RowActions
+                                onEdit={() => openEdit(row.id)}
+                                onDelete={() => softDelete(row.id)}
+                                deleteBlocked={guard.blocked}
+                                deleteTooltip={guard.tooltip}
+                              />
+                            );
+                          })()
+                        ) : (
+                          <RowActions onRestore={() => restore(row.id)} />
+                        )}
+                      </td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </MasterDataTableWrap>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
-                <Layers className="size-5 text-blue-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-lg font-semibold text-slate-800">{tabStats.total}</p>
-                <p className="text-xs text-slate-500">ทั้งหมด</p>
-              </div>
-            </div>
-            <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-50">
-                <CheckCircle2 className="size-5 text-green-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-lg font-semibold text-slate-800">{tabStats.active}</p>
-                <p className="text-xs text-slate-500">ใช้งาน</p>
-              </div>
-            </div>
-            <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50">
-                <Trash2 className="size-5 text-red-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-lg font-semibold text-slate-800">{tabStats.deleted}</p>
-                <p className="text-xs text-slate-500">ลบแล้ว</p>
-              </div>
-            </div>
-          </div>
+          <StatCards
+            total={tabStats.total}
+            active={tabStats.active}
+            inactive={tabStats.deleted}
+            icon={TabIcon}
+          />
             </>
           )}
         </section>
-      </div>
+    </MasterDataLayout>
 
       {modalOpen && (
         <div
@@ -1431,7 +1457,7 @@ function MasterDataPageContent() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

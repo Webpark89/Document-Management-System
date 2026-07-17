@@ -6,11 +6,10 @@ import { useMemo, useState, type ElementType } from "react";
 import {
   Building2,
   FileStack,
-  FileType2,
-  FormInput,
   GitBranch,
   Hash,
   PenLine,
+  Plus,
   Stamp,
 } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -22,6 +21,13 @@ import {
 } from "@/lib/config-mock";
 import DocumentTypesTab from "./DocumentTypesTab";
 import ApprovalMatrixTab from "./ApprovalMatrixTab";
+import {
+  MD_ADD_BTN,
+  MD_SECTION,
+  MD_SIDEBAR_NAV,
+  MasterDataLayout,
+  PageTabSwitcher,
+} from "../master-data-ui";
 
 type PageTab = "types" | "matrix";
 
@@ -54,6 +60,7 @@ export default function DocFormsPage() {
   const pathname = usePathname();
   const { showToast } = useToast();
   const [pageTab, setPageTab] = useState<PageTab>("types");
+  const [addRequest, setAddRequest] = useState(0);
   const [matrix, setMatrix] = useState<ApprovalMatrixState>(() => cloneMatrix(APPROVAL_MATRIX));
   const [docTypes, setDocTypes] = useState<DocumentTypeRecord[]>(() =>
     matrixToDocumentTypes(cloneMatrix(APPROVAL_MATRIX))
@@ -76,93 +83,81 @@ export default function DocFormsPage() {
     : matrixKeys[0] ?? "";
 
   return (
-    <div className="h-fit w-full bg-gray-50">
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-4 shadow-sm">
-        <div>
-          <nav className="mb-1 flex items-center gap-1.5 text-xs text-slate-400">
-            <span>Admin</span>
-            <span>/</span>
-            <Link href="/admin/master-data" className="text-slate-500 hover:text-slate-700">
-              Master Data
-            </Link>
-            <span>/</span>
-            <span className="font-medium text-slate-600">จัดการฟอร์มเอกสาร</span>
-          </nav>
-          <div className="flex items-center gap-2">
-            <FileStack className="size-5 text-blue-600" />
-            <h1 className="text-xl font-semibold text-slate-800">Master Data</h1>
-          </div>
-          <p className="mt-1 text-xs text-slate-400">In-memory demo — resets on refresh</p>
-        </div>
-      </header>
-
-      <div className="flex items-start gap-6 p-6">
-        <aside className="w-[220px] shrink-0 self-start rounded-lg border border-gray-200 bg-white shadow-sm">
-          <nav className="space-y-1 p-6">
-            {MASTER_DATA_NAV.map(({ href, label, icon: Icon, tab }) => {
-              const isActive = tab
-                ? false
-                : pathname === href;
-              const linkHref = tab ? `${href}?tab=${tab}` : href;
-              return (
-                <Link
-                  key={label}
-                  href={linkHref}
-                  className={`flex w-full items-center gap-2 rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${
-                    isActive
-                      ? "border-blue-600 bg-blue-50 font-semibold text-blue-700"
-                      : "border-transparent text-slate-600 hover:bg-gray-50 hover:text-slate-800"
-                  }`}
-                >
-                  <Icon className="size-4 shrink-0" />
-                  {label}
-                </Link>
-              );
-            })}
-          </nav>
-        </aside>
-
-        <section className="min-w-0 flex-1 space-y-6">
-          <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
-            {PAGE_TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setPageTab(tab.key)}
-                className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                  pageTab === tab.key
-                    ? "bg-blue-600 text-white"
-                    : "text-slate-600 hover:bg-gray-50 hover:text-slate-800"
+    <MasterDataLayout
+      breadcrumb={
+        <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+          <span>Admin</span>
+          <span>/</span>
+          <Link href="/admin/master-data" className="text-slate-500 hover:text-slate-700">
+            Master Data
+          </Link>
+          <span>/</span>
+          <span className="font-medium text-slate-600">จัดการฟอร์มเอกสาร</span>
+        </nav>
+      }
+      title="Master Data"
+      subtitle="In-memory demo — resets on refresh"
+      actions={
+        pageTab === "types" ? (
+          <button type="button" onClick={() => setAddRequest((n) => n + 1)} className={MD_ADD_BTN}>
+            <Plus className="size-4" />
+            เพิ่ม
+          </button>
+        ) : undefined
+      }
+      sidebar={
+        <nav className={MD_SIDEBAR_NAV}>
+          {MASTER_DATA_NAV.map(({ href, label, icon: Icon, tab }) => {
+            const isActive = tab ? false : pathname === href;
+            const linkHref = tab ? `${href}?tab=${tab}` : href;
+            return (
+              <Link
+                key={label}
+                href={linkHref}
+                className={`flex w-full items-center gap-2 rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${
+                  isActive
+                    ? "border-blue-600 bg-blue-50 font-semibold text-blue-700"
+                    : "border-transparent text-slate-600 hover:bg-gray-50 hover:text-slate-800"
                 }`}
               >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+                <Icon className="size-4 shrink-0" />
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+      }
+    >
+      <section className={MD_SECTION}>
+        <PageTabSwitcher
+          tabs={PAGE_TABS}
+          active={pageTab}
+          onChange={(key) => setPageTab(key as PageTab)}
+        />
 
-          {pageTab === "types" ? (
-            <DocumentTypesTab
-              matrix={matrix}
-              docTypes={docTypes}
-              onMatrixChange={setMatrix}
-              onDocTypesChange={setDocTypes}
-              onCreated={handleCreated}
-              showToast={toast}
-            />
-          ) : (
-            <ApprovalMatrixTab
-              matrix={matrix}
-              docTypes={docTypes}
-              selectedKey={resolvedSelectedKey}
-              onSelectKey={setSelectedKey}
-              onMatrixChange={setMatrix}
-              showToast={toast}
-              setupNotice={setupNotice}
-              onDismissSetupNotice={() => setSetupNotice(null)}
-            />
-          )}
-        </section>
-      </div>
-    </div>
+        {pageTab === "types" ? (
+          <DocumentTypesTab
+            matrix={matrix}
+            docTypes={docTypes}
+            onMatrixChange={setMatrix}
+            onDocTypesChange={setDocTypes}
+            onCreated={handleCreated}
+            showToast={toast}
+            addRequest={addRequest}
+          />
+        ) : (
+          <ApprovalMatrixTab
+            matrix={matrix}
+            docTypes={docTypes}
+            selectedKey={resolvedSelectedKey}
+            onSelectKey={setSelectedKey}
+            onMatrixChange={setMatrix}
+            showToast={toast}
+            setupNotice={setupNotice}
+            onDismissSetupNotice={() => setSetupNotice(null)}
+          />
+        )}
+      </section>
+    </MasterDataLayout>
   );
 }

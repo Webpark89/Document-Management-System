@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { HelpCircle, Inbox, Loader2, Plus, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { FileType2, HelpCircle, Inbox, Loader2, Plus, X } from "lucide-react";
 import {
   DEFAULT_FORM_META,
   FORM_TYPE_DESCRIPTIONS,
@@ -12,6 +12,25 @@ import {
   type DocumentTypeRecord,
   type FormTypeStyle,
 } from "@/lib/config-mock";
+import {
+  MasterDataMobileCardList,
+  MasterDataTableWrap,
+  MD_TD,
+  MD_TD_ACTION,
+  MD_TD_NUM_RIGHT,
+  MD_TD_STICKY,
+  MD_TD_STATUS,
+  MD_TH,
+  MD_TH_ACTION,
+  MD_TH_RIGHT,
+  MD_TH_STICKY,
+  MD_TH_STATUS,
+  MD_TABLE,
+  RowActions,
+  StatCards,
+  StatusBadge,
+  StatusFormToggle,
+} from "../master-data-ui";
 
 type Props = {
   matrix: ApprovalMatrixState;
@@ -27,18 +46,16 @@ type FormState = {
   prefix: string;
   formType: FormTypeStyle;
   formCode: string;
+  isActive: boolean;
 };
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
 
 const PREFIX_RE = /^[A-Z0-9]{2,6}$/;
 
-const thCls = "px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500";
-const tdCls = "px-6 py-3 text-left text-sm text-slate-700";
-const tdNum = "px-6 py-3 text-right text-sm text-slate-500 tabular-nums";
-const btnGhost = "rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
-const btnDanger =
-  "rounded-md px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40";
+const thCls = MD_TH;
+const tdCls = MD_TD;
+const tdNum = MD_TD_NUM_RIGHT;
 const inputCls =
   "w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 const inputErrorCls =
@@ -72,45 +89,27 @@ function FormTypeTooltip({ formType }: { formType: FormTypeStyle }) {
   );
 }
 
-function DeleteTooltipButton({
+function DeleteGuardActions({
   row,
+  onEdit,
   onDelete,
 }: {
   row: DocumentTypeRecord;
-  onDelete: (row: DocumentTypeRecord) => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const blocked = row.docCount > 0;
   const tooltip = blocked
     ? `ไม่สามารถลบได้ เนื่องจากมีเอกสาร ${row.docCount} ฉบับใช้ประเภทนี้อยู่ — กรุณาปิดใช้งานแทน`
-    : "ลบประเภทเอกสาร";
+    : "ลบ";
 
   return (
-    <span className="group relative inline-flex">
-      <button
-        type="button"
-        onClick={() => onDelete(row)}
-        disabled={blocked}
-        className={btnDanger}
-      >
-        Delete
-      </button>
-      {blocked && (
-        <span
-          role="tooltip"
-          className="pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 hidden w-64 rounded-md bg-slate-800 px-2.5 py-1.5 text-xs leading-snug text-white shadow-lg group-hover:block"
-        >
-          {tooltip}
-        </span>
-      )}
-      {!blocked && (
-        <span
-          role="tooltip"
-          className="pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 hidden whitespace-nowrap rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-lg group-hover:block"
-        >
-          {tooltip}
-        </span>
-      )}
-    </span>
+    <RowActions
+      onEdit={onEdit}
+      onDelete={onDelete}
+      deleteBlocked={blocked}
+      deleteTooltip={tooltip}
+    />
   );
 }
 
@@ -167,7 +166,8 @@ export default function DocumentTypesTab({
   onDocTypesChange,
   onCreated,
   showToast,
-}: Props) {
+  addRequest = 0,
+}: Props & { addRequest?: number }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>({
@@ -175,6 +175,7 @@ export default function DocumentTypesTab({
     prefix: "",
     formType: "PR-style",
     formCode: DEFAULT_FORM_META["PR-style"].formCode,
+    isActive: true,
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
@@ -184,12 +185,31 @@ export default function DocumentTypesTab({
     [form, matrix, editingKey]
   );
 
+  const stats = useMemo(
+    () => ({
+      total: docTypes.length,
+      active: docTypes.filter((d) => d.isActive).length,
+      inactive: docTypes.filter((d) => !d.isActive).length,
+    }),
+    [docTypes]
+  );
+
   const openAdd = () => {
     setEditingKey(null);
-    setForm({ typeName: "", prefix: "", formType: "PR-style", formCode: DEFAULT_FORM_META["PR-style"].formCode });
+    setForm({
+      typeName: "",
+      prefix: "",
+      formType: "PR-style",
+      formCode: DEFAULT_FORM_META["PR-style"].formCode,
+      isActive: true,
+    });
     setFormErrors({});
     setModalOpen(true);
   };
+
+  useEffect(() => {
+    if (addRequest > 0) openAdd();
+  }, [addRequest]);
 
   const openEdit = (row: DocumentTypeRecord) => {
     setEditingKey(row.key);
@@ -198,6 +218,7 @@ export default function DocumentTypesTab({
       prefix: row.prefix,
       formType: row.formType,
       formCode: row.formCode,
+      isActive: row.isActive,
     });
     setFormErrors({});
     setModalOpen(true);
@@ -227,7 +248,7 @@ export default function DocumentTypesTab({
       formCode: form.formCode.trim().toUpperCase(),
       fieldsCount: existing?.fieldsCount ?? DEFAULT_FORM_META[form.formType].fieldsCount,
       docCount: existing?.docCount ?? 0,
-      isActive: existing?.isActive ?? true,
+      isActive: existing?.isActive ?? form.isActive,
       steps: editingKey ? [...(matrix[editingKey]?.steps ?? [])] : [],
     };
 
@@ -268,20 +289,6 @@ export default function DocumentTypesTab({
     }
   };
 
-  const toggleActive = (key: string) => {
-    const nextDocTypes = docTypes.map((d) =>
-      d.key === key ? { ...d, isActive: !d.isActive } : d
-    );
-    onDocTypesChange(nextDocTypes);
-    const entry = matrix[key];
-    if (entry) {
-      onMatrixChange({
-        ...matrix,
-        [key]: { ...entry, isActive: !entry.isActive },
-      });
-    }
-  };
-
   const handleDelete = (row: DocumentTypeRecord) => {
     if (row.docCount > 0) return;
     if (!confirm(`ยืนยันการลบ "${row.typeName}"?`)) return;
@@ -292,24 +299,48 @@ export default function DocumentTypesTab({
     showToast("ลบประเภทเอกสารสำเร็จ", "success");
   };
 
-  return (
-    <>
-      {docTypes.length > 0 && (
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-medium text-slate-800">ประเภทเอกสาร</h2>
-          <button
-            type="button"
-            onClick={openAdd}
-            className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-          >
-            <Plus className="size-4" />
-            Add Document Type
-          </button>
-        </div>
-      )}
+  const mobileRows = useMemo(
+    () =>
+      docTypes.map((row) => ({
+        id: row.key,
+        title: row.typeName,
+        badge: <StatusBadge active={row.isActive} />,
+        fields: [
+          { label: "Prefix", value: row.prefix },
+          {
+            label: "Form Type / ฟอร์ม",
+            value: (
+              <>
+                <span className="inline-flex items-center gap-1.5">
+                  {formTypeBadge(row.formType)}
+                  <FormTypeTooltip formType={row.formType} />
+                </span>
+                <p className="mt-1 text-xs text-slate-500">
+                  {row.formCode} · {row.fieldsCount} ฟิลด์
+                </p>
+              </>
+            ),
+          },
+          { label: "จำนวนเอกสารที่ใช้", value: row.docCount },
+        ],
+        actions: (
+          <DeleteGuardActions
+            row={row}
+            onEdit={() => openEdit(row)}
+            onDelete={() => handleDelete(row)}
+          />
+        ),
+      })),
+    [docTypes]
+  );
 
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-        {docTypes.length === 0 ? (
+  return (
+    <div className="space-y-6">
+      <h2 className="text-sm font-medium text-slate-800">ประเภทเอกสาร</h2>
+
+      <MasterDataTableWrap
+        empty={docTypes.length === 0}
+        emptyContent={
           <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
             <Inbox className="size-12 text-slate-300" />
             <p className="text-sm text-slate-500">ยังไม่มีประเภทเอกสาร</p>
@@ -322,71 +353,62 @@ export default function DocumentTypesTab({
               เพิ่มประเภทเอกสารแรก
             </button>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr className="border-b border-gray-200">
-                  <th className={thCls}>Type Name</th>
-                  <th className={thCls}>Prefix</th>
-                  <th className={thCls}>Form Type / ฟอร์ม</th>
-                  <th className={`${thCls} text-right`}>จำนวนเอกสารที่ใช้</th>
-                  <th className={thCls}>สถานะ</th>
-                  <th className={`${thCls} text-right`}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {docTypes.map((row) => (
-                  <tr
-                    key={row.key}
-                    className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80"
-                  >
-                    <td className={`${tdCls} font-medium`}>{row.typeName}</td>
-                    <td className={tdCls}>{row.prefix}</td>
-                    <td className={tdCls}>
-                      <span className="inline-flex items-center gap-1.5">
-                        {formTypeBadge(row.formType)}
-                        <FormTypeTooltip formType={row.formType} />
-                      </span>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {row.formCode} · {row.fieldsCount} ฟิลด์
-                      </p>
-                    </td>
-                    <td className={tdNum}>{row.docCount}</td>
-                    <td className={tdCls}>
-                      <button
-                        type="button"
-                        onClick={() => toggleActive(row.key)}
-                        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${
-                          row.isActive ? "bg-blue-600" : "bg-slate-200"
-                        }`}
-                        aria-label={row.isActive ? "Active" : "Inactive"}
-                      >
-                        <span
-                          className={`inline-block size-5 translate-y-0.5 rounded-full bg-white shadow transition-transform ${
-                            row.isActive ? "translate-x-5" : "translate-x-0.5"
-                          }`}
-                        />
-                      </button>
-                      <span className="ml-2 text-xs text-slate-500">
-                        {row.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 text-right">
-                      <div className="flex justify-end gap-1">
-                        <button type="button" onClick={() => openEdit(row)} className={btnGhost}>
-                          Edit
-                        </button>
-                        <DeleteTooltipButton row={row} onDelete={handleDelete} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+        }
+        mobile={<MasterDataMobileCardList rows={mobileRows} />}
+      >
+        <table className={MD_TABLE}>
+          <thead className="bg-gray-50">
+            <tr className="border-b border-gray-200">
+              <th className={MD_TH_STICKY}>ชื่อประเภทเอกสาร</th>
+              <th className={thCls}>Prefix</th>
+              <th className={thCls}>Form Type / ฟอร์ม</th>
+              <th className={MD_TH_RIGHT}>จำนวนเอกสารที่ใช้</th>
+              <th className={MD_TH_STATUS}>สถานะ</th>
+              <th className={MD_TH_ACTION}>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {docTypes.map((row) => (
+              <tr
+                key={row.key}
+                className="group border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80"
+              >
+                <td className={MD_TD_STICKY}>{row.typeName}</td>
+                <td className={tdCls}>{row.prefix}</td>
+                <td className={tdCls}>
+                  <span className="inline-flex items-center gap-1.5">
+                    {formTypeBadge(row.formType)}
+                    <FormTypeTooltip formType={row.formType} />
+                  </span>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {row.formCode} · {row.fieldsCount} ฟิลด์
+                  </p>
+                </td>
+                <td className={tdNum}>{row.docCount}</td>
+                <td className={MD_TD_STATUS}>
+                  <StatusBadge active={row.isActive} />
+                </td>
+                <td className={MD_TD_ACTION}>
+                  <DeleteGuardActions
+                    row={row}
+                    onEdit={() => openEdit(row)}
+                    onDelete={() => handleDelete(row)}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </MasterDataTableWrap>
+
+      {docTypes.length > 0 && (
+        <StatCards
+          total={stats.total}
+          active={stats.active}
+          inactive={stats.inactive}
+          icon={FileType2}
+        />
+      )}
 
       {modalOpen && (
         <div
@@ -399,7 +421,7 @@ export default function DocumentTypesTab({
           >
             <div className="flex items-start justify-between gap-3">
               <h2 className="text-sm font-medium text-slate-800">
-                {editingKey ? "แก้ไข" : "เพิ่ม"} Document Type
+                {editingKey ? "แก้ไข" : "เพิ่ม"}ประเภทเอกสาร
               </h2>
               <button
                 type="button"
@@ -414,7 +436,7 @@ export default function DocumentTypesTab({
 
             <div className="mt-4 space-y-3">
               <div>
-                <label className="mb-1.5 block text-xs text-slate-500">Type Name</label>
+                <label className="mb-1.5 block text-xs text-slate-500">ชื่อประเภทเอกสาร</label>
                 <input
                   type="text"
                   value={form.typeName}
@@ -498,6 +520,12 @@ export default function DocumentTypesTab({
                   <p className="mt-1 text-xs text-red-500">{formErrors.formCode}</p>
                 )}
               </div>
+              {editingKey && (
+                <StatusFormToggle
+                  active={form.isActive}
+                  onChange={(isActive) => setForm((f) => ({ ...f, isActive }))}
+                />
+              )}
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
@@ -522,6 +550,6 @@ export default function DocumentTypesTab({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

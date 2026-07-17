@@ -1,14 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  CheckCircle2,
-  Inbox,
-  Layers,
-  Loader2,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Hash, Inbox, Loader2, X } from "lucide-react";
 import {
   RESET_CYCLE_LABELS,
   YEAR_FORMAT_LABELS,
@@ -21,6 +14,27 @@ import {
   type RunningSeparator,
   type YearFormat,
 } from "@/lib/config-mock";
+import {
+  InactiveFilterCheckbox,
+  MasterDataMobileCardList,
+  MasterDataTableWrap,
+  MD_TD,
+  MD_TD_ACTION,
+  MD_TD_MUTED,
+  MD_TD_NUM_RIGHT,
+  MD_TD_STICKY,
+  MD_TD_STATUS,
+  MD_TH,
+  MD_TH_ACTION,
+  MD_TH_RIGHT,
+  MD_TH_STICKY,
+  MD_TH_STATUS,
+  MD_TABLE,
+  RowActions,
+  StatCards,
+  StatusBadge,
+  StatusFormToggle,
+} from "./master-data-ui";
 
 type Props = {
   showToast: (message: string, type: "success" | "error") => void;
@@ -38,11 +52,10 @@ function runningFormSnapshot(form: RunningFormState): string {
   return JSON.stringify(form);
 }
 
-const thCls = "px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-500";
-const tdCls = "px-6 py-3 text-left text-sm text-slate-700";
-const tdMuted = "px-6 py-3 text-left text-sm text-slate-500";
-const tdNum = "px-6 py-3 text-right text-sm text-slate-500 tabular-nums";
-const btnGhost = "rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
+const thCls = MD_TH;
+const tdCls = MD_TD;
+const tdMuted = MD_TD_MUTED;
+const tdNum = MD_TD_NUM_RIGHT;
 const inputCls =
   "w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 
@@ -117,17 +130,6 @@ export default function DocumentRunningTab({ showToast }: Props) {
     setBaseline("");
   };
 
-  const toggleActive = (matrixKey: string) => {
-    const row = configs.find((c) => c.matrixKey === matrixKey);
-    if (!row) return;
-    const next = configs.map((c) =>
-      c.matrixKey === matrixKey ? { ...c, isActive: !c.isActive } : c
-    );
-    setConfigs(next);
-    updateRunningConfig(matrixKey, { isActive: !row.isActive });
-    showToast(!row.isActive ? "เปิดใช้งานรูปแบบเลขที่สำเร็จ" : "ปิดใช้งานรูปแบบเลขที่สำเร็จ", "success");
-  };
-
   const handleSave = async () => {
     if (!editingKey || !editingRow) return;
     setSaving(true);
@@ -153,123 +155,97 @@ export default function DocumentRunningTab({ showToast }: Props) {
     showToast("บันทึกรูปแบบเลขที่เอกสารสำเร็จ", "success");
   };
 
+  const mobileRows = useMemo(
+    () =>
+      rows.map((row) => {
+        const { pattern, example } = formatRunningPattern(row, row.currentCounter + 1);
+        return {
+          id: row.matrixKey,
+          title: row.typeName,
+          badge: <StatusBadge active={row.isActive} />,
+          fields: [
+            {
+              label: "รูปแบบ",
+              value: (
+                <>
+                  <p className="font-mono text-xs text-slate-600">{pattern}</p>
+                  <p className="mt-0.5 text-xs text-slate-400">ตัวอย่าง: {example}</p>
+                </>
+              ),
+            },
+            { label: "รอบรีเซ็ตเลขที่", value: RESET_CYCLE_LABELS[row.resetCycle] },
+            { label: "เลขที่ปัจจุบัน", value: row.currentCounter },
+          ],
+          actions: <RowActions onEdit={() => openEdit(row.matrixKey)} />,
+        };
+      }),
+    [rows]
+  );
+
   return (
-    <>
-      <div className="flex items-center justify-between gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className="text-sm font-medium text-slate-800">รูปแบบเลขที่เอกสาร</h2>
-        <label className="flex items-center gap-2 text-sm text-slate-500">
-          <input
-            type="checkbox"
-            checked={showInactive}
-            onChange={(e) => setShowInactive(e.target.checked)}
-            className="rounded border-gray-200"
-          />
-          แสดงรายการที่ปิดใช้งาน
-        </label>
+        <InactiveFilterCheckbox checked={showInactive} onChange={setShowInactive} />
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-        {rows.length === 0 ? (
+      <MasterDataTableWrap
+        empty={rows.length === 0}
+        emptyContent={
           <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
             <Inbox className="size-10 text-slate-300" />
             <p className="text-sm text-slate-500">
               {showInactive ? "ไม่มีรายการที่ปิดใช้งาน" : "ไม่มีข้อมูล"}
             </p>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr className="border-b border-gray-200">
-                  <th className={thCls}>ประเภทเอกสาร</th>
-                  <th className={thCls}>รูปแบบ</th>
-                  <th className={thCls}>รอบรีเซ็ตเลขที่</th>
-                  <th className={`${thCls} text-right`}>เลขที่ปัจจุบัน</th>
-                  <th className={thCls}>สถานะ</th>
-                  <th className={`${thCls} text-right`}>จัดการ</th>
+        }
+        mobile={<MasterDataMobileCardList rows={mobileRows} />}
+      >
+        <table className={MD_TABLE}>
+          <thead className="bg-gray-50">
+            <tr className="border-b border-gray-200">
+              <th className={MD_TH_STICKY}>ประเภทเอกสาร</th>
+              <th className={thCls}>รูปแบบ</th>
+              <th className={thCls}>รอบรีเซ็ตเลขที่</th>
+              <th className={MD_TH_RIGHT}>เลขที่ปัจจุบัน</th>
+              <th className={MD_TH_STATUS}>สถานะ</th>
+              <th className={MD_TH_ACTION}>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => {
+              const { pattern, example } = formatRunningPattern(row, row.currentCounter + 1);
+              return (
+                <tr
+                  key={row.matrixKey}
+                  className="group border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80"
+                >
+                  <td className={MD_TD_STICKY}>{row.typeName}</td>
+                  <td className={tdCls}>
+                    <p className="font-mono text-xs text-slate-600">{pattern}</p>
+                    <p className="mt-0.5 text-xs text-slate-400">ตัวอย่าง: {example}</p>
+                  </td>
+                  <td className={tdMuted}>{RESET_CYCLE_LABELS[row.resetCycle]}</td>
+                  <td className={tdNum}>{row.currentCounter}</td>
+                  <td className={MD_TD_STATUS}>
+                    <StatusBadge active={row.isActive} />
+                  </td>
+                  <td className={MD_TD_ACTION}>
+                    <RowActions onEdit={() => openEdit(row.matrixKey)} />
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => {
-                  const { pattern, example } = formatRunningPattern(row, row.currentCounter + 1);
-                  return (
-                    <tr
-                      key={row.matrixKey}
-                      className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-slate-50/80"
-                    >
-                      <td className={`${tdCls} font-medium`}>{row.typeName}</td>
-                      <td className={tdCls}>
-                        <p className="font-mono text-xs text-slate-600">{pattern}</p>
-                        <p className="mt-0.5 text-xs text-slate-400">ตัวอย่าง: {example}</p>
-                      </td>
-                      <td className={tdMuted}>{RESET_CYCLE_LABELS[row.resetCycle]}</td>
-                      <td className={tdNum}>{row.currentCounter}</td>
-                      <td className={tdCls}>
-                        <button
-                          type="button"
-                          onClick={() => toggleActive(row.matrixKey)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${
-                            row.isActive ? "bg-blue-600" : "bg-slate-200"
-                          }`}
-                          aria-label={row.isActive ? "Active" : "Inactive"}
-                        >
-                          <span
-                            className={`inline-block size-5 translate-y-0.5 rounded-full bg-white shadow transition-transform ${
-                              row.isActive ? "translate-x-5" : "translate-x-0.5"
-                            }`}
-                          />
-                        </button>
-                        <span className="ml-2 text-xs text-slate-500">
-                          {row.isActive ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => openEdit(row.matrixKey)}
-                          className={btnGhost}
-                        >
-                          Edit
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              );
+            })}
+          </tbody>
+        </table>
+      </MasterDataTableWrap>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
-            <Layers className="size-5 text-blue-600" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-lg font-semibold text-slate-800">{stats.total}</p>
-            <p className="text-xs text-slate-500">ทั้งหมด</p>
-          </div>
-        </div>
-        <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-green-50">
-            <CheckCircle2 className="size-5 text-green-600" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-lg font-semibold text-slate-800">{stats.active}</p>
-            <p className="text-xs text-slate-500">ใช้งาน</p>
-          </div>
-        </div>
-        <div className="flex h-full min-h-[88px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50">
-            <Trash2 className="size-5 text-red-600" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-lg font-semibold text-slate-800">{stats.inactive}</p>
-            <p className="text-xs text-slate-500">ปิดใช้งาน</p>
-          </div>
-        </div>
-      </div>
+      <StatCards
+        total={stats.total}
+        active={stats.active}
+        inactive={stats.inactive}
+        icon={Hash}
+      />
 
       {modalOpen && editingRow && (
         <div
@@ -381,29 +357,10 @@ export default function DocumentRunningTab({ showToast }: Props) {
                 <p className="mt-1 text-xs text-slate-400">นับอัตโนมัติจากเอกสารที่ออกเลขแล้ว</p>
               </div>
 
-              <div>
-                <p className="mb-2 text-xs text-slate-500">สถานะ</p>
-                <div className="inline-flex rounded-md border border-gray-200 p-0.5">
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, isActive: true }))}
-                    className={`rounded px-4 py-1.5 text-sm font-medium transition-colors ${
-                      form.isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    ใช้งาน
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, isActive: false }))}
-                    className={`rounded px-4 py-1.5 text-sm font-medium transition-colors ${
-                      !form.isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    ปิดใช้งาน
-                  </button>
-                </div>
-              </div>
+              <StatusFormToggle
+                active={form.isActive}
+                onChange={(isActive) => setForm((f) => ({ ...f, isActive }))}
+              />
 
               <div className="rounded-lg border border-blue-100 bg-blue-50/60 px-4 py-3">
                 <p className="text-xs text-slate-500">ตัวอย่างเลขที่</p>
@@ -440,6 +397,6 @@ export default function DocumentRunningTab({ showToast }: Props) {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
