@@ -12,7 +12,6 @@ import {
 import { useToast } from "@/components/providers/ToastProvider";
 import {
   RolePermissionPanel,
-  RoleProductTypesField,
   PermissionActionGrid,
   buildPermissions,
   summarizePermissions,
@@ -412,13 +411,6 @@ function CreateRoleForm({
               />
               {titleError && <p className="mt-1 text-xs text-red-500">{titleError}</p>}
             </div>
-            <RoleProductTypesField
-              productTypes={role.productTypes}
-              onChange={(productTypes) => {
-                setDirty(true);
-                setRole((prev) => ({ ...prev, productTypes }));
-              }}
-            />
           </div>
         </div>
         <RolePermissionPanel
@@ -491,10 +483,6 @@ function EditRoleForm() {
                 className={formInputCls}
               />
             </div>
-            <RoleProductTypesField
-              productTypes={role.productTypes}
-              onChange={(productTypes) => setRole((prev) => ({ ...prev, productTypes }))}
-            />
           </div>
         </div>
         <RolePermissionPanel role={role} onChange={setRole} />

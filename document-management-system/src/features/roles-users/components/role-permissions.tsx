@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, Search } from "lucide-react";
 import {
   MD_TH,
-  MD_TH_CENTER,
   MD_THEAD,
   MD_TR,
 } from "@/components/ui/admin";
@@ -170,6 +169,14 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
       { key: "audit_log", label: "Audit log" },
     ],
   },
+  {
+    key: "profile",
+    label: "Profile",
+    items: [
+      { key: "edit_profile", label: "แก้ไขข้อมูลส่วนตัว" },
+      { key: "change_password", label: "เปลี่ยนรหัสผ่าน" },
+    ],
+  },
 ];
 
 function emptyRow(): Record<ActionKey, boolean> {
@@ -277,7 +284,9 @@ const countPillCls =
   "inline-flex shrink-0 items-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium tabular-nums text-slate-500";
 /** Matches permission table action columns (5 × w-20) for aligned Select all controls */
 const ACTION_COLS_W = "w-[25rem]";
-const ACTION_COL_W = "w-20";
+const PERM_MATRIX_ACTION_TH =
+  "w-20 px-2 py-3.5 text-center align-middle text-[11px] font-bold uppercase tracking-wider text-slate-400";
+const PERM_MATRIX_ACTION_TD = "w-20 px-2 py-3.5 text-center align-middle";
 
 export function RolePermissionPanel({
   role,
@@ -432,12 +441,18 @@ export function RolePermissionPanel({
 
                 {expanded[section.key] && (
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[640px] text-sm">
+                    <table className="w-full table-fixed text-sm">
+                      <colgroup>
+                        <col />
+                        {PERMISSION_ACTIONS.map((action) => (
+                          <col key={action.key} style={{ width: "5rem" }} />
+                        ))}
+                      </colgroup>
                       <thead className={MD_THEAD}>
                         <tr>
-                          <th className={`${MD_TH} min-w-[12rem]`}>รายการ</th>
+                          <th className={MD_TH}>รายการ</th>
                           {PERMISSION_ACTIONS.map((action) => (
-                            <th key={action.key} className={`${MD_TH_CENTER} ${ACTION_COL_W}`}>
+                            <th key={action.key} className={PERM_MATRIX_ACTION_TH}>
                               {action.label}
                             </th>
                           ))}
@@ -450,24 +465,22 @@ export function RolePermissionPanel({
                               {item.label}
                             </td>
                             {PERMISSION_ACTIONS.map((action) => (
-                              <td key={action.key} className={`${ACTION_COL_W} px-2 py-3.5`}>
-                                <div className="flex items-center justify-center">
-                                  <input
-                                    type="checkbox"
-                                    checked={
-                                      !!role.permissions[section.key]?.[item.key]?.[action.key]
-                                    }
-                                    onChange={(e) =>
-                                      setPermission(
-                                        section.key,
-                                        item.key,
-                                        action.key,
-                                        e.target.checked
-                                      )
-                                    }
-                                    className={checkboxCls}
-                                  />
-                                </div>
+                              <td key={action.key} className={PERM_MATRIX_ACTION_TD}>
+                                <input
+                                  type="checkbox"
+                                  checked={
+                                    !!role.permissions[section.key]?.[item.key]?.[action.key]
+                                  }
+                                  onChange={(e) =>
+                                    setPermission(
+                                      section.key,
+                                      item.key,
+                                      action.key,
+                                      e.target.checked
+                                    )
+                                  }
+                                  className={`${checkboxCls} mx-auto block`}
+                                />
                               </td>
                             ))}
                           </tr>
