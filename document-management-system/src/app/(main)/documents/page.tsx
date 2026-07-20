@@ -23,6 +23,8 @@ import PageHeader from "@/components/shared/PageHeader";
 import { useToast } from "@/components/providers/ToastProvider";
 import { getStatusVariant } from "@/lib/document-status";
 import { DocumentTypeIcon } from "@/lib/document-type-icon";
+import DataTableHeader from "@/components/ui/DataTableHeader";
+import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from "@/components/ui/design-system";
 
 export default function DocumentsPage() {
   const { data: initialDocs, error } = useSWR("documents", getDocuments, {
@@ -43,10 +45,28 @@ export default function DocumentsPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+
+  // Sorting State
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+
+  const handleSort = (key: string) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDirection("desc"); // 1st click: desc
+    } else {
+      if (sortDirection === "desc") {
+        setSortDirection("asc"); // 2nd click: asc
+      } else {
+        setSortKey(null); // 3rd click: reset
+        setSortDirection(null);
+      }
+    }
+  };
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 2;
+  const itemsPerPage = 6;
 
   const { showToast } = useToast();
 
@@ -171,6 +191,63 @@ export default function DocumentsPage() {
     return matchesSearch && matchesType && matchesStatus;
   });
 
+  // Sort Helpers
+  const statusPriority: Record<string, number> = {
+    "Pending": 4,
+    "Draft": 3,
+    "Returned for Revision": 2,
+    "Returned": 2,
+    "Approved": 1,
+    "Cancelled": 0
+  };
+
+  const parseThaiDate = (dateStr: string) => {
+    const months: Record<string, number> = {
+      "ม.ค.": 0, "ก.พ.": 1, "มี.ค.": 2, "เม.ย.": 3, "พ.ค.": 4, "มิ.ย.": 5,
+      "ก.ค.": 6, "ส.ค.": 7, "ก.ย.": 8, "ต.ค.": 9, "พ.ย.": 10, "ธ.ค.": 11
+    };
+    const parts = dateStr.split(" ");
+    if (parts.length < 3) return 0;
+    const day = parseInt(parts[0]);
+    const month = months[parts[1]] || 0;
+    const year = parseInt(parts[2]) - 543; // BE to AD
+    return new Date(year, month, day).getTime();
+  };
+
+  const parseAmount = (amountStr?: string) => {
+    if (!amountStr || amountStr === "-") return 0;
+    return parseFloat(amountStr.replace(/[^0-9.-]/g, ""));
+  };
+
+  // Sort Logic
+  filteredDocs.sort((a, b) => {
+    if (sortKey && sortDirection) {
+      let comparison = 0;
+      if (sortKey === "id") {
+        comparison = a.id.localeCompare(b.id);
+      } else if (sortKey === "type") {
+        comparison = a.type.localeCompare(b.type);
+      } else if (sortKey === "submittedDate") {
+        comparison = parseThaiDate(a.submittedDate) - parseThaiDate(b.submittedDate);
+      } else if (sortKey === "amount") {
+        comparison = parseAmount(a.amount) - parseAmount(b.amount);
+      } else if (sortKey === "status") {
+        const priorityA = statusPriority[a.status] ?? 0;
+        const priorityB = statusPriority[b.status] ?? 0;
+        comparison = priorityA - priorityB;
+      }
+      return sortDirection === "asc" ? comparison : -comparison;
+    } else {
+      // Default fallback: Priority Weight of status (desc) -> date (desc)
+      const priorityA = statusPriority[a.status] ?? 0;
+      const priorityB = statusPriority[b.status] ?? 0;
+      if (priorityA !== priorityB) {
+        return priorityB - priorityA; // desc
+      }
+      return parseThaiDate(b.submittedDate) - parseThaiDate(a.submittedDate); // desc
+    }
+  });
+
   // Pagination Logic
   const totalPages = Math.ceil(filteredDocs.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -182,16 +259,17 @@ export default function DocumentsPage() {
   }, [search, typeFilter, statusFilter]);
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className={APP_PAGE_SHELL}>
+      <div className={APP_PAGE_CONTENT}>
       
       <PageHeader
         size="compact"
-        title="Documents Center"
-        subtitle="Store, organize, manage, and edit company document assets."
+        title="ศูนย์เอกสาร"
+        subtitle="จัดเก็บ จัดระเบียบ และจัดการเอกสารขององค์กร"
       />
 
       {/* WORKSPACE CARD */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm flex flex-col h-full space-y-6">
+      <div className={`${APP_TABLE_CARD} flex flex-col p-6 space-y-6`}>
         
         {/* TOOLBAR */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -265,15 +343,15 @@ export default function DocumentsPage() {
 
         {/* TABLE */}
         <div className="overflow-x-auto border border-slate-100/50 rounded-2xl">
-          <table className="w-full text-left border-collapse min-w-[800px]">
+          <table className="w-full table-fixed text-left border-collapse min-w-[800px]">
             <thead>
               <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                <th className="py-4 pl-4">ID / Number</th>
-                <th className="py-4">Document Title</th>
-                <th className="py-4">Document Type</th>
-                <th className="py-4">Submitted Date</th>
-                <th className="py-4 text-center">Status</th>
-                <th className="py-4 pr-4 text-center">Actions</th>
+                <DataTableHeader title="ID / Number" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-4 py-4 w-32" />
+                <th className="py-4 font-bold">Document Title</th>
+                <DataTableHeader title="Document Type" sortKey="type" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-36" />
+                <DataTableHeader title="Submitted Date" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-40" />
+                <DataTableHeader title="Status" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 text-center w-48" />
+                <th className="py-4 pr-4 text-center font-bold w-28">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50/80">
@@ -311,14 +389,13 @@ export default function DocumentsPage() {
                     </td>
                     <td className="py-4 pr-4 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <button
-                          type="button"
-                          title="View"
-                          onClick={() => openPreviewModal(doc)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors cursor-pointer"
+                        <Link
+                          href={`/documents/${doc.id}`}
+                          title="View Details"
+                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors cursor-pointer inline-block"
                         >
                           <Eye className="w-4 h-4" />
-                        </button>
+                        </Link>
                         <button
                           type="button"
                           title="Download"
@@ -397,6 +474,7 @@ export default function DocumentsPage() {
 
       </div>
 
+      </div>
     </div>
   );
 }

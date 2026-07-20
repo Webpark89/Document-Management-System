@@ -2,9 +2,14 @@ import React from "react";
 import Link from "next/link";
 import { ArrowLeft, Clock, History, FileText, Download, Check, AlertCircle } from "lucide-react";
 import { getDocuments } from "@/features/documents/api";
+import { getWorkflow } from "@/features/workflow/api";
+import { WorkflowTracker } from "@/components/workflow/WorkflowTracker";
+import { DocumentSignerViewer } from "@/components/workflow/DocumentSignerViewer";
 import PageHeader from "@/components/shared/PageHeader";
+import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from "@/components/ui/design-system";
 import { Badge } from "@/components/ui/badge";
 import { getStatusVariant } from "@/lib/document-status";
+import { CancelDocumentButton } from "@/components/documents/CancelDocumentButton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -16,6 +21,7 @@ export default async function DocumentDetailPage({ params }: PageProps) {
   // Fetch documents from Mock API
   const documents = await getDocuments();
   const doc = documents.find((d) => d.id === id);
+  const workflow = await getWorkflow(id);
 
   if (!doc) {
     return (
@@ -38,7 +44,8 @@ export default async function DocumentDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className={APP_PAGE_SHELL}>
+      <div className={APP_PAGE_CONTENT}>
       
       <div className="flex justify-between items-center">
         <Link
@@ -49,13 +56,17 @@ export default async function DocumentDetailPage({ params }: PageProps) {
           Back to Documents
         </Link>
 
-        <Link
-          href={`/documents/${doc.id}/versions`}
-          className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
-        >
-          <History className="w-4 h-4" />
-          Version History
-        </Link>
+        <div className="flex items-center gap-3">
+          <CancelDocumentButton document={doc} />
+          
+          <Link
+            href={`/documents/${doc.id}/versions`}
+            className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+          >
+            <History className="w-4 h-4" />
+            Version History
+          </Link>
+        </div>
       </div>
 
       <PageHeader
@@ -95,97 +106,51 @@ export default async function DocumentDetailPage({ params }: PageProps) {
               </div>
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Valuation</p>
-                <p className="text-sm font-bold text-slate-800 mt-1">{doc.amount}</p>
+                <p className={`text-sm font-bold mt-1 ${doc.amount && doc.amount !== "-" ? "text-blue-600 font-mono" : "text-slate-400"}`}>
+                  {doc.amount && doc.amount !== "-" ? doc.amount : "-"}
+                </p>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Version</p>
-                <p className="text-sm font-bold text-slate-800 mt-1">{doc.version}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-sm font-bold text-slate-800">{doc.version}</p>
+                  <Link
+                    href={`/documents/${doc.id}/versions`}
+                    title="View Version History"
+                    className="p-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                  >
+                    <History className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
             </div>
 
           </div>
 
-          {/* SIMULATED DOCUMENT PREVIEW LAYER */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm space-y-4">
-            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Document Preview (Simulation)
-            </h4>
-            <div className="bg-slate-50 rounded-xl p-8 border border-slate-150 text-center min-h-[250px] flex flex-col justify-center items-center">
-              <FileText className="w-10 h-10 text-slate-300 mb-3" />
-              <p className="text-xs font-bold text-slate-600">{doc.name}.pdf</p>
-              <p className="text-[10px] text-slate-400 font-semibold mt-1">
-                Version: {doc.version} | Size: ~1.4 MB
-              </p>
-              <button
-                type="button"
-                className="mt-4 flex items-center gap-1.5 px-4 py-2 border border-slate-200 hover:bg-white text-slate-600 font-bold rounded-xl text-xs transition-colors cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Download Original File
-              </button>
-            </div>
-          </div>
+          {/* E-SIGNATURE PDF VIEWER (MOCK) */}
+          <DocumentSignerViewer 
+            documentId={doc.id}
+            documentName={doc.name}
+            version={doc.version}
+            initialStatus={doc.status}
+            signaturePlaced={doc.status === "Approved"}
+          />
         </div>
 
         {/* RIGHT COLUMN: Activity/Workflow */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm space-y-4">
-            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Approval Progress
-            </h4>
-            
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="flex flex-col items-center">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs">
-                    <Check className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="w-0.5 h-10 bg-emerald-500" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-800">1. Document Created</p>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">By {doc.sender}</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex flex-col items-center">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                    doc.status === "Pending" ? "bg-amber-500 text-white" : doc.status === "Approved" ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400"
-                  }`}>
-                    {doc.status === "Approved" ? <Check className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                  </div>
-                  <div className="w-0.5 h-10 bg-slate-200" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-800">2. Supervisor Approval</p>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
-                    {doc.status === "Approved" ? "Approved by supervisor" : "Awaiting response"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex flex-col items-center">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                    doc.status === "Approved" ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400"
-                  }`}>
-                    {doc.status === "Approved" ? <Check className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-800">3. Final Authorization</p>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
-                    {doc.status === "Approved" ? "Approved and signed" : "Pending step 2 completion"}
-                  </p>
-                </div>
-              </div>
+          {workflow ? (
+            <WorkflowTracker workflow={workflow} />
+          ) : (
+            <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm text-center text-slate-500 text-sm">
+              ไม่พบข้อมูลสายอนุมัติ
             </div>
-          </div>
+          )}
         </div>
 
       </div>
 
+      </div>
     </div>
   );
 }

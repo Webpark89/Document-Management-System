@@ -10,7 +10,7 @@ export type DocumentStatus =
   | "Returned for Revision"
   | "Cancelled";
 
-export type DocumentType = "PR" | "PO" | "Certificate" | "General" | "Data Record" | "PDF" | "Other" | string;
+export type DocumentType = "PR" | "PO" | "MEMO" | "OTHER" | "Certificate" | "General" | "Data Record" | "PDF" | "Other" | string;
 
 export interface Document {
   id: string;              // doc_number, e.g. "PR-2026-0001"
@@ -21,6 +21,18 @@ export interface Document {
   status: DocumentStatus;
   amount: string;          // formatted amount or "-"
   version: string;         // e.g. "v1.0"
+}
+
+export interface DocumentVersion {
+  id: string;
+  document_id: string;
+  version_number: string;
+  uploaded_by: string;
+  created_at: string;
+  file_size_kb: number;
+  remarks: string;
+  is_active: boolean;
+  file_preview_url?: string;
 }
 
 export interface DashboardStats {

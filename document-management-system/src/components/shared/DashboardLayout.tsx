@@ -4,22 +4,29 @@ import React from "react";
 import Sidebar from "./Sidebar";
 import { useSidebar } from "@/components/providers/SidebarProvider";
 
+/** Must match Sidebar `w-64` / `w-20` and `ml-*` on main */
+const SIDEBAR_WIDTH_OPEN = "16rem";
+const SIDEBAR_WIDTH_COLLAPSED = "5rem";
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { isOpen } = useSidebar();
+  const sidebarWidth = isOpen ? SIDEBAR_WIDTH_OPEN : SIDEBAR_WIDTH_COLLAPSED;
 
   return (
     <div className="min-h-screen">
       <Sidebar />
       <main
-        className={`min-h-screen min-w-0 overflow-y-auto bg-[#EAF2FB] transition-all duration-200 ${
-          isOpen ? "ml-64" : "ml-20"
-        }`}
+        className="relative z-0 flex min-h-screen min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto bg-[#EAF2FB] transition-[margin-left,width] duration-200 ease-in-out"
+        style={{
+          marginLeft: sidebarWidth,
+          width: `calc(100% - ${sidebarWidth})`,
+        }}
       >
-        {children}
+        <div className="flex w-full min-w-0 flex-1 flex-col">{children}</div>
       </main>
     </div>
   );

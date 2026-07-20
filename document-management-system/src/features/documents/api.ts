@@ -5,7 +5,7 @@
 
 import type { DashboardStats, Document } from "./types";
 
-const MOCK_DOCS: Document[] = [
+let MOCK_DOCS: Document[] = [
   {
     id: "PR-2026-0001",
     name: "ขอซื้อวัสดุสำนักงาน Q3/2026",
@@ -28,12 +28,82 @@ const MOCK_DOCS: Document[] = [
   },
   {
     id: "PR-2026-0002",
-    name: "ขอจัดซื้ออุปกรณ์ความปลอดภัย",
+    name: "ขอจัดซื้ออุปกรณ์ความปลอดภัยโรงงาน",
     type: "PR",
     sender: "อรทัย สุขใจ",
     submittedDate: "12 ก.ค. 2026",
     status: "Returned for Revision",
     amount: "฿8,200",
+    version: "v1.0",
+  },
+  {
+    id: "MEMO-2026-0001",
+    name: "บันทึกขออนุมัติเดินทางสัมมนาประจำปี 2026",
+    type: "MEMO",
+    sender: "ประเสริฐ มีสุข",
+    submittedDate: "11 ก.ค. 2026",
+    status: "Approved",
+    amount: "-",
+    version: "v1.0",
+  },
+  {
+    id: "PR-2026-0003",
+    name: "ขอซื้อ Software License สำหรับทีมพัฒนา",
+    type: "PR",
+    sender: "สมชาย ใจดี",
+    submittedDate: "10 ก.ค. 2026",
+    status: "Pending",
+    amount: "฿8,500",
+    version: "v1.0",
+  },
+  {
+    id: "PO-2026-0002",
+    name: "สั่งซื้อกระดาษ A4 และอุปกรณ์งานพิมพ์",
+    type: "PO",
+    sender: "ประทีป สุขเจริญ",
+    submittedDate: "09 ก.ค. 2026",
+    status: "Approved",
+    amount: "฿5,000",
+    version: "v1.0",
+  },
+  {
+    id: "OTHER-2026-0001",
+    name: "เอกสารยินยอมให้เข้าตรวจแปลงผลิตวัตถุดิบ",
+    type: "OTHER",
+    sender: "กิตติศักดิ์ พรหมมา",
+    submittedDate: "08 ก.ค. 2026",
+    status: "Approved",
+    amount: "-",
+    version: "v1.0",
+  },
+  {
+    id: "PR-2026-0004",
+    name: "ขอซื้อโต๊ะและเก้าอี้ทำงานฝ่ายบัญชี",
+    type: "PR",
+    sender: "วิภา รักดี",
+    submittedDate: "07 ก.ค. 2026",
+    status: "Pending",
+    amount: "฿18,000",
+    version: "v1.0",
+  },
+  {
+    id: "PO-2026-0003",
+    name: "สั่งซื้อเครื่องปั๊มน้ำอุตสาหกรรมสายการผลิต",
+    type: "PO",
+    sender: "ณัฐพล วงศ์สว่าง",
+    submittedDate: "06 ก.ค. 2026",
+    status: "Pending",
+    amount: "฿120,000",
+    version: "v1.0",
+  },
+  {
+    id: "MEMO-2026-0002",
+    name: "บันทึกรายงานผลการปรับปรุงระบบเครือข่าย",
+    type: "MEMO",
+    sender: "สมชาย ใจดี",
+    submittedDate: "05 ก.ค. 2026",
+    status: "Draft",
+    amount: "-",
     version: "v1.0",
   },
 ];
@@ -78,4 +148,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 export async function getDocuments(): Promise<Document[]> {
   await new Promise((resolve) => setTimeout(resolve, 200));
   return MOCK_DOCS;
+}
+
+export async function addDocument(newDoc: Document): Promise<Document> {
+  await new Promise((resolve) => setTimeout(resolve, 600)); // Simulate realistic network delay
+  MOCK_DOCS = [newDoc, ...MOCK_DOCS];
+  return newDoc;
 }

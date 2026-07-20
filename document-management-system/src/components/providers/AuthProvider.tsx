@@ -15,6 +15,10 @@ type AuthUser = {
   username: string;
   role: string;
   department: string | null;
+  email?: string;
+  employee_id?: string;
+  position?: string;
+  joined_at?: string;
 };
 
 type AuthContextValue = {
@@ -25,7 +29,14 @@ type AuthContextValue = {
   logout: () => void;
 };
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const globalForAuth = globalThis as unknown as {
+  AuthContext: React.Context<AuthContextValue | undefined>
+};
+
+const AuthContext = globalForAuth.AuthContext || createContext<AuthContextValue | undefined>(undefined);
+if (process.env.NODE_ENV !== "production") {
+  globalForAuth.AuthContext = AuthContext;
+}
 
 const PUBLIC_ROUTES = ["/auth/login", "/auth", "/login", "/forgot-password", "/reset-password"];
 
@@ -55,7 +66,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           full_name: "Administrator",
           username: "admin",
           role: "Administrator",
-          department: "IT",
+          department: "แผนก IT",
+          email: "admin@company.com",
+          employee_id: "EMP-001",
+          position: "ผู้ดูแลระบบ",
+          joined_at: "2024-03-15T00:00:00Z",
         });
       })
       .finally(() => setLoading(false));
@@ -78,7 +93,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         full_name: "Administrator",
         username: "admin",
         role: "Administrator",
-        department: "IT",
+        department: "แผนก IT",
+        email: "admin@company.com",
+        employee_id: "EMP-001",
+        position: "ผู้ดูแลระบบ",
+        joined_at: "2024-03-15T00:00:00Z",
       });
       setLoading(false);
       return;
@@ -107,7 +126,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         full_name: username,
         username,
         role: "Administrator",
-        department: "IT",
+        department: "แผนก IT",
+        email: `${username}@company.com`,
+        employee_id: "EMP-001",
+        position: "ผู้ดูแลระบบ",
+        joined_at: "2024-03-15T00:00:00Z",
       };
       persistAccessToken("mock-dev-token");
       setUser(mockUser);

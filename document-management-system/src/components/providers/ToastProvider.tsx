@@ -15,7 +15,14 @@ type ToastContextValue = {
   showToast: (message: string, type?: ToastType) => void;
 };
 
-const ToastContext = createContext<ToastContextValue | undefined>(undefined);
+const globalForToast = globalThis as unknown as {
+  ToastContext: React.Context<ToastContextValue | undefined>
+};
+
+const ToastContext = globalForToast.ToastContext || createContext<ToastContextValue | undefined>(undefined);
+if (process.env.NODE_ENV !== "production") {
+  globalForToast.ToastContext = ToastContext;
+}
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);

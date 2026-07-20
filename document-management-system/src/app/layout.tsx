@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono, Noto_Sans, Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { SignatureProvider } from "@/components/providers/SignatureProvider";
 import { SidebarProvider } from "@/components/providers/SidebarProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 
@@ -43,9 +44,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <SidebarProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </SidebarProvider>
+          <SignatureProvider>
+            <SidebarProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </SidebarProvider>
+          </SignatureProvider>
         </AuthProvider>
       </body>
     </html>
