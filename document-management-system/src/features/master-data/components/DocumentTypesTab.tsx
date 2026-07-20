@@ -302,7 +302,6 @@ export default function DocumentTypesTab({
     onDocTypesChange(docTypes.filter((d) => d.key !== row.key));
     showToast("ลบประเภทเอกสารสำเร็จ", "success");
   };
-
   const mobileRows = useMemo(
     () =>
       docTypes.map((row) => ({
@@ -340,220 +339,218 @@ export default function DocumentTypesTab({
 
   return (
     <div className="space-y-6">
-      <h2 className="text-sm font-medium text-slate-800">ประเภทเอกสาร</h2>
-
-      <MasterDataTableWrap
-        empty={docTypes.length === 0}
-        emptyContent={
-          <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-            <Inbox className="size-12 text-slate-300" />
-            <p className="text-sm text-slate-500">ยังไม่มีประเภทเอกสาร</p>
+      {modalOpen ? (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <div>
+              <h3 className="text-base font-bold text-slate-800">
+                {editingKey ? "แก้ไข" : "เพิ่ม"}ประเภทเอกสาร
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                กรอกรายละเอียดประเภทเอกสารที่คุณต้องการ {editingKey ? "แก้ไข" : "สร้างใหม่"}
+              </p>
+            </div>
             <button
               type="button"
-              onClick={openAdd}
-              className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+              onClick={closeModal}
+              disabled={saving}
+              className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
+              aria-label="ปิด"
             >
-              <Plus className="size-4" />
-              เพิ่มประเภทเอกสารแรก
+              <X className="size-4" />
             </button>
           </div>
-        }
-        mobile={<MasterDataMobileCardList rows={mobileRows} />}
-      >
-        <table className={MD_TABLE}>
-          <thead className={MD_THEAD}>
-            <tr>
-              <th className={MD_TH_STICKY}>ชื่อประเภทเอกสาร</th>
-              <th className={thCls}>Prefix</th>
-              <th className={thCls}>Form Type / ฟอร์ม</th>
-              <th className={MD_TH_RIGHT}>จำนวนเอกสารที่ใช้</th>
-              <th className={MD_TH_STATUS}>สถานะ</th>
-              <th className={MD_TH_ACTION}>จัดการ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {docTypes.map((row) => (
-              <tr
-                key={row.key}
-                className={`group ${MD_TR}`}
-              >
-                <td className={MD_TD_STICKY}>{row.typeName}</td>
-                <td className={tdCls}>{row.prefix}</td>
-                <td className={tdCls}>
-                  <span className="inline-flex items-center gap-1.5">
-                    {formTypeBadge(row.formType)}
-                    <FormTypeTooltip formType={row.formType} />
-                  </span>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {row.formCode} · {row.fieldsCount} ฟิลด์
-                  </p>
-                </td>
-                <td className={tdNum}>{row.docCount}</td>
-                <td className={MD_TD_STATUS}>
-                  <StatusBadge active={row.isActive} />
-                </td>
-                <td className={MD_TD_ACTION}>
-                  <DeleteGuardActions
-                    row={row}
-                    onEdit={() => openEdit(row)}
-                    onDelete={() => handleDelete(row)}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </MasterDataTableWrap>
 
-      {docTypes.length > 0 && (
-        <StatCards
-          total={stats.total}
-          active={stats.active}
-          inactive={stats.inactive}
-          icon={FileType2}
-        />
-      )}
-
-      {modalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 sm:p-6 backdrop-blur-xs transition-[padding] duration-200"
-          style={{ paddingLeft: isOpen ? "calc(16rem + 1.5rem)" : "calc(5rem + 1.5rem)" }}
-          onClick={closeModal}
-        >
-          <div
-            className="relative flex flex-col max-h-[85vh] w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex shrink-0 items-start justify-between gap-3 pb-3 border-b border-slate-100">
-              <h2 className="text-sm font-bold text-slate-800">
-                {editingKey ? "แก้ไข" : "เพิ่ม"}ประเภทเอกสาร
-              </h2>
-              <button
-                type="button"
-                onClick={closeModal}
-                disabled={saving}
-                className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
-                aria-label="ปิด"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <div className="mt-4 flex-1 overflow-y-auto pr-1 space-y-3">
-              <div>
-                <label className="mb-1.5 block text-xs text-slate-500">ชื่อประเภทเอกสาร</label>
-                <input
-                  type="text"
-                  value={form.typeName}
-                  onChange={(e) => {
-                    setForm((f) => ({ ...f, typeName: e.target.value }));
-                    if (formErrors.typeName) {
-                      setFormErrors(
-                        validateForm({ ...form, typeName: e.target.value }, matrix, editingKey)
-                      );
-                    }
-                  }}
-                  onBlur={() => setFormErrors(validateForm(form, matrix, editingKey))}
-                  className={formErrors.typeName ? inputErrorCls : inputCls}
-                />
-                {formErrors.typeName && (
-                  <p className="mt-1 text-xs text-red-500">{formErrors.typeName}</p>
-                )}
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs text-slate-500">Prefix</label>
-                <input
-                  type="text"
-                  value={form.prefix}
-                  disabled={!!editingKey}
-                  onChange={(e) => {
-                    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
-                    setForm((f) => ({ ...f, prefix: value }));
-                    if (formErrors.prefix) {
-                      setFormErrors(validateForm({ ...form, prefix: value }, matrix, editingKey));
-                    }
-                  }}
-                  onBlur={() => setFormErrors(validateForm(form, matrix, editingKey))}
-                  className={formErrors.prefix ? inputErrorCls : inputCls}
-                />
-                {formErrors.prefix && (
-                  <p className="mt-1 text-xs text-red-500">{formErrors.prefix}</p>
-                )}
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs text-slate-500">Form Type</label>
-                <select
-                  className={inputCls}
-                  value={form.formType}
-                  onChange={(e) => {
-                    const formType = e.target.value as FormTypeStyle;
-                    setForm((f) => ({
-                      ...f,
-                      formType,
-                      formCode: DEFAULT_FORM_META[formType].formCode,
-                    }));
-                  }}
-                >
-                  {FORM_TYPE_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1.5 text-xs text-slate-400">
-                  {FORM_TYPE_DESCRIPTIONS[form.formType]}
-                </p>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs text-slate-500">รหัสฟอร์ม</label>
-                <input
-                  type="text"
-                  value={form.formCode}
-                  onChange={(e) => {
-                    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
-                    setForm((f) => ({ ...f, formCode: value }));
-                    if (formErrors.formCode) {
-                      setFormErrors(
-                        validateForm({ ...form, formCode: value }, matrix, editingKey)
-                      );
-                    }
-                  }}
-                  onBlur={() => setFormErrors(validateForm(form, matrix, editingKey))}
-                  className={formErrors.formCode ? inputErrorCls : inputCls}
-                />
-                {formErrors.formCode && (
-                  <p className="mt-1 text-xs text-red-500">{formErrors.formCode}</p>
-                )}
-              </div>
-              {editingKey && (
-                <StatusFormToggle
-                  active={form.isActive}
-                  onChange={(isActive) => setForm((f) => ({ ...f, isActive }))}
-                />
+          <div className="space-y-4 max-w-md">
+            <div>
+              <label className="mb-1.5 block text-xs text-slate-500">ชื่อประเภทเอกสาร</label>
+              <input
+                type="text"
+                value={form.typeName}
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, typeName: e.target.value }));
+                  if (formErrors.typeName) {
+                    setFormErrors(
+                      validateForm({ ...form, typeName: e.target.value }, matrix, editingKey)
+                    );
+                  }
+                }}
+                onBlur={() => setFormErrors(validateForm(form, matrix, editingKey))}
+                className={formErrors.typeName ? inputErrorCls : inputCls}
+              />
+              {formErrors.typeName && (
+                <p className="mt-1 text-xs text-red-500">{formErrors.typeName}</p>
               )}
             </div>
-
-            <div className="mt-5 pt-3 border-t border-slate-100 flex shrink-0 justify-end gap-2">
-              <button
-                type="button"
-                onClick={closeModal}
-                disabled={saving}
-                className="rounded-md px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving || !isValid}
-                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
-              >
-                {saving && <Loader2 className="size-4 animate-spin" />}
-                {saving ? "กำลังบันทึก..." : "บันทึก"}
-              </button>
+            <div>
+              <label className="mb-1.5 block text-xs text-slate-500">Prefix</label>
+              <input
+                type="text"
+                value={form.prefix}
+                disabled={!!editingKey}
+                onChange={(e) => {
+                  const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+                  setForm((f) => ({ ...f, prefix: value }));
+                  if (formErrors.prefix) {
+                    setFormErrors(validateForm({ ...form, prefix: value }, matrix, editingKey));
+                  }
+                }}
+                onBlur={() => setFormErrors(validateForm(form, matrix, editingKey))}
+                className={formErrors.prefix ? inputErrorCls : inputCls}
+              />
+              {formErrors.prefix && (
+                <p className="mt-1 text-xs text-red-500">{formErrors.prefix}</p>
+              )}
             </div>
+            <div>
+              <label className="mb-1.5 block text-xs text-slate-500">Form Type</label>
+              <select
+                className={inputCls}
+                value={form.formType}
+                onChange={(e) => {
+                  const formType = e.target.value as FormTypeStyle;
+                  setForm((f) => ({
+                    ...f,
+                    formType,
+                    formCode: DEFAULT_FORM_META[formType].formCode,
+                  }));
+                }}
+              >
+                {FORM_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1.5 text-xs text-slate-400">
+                {FORM_TYPE_DESCRIPTIONS[form.formType]}
+              </p>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs text-slate-500">รหัสฟอร์ม</label>
+              <input
+                type="text"
+                value={form.formCode}
+                onChange={(e) => {
+                  const value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+                  setForm((f) => ({ ...f, formCode: value }));
+                  if (formErrors.formCode) {
+                    setFormErrors(
+                      validateForm({ ...form, formCode: value }, matrix, editingKey)
+                    );
+                  }
+                }}
+                onBlur={() => setFormErrors(validateForm(form, matrix, editingKey))}
+                className={formErrors.formCode ? inputErrorCls : inputCls}
+              />
+              {formErrors.formCode && (
+                <p className="mt-1 text-xs text-red-500">{formErrors.formCode}</p>
+              )}
+            </div>
+            {editingKey && (
+              <StatusFormToggle
+                active={form.isActive}
+                onChange={(isActive) => setForm((f) => ({ ...f, isActive }))}
+              />
+            )}
+          </div>
+
+          <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={closeModal}
+              disabled={saving}
+              className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving || !isValid}
+              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+            >
+              {saving && <Loader2 className="size-4 animate-spin" />}
+              {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+            </button>
           </div>
         </div>
+      ) : (
+        <>
+          <h2 className="text-sm font-medium text-slate-800">ประเภทเอกสาร</h2>
+
+          <MasterDataTableWrap
+            empty={docTypes.length === 0}
+            emptyContent={
+              <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+                <Inbox className="size-12 text-slate-300" />
+                <p className="text-sm text-slate-500">ยังไม่มีประเภทเอกสาร</p>
+                <button
+                  type="button"
+                  onClick={openAdd}
+                  className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                >
+                  <Plus className="size-4" />
+                  เพิ่มประเภทเอกสารแรก
+                </button>
+              </div>
+            }
+            mobile={<MasterDataMobileCardList rows={mobileRows} />}
+          >
+            <table className={MD_TABLE}>
+              <thead className={MD_THEAD}>
+                <tr>
+                  <th className={MD_TH_STICKY}>ชื่อประเภทเอกสาร</th>
+                  <th className={thCls}>Prefix</th>
+                  <th className={thCls}>Form Type / ฟอร์ม</th>
+                  <th className={MD_TH_RIGHT}>จำนวนเอกสารที่ใช้</th>
+                  <th className={MD_TH_STATUS}>สถานะ</th>
+                  <th className={MD_TH_ACTION}>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {docTypes.map((row) => (
+                  <tr
+                    key={row.key}
+                    className={`group ${MD_TR}`}
+                  >
+                    <td className={MD_TD_STICKY}>{row.typeName}</td>
+                    <td className={tdCls}>{row.prefix}</td>
+                    <td className={tdCls}>
+                      <span className="inline-flex items-center gap-1.5">
+                        {formTypeBadge(row.formType)}
+                        <FormTypeTooltip formType={row.formType} />
+                      </span>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {row.formCode} · {row.fieldsCount} ฟิลด์
+                      </p>
+                    </td>
+                    <td className={tdNum}>{row.docCount}</td>
+                    <td className={MD_TD_STATUS}>
+                      <StatusBadge active={row.isActive} />
+                    </td>
+                    <td className={MD_TD_ACTION}>
+                      <DeleteGuardActions
+                        row={row}
+                        onEdit={() => openEdit(row)}
+                        onDelete={() => handleDelete(row)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </MasterDataTableWrap>
+
+          {docTypes.length > 0 && (
+            <StatCards
+              total={stats.total}
+              active={stats.active}
+              inactive={stats.inactive}
+              icon={FileType2}
+            />
+          )}
+        </>
       )}
     </div>
   );

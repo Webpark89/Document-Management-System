@@ -1428,133 +1428,38 @@ function MasterDataPageContent() {
       }
     >
       <section className={MD_SECTION}>
-          {activeTab === "running" ? (
-            <DocumentRunningTab showToast={showToast} />
-          ) : activeTab === "workflow" ? (
-            <WorkflowTab
-              rows={rows as WorkflowRow[]}
-              showDeleted={showDeleted}
-              onShowDeletedChange={setShowDeleted}
-              stats={tabStats}
-              onEdit={openEdit}
-              onDelete={softDelete}
-              onRestore={restore}
-            />
-          ) : (
-            <>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <h2 className="text-sm font-medium text-slate-800">{tabLabel}</h2>
-            <InactiveFilterCheckbox checked={showDeleted} onChange={setShowDeleted} />
-          </div>
-
-          <MasterDataTableWrap
-            empty={rows.length === 0}
-            emptyContent={
-              <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-                <Inbox className="size-10 text-slate-300" />
-                <p className="text-sm text-slate-500">
-                  {showDeleted ? "ไม่มีรายการที่ปิดใช้งาน" : "ไม่มีข้อมูล"}
-                </p>
-                <p className="text-xs text-slate-400">
-                  {showDeleted
-                    ? "รายการที่กู้คืนจะแสดงในรายการปกติ"
-                    : activeTab === "signature"
-                      ? "เพิ่มลายเซ็นได้ที่หน้าโปรไฟล์"
-                      : "กดปุ่ม เพิ่ม เพื่อสร้างรายการใหม่"}
+        {modalOpen ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+              <div>
+                <h3 className="text-base font-bold text-slate-800">
+                  {editingId ? "แก้ไข" : "เพิ่ม"} {tabLabel}
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  กรอกรายละเอียดข้อมูล {tabLabel} ที่คุณต้องการ {editingId ? "แก้ไข" : "สร้างใหม่"}
                 </p>
               </div>
-            }
-            mobile={<MasterDataMobileCardList rows={mobileRows} />}
-          >
-            <table className={MD_TABLE}>
-              <thead className={MD_THEAD}>
-                <tr>
-                  {renderHeaders()}
-                  <th className={MD_TH_STATUS}>สถานะ</th>
-                  <th className={thAction}>จัดการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className={`group ${MD_TR}`}
-                  >
-                    {renderCells(row)}
-                    <td className={MD_TD_STATUS}>
-                      <StatusBadge active={row.isActive} />
-                    </td>
-                    <td className={MD_TD_ACTION}>
-                      {row.isActive ? (
-                        (() => {
-                          const guard = getDeleteGuard(
-                            activeTab as DataTabKey,
-                            row,
-                            signatureGuardData
-                          );
-                          return (
-                            <RowActions
-                              onEdit={() => openEdit(row.id)}
-                              onDelete={() => softDelete(row.id)}
-                              deleteBlocked={guard.blocked}
-                              deleteTooltip={guard.tooltip}
-                            />
-                          );
-                        })()
-                      ) : (
-                        <RowActions onRestore={() => restore(row.id)} />
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </MasterDataTableWrap>
-
-          <StatCards
-            total={tabStats.total}
-            active={tabStats.active}
-            inactive={tabStats.deleted}
-            icon={TabIcon}
-          />
-            </>
-          )}
-        </section>
-    </MasterDataLayout>
-
-      {modalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 sm:p-6 backdrop-blur-xs transition-[padding] duration-200"
-          style={{ paddingLeft: isOpen ? "calc(16rem + 1.5rem)" : "calc(5rem + 1.5rem)" }}
-          onClick={closeModal}
-        >
-          <div
-            className={`relative flex flex-col max-h-[85vh] w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl ${
-              activeTab === "workflow" ? "max-w-lg" : "max-w-md"
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex shrink-0 items-start justify-between gap-3 pb-3 border-b border-slate-100">
-              <h2 className="text-sm font-bold text-slate-800">
-                {editingId ? "แก้ไข" : "เพิ่ม"} {tabLabel}
-              </h2>
               <button
                 type="button"
                 onClick={closeModal}
                 disabled={saving}
-                className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
+                className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
                 aria-label="ปิด"
               >
                 <X className="size-4" />
               </button>
             </div>
-            <div className="mt-4 flex-1 overflow-y-auto pr-1 space-y-3">{renderFormFields()}</div>
-            <div className="mt-5 pt-3 border-t border-slate-100 flex shrink-0 justify-end gap-2">
+            
+            <div className={`space-y-4 ${activeTab === "workflow" ? "max-w-xl" : "max-w-md"}`}>
+              {renderFormFields()}
+            </div>
+            
+            <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={closeModal}
                 disabled={saving}
-                className="rounded-md px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
+                className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
               >
                 ยกเลิก
               </button>
@@ -1562,15 +1467,106 @@ function MasterDataPageContent() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving || !isModalValid}
-                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
               >
                 {saving && <Loader2 className="size-4 animate-spin" />}
-                {saving ? "กำลังบันทึก..." : "บันทึก"}
+                {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
               </button>
             </div>
           </div>
-        </div>
-      )}
+        ) : activeTab === "running" ? (
+          <DocumentRunningTab showToast={showToast} />
+        ) : activeTab === "workflow" ? (
+          <WorkflowTab
+            rows={rows as WorkflowRow[]}
+            showDeleted={showDeleted}
+            onShowDeletedChange={setShowDeleted}
+            stats={tabStats}
+            onEdit={openEdit}
+            onDelete={softDelete}
+            onRestore={restore}
+          />
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <h2 className="text-sm font-medium text-slate-800">{tabLabel}</h2>
+              <InactiveFilterCheckbox checked={showDeleted} onChange={setShowDeleted} />
+            </div>
+
+            <MasterDataTableWrap
+              empty={rows.length === 0}
+              emptyContent={
+                <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+                  <Inbox className="size-10 text-slate-300" />
+                  <p className="text-sm text-slate-500">
+                    {showDeleted ? "ไม่มีรายการที่ปิดใช้งาน" : "ไม่มีข้อมูล"}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {showDeleted
+                      ? "รายการที่กู้คืนจะแสดงในรายการปกติ"
+                      : activeTab === "signature"
+                        ? "เพิ่มลายเซ็นได้ที่หน้าโปรไฟล์"
+                        : "กดปุ่ม เพิ่ม เพื่อสร้างรายการใหม่"}
+                  </p>
+                </div>
+              }
+              mobile={<MasterDataMobileCardList rows={mobileRows} />}
+            >
+              <table className={MD_TABLE}>
+                <thead className={MD_THEAD}>
+                  <tr>
+                    {renderHeaders()}
+                    <th className={MD_TH_STATUS}>สถานะ</th>
+                    <th className={thAction}>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className={`group ${MD_TR}`}
+                    >
+                      {renderCells(row)}
+                      <td className={MD_TD_STATUS}>
+                        <StatusBadge active={row.isActive} />
+                      </td>
+                      <td className={MD_TD_ACTION}>
+                        {row.isActive ? (
+                          (() => {
+                            const guard = getDeleteGuard(
+                              activeTab as DataTabKey,
+                              row,
+                              signatureGuardData
+                            );
+                            return (
+                              <RowActions
+                                onEdit={() => openEdit(row.id)}
+                                onDelete={() => softDelete(row.id)}
+                                deleteBlocked={guard.blocked}
+                                deleteTooltip={guard.tooltip}
+                              />
+                            );
+                          })()
+                        ) : (
+                          <RowActions onRestore={() => restore(row.id)} />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </MasterDataTableWrap>
+
+            <StatCards
+              total={tabStats.total}
+              active={tabStats.active}
+              inactive={tabStats.deleted}
+              icon={TabIcon}
+            />
+          </>
+        )}
+      </section>
+    </MasterDataLayout>
       {previewSignatureUrl && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 sm:p-6 backdrop-blur-xs"

@@ -19,21 +19,13 @@ import {
   type ApprovalMatrixState,
   type DocumentTypeRecord,
 } from "@/features/master-data";
-import { ApprovalMatrixTab, DocumentTypesTab } from "@/features/master-data/components";
+import { DocumentTypesTab } from "@/features/master-data/components";
 import {
   MD_ADD_BTN,
   MD_SECTION,
   MD_SIDEBAR_NAV,
   MasterDataLayout,
-  PageTabSwitcher,
 } from "@/components/ui/admin";
-
-type PageTab = "types" | "matrix";
-
-const PAGE_TABS: { key: PageTab; label: string }[] = [
-  { key: "types", label: "ประเภทเอกสาร" },
-  { key: "matrix", label: "สายการอนุมัติ" },
-];
 
 const MASTER_DATA_NAV: {
   href: string;
@@ -58,28 +50,18 @@ function cloneMatrix(matrix: ApprovalMatrixState): ApprovalMatrixState {
 export default function DocFormsPage() {
   const pathname = usePathname();
   const { showToast } = useToast();
-  const [pageTab, setPageTab] = useState<PageTab>("types");
   const [addRequest, setAddRequest] = useState(0);
   const [matrix, setMatrix] = useState<ApprovalMatrixState>(() => cloneMatrix(APPROVAL_MATRIX));
   const [docTypes, setDocTypes] = useState<DocumentTypeRecord[]>(() =>
     matrixToDocumentTypes(cloneMatrix(APPROVAL_MATRIX))
   );
-  const [selectedKey, setSelectedKey] = useState<string>("PR");
-  const [setupNotice, setSetupNotice] = useState<string | null>(null);
 
   const toast = (message: string, type: "success" | "error") => showToast(message, type);
 
   const handleCreated = (key: string, typeName: string) => {
-    setSelectedKey(key);
-    setPageTab("matrix");
-    setSetupNotice(typeName);
+    // Show success toast instead of switching tab
+    showToast(`สร้างประเภทเอกสาร ${typeName} สำเร็จ`, "success");
   };
-
-  const matrixKeys = useMemo(() => Object.keys(matrix), [matrix]);
-
-  const resolvedSelectedKey = matrixKeys.includes(selectedKey)
-    ? selectedKey
-    : matrixKeys[0] ?? "";
 
   return (
     <MasterDataLayout
@@ -98,12 +80,10 @@ export default function DocFormsPage() {
       title="Master Data"
       subtitle="In-memory demo — resets on refresh"
       actions={
-        pageTab === "types" ? (
-          <button type="button" onClick={() => setAddRequest((n) => n + 1)} className={MD_ADD_BTN}>
-            <Plus className="size-4" />
-            เพิ่ม
-          </button>
-        ) : undefined
+        <button type="button" onClick={() => setAddRequest((n) => n + 1)} className={MD_ADD_BTN}>
+          <Plus className="size-4" />
+          เพิ่ม
+        </button>
       }
       sidebar={
         <nav className={MD_SIDEBAR_NAV}>
@@ -129,36 +109,15 @@ export default function DocFormsPage() {
       }
     >
       <section className={MD_SECTION}>
-        <div className="w-fit">
-          <PageTabSwitcher
-            tabs={PAGE_TABS}
-            active={pageTab}
-            onChange={(key) => setPageTab(key as PageTab)}
-          />
-        </div>
-
-        {pageTab === "types" ? (
-          <DocumentTypesTab
-            matrix={matrix}
-            docTypes={docTypes}
-            onMatrixChange={setMatrix}
-            onDocTypesChange={setDocTypes}
-            onCreated={handleCreated}
-            showToast={toast}
-            addRequest={addRequest}
-          />
-        ) : (
-          <ApprovalMatrixTab
-            matrix={matrix}
-            docTypes={docTypes}
-            selectedKey={resolvedSelectedKey}
-            onSelectKey={setSelectedKey}
-            onMatrixChange={setMatrix}
-            showToast={toast}
-            setupNotice={setupNotice}
-            onDismissSetupNotice={() => setSetupNotice(null)}
-          />
-        )}
+        <DocumentTypesTab
+          matrix={matrix}
+          docTypes={docTypes}
+          onMatrixChange={setMatrix}
+          onDocTypesChange={setDocTypes}
+          onCreated={handleCreated}
+          showToast={toast}
+          addRequest={addRequest}
+        />
       </section>
     </MasterDataLayout>
   );
