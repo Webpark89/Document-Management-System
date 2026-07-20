@@ -89,7 +89,7 @@ export const SIGNATURES: SignatureRecord[] = [
   {
     id: "1",
     approverName: "สมชาย ใจดี",
-    position: "ผู้จัดการแผนกจัดซื้อ",
+    position: "ผู้จัดการฝ่ายจัดซื้อ",
     signedCount: 42,
     isActive: true,
     imageUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='50' viewBox='0 0 150 50'><path d='M10,35 Q30,10 60,30 T110,15 T140,40' fill='none' stroke='%231d4ed8' stroke-width='3' stroke-linecap='round'/></svg>",
@@ -97,7 +97,7 @@ export const SIGNATURES: SignatureRecord[] = [
   {
     id: "2",
     approverName: "วิภา รักดี",
-    position: "หัวหน้าแผนกบัญชี",
+    position: "หัวหน้าคลังสินค้า",
     signedCount: 28,
     isActive: true,
     imageUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='50' viewBox='0 0 150 50'><path d='M15,20 C45,45 60,5 90,30 C120,45 130,10 145,25' fill='none' stroke='%23047857' stroke-width='2.5' stroke-linecap='round'/></svg>",
@@ -105,7 +105,7 @@ export const SIGNATURES: SignatureRecord[] = [
   {
     id: "3",
     approverName: "ประเสริฐ มีสุข",
-    position: "ผู้อำนวยการ",
+    position: "ผู้ดูแลระบบ IT",
     signedCount: 15,
     isActive: true,
     imageUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='50' viewBox='0 0 150 50'><path d='M10,25 Q40,45 70,25 T130,25 Q140,10 145,35' fill='none' stroke='%23b91c1c' stroke-width='3' stroke-linecap='round'/></svg>",
