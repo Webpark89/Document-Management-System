@@ -92,6 +92,7 @@ export const SIGNATURES: SignatureRecord[] = [
     position: "ผู้จัดการแผนกจัดซื้อ",
     signedCount: 42,
     isActive: true,
+    imageUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='50' viewBox='0 0 150 50'><path d='M10,35 Q30,10 60,30 T110,15 T140,40' fill='none' stroke='%231d4ed8' stroke-width='3' stroke-linecap='round'/></svg>",
   },
   {
     id: "2",
@@ -99,6 +100,7 @@ export const SIGNATURES: SignatureRecord[] = [
     position: "หัวหน้าแผนกบัญชี",
     signedCount: 28,
     isActive: true,
+    imageUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='50' viewBox='0 0 150 50'><path d='M15,20 C45,45 60,5 90,30 C120,45 130,10 145,25' fill='none' stroke='%23047857' stroke-width='2.5' stroke-linecap='round'/></svg>",
   },
   {
     id: "3",
@@ -106,6 +108,7 @@ export const SIGNATURES: SignatureRecord[] = [
     position: "ผู้อำนวยการ",
     signedCount: 15,
     isActive: true,
+    imageUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='50' viewBox='0 0 150 50'><path d='M10,25 Q40,45 70,25 T130,25 Q140,10 145,35' fill='none' stroke='%23b91c1c' stroke-width='3' stroke-linecap='round'/></svg>",
   },
 ];
 

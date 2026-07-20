@@ -266,16 +266,6 @@ export default function DocumentsPage() {
         size="compact"
         title="ศูนย์เอกสาร"
         subtitle="จัดเก็บ จัดระเบียบ และจัดการเอกสารขององค์กร"
-        actions={
-          <button
-            type="button"
-            onClick={() => setIsUploadOpen(true)}
-            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700"
-          >
-            <Plus className="size-4" />
-            อัปโหลดเอกสาร
-          </button>
-        }
       />
 
       {/* WORKSPACE CARD */}
