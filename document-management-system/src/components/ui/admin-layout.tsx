@@ -1,20 +1,39 @@
 "use client";
 
 import type { ElementType, ReactNode } from "react";
-import { CheckCircle2, Pencil, RotateCcw, Trash2 } from "lucide-react";
-import { AppStatCard, StatCardGrid } from "@/components/ui/AppStatCard";
+import { useId, useSyncExternalStore } from "react";
+import { CheckCircle2, Loader2, Pencil, RotateCcw, Trash2, X } from "lucide-react";
+import { AppStatCard } from "@/components/ui/AppStatCard";
 import {
   MD_TABLE_CARD,
   MD_TABLE_SCROLL,
   MD_BTN_ICON,
   MD_BTN_ICON_DANGER,
+  MD_ADD_BTN,
   MD_PAGE,
+  MD_STAT_GRID,
+  MD_STAT_AFTER_TABLE,
 } from "@/components/ui/design-system";
+
+export const MASTER_DATA_FORM_GAP = "space-y-5";
+export const MASTER_DATA_LABEL_CLS = "mb-1.5 block text-xs text-slate-500";
+export const MASTER_DATA_HINT_CLS = "mt-1.5 text-xs text-slate-400";
+export const MASTER_DATA_ERROR_CLS = "mt-1.5 text-xs text-red-500";
+export const MASTER_DATA_INPUT_CLS =
+  "w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+export const MASTER_DATA_INPUT_ERROR_CLS =
+  "w-full rounded-md border border-red-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500";
+export const MASTER_DATA_READONLY_CLS =
+  "w-full cursor-not-allowed select-none rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-600";
+export const MASTER_DATA_MODAL_CANCEL_CLS =
+  "rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50";
 
 export {
   MD_TH,
   MD_TH_CENTER,
   MD_TH_RIGHT,
+  MD_TH_NUM_RIGHT,
+  MD_TH_NUM_CENTER,
   MD_TH_ACTION,
   MD_TH_STATUS,
   MD_TH_STICKY,
@@ -26,9 +45,17 @@ export {
   MD_TD_ACTION,
   MD_TD_STATUS,
   MD_TD_STICKY,
+  MD_TD_CELL_DIVIDER,
+  MD_TH_CELL_DIVIDER,
   MD_TABLE_CARD,
   MD_TABLE_SCROLL,
   MD_TABLE,
+  MD_STAT_GRID,
+  MD_STAT_AFTER_TABLE,
+  MD_TABLE_COL_4,
+  MD_TABLE_COL_5,
+  MD_TABLE_COL_6,
+  MD_TABLE_COL_DOC_TYPES,
   MD_TR,
   MD_BTN_ICON,
   MD_BTN_ICON_DANGER,
@@ -40,11 +67,16 @@ export {
 } from "@/components/ui/design-system";
 
 export const MD_LAYOUT_GAP = "gap-6";
-export const MD_SIDEBAR_COL = "lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start";
+export const MD_SIDEBAR_COL = "lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:items-stretch";
+export const MD_SIDEBAR_COL_COMPACT = "lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start";
 export const MD_SIDEBAR_PANEL =
-  "h-fit self-start rounded-xl bg-white shadow-sm";
+  "flex h-full min-h-0 flex-col rounded-xl bg-white shadow-sm";
+export const MD_SIDEBAR_PANEL_COMPACT =
+  "flex h-fit flex-col self-start rounded-xl bg-white shadow-sm";
+export const MD_CONTENT_PANEL =
+  "flex h-full min-h-0 flex-col rounded-xl bg-white p-6 shadow-sm";
 export const MD_SIDEBAR_NAV = "space-y-2 p-4";
-export const MD_SECTION = "min-w-0 w-full space-y-6";
+export const MD_SECTION = "min-w-0 flex w-full flex-1 flex-col gap-6";
 
 export function StatusBadge({ active }: { active: boolean }) {
   return (
@@ -85,11 +117,14 @@ export function StatCards({
   active,
   inactive,
   icon: Icon,
+  placement = "default",
 }: {
   total: number;
   active: number;
   inactive: number;
   icon: ElementType;
+  /** Master Data: stats row below table — adds gap + divider */
+  placement?: "default" | "afterTable";
 }) {
   const items = [
     { value: total, label: "ทั้งหมด", icon: Icon, iconBg: "bg-blue-50", iconColor: "text-blue-600" },
@@ -109,8 +144,8 @@ export function StatCards({
     },
   ] as const;
 
-  return (
-    <StatCardGrid columns={3}>
+  const grid = (
+    <div className={MD_STAT_GRID}>
       {items.map(({ value, label, icon: ItemIcon, iconBg, iconColor }) => (
         <AppStatCard
           key={label}
@@ -121,7 +156,23 @@ export function StatCards({
           iconColor={iconColor}
         />
       ))}
-    </StatCardGrid>
+    </div>
+  );
+
+  if (placement === "afterTable") {
+    return <div className={MD_STAT_AFTER_TABLE}>{grid}</div>;
+  }
+
+  return grid;
+}
+
+export function MasterDataTableColGroup({ widths }: { widths: readonly string[] }) {
+  return (
+    <colgroup>
+      {widths.map((width, index) => (
+        <col key={`${width}-${index}`} style={{ width }} />
+      ))}
+    </colgroup>
   );
 }
 
@@ -159,6 +210,195 @@ export function MasterDataMobileCardList({ rows }: { rows: MasterDataMobileRow[]
   );
 }
 
+const TOOLTIP_PANEL =
+  "pointer-events-none absolute z-50 w-max max-w-[240px] rounded-md bg-slate-800 px-2.5 py-1.5 text-left text-[11px] leading-snug text-white shadow-lg";
+
+const TOOLTIP_SIDE: Record<
+  "top" | "bottom" | "left",
+  { panel: string; arrow: string }
+> = {
+  top: {
+    panel: "bottom-full left-1/2 mb-2 -translate-x-1/2",
+    arrow:
+      "absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-800",
+  },
+  bottom: {
+    panel: "top-full left-1/2 mt-2 -translate-x-1/2",
+    arrow:
+      "absolute left-1/2 bottom-full -translate-x-1/2 border-4 border-transparent border-b-slate-800",
+  },
+  left: {
+    panel: "right-full top-1/2 mr-2 -translate-y-1/2",
+    arrow:
+      "absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-slate-800",
+  },
+};
+
+const tooltipSubscribers = new Set<() => void>();
+let activeTooltipId: string | null = null;
+
+function subscribeTooltips(onStoreChange: () => void) {
+  tooltipSubscribers.add(onStoreChange);
+  return () => tooltipSubscribers.delete(onStoreChange);
+}
+
+function setActiveTooltipId(id: string | null) {
+  if (activeTooltipId === id) return;
+  activeTooltipId = id;
+  tooltipSubscribers.forEach((notify) => notify());
+}
+
+function useTooltipOpen(id: string) {
+  return useSyncExternalStore(
+    subscribeTooltips,
+    () => activeTooltipId === id,
+    () => false
+  );
+}
+
+/** Compact hover tooltip — only one visible app-wide at a time. */
+export function AnchoredTooltip({
+  content,
+  children,
+  side = "left",
+}: {
+  content: ReactNode;
+  children: ReactNode;
+  side?: "top" | "bottom" | "left";
+}) {
+  const id = useId();
+  const isOpen = useTooltipOpen(id);
+  const placement = TOOLTIP_SIDE[side];
+
+  return (
+    <span
+      className="relative inline-flex overflow-visible"
+      onMouseEnter={() => setActiveTooltipId(id)}
+      onMouseLeave={() => {
+        if (activeTooltipId === id) setActiveTooltipId(null);
+      }}
+      onFocus={() => setActiveTooltipId(id)}
+      onBlur={() => {
+        if (activeTooltipId === id) setActiveTooltipId(null);
+      }}
+    >
+      {children}
+      {isOpen ? (
+        <span role="tooltip" className={`${TOOLTIP_PANEL} ${placement.panel}`}>
+          {content}
+          <span aria-hidden className={placement.arrow} />
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+export function MasterDataFormField({
+  label,
+  children,
+  error,
+  hint,
+}: {
+  label: string;
+  children: ReactNode;
+  error?: string;
+  hint?: string;
+}) {
+  return (
+    <div>
+      <label className={MASTER_DATA_LABEL_CLS}>{label}</label>
+      {children}
+      {error ? <p className={MASTER_DATA_ERROR_CLS}>{error}</p> : null}
+      {hint && !error ? <p className={MASTER_DATA_HINT_CLS}>{hint}</p> : null}
+    </div>
+  );
+}
+
+export function MasterDataReadOnlyField({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: ReactNode;
+  hint?: string;
+}) {
+  return (
+    <MasterDataFormField label={label} hint={hint}>
+      <div className={MASTER_DATA_READONLY_CLS}>{value}</div>
+    </MasterDataFormField>
+  );
+}
+
+export function MasterDataModal({
+  title,
+  onClose,
+  onSave,
+  saving = false,
+  saveDisabled = false,
+  wide = false,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  onSave: () => void;
+  saving?: boolean;
+  saveDisabled?: boolean;
+  wide?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className={`relative w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${wide ? "max-w-lg" : "max-w-[500px]"}`}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="master-data-modal-title"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <h2 id="master-data-modal-title" className="text-base font-bold text-slate-800">
+            {title}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
+            aria-label="ปิด"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <div className={`mt-5 ${MASTER_DATA_FORM_GAP}`}>{children}</div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className={MASTER_DATA_MODAL_CANCEL_CLS}
+          >
+            ยกเลิก
+          </button>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving || saveDisabled}
+            className={`${MD_ADD_BTN} disabled:opacity-60`}
+          >
+            {saving ? <Loader2 className="size-4 animate-spin" /> : null}
+            {saving ? "กำลังบันทึก..." : "บันทึก"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function MasterDataTableWrap({
   empty,
   emptyContent,
@@ -175,9 +415,9 @@ export function MasterDataTableWrap({
   }
 
   return (
-    <div className={MD_TABLE_CARD}>
+    <div className={`${MD_TABLE_CARD} min-w-0 shrink-0`}>
       {mobile}
-      <div className={`${MD_TABLE_SCROLL} hidden md:block`}>{children}</div>
+      <div className={`${MD_TABLE_SCROLL} hidden min-w-0 md:block`}>{children}</div>
     </div>
   );
 }
@@ -204,33 +444,37 @@ export function RowActions({
   }
 
   return (
-    <div className="inline-flex items-center divide-x divide-gray-200">
+    <div className="inline-flex items-center divide-x divide-gray-200 overflow-visible">
       {onEdit && (
         <button type="button" title="แก้ไข" onClick={onEdit} className={MD_BTN_ICON}>
           <Pencil className="size-4" />
         </button>
       )}
-      {onDelete && (
-        <span className="group relative inline-flex">
+      {onDelete &&
+        (deleteBlocked && deleteTooltip ? (
+          <AnchoredTooltip content={deleteTooltip} side="left">
+            <span className="inline-flex cursor-not-allowed">
+              <button
+                type="button"
+                tabIndex={-1}
+                aria-disabled="true"
+                onClick={(e) => e.preventDefault()}
+                className={`${MD_BTN_ICON_DANGER} pointer-events-none`}
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </span>
+          </AnchoredTooltip>
+        ) : (
           <button
             type="button"
-            title={deleteBlocked ? undefined : "ลบ"}
+            title="ลบ"
             onClick={onDelete}
-            disabled={deleteBlocked}
             className={MD_BTN_ICON_DANGER}
           >
             <Trash2 className="size-4" />
           </button>
-          {deleteBlocked && deleteTooltip && (
-            <span
-              role="tooltip"
-              className="pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 hidden w-64 rounded-md bg-slate-800 px-2.5 py-1.5 text-xs leading-snug text-white shadow-lg group-hover:block"
-            >
-              {deleteTooltip}
-            </span>
-          )}
-        </span>
-      )}
+        ))}
     </div>
   );
 }
@@ -244,7 +488,7 @@ export function StatusFormToggle({
 }) {
   return (
     <div>
-      <p className="mb-2 text-xs text-slate-500">สถานะ</p>
+      <p className={MASTER_DATA_LABEL_CLS}>สถานะ</p>
       <div className="inline-flex rounded-md border border-gray-200 p-0.5">
         <button
           type="button"
@@ -337,6 +581,7 @@ export function MasterDataLayout({
   subtitle,
   actions,
   children,
+  sidebarCompact = false,
 }: {
   sidebar: ReactNode;
   breadcrumb: ReactNode;
@@ -344,7 +589,12 @@ export function MasterDataLayout({
   subtitle?: string;
   actions?: ReactNode;
   children: ReactNode;
+  /** Top-aligned sidebar — use when equal-height leaves awkward empty nav space */
+  sidebarCompact?: boolean;
 }) {
+  const gridCls = sidebarCompact ? MD_SIDEBAR_COL_COMPACT : MD_SIDEBAR_COL;
+  const sidebarCls = sidebarCompact ? MD_SIDEBAR_PANEL_COMPACT : MD_SIDEBAR_PANEL;
+
   return (
     <div className="h-fit w-full min-w-0">
       <div className={MD_PAGE}>
@@ -355,9 +605,9 @@ export function MasterDataLayout({
           actions={actions}
         />
 
-        <div className={`mt-6 grid grid-cols-1 ${MD_LAYOUT_GAP} ${MD_SIDEBAR_COL}`}>
-          <aside className={`order-2 lg:order-none ${MD_SIDEBAR_PANEL}`}>{sidebar}</aside>
-          <div className={`order-3 min-w-0 lg:order-none ${MD_SECTION}`}>{children}</div>
+        <div className={`mt-6 grid grid-cols-1 ${MD_LAYOUT_GAP} ${gridCls}`}>
+          <aside className={`order-2 lg:order-none ${sidebarCls}`}>{sidebar}</aside>
+          <div className={`order-3 min-w-0 lg:order-none ${MD_CONTENT_PANEL}`}>{children}</div>
         </div>
       </div>
     </div>
