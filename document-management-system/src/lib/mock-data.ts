@@ -3,7 +3,7 @@ import { Document, DocumentStatus, DocumentType, User, Workflow, Notification, D
 // ─── Mock Documents ───────────────────────────────────────────────────────────
 export const MOCK_DOCUMENTS: Document[] = [
   {
-    id: "1",
+    id: "PR-2026-0001",
     doc_number: "PR-2026-0001",
     title: "ขอซื้ออุปกรณ์สำนักงาน Q3/2026",
     type: "PR",
@@ -15,7 +15,7 @@ export const MOCK_DOCUMENTS: Document[] = [
     is_deleted: false,
   },
   {
-    id: "2",
+    id: "PO-2026-0001",
     doc_number: "PO-2026-0001",
     title: "ใบสั่งซื้อ Laptop Dell สำหรับทีม IT",
     type: "PO",
@@ -27,7 +27,7 @@ export const MOCK_DOCUMENTS: Document[] = [
     is_deleted: false,
   },
   {
-    id: "3",
+    id: "PR-2026-0002",
     doc_number: "PR-2026-0002",
     title: "ขอซื้อวัสดุสิ้นเปลืองสำหรับโรงงาน",
     type: "PR",
@@ -39,7 +39,7 @@ export const MOCK_DOCUMENTS: Document[] = [
     is_deleted: false,
   },
   {
-    id: "4",
+    id: "PO-2026-0002",
     doc_number: "PO-2026-0002",
     title: "ใบสั่งซื้อวัตถุดิบ เดือนกรกฎาคม",
     type: "PO",
@@ -51,8 +51,8 @@ export const MOCK_DOCUMENTS: Document[] = [
     is_deleted: false,
   },
   {
-    id: "5",
-    doc_number: "MM-2026-0001",
+    id: "MEMO-2026-0001",
+    doc_number: "MEMO-2026-0001",
     title: "บันทึกข้อความภายใน",
     type: "Memo",
     status: "Approved",
@@ -63,7 +63,7 @@ export const MOCK_DOCUMENTS: Document[] = [
     is_deleted: false,
   },
   {
-    id: "6",
+    id: "PR-2026-0003",
     doc_number: "PR-2026-0003",
     title: "ขอซื้ออุปกรณ์ป้องกันความปลอดภัย",
     type: "PR",
@@ -95,7 +95,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: "n1",
     message: "เอกสาร PR-2026-0001 รออนุมัติจากคุณ",
-    document_id: "1",
+    document_id: "PR-2026-0001",
     document_title: "ขอซื้ออุปกรณ์สำนักงาน Q3/2026",
     is_read: false,
     created_at: "2026-07-14T08:00:00Z",
@@ -103,7 +103,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: "n2",
     message: "เอกสาร PR-2026-0003 รออนุมัติจากคุณ",
-    document_id: "6",
+    document_id: "PR-2026-0003",
     document_title: "ขอซื้ออุปกรณ์ป้องกันความปลอดภัย",
     is_read: false,
     created_at: "2026-07-14T09:30:00Z",
@@ -111,7 +111,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: "n3",
     message: "เอกสาร PO-2026-0001 ได้รับการอนุมัติแล้ว",
-    document_id: "2",
+    document_id: "PO-2026-0001",
     document_title: "ใบสั่งซื้อ Laptop Dell สำหรับทีม IT",
     is_read: true,
     created_at: "2026-07-12T10:00:00Z",
@@ -265,8 +265,9 @@ export const MOCK_AUDIT_LOGS: AuditLog[] = [
 import { DocumentVersion } from "@/features/documents/types";
 
 export const MOCK_DOCUMENT_VERSIONS: DocumentVersion[] = [
+  // PR-2026-0001
   {
-    id: "v3",
+    id: "v3_pr1",
     document_id: "PR-2026-0001",
     version_number: "V.3",
     uploaded_by: "วิภา รักดี",
@@ -276,7 +277,7 @@ export const MOCK_DOCUMENT_VERSIONS: DocumentVersion[] = [
     is_active: true,
   },
   {
-    id: "v2",
+    id: "v2_pr1",
     document_id: "PR-2026-0001",
     version_number: "V.2",
     uploaded_by: "สมชาย ใจดี",
@@ -286,7 +287,7 @@ export const MOCK_DOCUMENT_VERSIONS: DocumentVersion[] = [
     is_active: false,
   },
   {
-    id: "v1",
+    id: "v1_pr1",
     document_id: "PR-2026-0001",
     version_number: "V.1",
     uploaded_by: "วิภา รักดี",
@@ -295,6 +296,18 @@ export const MOCK_DOCUMENT_VERSIONS: DocumentVersion[] = [
     remarks: "สร้างเอกสารร่างเริ่มต้น (Initial Draft)",
     is_active: false,
   },
+
+  // PO-2026-0001
+  {
+    id: "v2_po1",
+    document_id: "PO-2026-0001",
+    version_number: "V.2",
+    uploaded_by: "วิภา รักดี",
+    created_at: "2026-07-12T10:00:00Z",
+    file_size_kb: 2150,
+    remarks: "ประทับลายเซ็นอนุมัติเรียบร้อย",
+    is_active: true,
+  },
   {
     id: "v1_po1",
     document_id: "PO-2026-0001",
@@ -302,7 +315,114 @@ export const MOCK_DOCUMENT_VERSIONS: DocumentVersion[] = [
     uploaded_by: "วิภา รักดี",
     created_at: "2026-07-05T09:00:00Z",
     file_size_kb: 2048,
-    remarks: "Initial PO",
+    remarks: "Initial PO document",
+    is_active: false,
+  },
+
+  // PR-2026-0002
+  {
+    id: "v2_pr2",
+    document_id: "PR-2026-0002",
+    version_number: "V.2",
+    uploaded_by: "อรทัย สุขใจ",
+    created_at: "2026-07-13T14:00:00Z",
+    file_size_kb: 950,
+    remarks: "แก้ไขข้อมูลจำนวนตามที่ฝ่ายผลิตแจ้งปรับลด",
+    is_active: true,
+  },
+  {
+    id: "v1_pr2",
+    document_id: "PR-2026-0002",
+    version_number: "V.1",
+    uploaded_by: "อรทัย สุขใจ",
+    created_at: "2026-07-12T11:00:00Z",
+    file_size_kb: 930,
+    remarks: "Initial document submission",
+    is_active: false,
+  },
+
+  // MEMO-2026-0001
+  {
+    id: "v1_mm1",
+    document_id: "MEMO-2026-0001",
+    version_number: "V.1",
+    uploaded_by: "ประเสริฐ มีสุข",
+    created_at: "2026-07-11T09:00:00Z",
+    file_size_kb: 450,
+    remarks: "บันทึกขออนุมัติสัมมนาประจำปี",
+    is_active: true,
+  },
+
+  // PR-2026-0003
+  {
+    id: "v1_pr3",
+    document_id: "PR-2026-0003",
+    version_number: "V.1",
+    uploaded_by: "สมชาย ใจดี",
+    created_at: "2026-07-10T13:00:00Z",
+    file_size_kb: 1850,
+    remarks: "ขอซื้อ Software License สำหรับทีมพัฒนา",
+    is_active: true,
+  },
+
+  // PO-2026-0002
+  {
+    id: "v1_po2",
+    document_id: "PO-2026-0002",
+    version_number: "V.1",
+    uploaded_by: "ประทีป สุขเจริญ",
+    created_at: "2026-07-09T08:30:00Z",
+    file_size_kb: 1024,
+    remarks: "ใบสั่งซื้อกระดาษและอุปกรณ์เครื่องเขียน",
+    is_active: true,
+  },
+
+  // OTHER-2026-0001
+  {
+    id: "v1_ot1",
+    document_id: "OTHER-2026-0001",
+    version_number: "V.1",
+    uploaded_by: "กิตติศักดิ์ พรหมมา",
+    created_at: "2026-07-08T10:00:00Z",
+    file_size_kb: 3200,
+    remarks: "เอกสารยินยอมตรวจแปลงผลิตวัตถุดิบ",
+    is_active: true,
+  },
+
+  // PR-2026-0004
+  {
+    id: "v1_pr4",
+    document_id: "PR-2026-0004",
+    version_number: "V.1",
+    uploaded_by: "วิภา รักดี",
+    created_at: "2026-07-07T09:00:00Z",
+    file_size_kb: 1100,
+    remarks: "ขอซื้อโต๊ะและเก้าอี้บัญชี",
+    is_active: true,
+  },
+
+  // PO-2026-0003
+  {
+    id: "v1_po3",
+    document_id: "PO-2026-0003",
+    version_number: "V.1",
+    uploaded_by: "ณัฐพล วงศ์สว่าง",
+    created_at: "2026-07-06T14:10:00Z",
+    file_size_kb: 4120,
+    remarks: "สั่งซื้อเครื่องปั๊มน้ำอุตสาหกรรม",
+    is_active: true,
+  },
+
+  // MEMO-2026-0002
+  {
+    id: "v1_mm2",
+    document_id: "MEMO-2026-0002",
+    version_number: "V.1",
+    uploaded_by: "สมชาย ใจดี",
+    created_at: "2026-07-05T10:00:00Z",
+    file_size_kb: 512,
+    remarks: "รายงานการปรับปรุงระบบเน็ตเวิร์ก",
     is_active: true,
   }
 ];
+

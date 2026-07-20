@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
-import { ArrowLeft, FileText, AlertCircle } from "lucide-react";
+import { ArrowLeft, FileText, AlertCircle, History } from "lucide-react";
 import { getDocuments } from "@/features/documents/api";
 import type { Document } from "@/features/documents/types";
 import { getWorkflow, WorkflowData } from "@/features/workflow/api";
@@ -75,6 +75,14 @@ export default function ApprovalDetailPage({ params }: PageProps) {
           <ArrowLeft className="w-4 h-4" />
           กลับไปยัง Inbox (Back to Approvals)
         </Link>
+
+        <Link
+          href={`/documents/${doc.id}/versions`}
+          className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+        >
+          <History className="w-4 h-4" />
+          Version History
+        </Link>
       </div>
 
       <PageHeader
@@ -136,9 +144,16 @@ export default function ApprovalDetailPage({ params }: PageProps) {
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   Version
                 </p>
-                <p className="text-sm font-bold text-slate-800 mt-1">
-                  {doc.version}
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-sm font-bold text-slate-800">{doc.version}</p>
+                  <Link
+                    href={`/documents/${doc.id}/versions`}
+                    title="View Version History"
+                    className="p-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                  >
+                    <History className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
