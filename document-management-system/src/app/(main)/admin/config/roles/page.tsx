@@ -32,13 +32,9 @@ import {
   MD_ADD_BTN,
   MD_TABLE_CARD,
   MD_TD,
-  MD_TD_ACTION,
   MD_TD_NUM,
-  MD_TD_NUM_RIGHT,
   MD_TD_STATUS,
   MD_TH,
-  MD_TH_CENTER,
-  MD_TH_RIGHT,
   MD_TH_STATUS,
   MD_THEAD,
   MD_TR,
@@ -157,6 +153,7 @@ function RolesListView({
   onRolesChange: (next: RoleRecord[]) => void;
   onCreate: () => void;
 }) {
+  const router = useRouter();
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const [showInactive, setShowInactive] = useState(false);
@@ -198,7 +195,7 @@ function RolesListView({
   };
 
   return (
-    <div className={ADMIN_PAGE_SHELL}>
+    <div className={`${ADMIN_PAGE_SHELL} min-w-0 max-w-full overflow-x-clip`}>
       <AdminPageHeader
         breadcrumb={
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -221,10 +218,10 @@ function RolesListView({
         }
       />
 
-      <div className={`${ADMIN_CONTENT} mt-6 space-y-6`}>
+      <div className={`${ADMIN_CONTENT} mt-6 min-w-0 max-w-full space-y-6`}>
         <StatCards total={stats.total} active={stats.active} inactive={stats.inactive} icon={Shield} />
 
-        <div className={MD_TABLE_CARD}>
+        <div className={`${MD_TABLE_CARD} min-w-0 max-w-full`}>
           <div className="space-y-3 border-b border-slate-100 bg-slate-50/40 p-4">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
@@ -247,15 +244,15 @@ function RolesListView({
             </label>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="min-w-0 overflow-x-auto">
+            <table className="w-full min-w-0 table-fixed text-sm">
               <thead className={MD_THEAD}>
                 <tr>
                   <th className={MD_TH}>ชื่อ Role</th>
-                  <th className={MD_TH_CENTER}>จำนวนผู้ใช้งาน</th>
+                  <th className={`${MD_TH_STATUS} w-[7.5rem]`}>จำนวนผู้ใช้งาน</th>
                   <th className={MD_TH}>สิทธิ์ (ดู/สร้าง/แก้ไข/ลบ/อนุมัติ)</th>
                   <th className={MD_TH_STATUS}>สถานะ</th>
-                  <th className={MD_TH_CENTER}>จัดการ</th>
+                  <th className={`${MD_TH_STATUS} w-[9rem]`}>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -270,10 +267,16 @@ function RolesListView({
                     const deleteBlocked = role.userCount > 0;
                     const deleteTooltip = `ไม่สามารถลบได้ เนื่องจากมีผู้ใช้งาน ${role.userCount} คนใช้ Role นี้อยู่`;
                     return (
-                      <tr key={role.id} className={MD_TR}>
-                        <td className={`${tdCls} font-medium`}>{role.name}</td>
-                        <td className={MD_TD_NUM}>{role.userCount}</td>
-                        <td className={tdCls}>
+                      <tr
+                        key={role.id}
+                        className={`${MD_TR} cursor-pointer`}
+                        onDoubleClick={() =>
+                          router.push(`/admin/config/roles?mode=edit&id=${role.id}`)
+                        }
+                      >
+                        <td className={`${tdCls} min-w-0 font-medium`}>{role.name}</td>
+                        <td className={`${MD_TD_NUM} w-[7.5rem]`}>{role.userCount}</td>
+                        <td className={`${tdCls} min-w-0`}>
                           <PermissionActionGrid
                             summary={role.permissionSummary}
                             roleName={role.name}
@@ -282,8 +285,11 @@ function RolesListView({
                         <td className={MD_TD_STATUS}>
                           <StatusBadge active={role.isActive} />
                         </td>
-                        <td className="px-6 py-4 text-center align-middle text-sm">
-                          <div className="flex justify-center gap-1">
+                        <td
+                          className={`${MD_TD_STATUS} w-[9rem]`}
+                          onDoubleClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex justify-center gap-2">
                             <Link
                               href={`/admin/config/roles?mode=edit&id=${role.id}`}
                               className={btnGhost}

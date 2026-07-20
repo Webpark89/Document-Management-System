@@ -4,13 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState, type ElementType } from "react";
 import {
+  Briefcase,
   Building2,
-  FileStack,
-  GitBranch,
-  Hash,
-  PenLine,
+  LayoutTemplate,
+  ListOrdered,
   Plus,
-  Stamp,
+  Signature,
+  Workflow,
 } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
@@ -21,8 +21,11 @@ import {
 } from "@/features/master-data";
 import { ApprovalMatrixTab, DocumentTypesTab } from "@/features/master-data/components";
 import {
-  MD_ADD_BTN,
+  MD_MASTER_ADD_BTN,
   MD_SECTION,
+  MD_SIDEBAR_ICON,
+  MD_SIDEBAR_ITEM,
+  MD_SIDEBAR_ITEM_ACTIVE,
   MD_SIDEBAR_NAV,
   MasterDataLayout,
   PageTabSwitcher,
@@ -41,12 +44,12 @@ const MASTER_DATA_NAV: {
   icon: ElementType;
   tab?: string;
 }[] = [
-  { href: "/admin/master-data/doc-forms", label: "จัดการฟอร์มเอกสาร", icon: FileStack },
+  { href: "/admin/master-data/doc-forms", label: "จัดการฟอร์มเอกสาร", icon: LayoutTemplate },
   { href: "/admin/master-data", label: "แผนก", icon: Building2, tab: "department" },
-  { href: "/admin/master-data", label: "ตำแหน่ง", icon: Stamp, tab: "position" },
-  { href: "/admin/master-data", label: "Workflow", icon: GitBranch, tab: "workflow" },
-  { href: "/admin/master-data", label: "ลายเซ็น", icon: PenLine, tab: "signature" },
-  { href: "/admin/master-data", label: "รูปแบบเลขที่เอกสาร", icon: Hash, tab: "running" },
+  { href: "/admin/master-data", label: "ตำแหน่ง", icon: Briefcase, tab: "position" },
+  { href: "/admin/master-data", label: "Workflow", icon: Workflow, tab: "workflow" },
+  { href: "/admin/master-data", label: "ลายเซ็น", icon: Signature, tab: "signature" },
+  { href: "/admin/master-data", label: "รูปแบบเลขที่เอกสาร", icon: ListOrdered, tab: "running" },
 ];
 
 function cloneMatrix(matrix: ApprovalMatrixState): ApprovalMatrixState {
@@ -99,8 +102,8 @@ export default function DocFormsPage() {
       subtitle="In-memory demo — resets on refresh"
       actions={
         pageTab === "types" ? (
-          <button type="button" onClick={() => setAddRequest((n) => n + 1)} className={MD_ADD_BTN}>
-            <Plus className="size-4" />
+          <button type="button" onClick={() => setAddRequest((n) => n + 1)} className={MD_MASTER_ADD_BTN}>
+            <Plus className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
             เพิ่ม
           </button>
         ) : undefined
@@ -114,13 +117,9 @@ export default function DocFormsPage() {
               <Link
                 key={label}
                 href={linkHref}
-                className={`flex w-full items-center gap-2 rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${
-                  isActive
-                    ? "border-blue-600 bg-blue-50 font-semibold text-blue-700"
-                    : "border-transparent text-slate-600 hover:bg-gray-50 hover:text-slate-800"
-                }`}
+                className={isActive ? MD_SIDEBAR_ITEM_ACTIVE : MD_SIDEBAR_ITEM}
               >
-                <Icon className="size-4 shrink-0" />
+                <Icon className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
                 {label}
               </Link>
             );

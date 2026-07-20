@@ -4,15 +4,15 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import {
+  Briefcase,
   Building2,
-  FileStack,
-  GitBranch,
-  Hash,
   Inbox,
+  LayoutTemplate,
+  ListOrdered,
   Loader2,
-  PenLine,
   Plus,
-  Stamp,
+  Signature,
+  Workflow,
   X,
 } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -44,8 +44,11 @@ import { DocumentRunningTab, WorkflowTab } from "@/features/master-data/componen
 import { useSignatures } from "@/components/providers/SignatureProvider";
 import {
   InactiveFilterCheckbox,
-  MD_ADD_BTN,
+  MD_MASTER_ADD_BTN,
   MD_SECTION,
+  MD_SIDEBAR_ICON,
+  MD_SIDEBAR_ITEM,
+  MD_SIDEBAR_ITEM_ACTIVE,
   MD_SIDEBAR_NAV,
   MD_TD,
   MD_TD_ACTION,
@@ -90,10 +93,10 @@ type TabData = {
 
 const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
   { key: "department", label: "แผนก", icon: Building2 },
-  { key: "position", label: "ตำแหน่ง", icon: Stamp },
-  { key: "workflow", label: "Workflow", icon: GitBranch },
-  { key: "signature", label: "ลายเซ็น", icon: PenLine },
-  { key: "running", label: "รูปแบบเลขที่เอกสาร", icon: Hash },
+  { key: "position", label: "ตำแหน่ง", icon: Briefcase },
+  { key: "workflow", label: "Workflow", icon: Workflow },
+  { key: "signature", label: "ลายเซ็น", icon: Signature },
+  { key: "running", label: "รูปแบบเลขที่เอกสาร", icon: ListOrdered },
 ];
 
 function uid() {
@@ -1394,19 +1397,16 @@ function MasterDataPageContent() {
       subtitle="In-memory demo — resets on refresh"
       actions={
         activeTab === "running" ? undefined : (
-          <button type="button" onClick={openAdd} className={MD_ADD_BTN}>
-            <Plus className="size-4" />
+          <button type="button" onClick={openAdd} className={MD_MASTER_ADD_BTN}>
+            <Plus className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
             เพิ่ม
           </button>
         )
       }
       sidebar={
         <nav className={MD_SIDEBAR_NAV}>
-          <Link
-            href="/admin/master-data/doc-forms"
-            className="flex w-full items-center gap-2 rounded-md border-l-2 border-transparent px-3 py-2 text-left text-sm text-slate-600 transition-colors hover:bg-gray-50 hover:text-slate-800"
-          >
-            <FileStack className="size-4 shrink-0" />
+          <Link href="/admin/master-data/doc-forms" className={MD_SIDEBAR_ITEM}>
+            <LayoutTemplate className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
             จัดการฟอร์มเอกสาร
           </Link>
           {TABS.map(({ key, label, icon: Icon }) => (
@@ -1414,13 +1414,9 @@ function MasterDataPageContent() {
               key={key}
               type="button"
               onClick={() => setActiveTab(key)}
-              className={`flex w-full items-center gap-2 rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${
-                activeTab === key
-                  ? "border-blue-600 bg-blue-50 font-semibold text-blue-700"
-                  : "border-transparent text-slate-600 hover:bg-gray-50 hover:text-slate-800"
-              }`}
+              className={activeTab === key ? MD_SIDEBAR_ITEM_ACTIVE : MD_SIDEBAR_ITEM}
             >
-              <Icon className="size-4 shrink-0" />
+              <Icon className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
               {label}
             </button>
           ))}

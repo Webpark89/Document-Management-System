@@ -404,7 +404,11 @@ function UsersListView({
                   </tr>
                 ) : (
                   filtered.map((user) => (
-                    <tr key={user.id} className={MD_TR}>
+                    <tr
+                      key={user.id}
+                      className={`${MD_TR} cursor-pointer`}
+                      onDoubleClick={() => setEditUser(user)}
+                    >
                       <td className={`${tdCls} font-medium`}>{user.fullName}</td>
                       <td className={tdMuted}>{user.email}</td>
                       <td className={tdMuted}>{user.department}</td>
@@ -413,7 +417,7 @@ function UsersListView({
                       <td className={MD_TD_STATUS}>
                         <StatusBadge active={user.isActive} />
                       </td>
-                      <td className={MD_TD_ACTION}>
+                      <td className={MD_TD_ACTION} onDoubleClick={(e) => e.stopPropagation()}>
                         <div className="inline-flex items-center divide-x divide-gray-200 rounded-md border border-transparent">
                           <button
                             type="button"

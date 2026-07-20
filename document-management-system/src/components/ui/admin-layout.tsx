@@ -75,7 +75,14 @@ export const MD_SIDEBAR_PANEL_COMPACT =
   "flex h-fit flex-col self-start rounded-xl bg-white shadow-sm";
 export const MD_CONTENT_PANEL =
   "flex h-full min-h-0 flex-col rounded-xl bg-white p-6 shadow-sm";
-export const MD_SIDEBAR_NAV = "space-y-2 p-4";
+export const MD_SIDEBAR_NAV = "space-y-1.5 p-4";
+export const MD_SIDEBAR_ICON = "size-[18px] shrink-0";
+export const MD_SIDEBAR_ITEM =
+  "flex w-full items-center gap-2.5 rounded-lg border-l-2 border-transparent px-3 py-2.5 text-left text-sm text-slate-600 transition-all duration-200 hover:bg-slate-50/90 hover:text-slate-800 hover:shadow-sm";
+export const MD_SIDEBAR_ITEM_ACTIVE =
+  "flex w-full items-center gap-2.5 rounded-lg border-l-[3px] border-blue-500 bg-gradient-to-r from-blue-50 via-blue-50/95 to-indigo-50 px-3 py-2.5 text-left text-sm font-semibold text-blue-700 shadow-sm ring-1 ring-blue-100/60 transition-all duration-200";
+export const MD_MASTER_ADD_BTN =
+  "inline-flex shrink-0 items-center gap-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:scale-[1.02] hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100";
 export const MD_SECTION = "min-w-0 flex w-full flex-1 flex-col gap-6";
 
 export function StatusBadge({ active }: { active: boolean }) {
