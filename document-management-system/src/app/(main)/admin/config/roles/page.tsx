@@ -107,9 +107,10 @@ function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-const btnGhost = "rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
+const btnGhost =
+  "whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100";
 const btnDanger =
-  "rounded-md px-3 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent";
+  "whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent";
 const inputCls =
   "w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 const formInputCls =
@@ -251,7 +252,7 @@ function RolesListView({
                   <th className={`${MD_TH_STATUS} w-[7.5rem]`}>จำนวนผู้ใช้งาน</th>
                   <th className={MD_TH}>สิทธิ์ (ดู/สร้าง/แก้ไข/ลบ/อนุมัติ)</th>
                   <th className={MD_TH_STATUS}>สถานะ</th>
-                  <th className={`${MD_TH_STATUS} w-[9rem]`}>จัดการ</th>
+                  <th className={`${MD_TH_STATUS} w-[11rem] min-w-[11rem]`}>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -285,10 +286,10 @@ function RolesListView({
                           <StatusBadge active={role.isActive} />
                         </td>
                         <td
-                          className={`${MD_TD_STATUS} w-[9rem]`}
+                          className={`${MD_TD_STATUS} w-[11rem] min-w-[11rem] whitespace-nowrap`}
                           onDoubleClick={(e) => e.stopPropagation()}
                         >
-                          <div className="flex justify-center gap-2">
+                          <div className="flex shrink-0 justify-center gap-1.5">
                             <Link
                               href={`/admin/config/roles?mode=edit&id=${role.id}`}
                               className={btnGhost}
