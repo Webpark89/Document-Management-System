@@ -12,6 +12,56 @@ import { MOCK_DOCUMENT_VERSIONS } from "@/lib/mock-data";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useSidebar } from "@/components/providers/SidebarProvider";
 
+function formatVersionDate(iso: string) {
+  return new Date(iso).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" });
+}
+
+function buildVersionDiffFields(older: DocumentVersion, newer: DocumentVersion) {
+  return [
+    {
+      label: "ผู้แก้ไข",
+      older: older.uploaded_by,
+      newer: newer.uploaded_by,
+      changed: older.uploaded_by !== newer.uploaded_by,
+    },
+    {
+      label: "ขนาดไฟล์",
+      older: `${older.file_size_kb} KB`,
+      newer: `${newer.file_size_kb} KB`,
+      changed: older.file_size_kb !== newer.file_size_kb,
+    },
+    {
+      label: "สถานะ",
+      older: older.is_active ? "Current" : "Archived",
+      newer: newer.is_active ? "Current" : "Archived",
+      changed: older.is_active !== newer.is_active,
+    },
+  ];
+}
+
+function splitRemarkLines(text: string): string[] {
+  const trimmed = text.trim();
+  if (!trimmed) return ["—"];
+  return trimmed.split(/(?<=[.;])\s+/).filter(Boolean);
+}
+
+function buildRemarkDiff(olderRemarks: string, newerRemarks: string) {
+  const olderLines = splitRemarkLines(olderRemarks);
+  const newerLines = splitRemarkLines(newerRemarks);
+  const newerSet = new Set(newerLines);
+  const olderSet = new Set(olderLines);
+  return {
+    older: olderLines.map((line) => ({
+      text: line,
+      tone: newerSet.has(line) ? ("neutral" as const) : ("removed" as const),
+    })),
+    newer: newerLines.map((line) => ({
+      text: line,
+      tone: olderSet.has(line) ? ("neutral" as const) : ("added" as const),
+    })),
+  };
+}
+
 export default function DocumentVersionsPage() {
   const params = useParams();
   const id = params.id as string;
@@ -23,6 +73,7 @@ export default function DocumentVersionsPage() {
 
   // Compare state
   const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
+  const [showCompareResult, setShowCompareResult] = useState(false);
   const [showCompareModal, setShowCompareModal] = useState(false);
   const [viewingVersion, setViewingVersion] = useState<string | null>(null);
 
@@ -68,12 +119,15 @@ export default function DocumentVersionsPage() {
 
   const handleCheckboxChange = (versionId: string) => {
     setSelectedVersions(prev => {
+      let next: string[];
       if (prev.includes(versionId)) {
-        return prev.filter(v => v !== versionId);
+        next = prev.filter(v => v !== versionId);
       } else {
-        if (prev.length >= 2) return prev; // Max 2
-        return [...prev, versionId];
+        if (prev.length >= 2) return prev;
+        next = [...prev, versionId];
       }
+      if (next.length !== 2) setShowCompareResult(false);
+      return next;
     });
   };
 
@@ -101,65 +155,82 @@ export default function DocumentVersionsPage() {
   };
 
   const diff = selectedData.length === 2 ? calculateDiff(selectedData[0], selectedData[1]) : null;
+  const compareFields =
+    selectedData.length === 2 ? buildVersionDiffFields(selectedData[0], selectedData[1]) : [];
+  const remarkDiff =
+    selectedData.length === 2
+      ? buildRemarkDiff(selectedData[0].remarks, selectedData[1].remarks)
+      : null;
+  const remarksChanged =
+    selectedData.length === 2 && selectedData[0].remarks !== selectedData[1].remarks;
+  const changeCount =
+    compareFields.filter((f) => f.changed).length + (remarksChanged ? 1 : 0);
 
   const showCheckboxes = versions.length > 1;
+  const canCompare = selectedVersions.length === 2;
+
+  const iconActionBtn =
+    "group relative rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100";
+  const iconActionTooltip =
+    "pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 hidden w-max -translate-x-1/2 rounded-md bg-slate-800 px-2 py-1 text-[10px] font-medium text-white shadow-lg group-hover:block";
 
   return (
     <div className={APP_PAGE_SHELL}>
       <div className={APP_PAGE_CONTENT}>
-      
-      <div className="mb-2">
+
+      <div className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
+        <div className="space-y-4">
         <Link
           href={`/documents/${doc.id}`}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="size-4" />
           กลับไปยังรายละเอียดเอกสาร (Back to Document Details)
         </Link>
+
+        <PageHeader
+          size="compact"
+          title={`ประวัติการแก้ไข (Version History): ${doc.id}`}
+          subtitle={`ติดตามการเปลี่ยนแปลงของ "${doc.name}"`}
+          actions={
+            showCheckboxes ? (
+              <button
+                onClick={() => setShowCompareResult(true)}
+                disabled={!canCompare}
+                title={!canCompare ? "เลือก 2 เวอร์ชันเพื่อเปรียบเทียบ" : "เปรียบเทียบเวอร์ชันที่เลือก"}
+                className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all ${
+                  canCompare
+                    ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
+                    : "cursor-not-allowed bg-slate-200 text-slate-500 opacity-50"
+                }`}
+              >
+                <FileText className="size-4" />
+                Compare Selected Versions
+              </button>
+            ) : undefined
+          }
+        />
+        </div>
       </div>
 
-      <PageHeader
-        size="compact"
-        title={`ประวัติการแก้ไข (Version History): ${doc.id}`}
-        subtitle={`ติดตามการเปลี่ยนแปลงของ "${doc.name}"`}
-        actions={
-          showCheckboxes ? (
-            <button 
-              onClick={() => setShowCompareModal(true)}
-              disabled={selectedVersions.length !== 2}
-              title={selectedVersions.length !== 2 ? "เลือก 2 เวอร์ชันเพื่อเปรียบเทียบ" : ""}
-              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm transition-all shadow-sm shrink-0"
-            >
-              <FileText className="w-4 h-4" />
-              Compare Selected Versions
-            </button>
-          ) : undefined
-        }
-      />
+      <div className="mt-6 flex flex-col space-y-4">
 
-      <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col space-y-6">
-        
-        <div className="overflow-x-auto border border-slate-100 rounded-2xl w-full">
-          <table className="w-full table-fixed text-left border-collapse min-w-[800px]">
+        <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
+          <table className="w-full min-w-[800px] table-fixed border-collapse text-left">
             <thead>
-              <tr className="bg-[#eef2f9] border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                {showCheckboxes && (
-                  <th className="py-4 pl-4 w-12 text-center">
-                    {/* Empty header for checkbox */}
-                  </th>
-                )}
-                <th className={`py-4 w-28 ${!showCheckboxes ? 'pl-6' : ''}`}>Version</th>
-                <th className="py-4 w-40">Updated Date</th>
-                <th className="py-4 w-44">Modifier</th>
-                <th className="py-4 min-w-[200px]">Changes / Remarks</th>
-                <th className="py-4 w-28 text-center">Status</th>
-                <th className="py-4 pr-4 w-28 text-center">Actions</th>
+              <tr className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <th className="w-36 py-4 pl-6 align-middle">Version</th>
+                <th className="w-40 py-4 align-middle">Updated Date</th>
+                <th className="w-44 py-4 align-middle">Modifier</th>
+                <th className="min-w-[200px] py-4 align-middle">Changes / Remarks</th>
+                <th className="w-32 py-4 text-center align-middle">Status</th>
+                <th className="w-28 py-4 pr-6 text-center align-middle">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody>
               {versions.length === 0 ? (
                 <tr>
-                  <td colSpan={showCheckboxes ? 7 : 6} className="py-8 text-center text-sm font-semibold text-slate-400">
+                  <td colSpan={6} className="py-10 text-center text-sm font-semibold text-slate-400">
                     ไม่มีประวัติการแก้ไข
                   </td>
                 </tr>
@@ -168,50 +239,69 @@ export default function DocumentVersionsPage() {
                 const isDisabled = !isChecked && selectedVersions.length >= 2;
 
                 return (
-                  <tr key={ver.id} className={`hover:bg-slate-50/50 transition-colors ${isChecked ? 'bg-blue-50/30' : ''}`}>
-                    {showCheckboxes && (
-                      <td className="py-4 pl-4 text-center">
-                        <input 
-                          type="checkbox" 
-                          checked={isChecked}
-                          disabled={isDisabled}
-                          onChange={() => handleCheckboxChange(ver.id)}
-                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                        />
-                      </td>
-                    )}
-                    <td className={`py-4 text-sm font-bold text-slate-700 ${!showCheckboxes ? 'pl-6' : ''}`}>{ver.version_number}</td>
+                  <tr
+                    key={ver.id}
+                    className={`border-b border-slate-100 transition-colors last:border-b-0 hover:bg-slate-50 ${
+                      isChecked ? "bg-blue-50/40" : "bg-white"
+                    }`}
+                  >
+                    <td className="py-4 pl-6 align-middle">
+                      <div className="flex items-center gap-3">
+                        {showCheckboxes && (
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            disabled={isDisabled}
+                            onChange={() => handleCheckboxChange(ver.id)}
+                            className="size-4 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+                          />
+                        )}
+                        <span className="text-sm font-bold tabular-nums text-slate-800">
+                          {ver.version_number}
+                        </span>
+                      </div>
+                    </td>
                     <td className="py-4 text-xs font-semibold text-slate-500">
-                      {new Date(ver.created_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })}
+                      {new Date(ver.created_at).toLocaleString("th-TH", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
                     </td>
                     <td className="py-4 text-xs font-semibold text-slate-800">{ver.uploaded_by}</td>
-                    <td className="py-4 text-xs font-medium text-slate-500 leading-relaxed pr-6">{ver.remarks}</td>
-                    <td className="py-4 text-center">
-                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md border ${
-                        ver.is_active 
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                          : "bg-slate-50 text-slate-400 border-slate-200"
-                      }`}>
-                        {ver.is_active ? "Current" : "Archived"}
-                      </span>
+                    <td className="py-4 pr-6 text-xs font-medium leading-relaxed text-slate-500">
+                      {ver.remarks}
                     </td>
-                    <td className="py-4 pr-4 text-center">
-                      <div className="flex items-center justify-center gap-1">
+                    <td className="py-4 text-center align-middle">
+                      {ver.is_active ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-100">
+                          <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                          Current
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-500">
+                          Archived
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-4 pr-6 text-center align-middle">
+                      <div className="inline-flex items-center justify-center gap-0.5">
                         <button
                           type="button"
                           onClick={() => setViewingVersion(ver.id)}
-                          title="View File Version"
-                          className="p-1.5 rounded-lg text-slate-400 hover:bg-white hover:text-blue-600 transition-colors cursor-pointer border border-transparent hover:border-slate-200 shadow-xs"
+                          className={`${iconActionBtn} hover:text-blue-600`}
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="size-4" />
+                          <span className={iconActionTooltip}>ดูเวอร์ชัน</span>
                         </button>
                         <button
                           type="button"
-                          onClick={() => showToast(`กำลังดาวน์โหลดไฟล์เวอร์ชัน ${ver.version_number}...`, "success")}
-                          title="Download Version"
-                          className="p-1.5 rounded-lg text-slate-400 hover:bg-white hover:text-emerald-600 transition-colors cursor-pointer border border-transparent hover:border-slate-200 shadow-xs"
+                          onClick={() =>
+                            showToast(`กำลังดาวน์โหลดไฟล์เวอร์ชัน ${ver.version_number}...`, "success")
+                          }
+                          className={`${iconActionBtn} hover:text-emerald-600`}
                         >
-                          <Download className="w-4 h-4" />
+                          <Download className="size-4" />
+                          <span className={iconActionTooltip}>ดาวน์โหลด</span>
                         </button>
                       </div>
                     </td>
@@ -221,11 +311,130 @@ export default function DocumentVersionsPage() {
             </tbody>
           </table>
         </div>
-        
+
         {showCheckboxes && (
           <p className="text-[11px] font-semibold text-slate-400">
             * เลือก Checkbox 2 รายการเพื่อเปรียบเทียบ
           </p>
+        )}
+
+        {showCompareResult && selectedData.length === 2 && (
+          <div className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
+            <div className="mb-4 flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">
+                  ผลการเปรียบเทียบเวอร์ชัน (Compare Versions)
+                </h3>
+                <p className="mt-1 text-xs font-semibold text-emerald-700">
+                  เปลี่ยนแปลง {changeCount} รายการ
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCompareResult(false)}
+                className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                aria-label="ปิดผลการเปรียบเทียบ"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {[selectedData[0], selectedData[1]].map((ver, colIdx) => (
+                <div
+                  key={ver.id}
+                  className={`rounded-xl border p-4 ${
+                    colIdx === 0 ? "border-slate-200 bg-slate-50/50" : "border-blue-200 bg-blue-50/30"
+                  }`}
+                >
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <span className="text-sm font-bold text-slate-800">{ver.version_number}</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        colIdx === 0
+                          ? "bg-white text-slate-500 ring-1 ring-slate-200"
+                          : "bg-white text-blue-600 ring-1 ring-blue-200"
+                      }`}
+                    >
+                      {colIdx === 0 ? "Older" : "Newer"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">{formatVersionDate(ver.created_at)}</p>
+                  <p className="mt-0.5 text-xs font-semibold text-slate-700">{ver.uploaded_by}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 overflow-x-auto rounded-xl border border-slate-100">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <th className="px-4 py-3 text-left">ฟิลด์</th>
+                    <th className="px-4 py-3 text-left">{selectedData[0].version_number}</th>
+                    <th className="px-4 py-3 text-left">{selectedData[1].version_number}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {compareFields.map((field) => (
+                    <tr key={field.label} className="border-b border-slate-100 last:border-b-0">
+                      <td className="px-4 py-3 text-xs font-semibold text-slate-500">{field.label}</td>
+                      <td
+                        className={`px-4 py-3 text-xs font-medium ${
+                          field.changed ? "bg-red-50 text-red-700" : "text-slate-700"
+                        }`}
+                      >
+                        {field.older}
+                      </td>
+                      <td
+                        className={`px-4 py-3 text-xs font-medium ${
+                          field.changed ? "bg-emerald-50 text-emerald-700" : "text-slate-700"
+                        }`}
+                      >
+                        {field.newer}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td className="px-4 py-3 align-top text-xs font-semibold text-slate-500">
+                      หมายเหตุ
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <ul className="space-y-1.5">
+                        {remarkDiff?.older.map((line, i) => (
+                          <li
+                            key={`old-${i}`}
+                            className={`rounded-md px-2 py-1 text-xs leading-relaxed ${
+                              line.tone === "removed"
+                                ? "bg-red-50 text-red-700 line-through decoration-red-300"
+                                : "bg-white text-slate-600"
+                            }`}
+                          >
+                            {line.text}
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <ul className="space-y-1.5">
+                        {remarkDiff?.newer.map((line, i) => (
+                          <li
+                            key={`new-${i}`}
+                            className={`rounded-md px-2 py-1 text-xs leading-relaxed ${
+                              line.tone === "added"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-white text-slate-600"
+                            }`}
+                          >
+                            {line.text}
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
       </div>
 
