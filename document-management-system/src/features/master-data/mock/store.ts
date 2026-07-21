@@ -38,18 +38,47 @@ export function countWorkflowsUsingApprover(
   return workflows.filter((w) => w.isActive && w.approvers.includes(approverName)).length;
 }
 
+export let WORKFLOW_RECORDS: WorkflowRecord[] = WORKFLOWS.map((r) => ({ ...r, approvers: [...r.approvers] }));
+
+export function getWorkflowRecords(): WorkflowRecord[] {
+  return WORKFLOW_RECORDS.map((w) => ({ ...w }));
+}
+
+export function appendWorkflowRecord(docType: { id: string; typeName: string; prefix: string; isActive: boolean; steps: RoleOption[] }) {
+  const existing = WORKFLOW_RECORDS.find((w) => w.documentTypeId === docType.id);
+  if (existing) {
+    existing.name = `อนุมัติ ${docType.prefix}`;
+    existing.prefix = docType.prefix;
+    existing.isActive = docType.isActive;
+    return;
+  }
+  const levels = docType.steps.length || 3;
+  WORKFLOW_RECORDS.push({
+    id: `wf-${docType.id}`,
+    documentTypeId: docType.id,
+    name: `อนุมัติ ${docType.prefix}`,
+    prefix: docType.prefix,
+    levels,
+    approverCount: levels,
+    approvers: [],
+    steps: docType.steps.length > 0 ? [...docType.steps] : ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"],
+    isActive: docType.isActive,
+  });
+}
+
 export function createInitialMasterTabData() {
   return {
     doctype: DOCUMENT_TYPES.map((r) => ({ ...r })),
     department: DEPARTMENTS.map((r) => ({ ...r })),
     position: POSITIONS.map((r) => ({ ...r })),
-    workflow: WORKFLOWS.map((r) => ({ ...r, approvers: [...r.approvers] })),
+    workflow: WORKFLOW_RECORDS,
     signature: SIGNATURES.map((r) => ({ ...r })),
   };
 }
 
 export function matrixToDocumentTypes(matrix: ApprovalMatrixState): DocumentTypeRecord[] {
   return Object.entries(matrix).map(([key, entry]) => ({
+    id: entry.id,
     key,
     typeName: entry.typeName,
     prefix: entry.prefix,
@@ -58,6 +87,7 @@ export function matrixToDocumentTypes(matrix: ApprovalMatrixState): DocumentType
     fieldsCount: entry.fieldsCount,
     docCount: entry.docCount,
     isActive: entry.isActive,
+    fields: entry.fields,
   }));
 }
 
@@ -117,6 +147,8 @@ export function createDefaultRunningConfig(
   entry: ApprovalMatrixEntry
 ): DocumentRunningConfig {
   return {
+    id: `run-config-${entry.id}`,
+    documentTypeId: entry.id,
     matrixKey,
     typeName: entry.typeName,
     prefix: entry.prefix,

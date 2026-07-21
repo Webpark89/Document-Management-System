@@ -33,6 +33,7 @@ export interface FormTypeRecord {
 
 export interface WorkflowRecord {
   id: string;
+  documentTypeId: string; // Foreign Key to DocumentType.id
   name: string;
   prefix: string;
   levels: number;
@@ -78,13 +79,62 @@ export const FORM_TYPE_DESCRIPTIONS: Record<FormTypeStyle, string> = {
 };
 
 export const DEFAULT_FORM_META: Record<FormTypeStyle, { formCode: string; fieldsCount: number }> = {
-  "PR-style": { formCode: "PR-FRM", fieldsCount: 12 },
-  "PO-style": { formCode: "PO-FRM", fieldsCount: 15 },
-  "MEMO-style": { formCode: "MEMO-FRM", fieldsCount: 8 },
-  "OTHER-style": { formCode: "OTHER-FRM", fieldsCount: 6 },
+  "PR-style": { formCode: "PR-FRM", fieldsCount: 8 },
+  "PO-style": { formCode: "PO-FRM", fieldsCount: 10 },
+  "MEMO-style": { formCode: "MEMO-FRM", fieldsCount: 6 },
+  "OTHER-style": { formCode: "OTHER-FRM", fieldsCount: 5 },
 };
 
+export const DEFAULT_FORM_FIELDS: Record<FormTypeStyle, FormFieldConfig[]> = {
+  "PR-style": [
+    { id: "pr_f1", name: "เลขที่เอกสาร", type: "Text", isRequired: true, isSystem: true },
+    { id: "pr_f2", name: "วันที่เอกสาร", type: "Date", isRequired: true, isSystem: true },
+    { id: "pr_f3", name: "ผู้จัดทำ", type: "Text", isRequired: true, isSystem: true },
+    { id: "pr_f4", name: "แผนก", type: "Dropdown", isRequired: true, isSystem: true },
+    { id: "pr_f5", name: "วัตถุประสงค์การจัดซื้อ", type: "Text", isRequired: true },
+    { id: "pr_f6", name: "วันที่ต้องการสินค้า", type: "Date", isRequired: true },
+    { id: "pr_f7", name: "ตารางรายการสินค้า", type: "Table", isRequired: true, isSystem: true },
+    { id: "pr_f8", name: "ยอดรวมเงิน (ก่อน VAT)", type: "Number", isRequired: true, isSystem: true },
+  ],
+  "PO-style": [
+    { id: "po_f1", name: "เลขที่เอกสาร", type: "Text", isRequired: true, isSystem: true },
+    { id: "po_f2", name: "วันที่เอกสาร", type: "Date", isRequired: true, isSystem: true },
+    { id: "po_f3", name: "ชื่อผู้ขาย (Vendor)", type: "Text", isRequired: true, isSystem: true },
+    { id: "po_f4", name: "ผู้ติดต่อ", type: "Text", isRequired: false },
+    { id: "po_f5", name: "ที่อยู่ผู้ขาย", type: "Long Text", isRequired: false },
+    { id: "po_f6", name: "วันที่กำหนดส่งมอบ", type: "Date", isRequired: true },
+    { id: "po_f7", name: "เงื่อนไขการชำระเงิน", type: "Text", isRequired: false },
+    { id: "po_f8", name: "ตารางรายการสั่งซื้อ", type: "Table", isRequired: true, isSystem: true },
+    { id: "po_f9", name: "ภาษีมูลค่าเพิ่ม (VAT 7%)", type: "Number", isRequired: true, isSystem: true },
+    { id: "po_f10", name: "ยอดรวมเงินสุทธิ", type: "Number", isRequired: true, isSystem: true },
+  ],
+  "MEMO-style": [
+    { id: "memo_f1", name: "เลขที่เอกสาร", type: "Text", isRequired: true, isSystem: true },
+    { id: "memo_f2", name: "วันที่", type: "Date", isRequired: true, isSystem: true },
+    { id: "memo_f3", name: "เรื่อง", type: "Text", isRequired: true, isSystem: true },
+    { id: "memo_f4", name: "เรียน", type: "Text", isRequired: true },
+    { id: "memo_f5", name: "จาก", type: "Text", isRequired: true },
+    { id: "memo_f6", name: "รายละเอียดบันทึกข้อความ", type: "Long Text", isRequired: true, isSystem: true },
+  ],
+  "OTHER-style": [
+    { id: "other_f1", name: "เลขที่เอกสาร", type: "Text", isRequired: true, isSystem: true },
+    { id: "other_f2", name: "วันที่", type: "Date", isRequired: true, isSystem: true },
+    { id: "other_f3", name: "เรื่อง", type: "Text", isRequired: true, isSystem: true },
+    { id: "other_f4", name: "รายละเอียด", type: "Long Text", isRequired: true, isSystem: true },
+    { id: "other_f5", name: "แนบไฟล์เอกสาร", type: "File", isRequired: false, isSystem: true },
+  ],
+};
+
+export interface FormFieldConfig {
+  id: string;
+  name: string;
+  type: "Text" | "Long Text" | "Number" | "Date" | "File" | "Dropdown" | "Table";
+  isRequired: boolean;
+  isSystem?: boolean;
+}
+
 export interface ApprovalMatrixEntry {
+  id: string; // Primary Key
   typeName: string;
   prefix: string;
   formType: FormTypeStyle;
@@ -93,12 +143,14 @@ export interface ApprovalMatrixEntry {
   docCount: number;
   isActive: boolean;
   steps: RoleOption[];
+  fields?: FormFieldConfig[];
 }
 
 export type ApprovalMatrixState = Record<string, ApprovalMatrixEntry>;
 
 /** Document type row used by doc-forms tabs (keyed by matrix entry). */
 export interface DocumentTypeRecord {
+  id: string; // Primary Key
   key: string;
   typeName: string;
   prefix: string;
@@ -107,6 +159,7 @@ export interface DocumentTypeRecord {
   fieldsCount: number;
   docCount: number;
   isActive: boolean;
+  fields?: FormFieldConfig[];
 }
 
 export type DocFormTypeKey = "PR" | "PO" | "MEMO" | "OTHER";
@@ -124,6 +177,8 @@ export type ResetCycle = "yearly" | "monthly" | "never";
 export type RunningDigits = 3 | 4 | 5;
 
 export interface DocumentRunningConfig {
+  id: string; // Primary Key
+  documentTypeId: string; // Foreign Key to DocumentType.id
   matrixKey: string;
   typeName: string;
   prefix: string;

@@ -16,6 +16,7 @@ import {
   Plus,
   X
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { getDocuments } from "@/features/documents/api";
 import { Document } from "@/features/documents/types";
@@ -27,6 +28,7 @@ import DataTableHeader from "@/components/ui/DataTableHeader";
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from "@/components/ui/design-system";
 
 export default function DocumentsPage() {
+  const router = useRouter();
   const { data: initialDocs, error } = useSWR("documents", getDocuments, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
@@ -364,7 +366,11 @@ export default function DocumentsPage() {
                 </tr>
               ) : paginatedDocs.length > 0 ? (
                 paginatedDocs.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <tr 
+                    key={doc.id} 
+                    onClick={() => router.push(`/documents/${doc.id}`)}
+                    className="hover:bg-blue-50/50 transition-colors group cursor-pointer"
+                  >
                     <td className="py-4 pl-4 text-sm font-bold text-slate-500">{doc.id}</td>
                     <td className="py-4">
                       <div>
@@ -388,27 +394,27 @@ export default function DocumentsPage() {
                       </Badge>
                     </td>
                     <td className="py-4 pr-4 text-center">
-                      <div className="flex items-center justify-center gap-1">
+                      <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
                         <Link
                           href={`/documents/${doc.id}`}
                           title="View Details"
-                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors cursor-pointer inline-block"
+                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition-colors cursor-pointer inline-block"
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
                         <button
                           type="button"
                           title="Download"
-                          onClick={() => triggerDownload(doc)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-emerald-600 transition-colors cursor-pointer"
+                          onClick={(e) => { e.stopPropagation(); triggerDownload(doc); }}
+                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-emerald-600 transition-colors cursor-pointer"
                         >
                           <Download className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
                           title="Delete"
-                          onClick={() => handleDeleteDoc(doc.id)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-rose-600 transition-colors cursor-pointer"
+                          onClick={(e) => { e.stopPropagation(); handleDeleteDoc(doc.id); }}
+                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-rose-600 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

@@ -152,5 +152,6 @@ export interface AuditLog {
   target_id?: string;
   target_display?: string;
   ip_address: string;
+  comment?: string;
   created_at: string;
 }

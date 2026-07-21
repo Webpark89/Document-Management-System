@@ -638,8 +638,12 @@ function MasterDataPageContent() {
             steps.push(ROLE_OPTIONS[0]);
           }
 
+          const docType = docTypes.find((d) => d.prefix === prefix);
+          const documentTypeId = docType?.id ?? `doc-type-${prefix.toLowerCase()}`;
+
           const row: WorkflowRow = {
             id,
+            documentTypeId,
             name: form.name.trim(),
             prefix,
             levels,
@@ -875,16 +879,25 @@ function MasterDataPageContent() {
             <td className={tdCls}>
               {r.imageUrl ? (
                 <div className="flex items-center gap-2">
-                  <img
-                    src={r.imageUrl}
-                    alt={r.approverName}
-                    onClick={() => {
-                      setPreviewSignatureUrl(r.imageUrl || null);
-                      setPreviewSignatureName(r.approverName);
-                    }}
-                    className="h-8 max-w-[120px] object-contain rounded border border-slate-200 bg-white p-1 shadow-2xs cursor-pointer hover:scale-105 transition-transform"
-                    title="คลิกเพื่อดูภาพขนาดใหญ่"
-                  />
+                  {/* Watermarked Thumbnail wrapper ready for backend integration */}
+                  {/* Note for BE: The API endpoint rendering this image should return a dynamically watermarked image by default */}
+                  <div className="relative overflow-hidden rounded border border-slate-200 bg-white p-1 shadow-2xs hover:scale-105 transition-transform cursor-pointer">
+                    <img
+                      src={r.imageUrl}
+                      alt={r.approverName}
+                      onClick={() => {
+                        setPreviewSignatureUrl(r.imageUrl || null);
+                        setPreviewSignatureName(r.approverName);
+                      }}
+                      className="h-8 max-w-[120px] object-contain opacity-75"
+                      title="คลิกเพื่อดูภาพขนาดใหญ่"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none bg-red-500/5">
+                      <span className="text-[7px] font-extrabold text-red-600/30 uppercase tracking-tighter rotate-[-12deg] whitespace-nowrap">
+                        PREVIEW ONLY
+                      </span>
+                    </div>
+                  </div>
                   <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
                     มีลายเซ็น
                   </span>
@@ -1396,7 +1409,7 @@ function MasterDataPageContent() {
       title="Master Data"
       subtitle="In-memory demo — resets on refresh"
       actions={
-        activeTab === "running" ? undefined : (
+        activeTab === "running" || activeTab === "workflow" ? undefined : (
           <button type="button" onClick={openAdd} className={MD_MASTER_ADD_BTN}>
             <Plus className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
             เพิ่ม
@@ -1475,6 +1488,7 @@ function MasterDataPageContent() {
         ) : activeTab === "workflow" ? (
           <WorkflowTab
             rows={rows as WorkflowRow[]}
+            docTypes={docTypes}
             showDeleted={showDeleted}
             onShowDeletedChange={setShowDeleted}
             stats={tabStats}
@@ -1586,12 +1600,20 @@ function MasterDataPageContent() {
                 <X className="size-4" />
               </button>
             </div>
-            <div className="my-8 flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50/50 p-6 shadow-inner">
+            {/* Note for BE: In production, the file url below should ideally point to a watermarked view endpoint, e.g. /api/signatures/1/preview */}
+            <div className="my-8 flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50/50 p-6 shadow-inner relative overflow-hidden">
               <img
                 src={previewSignatureUrl}
                 alt={previewSignatureName}
-                className="h-32 max-w-full object-contain"
+                className="h-32 max-w-full object-contain opacity-70 filter blur-[0.3px]"
               />
+              {/* HTML Watermark overlay for UI safety mockup */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none p-4">
+                <div className="text-[11px] font-black text-red-500/25 uppercase tracking-widest rotate-[-15deg] whitespace-nowrap text-center leading-normal">
+                  PREVIEW ONLY • FOR VERIFICATION ONLY<br/>
+                  CONFIDENTIAL • NOT FOR PRODUCTION USE
+                </div>
+              </div>
             </div>
             <button
               type="button"

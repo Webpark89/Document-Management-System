@@ -1,11 +1,12 @@
-import type {
-  ApprovalMatrixState,
-  DepartmentRecord,
-  FormTypeRecord,
-  MasterDocumentTypeRecord,
-  PositionRecord,
-  SignatureRecord,
-  WorkflowRecord,
+import {
+  DEFAULT_FORM_FIELDS,
+  type ApprovalMatrixState,
+  type DepartmentRecord,
+  type FormTypeRecord,
+  type MasterDocumentTypeRecord,
+  type PositionRecord,
+  type SignatureRecord,
+  type WorkflowRecord,
 } from "../types";
 
 export const DEPARTMENTS: DepartmentRecord[] = [
@@ -45,6 +46,7 @@ export const FORM_TYPES: FormTypeRecord[] = [
 export const WORKFLOWS: WorkflowRecord[] = [
   {
     id: "1",
+    documentTypeId: "doc-type-pr",
     name: "อนุมัติ PR",
     prefix: "PR",
     levels: 3,
@@ -55,6 +57,7 @@ export const WORKFLOWS: WorkflowRecord[] = [
   },
   {
     id: "2",
+    documentTypeId: "doc-type-po",
     name: "อนุมัติ PO",
     prefix: "PO",
     levels: 4,
@@ -65,6 +68,7 @@ export const WORKFLOWS: WorkflowRecord[] = [
   },
   {
     id: "3",
+    documentTypeId: "doc-type-memo",
     name: "อนุมัติ MEMO",
     prefix: "MEMO",
     levels: 2,
@@ -75,6 +79,7 @@ export const WORKFLOWS: WorkflowRecord[] = [
   },
   {
     id: "4",
+    documentTypeId: "doc-type-other",
     name: "อนุมัติ OTHER",
     prefix: "OTHER",
     levels: 1,
@@ -114,44 +119,52 @@ export const SIGNATURES: SignatureRecord[] = [
 
 export const APPROVAL_MATRIX: ApprovalMatrixState = {
   PR: {
+    id: "doc-type-pr",
     typeName: "ใบขอซื้อ (PR)",
     prefix: "PR",
     formType: "PR-style",
     formCode: "PR-FRM",
-    fieldsCount: 12,
+    fieldsCount: DEFAULT_FORM_FIELDS["PR-style"].length,
     docCount: 24,
     isActive: true,
     steps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"],
+    fields: [...DEFAULT_FORM_FIELDS["PR-style"]],
   },
   PO: {
+    id: "doc-type-po",
     typeName: "ใบสั่งซื้อ (PO)",
     prefix: "PO",
     formType: "PO-style",
     formCode: "PO-FRM",
-    fieldsCount: 15,
+    fieldsCount: DEFAULT_FORM_FIELDS["PO-style"].length,
     docCount: 18,
     isActive: true,
     steps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ", "ผู้อำนวยการ"],
+    fields: [...DEFAULT_FORM_FIELDS["PO-style"]],
   },
   MEMO: {
+    id: "doc-type-memo",
     typeName: "บันทึกข้อความ (MEMO)",
     prefix: "MEMO",
     formType: "MEMO-style",
     formCode: "MEMO-FRM",
-    fieldsCount: 8,
+    fieldsCount: DEFAULT_FORM_FIELDS["MEMO-style"].length,
     docCount: 10,
     isActive: true,
     steps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย"],
+    fields: [...DEFAULT_FORM_FIELDS["MEMO-style"]],
   },
   OTHER: {
+    id: "doc-type-other",
     typeName: "เอกสารอื่นๆ (OTHER)",
     prefix: "OTHER",
     formType: "OTHER-style",
     formCode: "OTHER-FRM",
-    fieldsCount: 6,
+    fieldsCount: DEFAULT_FORM_FIELDS["OTHER-style"].length,
     docCount: 5,
     isActive: true,
     steps: ["หัวหน้าแผนก"],
+    fields: [...DEFAULT_FORM_FIELDS["OTHER-style"]],
   },
 };
 

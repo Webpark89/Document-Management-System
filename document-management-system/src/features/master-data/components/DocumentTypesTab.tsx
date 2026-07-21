@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FileType2, HelpCircle, Inbox, Loader2, Plus, X } from "lucide-react";
+import { FileType2, HelpCircle, Inbox, Loader2, Plus, X, Lock, Trash2 } from "lucide-react";
 import { useSidebar } from "@/components/providers/SidebarProvider";
 import {
   DEFAULT_FORM_META,
+  DEFAULT_FORM_FIELDS,
   FORM_TYPE_DESCRIPTIONS,
   FORM_TYPE_OPTIONS,
   appendRunningConfig,
+  appendWorkflowRecord,
+  type FormFieldConfig,
   type ApprovalMatrixEntry,
   type ApprovalMatrixState,
   type DocumentTypeRecord,
@@ -42,6 +45,7 @@ type Props = {
   onDocTypesChange: (next: DocumentTypeRecord[]) => void;
   onCreated: (key: string, typeName: string) => void;
   showToast: (message: string, type: "success" | "error") => void;
+  addRequest?: number;
 };
 
 type FormState = {
@@ -50,6 +54,7 @@ type FormState = {
   formType: FormTypeStyle;
   formCode: string;
   isActive: boolean;
+  fields: FormFieldConfig[];
 };
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
@@ -148,17 +153,6 @@ function validateForm(
     errors.prefix = "Prefix นี้ถูกใช้งานแล้ว";
   }
 
-  const formCode = form.formCode.trim().toUpperCase();
-  if (!formCode) errors.formCode = "กรุณากรอกรหัสฟอร์ม";
-  else if (!FORM_CODE_RE.test(formCode)) errors.formCode = "รูปแบบรหัสฟอร์มไม่ถูกต้อง (เช่น PR-FRM)";
-  else if (
-    Object.entries(matrix).some(
-      ([key, entry]) => entry.formCode.toUpperCase() === formCode && key !== editingKey
-    )
-  ) {
-    errors.formCode = "รหัสฟอร์มนี้ถูกใช้งานแล้ว";
-  }
-
   return errors;
 }
 
@@ -170,7 +164,7 @@ export default function DocumentTypesTab({
   onCreated,
   showToast,
   addRequest = 0,
-}: Props & { addRequest?: number }) {
+}: Props) {
   const { isOpen } = useSidebar();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -180,6 +174,7 @@ export default function DocumentTypesTab({
     formType: "PR-style",
     formCode: DEFAULT_FORM_META["PR-style"].formCode,
     isActive: true,
+    fields: [],
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
@@ -206,6 +201,7 @@ export default function DocumentTypesTab({
       formType: "PR-style",
       formCode: DEFAULT_FORM_META["PR-style"].formCode,
       isActive: true,
+      fields: JSON.parse(JSON.stringify(DEFAULT_FORM_FIELDS["PR-style"])),
     });
     setFormErrors({});
     setModalOpen(true);
@@ -217,12 +213,18 @@ export default function DocumentTypesTab({
 
   const openEdit = (row: DocumentTypeRecord) => {
     setEditingKey(row.key);
+    const existing = matrix[row.key];
+    const fields = existing?.fields && existing.fields.length > 0
+      ? JSON.parse(JSON.stringify(existing.fields))
+      : JSON.parse(JSON.stringify(DEFAULT_FORM_FIELDS[row.formType] || []));
+    
     setForm({
       typeName: row.typeName,
       prefix: row.prefix,
       formType: row.formType,
       formCode: row.formCode,
       isActive: row.isActive,
+      fields,
     });
     setFormErrors({});
     setModalOpen(true);
@@ -233,6 +235,8 @@ export default function DocumentTypesTab({
     setEditingKey(null);
     setFormErrors({});
   };
+
+
 
   const handleSave = async () => {
     const errors = validateForm(form, matrix, editingKey);
@@ -245,15 +249,20 @@ export default function DocumentTypesTab({
     const prefix = form.prefix.trim().toUpperCase();
     const typeName = form.typeName.trim();
     const existing = editingKey ? matrix[editingKey] : null;
+    const docTypeId = existing?.id ?? `doc-type-${prefix.toLowerCase()}`;
+    const formCode = `${prefix}-FRM`;
+
     const entry: ApprovalMatrixEntry = {
+      id: docTypeId,
       typeName,
       prefix,
       formType: form.formType,
-      formCode: form.formCode.trim().toUpperCase(),
-      fieldsCount: existing?.fieldsCount ?? DEFAULT_FORM_META[form.formType].fieldsCount,
+      formCode,
+      fieldsCount: form.fields.length,
       docCount: existing?.docCount ?? 0,
       isActive: existing?.isActive ?? form.isActive,
       steps: editingKey ? [...(matrix[editingKey]?.steps ?? [])] : [],
+      fields: form.fields,
     };
 
     const nextMatrix = { ...matrix };
@@ -265,10 +274,20 @@ export default function DocumentTypesTab({
 
     const matrixKey = editingKey ?? prefix;
     appendRunningConfig(matrixKey, entry);
+    
+    // Auto-cascade Workflow Config creation
+    appendWorkflowRecord({
+      id: docTypeId,
+      typeName,
+      prefix,
+      isActive: entry.isActive,
+      steps: entry.steps,
+    });
 
     const nextDocTypes = [...docTypes];
     const idx = editingKey ? nextDocTypes.findIndex((d) => d.key === editingKey) : -1;
     const row: DocumentTypeRecord = {
+      id: docTypeId,
       key: prefix,
       typeName: entry.typeName,
       prefix,
@@ -277,6 +296,7 @@ export default function DocumentTypesTab({
       fieldsCount: entry.fieldsCount,
       docCount: entry.docCount,
       isActive: entry.isActive,
+      fields: entry.fields,
     };
     if (idx >= 0) nextDocTypes[idx] = row;
     else nextDocTypes.push(row);
@@ -288,7 +308,7 @@ export default function DocumentTypesTab({
     if (editingKey) {
       showToast("แก้ไขประเภทเอกสารสำเร็จ", "success");
     } else {
-      showToast(`กรุณาตั้งค่าสายการอนุมัติสำหรับ ${typeName} ก่อนใช้งาน`, "success");
+      showToast(`สร้างประเภทเอกสาร ${typeName} สำเร็จ`, "success");
       onCreated(prefix, typeName);
     }
   };
@@ -302,6 +322,7 @@ export default function DocumentTypesTab({
     onDocTypesChange(docTypes.filter((d) => d.key !== row.key));
     showToast("ลบประเภทเอกสารสำเร็จ", "success");
   };
+
   const mobileRows = useMemo(
     () =>
       docTypes.map((row) => ({
@@ -340,14 +361,14 @@ export default function DocumentTypesTab({
   return (
     <div className="space-y-6">
       {modalOpen ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs w-full max-w-5xl mx-auto">
           <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
             <div>
               <h3 className="text-base font-bold text-slate-800">
                 {editingKey ? "แก้ไข" : "เพิ่ม"}ประเภทเอกสาร
               </h3>
               <p className="text-xs text-slate-400 mt-1">
-                กรอกรายละเอียดประเภทเอกสารที่คุณต้องการ {editingKey ? "แก้ไข" : "สร้างใหม่"}
+                ระบุรายละเอียดและปรับแต่งโครงสร้างฟิลด์ในแบบฟอร์มเอกสารได้อย่างอิสระ
               </p>
             </div>
             <button
@@ -361,98 +382,149 @@ export default function DocumentTypesTab({
             </button>
           </div>
 
-          <div className="space-y-4 max-w-md">
-            <div>
-              <label className="mb-1.5 block text-xs text-slate-500">ชื่อประเภทเอกสาร</label>
-              <input
-                type="text"
-                value={form.typeName}
-                onChange={(e) => {
-                  setForm((f) => ({ ...f, typeName: e.target.value }));
-                  if (formErrors.typeName) {
-                    setFormErrors(
-                      validateForm({ ...form, typeName: e.target.value }, matrix, editingKey)
-                    );
-                  }
-                }}
-                onBlur={() => setFormErrors(validateForm(form, matrix, editingKey))}
-                className={formErrors.typeName ? inputErrorCls : inputCls}
-              />
-              {formErrors.typeName && (
-                <p className="mt-1 text-xs text-red-500">{formErrors.typeName}</p>
+          {/* TWO-COLUMN GRID FOR FORM GENERAL INFO & FIELDS CUSTOMIZATION */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            {/* Left Column (5/12) - General Configuration */}
+            <div className="lg:col-span-5 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">ข้อมูลทั่วไป (General Info)</h4>
+              
+              <div>
+                <label className="mb-1.5 block text-xs text-slate-500">ชื่อประเภทเอกสาร</label>
+                <input
+                  type="text"
+                  value={form.typeName}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, typeName: e.target.value }));
+                    if (formErrors.typeName) {
+                      setFormErrors(
+                        validateForm({ ...form, typeName: e.target.value }, matrix, editingKey)
+                      );
+                    }
+                  }}
+                  onBlur={() => setFormErrors(validateForm(form, matrix, editingKey))}
+                  className={formErrors.typeName ? inputErrorCls : inputCls}
+                />
+                {formErrors.typeName && (
+                  <p className="mt-1 text-xs text-red-500">{formErrors.typeName}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs text-slate-500">Prefix</label>
+                <input
+                  type="text"
+                  value={form.prefix}
+                  disabled={!!editingKey}
+                  onChange={(e) => {
+                    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+                    setForm((f) => ({ ...f, prefix: value }));
+                    if (formErrors.prefix) {
+                      setFormErrors(validateForm({ ...form, prefix: value }, matrix, editingKey));
+                    }
+                  }}
+                  onBlur={() => setFormErrors(validateForm(form, matrix, editingKey))}
+                  className={formErrors.prefix ? inputErrorCls : inputCls}
+                />
+                {formErrors.prefix && (
+                  <p className="mt-1 text-xs text-red-500">{formErrors.prefix}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs text-slate-500">Form Type (แพทเทิร์นเริ่มต้น)</label>
+                <select
+                  className={`${inputCls} disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed`}
+                  value={form.formType}
+                  disabled={!!editingKey}
+                  onChange={(e) => {
+                    const formType = e.target.value as FormTypeStyle;
+                    setForm((f) => ({
+                      ...f,
+                      formType,
+                      formCode: DEFAULT_FORM_META[formType].formCode,
+                      fields: JSON.parse(JSON.stringify(DEFAULT_FORM_FIELDS[formType] || [])),
+                    }));
+                  }}
+                >
+                  {FORM_TYPE_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1.5 text-xs text-slate-400">
+                  {FORM_TYPE_DESCRIPTIONS[form.formType]}
+                </p>
+              </div>
+
+              {editingKey && (
+                <StatusFormToggle
+                  active={form.isActive}
+                  onChange={(isActive) => setForm((f) => ({ ...f, isActive }))}
+                />
               )}
             </div>
-            <div>
-              <label className="mb-1.5 block text-xs text-slate-500">Prefix</label>
-              <input
-                type="text"
-                value={form.prefix}
-                disabled={!!editingKey}
-                onChange={(e) => {
-                  const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
-                  setForm((f) => ({ ...f, prefix: value }));
-                  if (formErrors.prefix) {
-                    setFormErrors(validateForm({ ...form, prefix: value }, matrix, editingKey));
-                  }
-                }}
-                onBlur={() => setFormErrors(validateForm(form, matrix, editingKey))}
-                className={formErrors.prefix ? inputErrorCls : inputCls}
-              />
-              {formErrors.prefix && (
-                <p className="mt-1 text-xs text-red-500">{formErrors.prefix}</p>
-              )}
+
+            {/* Right Column (7/12) - Fields List Preview (Read-only) */}
+            <div className="lg:col-span-7 flex flex-col border-t lg:border-t-0 lg:border-l border-slate-100 pt-6 lg:pt-0 lg:pl-8">
+              <div className="flex items-center justify-between mb-4">
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    โครงสร้างฟิลด์มาตรฐาน ({form.fields.length} ฟิลด์)
+                  </h4>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    * ฟิลด์มาตรฐานกำหนดตามประเภทฟอร์มเอกสารของระบบ (ไม่สามารถแก้ไขได้)
+                  </p>
+                </div>
+              </div>
+
+              {/* FIELDS LIST CONTAINER */}
+              <div className="flex-1 max-h-[360px] overflow-y-auto rounded-xl border border-slate-100 bg-slate-50/40 divide-y divide-slate-100">
+                {form.fields.length === 0 ? (
+                  <div className="py-12 text-center text-xs font-semibold text-slate-400">
+                    ไม่มีข้อมูลฟิลด์
+                  </div>
+                ) : (
+                  form.fields.map((field) => (
+                    <div key={field.id} className="p-3.5 flex items-center justify-between gap-3 bg-white">
+                      
+                      <div className="flex items-center gap-2.5">
+                        {/* Lock Icon */}
+                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400" title="ฟิลด์มาตรฐานระบบ">
+                          <Lock className="size-3" />
+                        </span>
+                        
+                        {/* Field Name */}
+                        <span className="text-xs font-bold text-slate-700">
+                          {field.name}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        {/* Field Type Badge */}
+                        <span className="rounded bg-slate-50 border border-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                          {field.type}
+                        </span>
+
+                        {/* Is Required Badge */}
+                        {field.isRequired ? (
+                          <span className="rounded bg-red-50 border border-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600">
+                            จำเป็น
+                          </span>
+                        ) : (
+                          <span className="rounded bg-slate-50 border border-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-400">
+                            ไม่บังคับ
+                          </span>
+                        )}
+                      </div>
+
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-            <div>
-              <label className="mb-1.5 block text-xs text-slate-500">Form Type</label>
-              <select
-                className={inputCls}
-                value={form.formType}
-                onChange={(e) => {
-                  const formType = e.target.value as FormTypeStyle;
-                  setForm((f) => ({
-                    ...f,
-                    formType,
-                    formCode: DEFAULT_FORM_META[formType].formCode,
-                  }));
-                }}
-              >
-                {FORM_TYPE_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1.5 text-xs text-slate-400">
-                {FORM_TYPE_DESCRIPTIONS[form.formType]}
-              </p>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs text-slate-500">รหัสฟอร์ม</label>
-              <input
-                type="text"
-                value={form.formCode}
-                onChange={(e) => {
-                  const value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
-                  setForm((f) => ({ ...f, formCode: value }));
-                  if (formErrors.formCode) {
-                    setFormErrors(
-                      validateForm({ ...form, formCode: value }, matrix, editingKey)
-                    );
-                  }
-                }}
-                onBlur={() => setFormErrors(validateForm(form, matrix, editingKey))}
-                className={formErrors.formCode ? inputErrorCls : inputCls}
-              />
-              {formErrors.formCode && (
-                <p className="mt-1 text-xs text-red-500">{formErrors.formCode}</p>
-              )}
-            </div>
-            {editingKey && (
-              <StatusFormToggle
-                active={form.isActive}
-                onChange={(isActive) => setForm((f) => ({ ...f, isActive }))}
-              />
-            )}
+
           </div>
 
           <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end gap-2">

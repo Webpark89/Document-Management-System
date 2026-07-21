@@ -209,6 +209,7 @@ export const MOCK_AUDIT_LOGS: AuditLog[] = [
     target_id: "PO-2026-0001",
     target_display: "PO-2026-0001",
     ip_address: "192.168.1.45",
+    comment: "อนุมัติเบื้องต้น",
     created_at: "2026-07-12T09:30:00Z",
   },
   {
@@ -245,6 +246,7 @@ export const MOCK_AUDIT_LOGS: AuditLog[] = [
     target_id: "PO-2026-0002",
     target_display: "PO-2026-0002",
     ip_address: "192.168.2.11",
+    comment: "งบประมาณไตรมาสนี้ไม่เพียงพอ โปรดเลื่อนไป Q4",
     created_at: "2026-07-07T16:00:00Z",
   },
   {

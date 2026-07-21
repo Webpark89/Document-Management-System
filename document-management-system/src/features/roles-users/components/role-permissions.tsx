@@ -21,6 +21,7 @@ export type RoleFormState = {
 interface PermissionItem {
   key: string;
   label: string;
+  actions: ActionKey[];
 }
 
 interface PermissionSection {
@@ -97,84 +98,96 @@ export const PRODUCT_TYPES: { key: ProductKey; label: string }[] = [
 ];
 
 export const PERMISSION_SCHEMA: PermissionSection[] = [
+  // ─── Dashboard ──────────────────────────────────────────────────────────────
+  // เป็นหน้าสรุปภาพรวม — ทุก item ในนี้เป็น "ดู" อย่างเดียว
   {
     key: "dashboard",
     label: "Dashboard",
     items: [
-      { key: "overview", label: "Overview" },
-      { key: "registrations", label: "Registrations" },
-      { key: "closed_sales", label: "Closed sales" },
-      { key: "my_tasks", label: "My tasks" },
-      { key: "reports", label: "Reports" },
+      { key: "overview",   label: "ภาพรวมระบบ",          actions: ["view"] },
+      { key: "my_tasks",   label: "งานที่รออยู่ (My Tasks)", actions: ["view"] },
     ],
   },
+
+  // ─── Document Management ─────────────────────────────────────────────────────
+  // จัดการเอกสารและโฟลเดอร์ รวมถึงการย้อนเวอร์ชัน
   {
     key: "document_management",
-    label: "Document management",
+    label: "จัดการเอกสาร",
     items: [
-      { key: "documents", label: "Documents" },
-      { key: "folders", label: "Folders" },
-      { key: "upload", label: "Upload" },
-      { key: "search", label: "Search" },
-      { key: "version_history", label: "Version history" },
-      { key: "pdf_viewer", label: "PDF viewer" },
+      // ดู/สร้าง/แก้ไข/ลบ เอกสาร (Upload รวมอยู่ใน "สร้าง")
+      { key: "documents",       label: "เอกสาร",                   actions: ["view", "create", "edit", "delete"] },
+      // ดู/สร้าง/แก้ไข/ลบ โฟลเดอร์จัดเก็บ
+      { key: "folders",         label: "แฟ้มจัดเก็บ",              actions: ["view", "create", "edit", "delete"] },
+      // ดู = ดูประวัติเวอร์ชัน, แก้ไข = กู้คืนเวอร์ชันเก่า (Restore)
+      { key: "version_history", label: "ประวัติเวอร์ชัน (Restore)", actions: ["view", "edit"] },
     ],
   },
+
+  // ─── Approval Workflow ───────────────────────────────────────────────────────
+  // แยก "ส่งเพื่ออนุมัติ" (พนักงาน) ออกจาก "อนุมัติ" (ผู้จัดการ) ชัดเจน
   {
     key: "approval_workflow",
-    label: "Approval workflow",
+    label: "การอนุมัติ",
     items: [
-      { key: "pending_approvals", label: "Pending approvals" },
-      { key: "approve_reject", label: "Approve/Reject" },
-      { key: "return_for_edit", label: "Return for edit" },
-      { key: "approval_matrix", label: "Approval matrix" },
+      // สร้าง = ส่งเอกสารเข้าสู่กระบวนการอนุมัติ (ควบคุมว่าใครส่งได้)
+      { key: "submit_document",   label: "ส่งเอกสารเพื่ออนุมัติ",   actions: ["create"] },
+      // ดู = ดูรายการรออนุมัติ, อนุมัติ = approve/reject/return
+      { key: "pending_approvals", label: "รายการรออนุมัติ",          actions: ["view", "approve"] },
+      // ตั้งค่าสายการอนุมัติของแต่ละประเภทเอกสาร
+      { key: "approval_matrix",   label: "สายการอนุมัติ (Matrix)",   actions: ["view", "create", "edit", "delete"] },
     ],
   },
+
+  // ─── E-Signature ────────────────────────────────────────────────────────────
+  // แยก "จัดการลายเซ็นตัวเอง" ออกจาก "การเซ็นบนเอกสาร" ซึ่งคนละบทบาทกัน
   {
     key: "e_signature",
-    label: "E-Signature",
+    label: "ลายเซ็นอิเล็กทรอนิกส์",
     items: [
-      { key: "apply_signature", label: "Apply signature" },
-      { key: "signature_history", label: "Signature history" },
+      // ดู/สร้าง/แก้ไข/ลบ = จัดการโปรไฟล์ลายเซ็นของตัวเอง
+      { key: "manage_signature",  label: "จัดการลายเซ็นของตัวเอง",  actions: ["view", "create", "edit", "delete"] },
+      // อนุมัติ = กดเซ็นลายเซ็นบนเอกสารจริง (Signing Act)
+      { key: "sign_document",     label: "เซ็นลายเซ็นบนเอกสาร",     actions: ["approve"] },
+      // ดู = ดูประวัติว่าตัวเองหรือผู้อื่นเซ็นเมื่อใด
+      { key: "signature_history", label: "ประวัติการเซ็น",            actions: ["view"] },
     ],
   },
+
+  // ─── Master Data ─────────────────────────────────────────────────────────────
+  // ข้อมูลหลักระบบ — ตัดรายการที่ซ้ำซ้อน (form_type ล็อคอยู่กับ document_type แล้ว)
   {
     key: "master_data",
     label: "Master Data",
     items: [
-      { key: "document_type", label: "Document type" },
-      { key: "form_type", label: "Form type" },
-      { key: "department", label: "Department" },
-      { key: "position", label: "Position" },
-      { key: "workflow", label: "Workflow" },
-      { key: "signature_list", label: "Signature list" },
+      { key: "document_type",    label: "ประเภทเอกสาร & ฟอร์ม", actions: ["view", "create", "edit", "delete"] },
+      { key: "department",       label: "แผนก",                 actions: ["view", "create", "edit", "delete"] },
+      { key: "position",         label: "ตำแหน่งงาน",           actions: ["view", "create", "edit", "delete"] },
+      { key: "workflow_config",  label: "กำหนด Workflow",        actions: ["view", "create", "edit", "delete"] },
+      { key: "signature_list",   label: "รายชื่อผู้มีสิทธิ์เซ็น", actions: ["view", "create", "edit", "delete"] },
     ],
   },
+
+  // ─── User Management ─────────────────────────────────────────────────────────
+  // จัดการผู้ใช้งานและบทบาท (Reset Password รวมอยู่ใน "แก้ไข" ของ Users)
   {
     key: "user_management",
-    label: "User management",
+    label: "จัดการผู้ใช้งาน",
     items: [
-      { key: "users", label: "Users" },
-      { key: "roles", label: "Roles" },
-      { key: "permissions", label: "Permissions" },
-      { key: "reset_password", label: "Reset password" },
+      { key: "users", label: "ผู้ใช้งาน (รวม Reset Password)", actions: ["view", "create", "edit", "delete"] },
+      { key: "roles", label: "บทบาทและสิทธิ์ (Roles)",        actions: ["view", "create", "edit", "delete"] },
     ],
   },
+
+  // ─── Reports ─────────────────────────────────────────────────────────────────
+  // รายงานทุกประเภท — ดูอย่างเดียว ไม่มีการแก้ไขข้อมูลในหน้านี้
   {
     key: "reports",
-    label: "Reports",
+    label: "รายงาน",
     items: [
-      { key: "document_report", label: "Document report" },
-      { key: "approval_report", label: "Approval report" },
-      { key: "audit_log", label: "Audit log" },
-    ],
-  },
-  {
-    key: "profile",
-    label: "Profile",
-    items: [
-      { key: "edit_profile", label: "แก้ไขข้อมูลส่วนตัว" },
-      { key: "change_password", label: "เปลี่ยนรหัสผ่าน" },
+      { key: "document_report",  label: "รายงานเอกสาร",                  actions: ["view"] },
+      { key: "approval_report",  label: "รายงานการอนุมัติ",               actions: ["view"] },
+      { key: "audit_log",        label: "บันทึกการใช้งาน (Audit Log)",    actions: ["view"] },
     ],
   },
 ];
@@ -208,10 +221,11 @@ export function countSection(
   const section = PERMISSION_SCHEMA.find((s) => s.key === sectionKey);
   if (!section) return { granted: 0, total: 0 };
   let granted = 0;
-  const total = section.items.length * PERMISSION_ACTIONS.length;
+  let total = 0;
   for (const item of section.items) {
-    for (const action of PERMISSION_ACTIONS) {
-      if (permissions[sectionKey]?.[item.key]?.[action.key]) granted += 1;
+    total += item.actions.length;
+    for (const actionKey of item.actions) {
+      if (permissions[sectionKey]?.[item.key]?.[actionKey]) granted += 1;
     }
   }
   return { granted, total };
@@ -354,7 +368,9 @@ export function RolePermissionPanel({
       next[section.key] = { ...next[section.key] };
       for (const item of section.items) {
         const row = emptyRow();
-        for (const action of PERMISSION_ACTIONS) row[action.key] = checked;
+        for (const action of PERMISSION_ACTIONS) {
+          row[action.key] = item.actions.includes(action.key) ? checked : false;
+        }
         next[section.key][item.key] = row;
       }
     }
@@ -464,25 +480,32 @@ export function RolePermissionPanel({
                             <td className="px-6 py-3.5 text-sm font-medium text-slate-700">
                               {item.label}
                             </td>
-                            {PERMISSION_ACTIONS.map((action) => (
-                              <td key={action.key} className={PERM_MATRIX_ACTION_TD}>
-                                <input
-                                  type="checkbox"
-                                  checked={
-                                    !!role.permissions[section.key]?.[item.key]?.[action.key]
-                                  }
-                                  onChange={(e) =>
-                                    setPermission(
-                                      section.key,
-                                      item.key,
-                                      action.key,
-                                      e.target.checked
-                                    )
-                                  }
-                                  className={`${checkboxCls} mx-auto block`}
-                                />
-                              </td>
-                            ))}
+                            {PERMISSION_ACTIONS.map((action) => {
+                              const isSupported = item.actions.includes(action.key);
+                              return (
+                                <td key={action.key} className={PERM_MATRIX_ACTION_TD}>
+                                  {isSupported ? (
+                                    <input
+                                      type="checkbox"
+                                      checked={
+                                        !!role.permissions[section.key]?.[item.key]?.[action.key]
+                                      }
+                                      onChange={(e) =>
+                                        setPermission(
+                                          section.key,
+                                          item.key,
+                                          action.key,
+                                          e.target.checked
+                                        )
+                                      }
+                                      className={`${checkboxCls} mx-auto block`}
+                                    />
+                                  ) : (
+                                    <span className="text-slate-300 select-none">-</span>
+                                  )}
+                                </td>
+                              );
+                            })}
                           </tr>
                         ))}
                       </tbody>

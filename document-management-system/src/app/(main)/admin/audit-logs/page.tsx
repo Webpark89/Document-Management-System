@@ -39,25 +39,25 @@ interface AuditLogExtended {
   targetLabel: string;
   targetType: "document" | "user" | "role" | "none";
   ipAddress: string;
-  details: Record<string, any>;
+  comment?: string;
 }
 
 const EXTENDED_MOCK_LOGS: AuditLogExtended[] = [
-  { id: "al-01", timestamp: "2026-07-17T09:15:00Z", userId: "u1", userName: "วิภา รักดี", action: "Login", module: "Auth", targetId: "", targetLabel: "-", targetType: "none", ipAddress: "192.168.1.45", details: { browser: "Chrome 120", os: "Windows 11" } },
-  { id: "al-02", timestamp: "2026-07-17T09:30:22Z", userId: "u2", userName: "สมชาย ใจดี", action: "Upload", module: "Documents", targetId: "PR-2026-0005", targetLabel: "ขอซื้อเมาส์และคีย์บอร์ด", targetType: "document", ipAddress: "192.168.1.102", details: { fileName: "pr_mouse_kb.pdf", fileSize: "2.4 MB" } },
-  { id: "al-03", timestamp: "2026-07-17T10:05:11Z", userId: "u1", userName: "วิภา รักดี", action: "View", module: "Documents", targetId: "PR-2026-0005", targetLabel: "ขอซื้อเมาส์และคีย์บอร์ด", targetType: "document", ipAddress: "192.168.1.45", details: { duration: "45s" } },
-  { id: "al-04", timestamp: "2026-07-17T10:12:44Z", userId: "u1", userName: "วิภา รักดี", action: "Approve", module: "Approvals", targetId: "PR-2026-0005", targetLabel: "ขอซื้อเมาส์และคีย์บอร์ด", targetType: "document", ipAddress: "192.168.1.45", details: { level: 1, comment: "อนุมัติเบื้องต้น" } },
-  { id: "al-05", timestamp: "2026-07-17T11:00:00Z", userId: "u3", userName: "อรทัย สุขใจ", action: "Login", module: "Auth", targetId: "", targetLabel: "-", targetType: "none", ipAddress: "10.0.0.15", details: { browser: "Safari 17", os: "macOS Sonoma" } },
-  { id: "al-06", timestamp: "2026-07-17T11:15:30Z", userId: "u3", userName: "อรทัย สุขใจ", action: "Edit", module: "Users", targetId: "u2", targetLabel: "สมชาย ใจดี", targetType: "user", ipAddress: "10.0.0.15", details: { field: "department", oldValue: "พนักงานทั่วไป", newValue: "แผนกจัดซื้อ" } },
-  { id: "al-07", timestamp: "2026-07-17T13:20:10Z", userId: "u4", userName: "ประยุทธ์ สร้างชาติ", action: "Reject", module: "Approvals", targetId: "PO-2026-0004", targetLabel: "จัดจ้างที่ปรึกษา HR", targetType: "document", ipAddress: "192.168.2.11", details: { reason: "งบประมาณไตรมาสนี้ไม่เพียงพอ โปรดเลื่อนไป Q4" } },
-  { id: "al-08", timestamp: "2026-07-16T08:45:00Z", userId: "u5", userName: "Admin System", action: "Delete", module: "Users", targetId: "u99", targetLabel: "test.user", targetType: "user", ipAddress: "127.0.0.1", details: { reason: "พ้นสภาพพนักงาน" } },
-  { id: "al-09", timestamp: "2026-07-16T14:30:00Z", userId: "u1", userName: "วิภา รักดี", action: "Signature", module: "Approvals", targetId: "PO-2026-0001", targetLabel: "ใบสั่งซื้อ Laptop Dell สำหรับทีม IT", targetType: "document", ipAddress: "192.168.1.45", details: { certId: "CERT-9921", method: "Digital Certificate" } },
-  { id: "al-10", timestamp: "2026-07-16T15:10:00Z", userId: "u2", userName: "สมชาย ใจดี", action: "Download", module: "Documents", targetId: "MM-2026-0001", targetLabel: "บันทึกข้อความภายใน", targetType: "document", ipAddress: "192.168.1.102", details: { format: "PDF", isWatermarked: true } },
-  { id: "al-11", timestamp: "2026-07-15T09:00:00Z", userId: "u1", userName: "วิภา รักดี", action: "Login", module: "Auth", targetId: "", targetLabel: "-", targetType: "none", ipAddress: "192.168.1.45", details: { browser: "Chrome 120", os: "Windows 11" } },
-  { id: "al-12", timestamp: "2026-07-15T10:20:00Z", userId: "u5", userName: "Admin System", action: "Edit", module: "Roles", targetId: "r2", targetLabel: "Manager Role", targetType: "role", ipAddress: "127.0.0.1", details: { permissionAdded: ["approve_level_2"] } },
-  { id: "al-13", timestamp: "2026-07-15T11:45:00Z", userId: "u4", userName: "ประยุทธ์ สร้างชาติ", action: "View", module: "Documents", targetId: "PO-2026-0002", targetLabel: "ใบสั่งซื้อวัตถุดิบ เดือนกรกฎาคม", targetType: "document", ipAddress: "192.168.2.11", details: { duration: "120s" } },
-  { id: "al-14", timestamp: "2026-07-14T14:15:00Z", userId: "u3", userName: "อรทัย สุขใจ", action: "Upload", module: "Master Data", targetId: "md-1", targetLabel: "Vendor List", targetType: "none", ipAddress: "10.0.0.15", details: { recordsAdded: 15, fileName: "vendors_july.xlsx" } },
-  { id: "al-15", timestamp: "2026-07-14T16:30:00Z", userId: "u2", userName: "สมชาย ใจดี", action: "Edit", module: "Documents", targetId: "PR-2026-0001", targetLabel: "ขอซื้ออุปกรณ์สำนักงาน Q3/2026", targetType: "document", ipAddress: "192.168.1.102", details: { field: "value", oldValue: 12000, newValue: 15000 } },
+  { id: "al-01", timestamp: "2026-07-17T09:15:00Z", userId: "u1", userName: "วิภา รักดี", action: "Login", module: "Auth", targetId: "", targetLabel: "-", targetType: "none", ipAddress: "192.168.1.45" },
+  { id: "al-02", timestamp: "2026-07-17T09:30:22Z", userId: "u2", userName: "สมชาย ใจดี", action: "Upload", module: "Documents", targetId: "PR-2026-0005", targetLabel: "ขอซื้อเมาส์และคีย์บอร์ด", targetType: "document", ipAddress: "192.168.1.102" },
+  { id: "al-03", timestamp: "2026-07-17T10:05:11Z", userId: "u1", userName: "วิภา รักดี", action: "View", module: "Documents", targetId: "PR-2026-0005", targetLabel: "ขอซื้อเมาส์และคีย์บอร์ด", targetType: "document", ipAddress: "192.168.1.45" },
+  { id: "al-04", timestamp: "2026-07-17T10:12:44Z", userId: "u1", userName: "วิภา รักดี", action: "Approve", module: "Approvals", targetId: "PR-2026-0005", targetLabel: "ขอซื้อเมาส์และคีย์บอร์ด", targetType: "document", ipAddress: "192.168.1.45", comment: "อนุมัติเบื้องต้น" },
+  { id: "al-05", timestamp: "2026-07-17T11:00:00Z", userId: "u3", userName: "อรทัย สุขใจ", action: "Login", module: "Auth", targetId: "", targetLabel: "-", targetType: "none", ipAddress: "10.0.0.15" },
+  { id: "al-06", timestamp: "2026-07-17T11:15:30Z", userId: "u3", userName: "อรทัย สุขใจ", action: "Edit", module: "Users", targetId: "u2", targetLabel: "สมชาย ใจดี", targetType: "user", ipAddress: "10.0.0.15" },
+  { id: "al-07", timestamp: "2026-07-17T13:20:10Z", userId: "u4", userName: "ประยุทธ์ สร้างชาติ", action: "Reject", module: "Approvals", targetId: "PO-2026-0004", targetLabel: "จัดจ้างที่ปรึกษา HR", targetType: "document", ipAddress: "192.168.2.11", comment: "งบประมาณไตรมาสนี้ไม่เพียงพอ โปรดเลื่อนไป Q4" },
+  { id: "al-08", timestamp: "2026-07-16T08:45:00Z", userId: "u5", userName: "Admin System", action: "Delete", module: "Users", targetId: "u99", targetLabel: "test.user", targetType: "user", ipAddress: "127.0.0.1", comment: "พ้นสภาพพนักงาน" },
+  { id: "al-09", timestamp: "2026-07-16T14:30:00Z", userId: "u1", userName: "วิภา รักดี", action: "Signature", module: "Approvals", targetId: "PO-2026-0001", targetLabel: "ใบสั่งซื้อ Laptop Dell สำหรับทีม IT", targetType: "document", ipAddress: "192.168.1.45" },
+  { id: "al-10", timestamp: "2026-07-16T15:10:00Z", userId: "u2", userName: "สมชาย ใจดี", action: "Download", module: "Documents", targetId: "MM-2026-0001", targetLabel: "บันทึกข้อความภายใน", targetType: "document", ipAddress: "192.168.1.102" },
+  { id: "al-11", timestamp: "2026-07-15T09:00:00Z", userId: "u1", userName: "วิภา รักดี", action: "Login", module: "Auth", targetId: "", targetLabel: "-", targetType: "none", ipAddress: "192.168.1.45" },
+  { id: "al-12", timestamp: "2026-07-15T10:20:00Z", userId: "u5", userName: "Admin System", action: "Edit", module: "Roles", targetId: "r2", targetLabel: "Manager Role", targetType: "role", ipAddress: "127.0.0.1" },
+  { id: "al-13", timestamp: "2026-07-15T11:45:00Z", userId: "u4", userName: "ประยุทธ์ สร้างชาติ", action: "View", module: "Documents", targetId: "PO-2026-0002", targetLabel: "ใบสั่งซื้อวัตถุดิบ เดือนกรกฎาคม", targetType: "document", ipAddress: "192.168.2.11" },
+  { id: "al-14", timestamp: "2026-07-14T14:15:00Z", userId: "u3", userName: "อรทัย สุขใจ", action: "Upload", module: "Master Data", targetId: "md-1", targetLabel: "Vendor List", targetType: "none", ipAddress: "10.0.0.15" },
+  { id: "al-15", timestamp: "2026-07-14T16:30:00Z", userId: "u2", userName: "สมชาย ใจดี", action: "Edit", module: "Documents", targetId: "PR-2026-0001", targetLabel: "ขอซื้ออุปกรณ์สำนักงาน Q3/2026", targetType: "document", ipAddress: "192.168.1.102" },
 ];
 
 const ALL_ACTIONS: ActionType[] = ["Login", "Upload", "Download", "View", "Edit", "Delete", "Approve", "Reject", "Signature"];
@@ -236,14 +236,14 @@ function AuditLogsContent() {
   // 4. Export CSV
   const handleExportCSV = () => {
     if (filteredLogs.length === 0) return;
-    const headers = ["Timestamp", "User", "Action", "Module", "Target ID", "Target Label", "IP Address", "Details"];
-    let csvContent = headers.join(",") + "\\n";
+    const headers = ["Timestamp", "User", "Action", "Module", "Target ID", "Target Label", "IP Address", "Comment"];
+    let csvContent = headers.join(",") + "\n";
     filteredLogs.forEach(log => {
-      const detailsStr = JSON.stringify(log.details).replace(/"/g, '""');
-      csvContent += `"${log.timestamp}","${log.userName}","${log.action}","${log.module}","${log.targetId}","${log.targetLabel}","${log.ipAddress}","${detailsStr}"\\n`;
+      const commentStr = (log.comment || "").replace(/"/g, '""');
+      csvContent += `"${log.timestamp}","${log.userName}","${log.action}","${log.module}","${log.targetId}","${log.targetLabel}","${log.ipAddress}","${commentStr}"\n`;
     });
 
-    const blob = new Blob(["\\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
@@ -437,31 +437,27 @@ function AuditLogsContent() {
                         {log.ipAddress}
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <button 
-                          onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
-                          className={`p-1.5 rounded-lg transition-colors ${expandedRow === log.id ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                        >
-                          {expandedRow === log.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        </button>
+                        {log.comment ? (
+                          <button 
+                            onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
+                            className={`p-1.5 rounded-lg transition-colors ${expandedRow === log.id ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                            title="ดูหมายเหตุ/เหตุผล"
+                          >
+                            {expandedRow === log.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </button>
+                        ) : (
+                          <span className="text-slate-300 font-medium select-none">-</span>
+                        )}
                       </td>
                     </tr>
                     
                     {/* EXPANDED DETAILS ROW */}
-                    {expandedRow === log.id && (
+                    {expandedRow === log.id && log.comment && (
                       <tr className="bg-slate-50/80 border-b border-slate-100">
                         <td colSpan={7} className="p-0">
-                          <div className="px-6 py-4 border-l-4 border-indigo-400 ml-4 my-2 rounded-r-xl bg-white shadow-xs">
-                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Transaction Details</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3">
-                              {Object.entries(log.details).map(([key, value]) => (
-                                <div key={key} className="flex flex-col">
-                                  <span className="text-xs text-slate-500 font-semibold">{key}</span>
-                                  <span className="text-sm font-bold text-slate-800 break-words">
-                                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
+                          <div className="px-6 py-3.5 border-l-4 border-indigo-400 ml-4 my-2 rounded-r-xl bg-white shadow-xs">
+                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Reason / Comment</h4>
+                            <p className="text-sm font-semibold text-slate-800 break-words">{log.comment}</p>
                           </div>
                         </td>
                       </tr>

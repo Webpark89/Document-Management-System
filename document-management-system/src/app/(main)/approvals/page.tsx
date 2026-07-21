@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CheckSquare, Eye, SlidersHorizontal, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import PageHeader from "@/components/shared/PageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from "@/components/u
 type TabStatus = "Pending" | "Approved" | "Returned for Revision" | "All";
 
 export default function ApprovalsInboxPage() {
+  const router = useRouter();
   const [approvals, setApprovals] = useState<Approval[]>([]);
   const [activeTab, setActiveTab] = useState<TabStatus>("Pending");
   const [searchQuery, setSearchQuery] = useState("");
@@ -142,7 +144,7 @@ export default function ApprovalsInboxPage() {
         subtitle="จัดการเอกสารที่รอให้คุณพิจารณาอนุมัติ"
         actions={
           <Link
-            href="/admin/audit-logs?module=Approvals&action=Approve,Reject"
+            href="/approvals/history"
             className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
           >
             <CheckSquare className="w-4 h-4" />
@@ -274,7 +276,8 @@ export default function ApprovalsInboxPage() {
                 paginatedApprovals.map((item) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-slate-50/50 transition-colors group"
+                    onClick={() => router.push(`/approvals/${item.id}`)}
+                    className="hover:bg-blue-50/50 transition-colors group cursor-pointer"
                   >
                     <td className="py-4 pl-4">
                       <div className="flex items-center gap-3">
@@ -286,7 +289,7 @@ export default function ApprovalsInboxPage() {
                           {getDocTypeLabel(item.id)}
                         </span>
                         <div>
-                          <p className="text-sm font-bold text-slate-800 leading-snug">
+                          <p className="text-sm font-bold text-slate-800 leading-snug group-hover:text-blue-600 transition-colors">
                             {item.name}
                           </p>
                           <span className="text-[10px] font-semibold text-slate-400">
@@ -314,7 +317,7 @@ export default function ApprovalsInboxPage() {
                         {item.status}
                       </Badge>
                     </td>
-                    <td className="py-4 pr-4 text-center">
+                    <td className="py-4 pr-4 text-center" onClick={(e) => e.stopPropagation()}>
                       <Link
                         href={`/approvals/${item.id}`}
                         className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 mx-auto cursor-pointer"

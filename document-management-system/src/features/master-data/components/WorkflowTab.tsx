@@ -1,7 +1,7 @@
 "use client";
 
 import { GitBranch, Inbox } from "lucide-react";
-import type { WorkflowRecord } from "@/features/master-data";
+import type { WorkflowRecord, DocumentTypeRecord } from "@/features/master-data";
 import {
   InactiveFilterCheckbox,
   MasterDataMobileCardList,
@@ -24,6 +24,7 @@ import {
 
 export default function WorkflowTab({
   rows,
+  docTypes = [],
   showDeleted,
   onShowDeletedChange,
   stats,
@@ -32,6 +33,7 @@ export default function WorkflowTab({
   onRestore,
 }: {
   rows: WorkflowRecord[];
+  docTypes?: DocumentTypeRecord[];
   showDeleted: boolean;
   onShowDeletedChange: (value: boolean) => void;
   stats: { total: number; active: number; deleted: number };
@@ -53,12 +55,17 @@ export default function WorkflowTab({
     </div>
   );
 
+  const getDocTypeName = (row: WorkflowRecord) => {
+    const doc = docTypes.find((d) => d.id === row.documentTypeId || d.prefix === row.prefix);
+    return doc ? `${doc.typeName} (${row.prefix})` : row.prefix || "-";
+  };
+
   const mobileRows = rows.map((row) => ({
     id: row.id,
     title: row.name,
     badge: <StatusBadge active={row.isActive} />,
     fields: [
-      { label: "ประเภทเอกสาร", value: row.prefix || "-" },
+      { label: "ประเภทเอกสาร", value: getDocTypeName(row) },
       { label: "จำนวน Level (ระดับ)", value: `${row.levels} ระดับ` },
       {
         label: "สายการอนุมัติ",
@@ -101,10 +108,8 @@ export default function WorkflowTab({
             {rows.map((row) => (
               <tr key={row.id} className={`group ${MD_TR}`}>
                 <td className={MD_TD_STICKY}>{row.name}</td>
-                <td className="px-3 py-2.5 text-center text-xs font-medium text-slate-600">
-                  <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-slate-700">
-                    {row.prefix || "-"}
-                  </span>
+                <td className="px-3 py-2.5 text-center text-xs font-semibold text-slate-700">
+                  {getDocTypeName(row)}
                 </td>
                 <td className={MD_TD_NUM}>{row.levels} ระดับ</td>
                 <td className="px-3 py-2.5 text-xs">
