@@ -1,0 +1,74 @@
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateDocumentDto } from './dto/create-document.dto';
+export declare class DocumentsService {
+    private prisma;
+    constructor(prisma: PrismaService);
+    findAll(status?: string, type?: string, search?: string): Promise<{
+        id: any;
+        real_id: any;
+        name: any;
+        title: any;
+        doc_number: any;
+        type: any;
+        type_name: any;
+        status: any;
+        sender: string;
+        creator_name: string;
+        department: any;
+        submittedDate: string;
+        created_at: any;
+        amount: string;
+        version: string;
+        pr_form: any;
+        po_form: any;
+        workflow: any;
+        versions: any;
+    }[]>;
+    findOne(id: string): Promise<{
+        id: any;
+        real_id: any;
+        name: any;
+        title: any;
+        doc_number: any;
+        type: any;
+        type_name: any;
+        status: any;
+        sender: string;
+        creator_name: string;
+        department: any;
+        submittedDate: string;
+        created_at: any;
+        amount: string;
+        version: string;
+        pr_form: any;
+        po_form: any;
+        workflow: any;
+        versions: any;
+    }>;
+    create(dto: CreateDocumentDto, creatorId: string): Promise<{
+        id: any;
+        real_id: any;
+        name: any;
+        title: any;
+        doc_number: any;
+        type: any;
+        type_name: any;
+        status: any;
+        sender: string;
+        creator_name: string;
+        department: any;
+        submittedDate: string;
+        created_at: any;
+        amount: string;
+        version: string;
+        pr_form: any;
+        po_form: any;
+        workflow: any;
+        versions: any;
+    }>;
+    softDelete(id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    private mapDocumentToResponse;
+}

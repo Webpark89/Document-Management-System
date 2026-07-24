@@ -2,85 +2,94 @@
 name: dms-tech-spec
 description: >
   ข้อกำหนดทางเทคนิคสำหรับโปรเจกต์ Document Management & Electronic Approval System (DMS)
-  ใช้เพื่อล็อคกรอบ stack, convention, file structure, database schema, API endpoints
-  และ implementation rules ให้ครบถ้วน ป้องกันการทำงานหลุดออกจากแผนที่วางไว้
+  ล็อคกรอบ stack, convention, file structure, database schema, API endpoints
+  และ implementation rules ป้องกันการทำงานหลุดออกจากแผนที่วางไว้
 ---
 
-# DMS Technical Specification — Locked Framework
+# DMS Technical Specification — LOCKED (อ่านก่อนเขียนโค้ดทุกครั้ง)
 
-> **MANDATORY**: อ่าน SKILL นี้ให้ครบก่อนเขียนโค้ดทุกครั้ง ห้ามเบี่ยงเบนจาก spec นี้
-> โดยไม่ได้รับการยืนยันจาก user อย่างชัดเจน
+> **MANDATORY**: อ่าน SKILL นี้ให้ครบก่อนเขียนโค้ดทุกครั้ง ห้ามเบี่ยงเบนจาก spec นี้โดยไม่ได้รับการยืนยันจาก user อย่างชัดเจน
+
+---
+
+## 0. Workspace Root (LOCKED)
+
+```
+Monorepo Root : D:\Document Management\dms\
+Frontend      : D:\Document Management\dms\client\
+Backend       : D:\Document Management\dms\server\
+```
+
+> ห้ามเขียนโค้ดโปรเจกต์นอก `D:\Document Management\dms\` เด็ดขาด  
+> โฟลเดอร์เก่า `dms-backend/` และ `document-management-system/` เป็นของเก่า — **อย่าแตะ**
 
 ---
 
 ## 1. Project Overview
 
-**ชื่อโปรเจกต์**: Document Management & Electronic Approval System (DMS)  
-**บริบท**: ระบบจัดการเอกสารและการอนุมัติอิเล็กทรอนิกส์ภายในองค์กร รองรับ PR/PO/ใบรับรอง  
-**Workspace root**: `d:\Document Management\document-management-system\`
+**ชื่อ**: Document Management & Electronic Approval System (DMS)  
+**ลูกค้า**: นิสซุย (ประเทศไทย)  
+**บริบท**: จัดการเอกสาร + ลงลายเซ็นอิเล็กทรอนิกส์ภายในองค์กร รองรับ PR / PO / บันทึกข้อความ (BK) / PDF ทั่วไป  
+**ผู้ใช้**: ~100 คน (Employee, Manager, Executive, Administrator)  
+**แหล่ง Requirement**: `Requirement Document Management System นิสซุย.pdf` — ยึดเป็นหลัก
 
 ---
 
-## 2. Technology Stack (LOCKED — ห้ามเปลี่ยนโดยไม่ได้รับอนุญาต)
+## 2. Technology Stack (LOCKED)
 
-### 2.1 Frontend (ใน workspace root)
-| รายการ | Version/Detail |
-|--------|---------------|
-| **Framework** | Next.js **16.2.10** — App Router เท่านั้น (ห้ามใช้ Pages Router) |
-| **React** | React **19.2.4** |
-| **Language** | TypeScript **^5** (ห้ามใช้ `.js` `.jsx` ในโค้ดหลัก) |
-| **Styling** | Tailwind CSS **v4** — ใช้ `@import "tailwindcss"` syntax (ไม่ใช่ v3 `@tailwind` directives) |
-| **Icons** | `lucide-react` เท่านั้น |
-| **Class merging** | `clsx` + `tailwind-merge` ผ่าน `cn()` helper ใน `src/lib/utils.ts` |
-| **HTTP Client** | `axios` (เมื่อต่อ backend) |
-| **PDF Viewer** | `react-pdf` (Phase 2) |
-| **Charts** | `recharts` (Phase 3 — Dashboard) |
-| **File Upload** | `react-dropzone` (Phase 1.3) |
-| **Bundler** | Turbopack (built-in ใน Next.js 16) |
+### 2.1 Frontend — `dms/client/`
 
-### 2.2 Backend (แยกโปรเจกต์ — ยังไม่สร้าง)
 | รายการ | Detail |
 |--------|--------|
-| **Framework** | NestJS |
-| **ORM** | Prisma |
-| **Database** | PostgreSQL |
-| **Auth** | JWT (Access Token) + bcrypt (password hash) |
-| **File Upload** | Multer (รับไฟล์) → เก็บบน File Server (local path) |
-| **PDF Processing** | PDF-LIB (ประทับลายเซ็นลงไฟล์ PDF จริง) |
-| **Email** | Nodemailer |
+| Framework | **Next.js 16** (App Router เท่านั้น — ห้าม Pages Router) |
+| Language | **TypeScript** (ห้ามใช้ `.js` `.jsx` ในโค้ดหลัก) |
+| Styling | **Tailwind CSS v4** — ใช้ `@import "tailwindcss"` (**ห้าม** `@tailwind base/components/utilities`) |
+| Icons | **lucide-react** เท่านั้น |
+| Class merging | `cn()` จาก `src/lib/utils.ts` |
+| HTTP Client | `axios` |
+| PDF Viewer | `react-pdf` (Phase 2) |
+| Charts | `recharts` (Phase 3) |
+| File Upload | `react-dropzone` (Phase 1.3) |
+
+### 2.2 Backend — `dms/server/`
+
+| รายการ | Detail |
+|--------|--------|
+| Framework | **NestJS 11** |
+| ORM | **Prisma** |
+| Database | **PostgreSQL** |
+| Auth | JWT (httpOnly Cookie) + bcrypt |
+| File Upload | Multer → File Server (local path) |
+| PDF Processing | PDF-LIB (ฝังลายเซ็น) |
+| Email | Nodemailer |
 
 ---
 
-## 3. Next.js Conventions (CRITICAL — Next.js 16 + React 19)
+## 3. Next.js 16 Breaking Changes (CRITICAL)
 
-### 3.1 Async Props — BREAKING CHANGE จาก v14
+### 3.1 Async params/searchParams — MUST AWAIT
+
 ```typescript
-// ✅ CORRECT — params และ searchParams ต้องเป็น Promise เสมอ
+// ✅ CORRECT
 export default async function Page({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ status?: string }>;
 }) {
-  const { id } = await params;
-  const { status } = await searchParams;
+  const { id } = await params; // ต้อง await เสมอ
 }
 
-// ❌ WRONG — อย่าเข้าถึง params แบบ sync (deprecated)
+// ❌ WRONG — deprecated ใน Next.js 15+
 export default function Page({ params }: { params: { id: string } }) {
-  const { id } = params; // ❌ deprecated
+  const { id } = params; // ❌ พัง
 }
 ```
 
-### 3.2 CSS — TailwindCSS v4 Syntax
-```css
-/* ✅ CORRECT — globals.css */
-@import "tailwindcss";
+### 3.2 CSS — Tailwind v4 Syntax
 
-@theme {
-  --color-primary-600: #2563eb;
-}
+```css
+/* ✅ CORRECT */
+@import "tailwindcss";
 
 /* ❌ WRONG — v3 syntax */
 @tailwind base;
@@ -88,295 +97,443 @@ export default function Page({ params }: { params: { id: string } }) {
 @tailwind utilities;
 ```
 
-### 3.3 PageProps Helper (Next.js 16)
-```typescript
-// ✅ ใช้ PageProps helper สำหรับ type safety
-export default async function Page(props: PageProps<'/blog/[slug]'>) {
-  const { slug } = await props.params;
+### 3.3 Server vs Client Components
+
+- **Default**: Server Component (ไม่ต้องใส่ directive)
+- **Client Component**: ใส่ `"use client"` เฉพาะเมื่อต้องการ useState / useEffect / event handlers
+- **Rule**: Push `"use client"` ลงไปที่ leaf component ให้ลึกที่สุด
+
+---
+
+## 4. Project File Structure (LOCKED — สถานะจริง ณ ปัจจุบัน)
+
+```
+dms/                                    ← Monorepo Root
+├── package.json                        ← รัน "concurrently" ทั้ง client+server พร้อมกัน
+│
+├── client/                             ← Frontend: Next.js 16
+│   ├── src/
+│   │   ├── app/                        ← [Router] Next.js App Router
+│   │   │   ├── (auth)/
+│   │   │   │   ├── login/page.tsx
+│   │   │   │   ├── forgot-password/page.tsx
+│   │   │   │   └── reset-password/page.tsx
+│   │   │   └── (main)/
+│   │   │       ├── layout.tsx          ← App Shell (Sidebar+Topbar)
+│   │   │       ├── dashboard/page.tsx
+│   │   │       ├── documents/
+│   │   │       │   ├── page.tsx        ← Document List
+│   │   │       │   ├── upload/page.tsx ← อัปโหลด/สร้างเอกสาร
+│   │   │       │   └── [id]/
+│   │   │       │       ├── page.tsx    ← Document Detail
+│   │   │       │       └── versions/page.tsx
+│   │   │       ├── approvals/
+│   │   │       │   ├── page.tsx        ← Approval Inbox
+│   │   │       │   ├── history/page.tsx
+│   │   │       │   └── [id]/page.tsx  ← Approval Task + PDF
+│   │   │       ├── notifications/page.tsx
+│   │   │       ├── profile/page.tsx
+│   │   │       └── admin/
+│   │   │           ├── audit-logs/page.tsx
+│   │   │           ├── reports/page.tsx
+│   │   │           ├── master-data/
+│   │   │           │   ├── page.tsx
+│   │   │           │   └── doc-forms/page.tsx
+│   │   │           └── config/
+│   │   │               ├── page.tsx
+│   │   │               ├── roles/page.tsx
+│   │   │               └── users/page.tsx
+│   │   │
+│   │   ├── models/                     ← [M] TypeScript Types/Interfaces (Source of Truth)
+│   │   │   └── index.ts               ← ALL domain types อยู่ที่นี่
+│   │   │
+│   │   ├── views/                      ← [V] UI Components ล้วนๆ (Dumb — รับ Props แล้ว Render)
+│   │   │   ├── components/
+│   │   │   │   ├── forms/             ← PRForm.tsx, POForm.tsx, BKForm.tsx, UploadOnlyForm.tsx
+│   │   │   │   ├── layout/            ← Sidebar.tsx, Topbar.tsx
+│   │   │   │   ├── ui/                ← Button, Modal, Table, Toast, Badge, Card
+│   │   │   │   ├── dashboard/         ← StatCard, ActivityFeed, Charts
+│   │   │   │   ├── workflow/          ← WorkflowTracker, ApprovalActions, DocumentSignerViewer
+│   │   │   │   ├── pdf-viewer/        ← PDFViewer.tsx, SignatureOverlay.tsx
+│   │   │   │   ├── providers/         ← AuthProvider, SidebarProvider, ToastProvider, SignatureProvider
+│   │   │   │   └── shared/            ← PageHeader, DashboardLayout
+│   │   │   ├── features/              ← Feature-specific UI + Mock Data
+│   │   │   │   ├── master-data/       ← DocumentTypesTab, ApprovalMatrixTab, WorkflowTab, etc.
+│   │   │   │   │   ├── components/
+│   │   │   │   │   ├── mock/          ← data.ts, store.ts (mock data)
+│   │   │   │   │   └── types.ts
+│   │   │   │   ├── roles-users/
+│   │   │   │   │   ├── components/
+│   │   │   │   │   ├── mock/
+│   │   │   │   │   └── types.ts
+│   │   │   │   ├── documents/         ← api.ts, types.ts
+│   │   │   │   ├── auth/
+│   │   │   │   ├── notifications/
+│   │   │   │   ├── profile/
+│   │   │   │   └── workflow/
+│   │   │   └── layouts/               ← Sidebar.tsx, Topbar.tsx (layout-level)
+│   │   │
+│   │   ├── controllers/                ← [C] Business Logic & Data Fetching
+│   │   │   ├── services/              ← HTTP API calls (Axios → NestJS)
+│   │   │   │   ├── auth.service.ts
+│   │   │   │   ├── documents.service.ts
+│   │   │   │   ├── admin.service.ts
+│   │   │   │   └── workflows.service.ts
+│   │   │   └── hooks/                 ← Custom React Hooks (State + Services)
+│   │   │
+│   │   └── lib/                        ← Utilities
+│   │       ├── utils.ts               ← cn() helper
+│   │       ├── api-client.ts          ← Axios instance
+│   │       ├── api.ts
+│   │       ├── document-status.ts
+│   │       ├── document-type-icon.tsx
+│   │       └── config-mock.ts
+│   │
+│   ├── tsconfig.json                   ← Path Aliases: @models, @views, @controllers, @lib
+│   └── .env.local                      ← NEXT_PUBLIC_API_URL=http://localhost:4000
+│
+└── server/                             ← Backend: NestJS 11
+    ├── src/
+    │   ├── main.ts                     ← Entry point (port 4000)
+    │   ├── app.module.ts
+    │   ├── auth/                       ← auth.controller.ts, auth.service.ts, jwt.strategy.ts
+    │   │   └── dto/login.dto.ts
+    │   ├── documents/                  ← documents.controller.ts, documents.service.ts
+    │   │   └── dto/create-document.dto.ts
+    │   ├── admin/                      ← admin.controller.ts, admin.service.ts
+    │   │   └── dto/create-user.dto.ts
+    │   ├── workflows/                  ← workflows.controller.ts, workflows.service.ts
+    │   │   └── dto/approve-step.dto.ts, reject-step.dto.ts
+    │   ├── notifications/
+    │   └── prisma/                     ← prisma.module.ts, prisma.service.ts
+    ├── prisma/
+    │   └── schema.prisma               ← Database Schema (ยึด ERD นี้เป็นหลัก)
+    └── .env                            ← DATABASE_URL, JWT_SECRET
+```
+
+### 4.1 Path Aliases (tsconfig.json)
+
+```json
+{
+  "paths": {
+    "@/*":          ["./src/*"],
+    "@models":      ["./src/models/index"],
+    "@models/*":    ["./src/models/*"],
+    "@views":       ["./src/views/index"],
+    "@views/*":     ["./src/views/*"],
+    "@controllers": ["./src/controllers/index"],
+    "@controllers/*":["./src/controllers/*"],
+    "@lib/*":       ["./src/lib/*"]
+  }
 }
 ```
 
-### 3.4 Server vs Client Components
-- **Default**: Server Component (ไม่ต้องใส่ directive)
-- **Client Component**: ใส่ `"use client"` ที่บรรทัดแรกเท่านั้นเมื่อต้องการ useState, useEffect, event handlers
-- **Rule**: ใช้ Client Component ให้น้อยที่สุด — Push ลงไปที่ leaf component
-
-### 3.5 Metadata
-```typescript
-// ใช้ metadata template จาก root layout
-import type { Metadata } from "next";
-export const metadata: Metadata = { title: "ชื่อหน้า" };
-// จะ render เป็น "ชื่อหน้า | DMS - ระบบจัดการเอกสาร"
-```
-
 ---
 
-## 4. File Structure (LOCKED)
+## 5. Database Schema — ERD Final (Prisma)
 
-```
-src/
-├── app/
-│   ├── (auth)/                          # Route Group — ไม่มี Sidebar
-│   │   ├── login/page.tsx               # Phase 3
-│   │   ├── forgot-password/page.tsx     # Phase 3
-│   │   └── reset-password/page.tsx      # Phase 3
-│   ├── (main)/                          # Route Group — มี Sidebar + Topbar
-│   │   ├── layout.tsx                   # App Shell (Sidebar)
-│   │   ├── dashboard/page.tsx           # ✅ DONE
-│   │   ├── documents/
-│   │   │   ├── page.tsx                 # ✅ DONE — List view
-│   │   │   ├── upload/page.tsx          # ✅ DONE (stub) → Phase 1.3 complete
-│   │   │   └── [id]/
-│   │   │       ├── page.tsx             # ✅ DONE — Detail view
-│   │   │       └── versions/page.tsx    # Phase 1.2
-│   │   ├── approvals/
-│   │   │   ├── page.tsx                 # ✅ DONE — Inbox
-│   │   │   └── [id]/page.tsx            # ✅ DONE (stub) → Phase 2.3 complete
-│   │   └── admin/
-│   │       ├── users/page.tsx           # ✅ DONE (stub) → Phase 3.2 complete
-│   │       ├── roles/page.tsx           # ✅ DONE (stub) → Phase 3.2 complete
-│   │       ├── master-data/page.tsx     # ✅ DONE (stub) → Phase 2.1 complete
-│   │       ├── running-number/page.tsx  # ✅ DONE (stub) → Phase 2.1 complete
-│   │       └── audit-logs/page.tsx      # ✅ DONE (stub) → Phase 3.3 complete
-│   ├── globals.css                      # ✅ DONE — TailwindCSS v4 + tokens
-│   ├── layout.tsx                       # ✅ DONE — Root layout (lang="th")
-│   └── page.tsx                         # ✅ DONE — Redirect → /dashboard
-├── components/
-│   ├── layout/
-│   │   ├── Sidebar.tsx                  # ✅ DONE
-│   │   └── Topbar.tsx                   # ✅ DONE
-│   ├── ui/
-│   │   ├── Badge.tsx                    # ✅ DONE — StatusBadge, TypeBadge
-│   │   ├── Button.tsx                   # Phase 1 polish
-│   │   ├── Modal.tsx                    # Phase 1 polish
-│   │   ├── Toast.tsx                    # Phase 1 polish
-│   │   └── Table.tsx                    # Phase 1 polish
-│   ├── forms/
-│   │   ├── PRForm.tsx                   # Phase 1.3 — Dynamic rows, auto total
-│   │   └── POForm.tsx                   # Phase 1.3 — Dynamic rows, VAT 7%
-│   ├── workflow/
-│   │   └── WorkflowTracker.tsx          # Phase 2.2 — Step stepper component
-│   └── pdf-viewer/
-│       ├── PDFViewer.tsx                # Phase 2.3 — react-pdf
-│       └── SignatureOverlay.tsx         # Phase 2.3 — Canvas drag-and-drop
-├── lib/
-│   ├── utils.ts                         # ✅ DONE — cn()
-│   ├── mock-data.ts                     # ✅ DONE — Mock data + color constants
-│   └── api.ts                           # Phase BE — Axios client
-├── services/
-│   ├── documents.service.ts             # Phase BE
-│   ├── workflows.service.ts             # Phase BE
-│   ├── auth.service.ts                  # Phase BE
-│   └── admin.service.ts                 # Phase BE
-└── types/
-    └── index.ts                         # ✅ DONE — All domain types
-```
-
----
-
-## 5. Database Schema (PostgreSQL + Prisma)
+> ยึดตาม ERD รูปที่แนบ — ห้ามเพิ่ม/ลบตาราง/ฟิลด์โดยไม่ได้รับอนุมัติ
 
 ### Group 1 — Master Data
-```sql
-departments   (id UUID, name, is_active, created_at)
-positions     (id UUID, name, is_active, created_at)
-document_types(id UUID, type_name, prefix, is_active, created_at)
--- prefix เช่น "PR", "PO", "CERT"
--- ต้องมี signature ใน master data ด้วย
+
+```
+departments      (id UUID PK, name UNIQUE, is_active, created_at, updated_at)
+positions        (id UUID PK, name UNIQUE, is_active, created_at, updated_at)
+document_types   (id UUID PK, type_name UNIQUE, prefix UNIQUE, is_active, created_at, updated_at)
+                  prefix values: "PR" | "PO" | "BK" | "DOC"
+running_numbers  (id UUID PK, document_type_id FK, prefix, year_format,
+                  current_number INT=0, padding_length INT=4,
+                  last_reset_year INT NULL, created_at, updated_at)
 ```
 
 ### Group 2 — Users & Permissions
-```sql
-roles           (id UUID, name, is_active)
-permissions     (id UUID, module, action, description)
--- module: Document | User | Workflow | Master Data
--- action: View | Add | Edit | Delete | Export
-role_permissions(role_id FK, permission_id FK)  -- Many-to-Many
-users           (
-  id UUID, username, email, password_hash,
-  first_name, last_name,
-  department_id FK, position_id FK, role_id FK,
-  signature_image_path,  -- path บน File Server
-  is_active, reset_token, reset_token_expiry,
-  created_at, updated_at
-)
+
+```
+roles            (id UUID PK, name UNIQUE, is_active, created_at, updated_at)
+                  values: Employee | Manager | Executive | Administrator
+permissions      (id UUID PK, module, action, description, created_at, updated_at)
+                  module: Document | User | Workflow | Master Data | Audit Log
+                  action: View | Create | Edit | Delete | Approve
+role_permissions (role_id FK, permission_id FK — Composite PK)
+users            (id UUID PK, username UNIQUE, email UNIQUE, password_hash,
+                  first_name, last_name,
+                  department_id FK NULL, position_id FK NULL, role_id FK NULL,
+                  signature_image_path NULL,
+                  is_active=true, is_deleted=false,
+                  reset_token NULL, reset_token_expiry NULL,
+                  created_at, updated_at)
 ```
 
 ### Group 3 — Documents & Versions
-```sql
-documents (
-  id UUID, doc_number, title, type_id FK,
-  creator_id FK→users,
-  status ENUM(Draft|Pending|Approved|Rejected|Cancelled),
-  is_deleted BOOLEAN,  -- Soft Delete เท่านั้น ห้าม DELETE จริง
-  created_at, updated_at
-)
-pr_forms (
-  id UUID, document_id FK (1-to-1),
-  requested_date, required_date,
-  requester_id FK→users, department_id FK→departments,
-  purpose, total_amount
-)
-pr_form_items (
-  id UUID, pr_form_id FK (1-to-Many),
-  item_name, quantity, unit,
-  unit_price, total_price, remark
-)
-po_forms (
-  id UUID, document_id FK (1-to-1),
-  vendor_name, vendor_contact,
-  delivery_date, payment_terms, total_amount
-)
-po_form_items (
-  id UUID, po_form_id FK (1-to-Many),
-  item_name, quantity, unit,
-  unit_price, vat DECIMAL, total_price, remark
-  -- total_price = unit_price * quantity * (1 + vat/100)
-)
-memo_forms (
-  id UUID, document_id FK (1-to-1),
-  category, detail,
-  department_id FK→departments
-)
-document_versions (
-  id UUID, document_id FK,
-  version_number INT (1,2,3...),
-  file_path, file_size, file_extension,
-  uploaded_by FK→users, remarks, created_at
-)
+
+```
+documents        (id UUID PK, doc_number UNIQUE, title,
+                  type_id FK, creator_id FK→users,
+                  status ENUM(Draft|Pending|Approved|Rejected|Cancelled),
+                  search_text TEXT NULL, tags TEXT[],
+                  is_deleted=false, created_at, updated_at)
+
+pr_forms         (id UUID PK, document_id FK UNIQUE,
+                  requested_date NULL, required_date NULL,
+                  requester_id FK→users, department_id FK→departments,
+                  purpose TEXT NULL, total_amount DECIMAL=0,
+                  created_at, updated_at)
+pr_form_items    (id UUID PK, pr_form_id FK,
+                  item_name, quantity INT, unit NULL,
+                  unit_price DECIMAL, total_price DECIMAL, remark TEXT NULL,
+                  created_at, updated_at)
+
+po_forms         (id UUID PK, document_id FK UNIQUE,
+                  vendor_name, vendor_contact NULL,
+                  delivery_date NULL, payment_terms NULL, total_amount DECIMAL=0,
+                  created_at, updated_at)
+po_form_items    (id UUID PK, po_form_id FK,
+                  item_name, quantity INT, unit NULL,
+                  unit_price DECIMAL, vat DECIMAL=7, total_price DECIMAL,
+                  remark TEXT NULL, created_at, updated_at)
+
+bk_forms         (id UUID PK, document_id FK UNIQUE,
+                  subject, detail TEXT NULL,
+                  department_id FK→departments, created_at, updated_at)
+
+document_versions(id UUID PK, document_id FK,
+                  version_number INT, file_path, file_size NULL, file_extension NULL,
+                  uploaded_by_id FK→users, remarks TEXT NULL,
+                  created_at, updated_at)
 ```
 
 ### Group 4 — Workflow & Support
-```sql
-approval_matrix (
-  id UUID, document_type_id FK,
-  step_order INT (1-4),
-  required_role_id FK→roles
-)
-workflows (
-  id UUID, document_id FK,
-  total_steps INT, current_step INT,
-  status ENUM(Pending|Approved|Rejected),
-  created_at
-)
-workflow_steps (
-  id UUID, workflow_id FK,
-  step_order INT, approver_id FK→users,
-  status ENUM(Pending|Approved|Rejected),
-  action_date, comment,
-  signature_applied BOOLEAN,
-  return_to_step INT NULL  -- ถ้า Reject ย้อนไป step ไหน
-)
-notifications (
-  id UUID, user_id FK→users, message,
-  document_id FK→documents,
-  is_read BOOLEAN, created_at
-)
-running_numbers (
-  id UUID, document_type_id FK,
-  prefix, year_format, current_number INT, padding_length INT
-  -- Auto-increment ทุกครั้งที่สร้างเอกสาร
-  -- Format: {prefix}-{year}-{padded_number} เช่น PR-2026-0001
-)
-audit_logs (
-  id UUID, user_id FK→users,
-  action ENUM(Login|Upload|Download|View|Edit|Delete|Approve|Reject|Signature),
-  module, target_id, details JSONB,
-  ip_address, created_at
-  -- Append-only: ห้าม UPDATE หรือ DELETE ตารางนี้เด็ดขาด
-)
+
+```
+approval_matrix  (id UUID PK, document_type_id FK,
+                  step_order INT, required_role_id FK→roles,
+                  created_at, updated_at)
+
+workflows        (id UUID PK, document_id FK UNIQUE,
+                  total_steps INT, current_step INT=1,
+                  status ENUM(Pending|Approved|Rejected),
+                  created_at, updated_at)
+
+workflow_steps   (id UUID PK, workflow_id FK,
+                  step_order INT,
+                  approver_id FK→users NULL,  ← Nullable! ระบุแค่ Role ได้ ค่อยอัปเดตตอนกดอนุมัติ
+                  status ENUM(Pending|Approved|Rejected),
+                  action_date NULL, comment TEXT NULL,
+                  signature_applied BOOLEAN=false,
+                  return_to_step INT NULL, created_at, updated_at)
+
+notifications    (id UUID PK, user_id FK→users, document_id FK NULL,
+                  message TEXT, is_read=false,
+                  read_at TIMESTAMP NULL, ← เวลาอ่านจริง
+                  created_at, updated_at)
+
+audit_logs       (id UUID PK, user_id FK NULL,
+                  action ENUM(Login|Upload|Download|View|Edit|Delete|Approve|Reject|Signature),
+                  module, target_id NULL,
+                  details JSONB NULL,  ← โครงสร้าง: { oldState: {...}, newState: {...}, extra: any }
+                  ip_address NULL, created_at)
+                  ⚠️ Append-only: ห้าม UPDATE หรือ DELETE ตารางนี้เด็ดขาด
 ```
 
 ---
 
-## 6. API Endpoints (NestJS — Backend Reference)
+## 6. Document Flow (DFD — ยึดตามรูป)
+
+### 6.1 Document Creation Flow
+```
+User Login (Employee / Manager / Executive)
+  → เลือกประเภทเอกสาร: PR | PO | บันทึก (BK) | PDF ทั่วไป
+  → กรอกฟอร์ม
+  → ระบบ Auto-Generate เลขเอกสาร: {PREFIX}-{YEAR}-{XXXX}  เช่น PR-2026-0001
+  → บันทึก: สถานะ = Draft
+  → กดส่งอนุมัติ?
+      YES → เปลี่ยนสถานะ = Pending
+           → ดึง Approval Matrix ตามประเภทเอกสาร (3-4 ระดับ)
+           → สร้าง Workflow + Steps (step_order 1..N)
+           → ส่ง Notification ไปผู้อนุมัติ Step 1
+      NO  → คงอยู่ที่ Draft
+```
+
+### 6.2 Approval Flow
+```
+ผู้อนุมัติรับ Notification
+  → เปิดเอกสาร PDF ในเบราว์เซอร์ (react-pdf)
+  → ตัดสินใจ:
+      REJECT → บันทึก Comment, WorkflowStep.status = Rejected
+             → Document.status = Rejected
+             → ส่ง Notification + Email กลับผู้สร้าง
+      APPROVE → Drag-and-Drop ลายเซ็นบนหน้า PDF
+             → ส่ง { documentId, x, y, page } ไป Backend
+             → Backend เริ่ม $transaction:
+                 1. PDF-LIB ฝังลายเซ็น → เซฟไฟล์ชั่วคราว
+                 2. สร้าง DocumentVersion ใหม่ใน DB
+                 3. อัปเดต WorkflowStep.status = Approved, signature_applied = true
+                 4. เพิ่ม current_step + 1
+                 5. บันทึก AuditLog (action: Approve + Signature)
+                 ⚠️ Rollback: หาก DB fail → ลบไฟล์ชั่วคราวทิ้ง ไม่มีขยะ
+             → ผ่านครบทุก Step?
+                 YES → Document.status = Approved
+                      → Notification แจ้งผู้สร้าง
+                 NO  → ขยับ current_step → ส่ง Notification ผู้อนุมัติ Step ถัดไป
+```
+
+### 6.3 Running Number Logic
+```
+สร้างเอกสารใหม่:
+  1. ดึง RunningNumber ของ document_type
+  2. ตรวจ last_reset_year vs ปีปัจจุบัน
+     - ถ้าปีใหม่ → reset current_number = 0, อัปเดต last_reset_year
+  3. current_number + 1
+  4. Format: {prefix}-{YYYY}-{padded_number}
+     เช่น PR-2026-0001, BK-2027-0001 (รีเซ็ตใหม่)
+  5. อัปเดต current_number ใน DB
+```
+
+### 6.4 AuditLog Details Structure
+```json
+{
+  "oldState": { "status": "Draft", "title": "เดิม" },
+  "newState": { "status": "Pending", "title": "เดิม" },
+  "extra": { "ip": "192.168.1.1", "note": "กดส่งอนุมัติ" }
+}
+```
+
+---
+
+## 7. API Endpoints (NestJS Backend — port 4000)
 
 ### Auth
 ```
-POST /auth/login              → คืน JWT token
-POST /auth/forgot-password    → ส่ง reset link ทางอีเมล
-POST /auth/reset-password     → ตั้งรหัสผ่านใหม่ด้วย token
+POST /auth/login                → คืน JWT (set httpOnly Cookie)
+POST /auth/forgot-password      → ส่ง reset link ทาง Email
+POST /auth/reset-password       → ตั้งรหัสผ่านใหม่ด้วย token
 ```
 
 ### Documents
 ```
-GET    /documents             → list (filter: status, type, date) + pagination
-POST   /documents/upload      → multipart/form-data → Multer → File Server + DB
-GET    /documents/:id         → detail + version list
-DELETE /documents/:id         → Soft Delete (set is_deleted=true) ไม่ DELETE จริง
-GET    /documents/:id/download → stream ไฟล์ล่าสุด
-GET    /documents/:id/versions → list ทุก version
+GET    /documents               → list (filter: status, type, date) + pagination
+POST   /documents/upload        → multipart/form-data → Multer → DB + File Server
+GET    /documents/:id           → detail + versions
+PATCH  /documents/:id           → แก้ไข (Draft เท่านั้น)
+DELETE /documents/:id           → Soft Delete (is_deleted=true) ห้าม DELETE จริง
+GET    /documents/:id/download  → stream ไฟล์ล่าสุด
+GET    /documents/:id/versions  → list ทุก version
 ```
 
-### Forms (PR / PO / Memo)
+### Forms
 ```
-POST   /pr-forms              → สร้าง PR form + items
-GET    /pr-forms/:documentId  → ดึง PR form ของเอกสาร
-PUT    /pr-forms/:id          → แก้ไข PR form
-(เหมือนกันสำหรับ /po-forms และ /memo-forms)
+POST   /pr-forms                → สร้าง PR form + items
+GET    /pr-forms/:documentId    → ดึง PR form
+PUT    /pr-forms/:id            → แก้ไข (เหมือนกันสำหรับ /po-forms, /bk-forms)
 ```
 
 ### Workflows
 ```
-POST   /workflows/:id/approve → Approve step ปัจจุบัน + ขยับ current_step
-POST   /workflows/:id/reject  → Reject + บันทึก comment + return_to_step
-GET    /workflows/:documentId → สถานะ workflow ของเอกสาร
+POST   /workflows/:id/submit    → Submit Draft → Pending + สร้าง Workflow
+POST   /workflows/:id/approve   → Approve step + ฝัง E-Signature (Transaction)
+POST   /workflows/:id/reject    → Reject + comment
+GET    /workflows/:documentId   → สถานะ workflow ของเอกสาร
 ```
 
-### Signatures
+### Notifications
 ```
-POST   /signatures/apply      → { documentId, x, y, page, signatureImagePath }
-                              → PDF-LIB ฝังลายเซ็นลง PDF → บันทึกเป็น version ใหม่
+GET    /notifications           → list ของ user ปัจจุบัน (filter: is_read)
+PATCH  /notifications/:id/read  → อัปเดต is_read=true, read_at=now()
 ```
 
 ### Admin
 ```
-GET/POST/PUT /admin/users          → CRUD users
-GET/POST/PUT /admin/roles          → CRUD roles
-POST         /admin/roles/:id/permissions → assign permissions (granular)
-GET/POST/PUT /admin/departments    → CRUD
-GET/POST/PUT /admin/positions      → CRUD
-GET/POST/PUT /admin/document-types → CRUD
-GET/POST/PUT /admin/approval-matrix → ตั้งค่า Approval Matrix
-GET/POST/PUT /admin/running-numbers → ตั้งค่า Running Number
-GET          /audit-logs           → query + filter (user, module, action, date)
-GET          /dashboard/stats      → COUNT เอกสารแยก status
+GET/POST/PATCH /admin/users          → CRUD users (Soft Delete: is_active=false)
+GET/POST/PATCH /admin/roles          → CRUD roles
+GET/POST/PATCH /admin/departments    → CRUD (Soft Delete: is_active=false)
+GET/POST/PATCH /admin/document-types → CRUD
+GET/POST/PATCH /admin/approval-matrix → ตั้งค่า Matrix ต่อประเภทเอกสาร
+GET/POST/PATCH /admin/running-numbers → ตั้งค่า Running Number
+GET            /audit-logs           → query + filter
+GET            /dashboard/stats      → COUNT เอกสารแยก status
+GET            /admin/reports        → รายงานสรุป
 ```
 
 ---
 
-## 7. TypeScript Types (LOCKED — src/types/index.ts)
+## 8. TypeScript Types (LOCKED — `client/src/models/index.ts`)
 
 ```typescript
+// Document Status — ตรงตาม Prisma Enum
 type DocumentStatus = "Draft" | "Pending" | "Approved" | "Rejected" | "Cancelled";
-type DocumentType   = "PR" | "PO" | "Memo" | "Other";
-type UserRole       = "Administrator" | "Manager" | "Employee";
-// Note: Role เป็น Dynamic จาก DB — UserRole type ใช้ แค่ Mock เท่านั้น
 
-// Workflow step status
-type WorkflowStepStatus = "Pending" | "Approved" | "Rejected";
+// ประเภทเอกสาร (ใช้ภาษาไทยใน UI, ใช้ prefix ใน DB)
+type DocumentTypeLabel = "PR" | "PO" | "บันทึก" | "Other";
+type DocFormTypeKey    = "PR" | "PO" | "BK" | "OTHER"; // ← ใช้ใน DB/API
 
-// Permission modules & actions
+// Form Style (ใน Master Data UI)
+type FormTypeStyle = "PR-style" | "PO-style" | "BK-style" | "OTHER-style";
+
+// Roles
+type UserRole = "Administrator" | "Executive" | "Manager" | "Employee";
+
+// Workflow
+type WorkflowStatus = "Pending" | "Approved" | "Rejected";
+
+// Permissions
 type PermissionModule = "Document" | "User" | "Workflow" | "Master Data" | "Audit Log";
-type PermissionAction = "View" | "Add" | "Edit" | "Delete" | "Export";
+type PermissionAction = "View" | "Create" | "Edit" | "Delete" | "Approve";
 ```
 
 ---
 
-## 8. Design System Constants
+## 9. Business Rules (LOCKED)
 
-### Color Tokens (globals.css)
-```css
---color-sidebar-bg:      #0f172a  (Slate 900)
---color-sidebar-hover:   #1e293b  (Slate 800)
---color-sidebar-active:  #1d4ed8  (Blue 700)
---color-sidebar-text:    #94a3b8  (Slate 400)
---color-surface:         #ffffff
---color-surface-secondary: #f8fafc
---color-border:          #e2e8f0
+### Soft Delete — ห้ามลบจริงเด็ดขาด
+| ตาราง | ฟิลด์ที่ใช้ |
+|-------|------------|
+| `documents` | `is_deleted = true` |
+| `users` | `is_deleted = true` |
+| `departments`, `positions`, `document_types`, `roles` | `is_active = false` |
+
+### Document Lifecycle
+1. สร้าง → `Draft`
+2. Submit → `Pending` + สร้าง Workflow + ส่ง Notification Step 1
+3. Approve ทีละ Step → ขยับ `current_step`
+4. ครบทุก Step → `Approved` + Notification ผู้สร้าง
+5. Reject Step ใดก็ได้ → `Rejected` + Email + Notification
+
+### Approval Workflow Rules
+1. **ห้ามมีปุ่ม Add/Remove Step ในหน้าสร้างเอกสาร** (PR, PO, BK, Other)
+2. จำนวน Step + Role มาจาก ApprovalMatrix ใน Master Data เท่านั้น (Read-only)
+3. ผู้ขอสามารถกำหนดเฉพาะ **ชื่อบุคคล (approver_id)** ในแต่ละ Step ที่ระบบดึงมา
+
+### E-Signature & Transaction Safety
+- ทุกการฝัง E-Sign ต้องใช้ Prisma `$transaction`
+- PDF-LIB เซฟไฟล์ชั่วคราวก่อน → อัปเดต DB → ย้ายไฟล์ไปตำแหน่งจริง
+- หาก DB fail → ลบไฟล์ชั่วคราวทิ้ง (ไม่มีขยะ)
+
+### PR Form Calculation
+```
+total_price = quantity × unit_price
+total_amount = SUM(total_price ทุก item)
 ```
 
-### Status Badge Colors (src/lib/mock-data.ts)
+### PO Form Calculation
+```
+total_price = quantity × unit_price × (1 + vat/100)
+total_amount = SUM(total_price ทุก item)
+VAT default = 7%
+```
+
+---
+
+## 10. Design System
+
+### Document Type Badge Colors
+```typescript
+PR:    "bg-blue-50 text-blue-700 border-blue-200"
+PO:    "bg-purple-50 text-purple-700 border-purple-200"
+BK:    "bg-amber-50 text-amber-700 border-amber-200"
+Other: "bg-gray-50 text-gray-600 border-gray-200"
+```
+
+### Status Badge Colors
 ```typescript
 Draft:     "bg-gray-100 text-gray-600 border-gray-200"
 Pending:   "bg-amber-50 text-amber-700 border-amber-200"
@@ -385,175 +542,88 @@ Rejected:  "bg-red-50 text-red-700 border-red-200"
 Cancelled: "bg-slate-100 text-slate-500 border-slate-200"
 ```
 
-### Document Type Badge Colors
-```typescript
-PR:          "bg-blue-50 text-blue-700 border-blue-200"
-PO:          "bg-purple-50 text-purple-700 border-purple-200"
-Memo:        "bg-amber-50 text-amber-700 border-amber-200"
-Other:       "bg-gray-50 text-gray-600 border-gray-200"
+### CSS Tokens (globals.css)
+```css
+--color-sidebar-bg:        #0f172a
+--color-sidebar-hover:     #1e293b
+--color-sidebar-active:    #1d4ed8
+--color-sidebar-text:      #94a3b8
+--color-surface:           #ffffff
+--color-surface-secondary: #f8fafc
+--color-border:            #e2e8f0
 ```
 
 ---
 
-## 9. Business Rules (LOCKED)
-
-### Document Lifecycle
-1. สร้างเอกสาร → สถานะ `Draft`
-2. กด Submit → สถานะ `Pending` + สร้าง Workflow อัตโนมัติตาม Approval Matrix
-3. แต่ละ Approver ต้องผ่านตามลำดับ step (ไม่ข้ามขั้นได้)
-4. Approve ครบทุก Step → `Approved`
-5. Reject ที่ Step ใดก็ได้ → `Rejected` + ส่ง Notification + อีเมลกลับผู้จัดทำ
-6. ลบเอกสาร → **Soft Delete** (`is_deleted = true`) เท่านั้น ห้าม DELETE จริง
-
-### Approval Workflow Rules (หน้าสร้างเอกสาร)
-1. **ห้ามมีปุ่ม Add/Remove Step ในหน้าสร้างเอกสาร (PR, PO, Memo, Other)**
-2. จำนวน Step และตำแหน่งผู้อนุมัติ (Role) ต้องถูกดึงมาจาก Master Data เท่านั้น (โชว์เป็น Read-only)
-3. ผู้ขอเอกสารสามารถกำหนด/เปลี่ยนได้เฉพาะ **ชื่อบุคคล (Approver Name)** ในแต่ละ Step ที่ระบบดึงมาให้เท่านั้น
-
-### E-Signature Flow
-1. Approver เปิดหน้าพิจารณาเอกสาร
-2. ดู PDF ใน Browser (react-pdf)
-3. Drag & Drop ลายเซ็นไปวางบนตำแหน่งที่ต้องการ
-4. กด "ยืนยันการลงลายเซ็น" → ส่ง `{ documentId, x, y, page }` ไป Backend
-5. Backend ใช้ PDF-LIB วางลายเซ็น → บันทึกเป็น Version ใหม่
-6. ระบบถือว่า Approve Step นั้นอัตโนมัติ
-
-### Running Number
-- Format: `{PREFIX}-{YEAR}-{PADDED_NUMBER}` เช่น `PR-2026-0001`
-- Auto-increment ทุกครั้งที่สร้างเอกสารใหม่
-- Padding default = 4 หลัก (ตั้งค่าได้โดย Admin)
-
-### PR Form Calculation
-```
-total_price per item = quantity × unit_price
-total_amount = SUM(all item total_price)
-```
-
-### PO Form Calculation
-```
-total_price per item = quantity × unit_price × (1 + vat/100)
-total_amount = SUM(all item total_price)
-VAT default = 7%
-```
-
----
-
-## 10. Authentication Rules
-
-- JWT เก็บใน **httpOnly Cookie** (ไม่ใช่ localStorage — security)
-- ทุก request ต้องแนบ JWT ใน Header: `Authorization: Bearer <token>`
-- Protected routes ใช้ **Next.js Middleware** (`middleware.ts` ที่ root src/)
-- Role-based: Admin เท่านั้นที่เข้าหน้า `/admin/*` ได้
-- Permission-based: ตรวจ granular permission ก่อนแสดง UI button (View/Add/Edit/Delete/Export)
-
----
-
-## 11. Pages Inventory (ครบ 15 หน้า)
-
-| # | หน้า | Route | สถานะ | Phase |
-|---|------|-------|-------|-------|
-| 1 | Login | `/login` | Stub | Phase 3.1 |
-| 2 | Forgot Password | `/forgot-password` | Stub | Phase 3.1 |
-| 3 | Reset Password | `/reset-password` | Stub | Phase 3.1 |
-| 4 | Document Library | `/documents` | ✅ Done | Phase 1.2 |
-| 5 | Upload Document | `/documents/upload` | ✅ Stub | Phase 1.3 |
-| 6 | Document Detail | `/documents/[id]` | ✅ Done | Phase 1.2 |
-| 7 | Version History | `/documents/[id]/versions` | Stub | Phase 1.2 |
-| 8 | Approval Inbox | `/approvals` | ✅ Done | Phase 2.2 |
-| 9 | Approval Task + PDF | `/approvals/[id]` | ✅ Stub | Phase 2.3 |
-| 10 | Dashboard | `/dashboard` | ✅ Done | Phase 3.3 |
-| 11 | User Management | `/admin/users` | ✅ Stub | Phase 3.2 |
-| 12 | Role & Permission | `/admin/roles` | ✅ Stub | Phase 3.2 |
-| 13 | Master Data | `/admin/master-data` | ✅ Stub | Phase 2.1 |
-| 14 | Running Number | `/admin/running-number` | ✅ Stub | Phase 2.1 |
-| 15 | Audit Log | `/admin/audit-logs` | ✅ Stub | Phase 3.3 |
-
----
-
-## 12. Implementation Rules (DO / DON'T)
+## 11. Implementation Rules — DO / DON'T
 
 ### ✅ DO
+- เขียนโค้ดทั้งหมดใน `D:\Document Management\dms\` เท่านั้น
 - ใช้ **Server Components** เป็น default
-- ใช้ **`async/await params`** เสมอใน Next.js 16
-- ใช้ **`cn()`** จาก `src/lib/utils.ts` สำหรับ class merging ทุกครั้ง
-- ใช้ **`lucide-react`** สำหรับ icon ทุกตัว
-- ใช้ **Tailwind CSS v4** utilities และ CSS custom properties (`--color-*`)
-- ใช้ **Soft Delete** เสมอ (`is_deleted = true`) ไม่ลบจริง
+- ใช้ **`async/await params`** ใน Next.js 16
+- ใช้ **`cn()`** จาก `@lib/utils` ทุกครั้ง
+- ใช้ **lucide-react** สำหรับ icon ทุกตัว
+- ใช้ **Tailwind CSS v4** (`@import "tailwindcss"`)
+- ใช้ **Soft Delete** เสมอ — ห้าม DELETE จริง
 - ใช้ **UUID** สำหรับทุก Primary Key
-- ใช้ **Prisma** สำหรับ ORM ฝั่ง Backend
-- บันทึก **Audit Log** ทุก action ใน Backend (interceptor)
-- เขียน **TypeScript** ทุกไฟล์ (ห้ามใช้ `any` โดยไม่มีเหตุผล)
+- ใช้ **Prisma `$transaction`** ทุกครั้งที่มี PDF + DB พร้อมกัน
+- บันทึก **AuditLog** ทุก action ที่ Backend
+- เก็บ AuditLog.details แบบ `{ oldState, newState, extra }` เสมอ
+- อ้างอิง Types ทั้งหมดจาก `@models` เท่านั้น
 
 ### ❌ DON'T
+- ห้ามเขียนโค้ดนอก `D:\Document Management\dms\`
+- ห้ามแตะโฟลเดอร์ `dms-backend/` หรือ `document-management-system/`
 - ห้ามใช้ `Pages Router` (`pages/` directory)
-- ห้ามใช้ `@tailwind base/components/utilities` (นั่นคือ v3 syntax)
-- ห้ามใช้ `params.id` แบบ sync ใน Next.js 16 (ต้อง `await params` ก่อน)
-- ห้ามใช้ library icon อื่นที่ไม่ใช่ `lucide-react`
-- ห้ามใช้ CSS Modules หรือ styled-components
-- ห้าม DELETE record จริงในฐานข้อมูล (ใช้ `is_deleted` หรือ `is_active`)
+- ห้ามใช้ `@tailwind base/components/utilities`
+- ห้ามใช้ `params.id` แบบ sync ใน Next.js 16
+- ห้ามใช้ icon library อื่นที่ไม่ใช่ `lucide-react`
+- ห้าม DELETE record จริง (ใช้ is_deleted / is_active)
 - ห้ามใช้ `localStorage` เก็บ JWT (ใช้ httpOnly cookie)
-- ห้าม Hardcode role ใน Backend — Role ต้องมาจาก DB เสมอ
-- ห้ามแก้ไขหรือลบข้อมูลใน `audit_logs`
-- ห้ามสร้าง component ที่ทำได้เป็น Server Component แต่กลับใช้ `"use client"`
+- ห้าม Hardcode role ใน Backend
+- ห้าม UPDATE/DELETE `audit_logs`
+- ห้ามใช้ `any` ใน TypeScript โดยไม่มีเหตุผล
+- ห้ามทำ Out-of-Scope:
+  - Mobile App / SSO / ERP Integration
+  - Digital Signature (CA Certificate มาตรฐาน)
+  - OCR / AI
+  - Multi-company / Multi-language
+  - Data Migration จากระบบเก่า
 
 ---
 
-## 13. Phase Sequence (ทำตามลำดับ — ห้ามข้าม)
+## 12. Phase Sequence (ทำตามลำดับ — ห้ามข้าม)
 
 ```
-Phase 1 (Core Document) → Phase 2 (Workflow + E-Sig) → Phase 3 (Auth + Admin + Charts)
-                                  ↑
-         ต้องทำ Phase 2.1 (Master Data) ก่อน 2.2 (Workflow Engine)
-         เพราะ Approval Matrix เป็น dependency ของ Workflow
-```
+Phase 1: Core Document
+  1.1 Layout + Sidebar + Topbar                       ✅ Done
+  1.2 Document List + Detail + Version History        ✅ Done
+  1.3 Upload + PRForm + POForm + BKForm               ✅ Done (UI)
 
-### ลำดับการทำงานใน Phase 1 ที่เหลือ:
-1. **Phase 1.3**: PR Form + PO Form (Dynamic item rows + auto calculation)
-2. **Phase 1.2**: Version History page
-3. Polish: Toast, Modal, Loading skeleton, Responsive mobile
+Phase 2: Workflow + E-Signature
+  2.1 Master Data UI (DocTypes, ApprovalMatrix, RunningNumber) ✅ Done (UI)
+  2.2 Workflow Engine (Submit → Steps → Approve/Reject)
+  2.3 Approval Task Page + PDF Viewer + E-Signature Drag&Drop
+
+Phase 3: Auth + Admin + Dashboard
+  3.1 Login / Forgot Password / Reset Password
+  3.2 User Management + Role & Permission
+  3.3 Dashboard Stats + Charts + Audit Logs + Reports
+
+Phase BE: Backend Integration
+  - เชื่อม Axios (controllers/services/) กับ NestJS API
+  - JWT Auth + Middleware protection
+  - Real DB (PostgreSQL + Prisma migrate)
+```
 
 ---
 
-## 14. Current State (ณ วันที่สร้าง SKILL นี้)
+## 13. Current Status (อัปเดต 2026-07-24)
 
-- **Next.js project**: สร้างแล้วที่ `d:\Document Management\document-management-system\`
-- **Dev server**: `npm run dev` → `http://localhost:3000`
-- **Phase 0**: เสร็จสมบูรณ์ (structure + stub pages ทุกหน้า + mock data)
-- **Phase 1.1**: เสร็จ (Project Setup + Layout + Sidebar + Topbar)
-- **Phase 1.2**: บางส่วน (Document List ✅, Document Detail ✅, Version History ยังไม่ทำ)
-- **Phase 1.3**: ยังไม่ทำ (PR Form, PO Form)
-- **Backend**: ยังไม่เริ่ม
-
-### Dependencies ที่ install แล้ว:
-```json
-{
-  "dependencies": {
-    "next": "16.2.10",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "lucide-react": "latest",
-    "clsx": "latest",
-    "tailwind-merge": "latest"
-  }
-}
-```
-
-### Dependencies ที่ต้อง install เพิ่มในอนาคต:
-```bash
-# Phase 1.3
-npm install react-dropzone
-
-# Phase 2.3
-npm install react-pdf
-
-# Phase 3 Dashboard
-npm install recharts
-
-# Phase BE connection
-npm install axios
-
-# Phase BE (Backend)
-npm install @nestjs/jwt bcrypt nodemailer
-npm install pdf-lib multer
-npm install prisma @prisma/client
-```
+- **Monorepo**: `D:\Document Management\dms\` — ✅ Ready
+- **Frontend Dev**: `npm run dev --workspace=client` → `http://localhost:3000`
+- **Backend Dev**: `npm run start:dev --workspace=server` → `http://localhost:4000`
+- **Both**: `npm run dev` (root) → รัน concurrently
+- **Phase 1-2.1**: UI เสร็จ (Mock Data)
+- **Phase 2.2+**: รอ Backend พร้อม
+- **Prisma Schema**: อัปเดตล่าสุด — มี updated_at ทุกตาราง, approver_id Nullable, read_at, last_reset_year
