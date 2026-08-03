@@ -36,19 +36,25 @@ export interface WorkflowData {
 
 export async function getApprovals(): Promise<Approval[]> {
   try {
-    const res = await api.get<any[]>("/api/documents");
+    const res = await api.get<any[]>("/api/approvals");
     const docs = res.data || [];
-    const pendingDocs = docs.filter((item) => item.status === "Pending");
-    return pendingDocs.map((item) => ({
-      id: item.doc_number || item.id,
-      name: item.name || item.title,
-      amount: item.amount || "-",
-      requester: item.sender || item.creator_name || "ไม่ระบุ",
-      submittedDate: item.submittedDate || "",
-      currentLevel: item.workflow?.current_step || 1,
-      maxLevels: item.workflow?.total_steps || 1,
-      status: item.status || "Pending",
-    }));
+    return docs.map((item) => {
+      let mappedStatus = item.stepStatus;
+      if (mappedStatus === "Rejected") {
+        mappedStatus = "Returned for Revision";
+      }
+
+      return {
+        id: item.id,
+        name: item.name,
+        amount: item.amount,
+        requester: item.sender,
+        submittedDate: item.submittedDate,
+        currentLevel: item.stepOrder,
+        maxLevels: item.totalSteps,
+        status: mappedStatus,
+      };
+    });
   } catch (err) {
     console.warn("[getApprovals] Failed to fetch approvals", err);
     return [];
@@ -81,12 +87,32 @@ export async function getWorkflow(documentId: string): Promise<WorkflowData | nu
   }
 }
 
-export async function submitApprove(documentId: string, comment: string): Promise<{ success: boolean; message: string }> {
-  const res = await api.post<{ success: boolean }>(`/api/workflows/${documentId}/approve`, { comment });
+export async function submitApprove(
+  documentId: string, 
+  comment: string,
+  signatureParams?: {
+    signature_x?: number;
+    signature_y?: number;
+    signature_page?: number;
+    signature_width?: number;
+    signature_height?: number;
+  }
+): Promise<{ success: boolean; message: string }> {
+  const payload = { comment, ...signatureParams };
+  const res = await api.post<{ success: boolean }>(`/api/workflows/${documentId}/approve`, payload);
   return { success: res.data.success, message: "อนุมัติเอกสารสำเร็จ" };
 }
 
-export async function submitReject(documentId: string, comment: string): Promise<{ success: boolean; message: string }> {
-  const res = await api.post<{ success: boolean }>(`/api/workflows/${documentId}/reject`, { comment });
-  return { success: res.data.success, message: "ไม่อนุมัติเอกสารสำเร็จ" };
+export async function submitReject(
+  documentId: string,
+  comment: string,
+  rejectType: "return" | "cancel" = "return",
+  returnToStep?: number
+): Promise<{ success: boolean; message: string }> {
+  const res = await api.post<{ success: boolean }>(`/api/workflows/${documentId}/reject`, {
+    comment,
+    reject_type: rejectType,
+    return_to_step: returnToStep,
+  });
+  return { success: res.data.success, message: rejectType === "return" ? "ตีกลับเอกสารสำเร็จ" : "ปฏิเสธเอกสารถาวรสำเร็จ" };
 }

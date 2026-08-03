@@ -1,27 +1,44 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { ArrowLeft, Clock, History, FileText, Download, Check, AlertCircle } from "lucide-react";
-import { getDocuments } from '@views/features/documents/api';
+import { getDocumentById } from '@views/features/documents/api';
 import { getWorkflow } from '@views/features/workflow/api';
 import { WorkflowTracker } from '@views/components/workflow/WorkflowTracker';
-import { DocumentSignerViewer } from '@views/components/workflow/DocumentSignerViewer';
+import { DocumentPreview } from '@views/components/documents/DocumentPreview';
 import PageHeader from '@views/components/shared/PageHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from '@views/components/ui/design-system';
 import { Badge } from '@views/components/ui/badge';
 import { getStatusVariant } from "@/lib/document-status";
 import { CancelDocumentButton } from '@views/components/documents/CancelDocumentButton';
+import { ResubmitButton } from '@views/components/documents/ResubmitButton';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function DocumentDetailPage({ params }: PageProps) {
-  const { id } = await params;
-  
-  // Fetch documents from Mock API
-  const documents = await getDocuments();
-  const doc = documents.find((d) => d.id === id);
-  const workflow = await getWorkflow(id);
+export default function DocumentDetailPage({ params }: PageProps) {
+  const { id } = use(params);
+  const [doc, setDoc] = useState<any>(null);
+  const [workflow, setWorkflow] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([getDocumentById(id), getWorkflow(id)]).then(([d, w]) => {
+      setDoc(d);
+      setWorkflow(w);
+      setLoading(false);
+    });
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 h-[60vh] text-slate-500">
+        Loading document details...
+      </div>
+    );
+  }
 
   if (!doc) {
     return (
@@ -57,6 +74,13 @@ export default async function DocumentDetailPage({ params }: PageProps) {
         </Link>
 
         <div className="flex items-center gap-3">
+          <ResubmitButton
+            documentId={doc.id}
+            docStatus={doc.status}
+            onSuccess={() => {
+              setDoc((prev: any) => ({ ...prev, status: "Pending" }));
+            }}
+          />
           <CancelDocumentButton document={doc} />
           
           <Link
@@ -127,14 +151,8 @@ export default async function DocumentDetailPage({ params }: PageProps) {
 
           </div>
 
-          {/* E-SIGNATURE PDF VIEWER (MOCK) */}
-          <DocumentSignerViewer 
-            documentId={doc.id}
-            documentName={doc.name}
-            version={doc.version}
-            initialStatus={doc.status}
-            signaturePlaced={doc.status === "Approved"}
-          />
+          {/* DOCUMENT PREVIEW */}
+          <DocumentPreview doc={doc} />
         </div>
 
         {/* RIGHT COLUMN: Activity/Workflow */}

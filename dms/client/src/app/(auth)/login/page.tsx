@@ -86,12 +86,6 @@ export default function LoginPage() {
       >
         {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
       </button>
-
-      <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-[11px] text-slate-400">
-        <p className="font-semibold text-slate-300 mb-1">บัญชีทดสอบในระบบ (Seed Users):</p>
-        <p>• Admin: <code className="text-blue-400">admin</code> / <code className="text-blue-400">folk2546</code></p>
-        <p>• Manager: <code className="text-blue-400">prasert</code> / <code className="text-blue-400">folk2546</code></p>
-      </div>
     </form>
   );
 }

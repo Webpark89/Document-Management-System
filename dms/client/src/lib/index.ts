@@ -1,29 +1,22 @@
-// ============================================================
-// src/lib/index.ts — barrel export for friend's @/lib imports
-// Exports api axios instance + token helpers used by AuthProvider
-// ============================================================
-
 import { apiClient, API_BASE_URL } from "./api-client";
 
 export { cn } from "./utils";
 export { apiClient, API_BASE_URL };
 
-// ---- Token helpers (localStorage + httpOnly fallback for frontend) ----
-const TOKEN_KEY = "dms_access_token";
-
+// ---- Cookie helpers (HttpOnly Session) ----
 export function getStoredAccessToken(): string | null {
+  // Always return 'session_active' if auth cookie present or stubbed
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  // Let document.cookie check for fallback, but fetch uses credentials now
+  return document.cookie.includes("access_token") ? "session_active" : null;
 }
 
 export function persistAccessToken(token: string): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(TOKEN_KEY, token);
+  // Handled by HttpOnly Cookie from Backend
 }
 
 export function clearAccessToken(): void {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(TOKEN_KEY);
+  // Handled by /api/auth/logout on Backend
 }
 
 // ---- Safe API Wrapper ----
@@ -36,28 +29,41 @@ async function request<T>(
   path: string,
   body?: unknown
 ): Promise<ApiResponse<T>> {
-  const token = getStoredAccessToken();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const isFormData = body instanceof FormData;
+  const headers: Record<string, string> = {};
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
 
   try {
     const res = await fetch(`${API_BASE}${path}`, {
       method,
       headers,
-      body: body ? JSON.stringify(body) : undefined,
+      credentials: "include", // Crucial for sending/receiving HttpOnly cookies
+      body: isFormData ? (body as any) : (body ? JSON.stringify(body) : undefined),
     });
 
     if (!res.ok) {
-      console.warn(`[API Warning] ${method} ${path} returned status ${res.status}`);
-      throw new Error(`API ${method} ${path} → ${res.status}`);
+      let serverMessage = `API Error: ${res.status} ${res.statusText}`;
+      try {
+        const errorData = await res.json();
+        if (errorData?.message) {
+          serverMessage = Array.isArray(errorData.message)
+            ? errorData.message.join(", ")
+            : errorData.message;
+        }
+      } catch {}
+      throw new Error(serverMessage);
     }
 
     const data = await res.json();
     return { data };
   } catch (err: any) {
-    console.warn(`[API Catch] ${method} ${path} failed:`, err?.message || err);
+    if (err?.name === "TypeError" || err?.message?.toLowerCase().includes("fetch")) {
+      throw new Error(
+        "ไม่สามารถเชื่อมต่อ Backend Server ได้ (กรุณารัน `npm run dev` ที่โฟลเดอร์หลักเพื่อเปิด NestJS พอร์ต 4000)"
+      );
+    }
     throw err;
   }
 }

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { ArrowLeft, FileText, AlertCircle, History } from "lucide-react";
-import { getDocuments } from '@views/features/documents/api';
+import { getDocumentById } from '@views/features/documents/api';
 import type { Document } from '@views/features/documents/types';
 import { getWorkflow, WorkflowData } from '@views/features/workflow/api';
 import PageHeader from '@views/components/shared/PageHeader';
@@ -26,10 +26,7 @@ export default function ApprovalDetailPage({ params }: PageProps) {
   const [signaturePlaced, setSignaturePlaced] = useState(false);
 
   useEffect(() => {
-    Promise.all([getDocuments(), getWorkflow(id)]).then(([docs, wf]) => {
-      const found = docs.find(
-        (d) => d.id === id || (d as any).real_id === id || (d as any).doc_number === id
-      );
+    Promise.all([getDocumentById(id), getWorkflow(id)]).then(([found, wf]) => {
       setDoc(found || null);
       setWorkflow(wf);
       setLoading(false);
@@ -168,6 +165,7 @@ export default function ApprovalDetailPage({ params }: PageProps) {
             initialStatus={doc.status}
             signaturePlaced={signaturePlaced}
             onSignatureChange={setSignaturePlaced}
+            doc={doc}
           />
         </div>
 

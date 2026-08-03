@@ -24,15 +24,11 @@ async function main() {
   const deptHR = await prisma.department.upsert({ where: { name: 'แผนกทรัพยากรบุคคล' }, update: {}, create: { name: 'แผนกทรัพยากรบุคคล' } });
   const deptProd = await prisma.department.upsert({ where: { name: 'แผนกผลิต' }, update: {}, create: { name: 'แผนกผลิต' } });
 
-  // ==========================================
-  // 3. POSITIONS
-  // ==========================================
-  const posMgrProc = await prisma.position.upsert({ where: { name: 'ผู้จัดการฝ่ายจัดซื้อ' }, update: {}, create: { name: 'ผู้จัดการฝ่ายจัดซื้อ' } });
-  const posAcc = await prisma.position.upsert({ where: { name: 'เจ้าหน้าที่บัญชี' }, update: {}, create: { name: 'เจ้าหน้าที่บัญชี' } });
-  const posHeadWH = await prisma.position.upsert({ where: { name: 'หัวหน้าคลังสินค้า' }, update: {}, create: { name: 'หัวหน้าคลังสินค้า' } });
-  const posIT = await prisma.position.upsert({ where: { name: 'ผู้ดูแลระบบ IT' }, update: {}, create: { name: 'ผู้ดูแลระบบ IT' } });
-  const posHR = await prisma.position.upsert({ where: { name: 'เจ้าหน้าที่ HR' }, update: {}, create: { name: 'เจ้าหน้าที่ HR' } });
-  const posDirProd = await prisma.position.upsert({ where: { name: 'ผู้อำนวยการฝ่ายผลิต' }, update: {}, create: { name: 'ผู้อำนวยการฝ่ายผลิต' } });
+  const posOfficer = await prisma.position.upsert({ where: { name: 'เจ้าหน้าที่ปฏิบัติการ' }, update: {}, create: { name: 'เจ้าหน้าที่ปฏิบัติการ' } });
+  const posSupervisor = await prisma.position.upsert({ where: { name: 'หัวหน้างาน / หัวหน้าแผนก' }, update: {}, create: { name: 'หัวหน้างาน / หัวหน้าแผนก' } });
+  const posManager = await prisma.position.upsert({ where: { name: 'ผู้จัดการฝ่าย' }, update: {}, create: { name: 'ผู้จัดการฝ่าย' } });
+  const posDirector = await prisma.position.upsert({ where: { name: 'ผู้อำนวยการ' }, update: {}, create: { name: 'ผู้อำนวยการ' } });
+  const posExecutive = await prisma.position.upsert({ where: { name: 'ผู้บริหารระดับสูง (Executive)' }, update: {}, create: { name: 'ผู้บริหารระดับสูง (Executive)' } });
 
   // ==========================================
   // 4. USERS
@@ -50,7 +46,7 @@ async function main() {
       last_name: 'ผู้ดูแลระบบ',
       role_id: adminRole.id,
       department_id: deptIT.id,
-      position_id: posIT.id,
+      position_id: posManager.id,
       is_active: true,
       is_deleted: false,
     },
@@ -67,7 +63,7 @@ async function main() {
       last_name: 'ใจดี',
       role_id: managerRole.id,
       department_id: deptProc.id,
-      position_id: posMgrProc.id,
+      position_id: posManager.id,
       is_active: true,
       is_deleted: false,
     },
@@ -84,7 +80,7 @@ async function main() {
       last_name: 'วงศ์ศรี',
       role_id: employeeRole.id,
       department_id: deptAcc.id,
-      position_id: posAcc.id,
+      position_id: posOfficer.id,
       is_active: true,
       is_deleted: false,
     },
@@ -101,7 +97,7 @@ async function main() {
       last_name: 'รักดี',
       role_id: managerRole.id,
       department_id: deptWH.id,
-      position_id: posHeadWH.id,
+      position_id: posSupervisor.id,
       is_active: true,
       is_deleted: false,
     },
@@ -118,7 +114,7 @@ async function main() {
       last_name: 'มีสุข',
       role_id: execRole.id,
       department_id: deptIT.id,
-      position_id: posIT.id,
+      position_id: posExecutive.id,
       is_active: true,
       is_deleted: false,
     },
@@ -135,7 +131,7 @@ async function main() {
       last_name: 'สุขใจ',
       role_id: employeeRole.id,
       department_id: deptHR.id,
-      position_id: posHR.id,
+      position_id: posOfficer.id,
       is_active: true,
       is_deleted: false,
     },
@@ -152,7 +148,7 @@ async function main() {
       last_name: 'พรหมมา',
       role_id: execRole.id,
       department_id: deptProd.id,
-      position_id: posDirProd.id,
+      position_id: posDirector.id,
       is_active: true,
       is_deleted: false,
     },
@@ -368,6 +364,152 @@ async function main() {
     },
   });
 
+  // Document 5: PO-2026-0004 (Rejected)
+  const doc5 = await prisma.document.create({
+    data: {
+      doc_number: 'PO-2026-0004',
+      title: 'จัดจ้างที่ปรึกษา HR',
+      type_id: dtPO.id,
+      creator_id: userSomchai.id,
+      status: DocumentStatus.Rejected,
+      created_at: new Date('2026-07-16T10:00:00Z'),
+      updated_at: new Date('2026-07-17T13:20:10Z'),
+      po_form: {
+        create: {
+          vendor_name: 'บริษัท ที่ปรึกษา HR จำกัด',
+          total_amount: 120000,
+          items: { create: [{ item_name: 'บริการให้คำปรึกษา HR', quantity: 1, unit: 'เดือน', unit_price: 120000, total_price: 120000 }] },
+        },
+      },
+      workflow: {
+        create: {
+          total_steps: 3,
+          current_step: 2,
+          status: WorkflowStatus.Rejected,
+          steps: {
+            create: [
+              { step_order: 1, approver_id: userWipa.id, status: WorkflowStatus.Approved, action_date: new Date('2026-07-16T11:00:00Z') },
+              { step_order: 2, approver_id: userPrasert.id, status: WorkflowStatus.Rejected, action_date: new Date('2026-07-17T13:20:10Z'), comment: 'งบประมาณไตรมาสนี้ไม่เพียงพอ โปรดเลื่อนไป Q4' },
+            ],
+          },
+        },
+      },
+    },
+  });
+
+  // Document 6: PO-2026-0002 (Approved)
+  const doc6 = await prisma.document.create({
+    data: {
+      doc_number: 'PO-2026-0002',
+      title: 'ใบสั่งซื้อวัตถุดิบ เดือนกรกฎาคม / สั่งซื้อกระดาษ A4',
+      type_id: dtPO.id,
+      creator_id: userSuda.id,
+      status: DocumentStatus.Approved,
+      created_at: new Date('2026-07-08T09:00:00Z'),
+      updated_at: new Date('2026-07-09T15:30:00Z'),
+      po_form: {
+        create: {
+          vendor_name: 'บริษัท ออฟฟิศซัพพลาย จำกัด',
+          total_amount: 5000,
+          items: { create: [{ item_name: 'กระดาษ A4', quantity: 50, unit: 'รีม', unit_price: 100, total_price: 5000 }] },
+        },
+      },
+      workflow: {
+        create: {
+          total_steps: 2,
+          current_step: 2,
+          status: WorkflowStatus.Approved,
+          steps: {
+            create: [
+              { step_order: 1, approver_id: userWipa.id, status: WorkflowStatus.Approved, action_date: new Date('2026-07-08T10:00:00Z') },
+              { step_order: 2, approver_id: userPrasert.id, status: WorkflowStatus.Approved, action_date: new Date('2026-07-09T15:30:00Z'), comment: 'อนุมัติสั่งซื้อ' },
+            ],
+          },
+        },
+      },
+    },
+  });
+
+  // Document 7: PR-2026-0005 (Pending)
+  const doc7 = await prisma.document.create({
+    data: {
+      doc_number: 'PR-2026-0005',
+      title: 'ขอซื้อเมาส์และคีย์บอร์ด',
+      type_id: dtPR.id,
+      creator_id: userSomchai.id,
+      status: DocumentStatus.Pending,
+      created_at: new Date('2026-07-17T09:30:22Z'),
+      updated_at: new Date('2026-07-17T10:12:44Z'),
+      pr_form: {
+        create: {
+          requester_id: userSomchai.id,
+          department_id: deptProc.id,
+          purpose: 'ทดแทนของเดิม',
+          total_amount: 2500,
+          items: { create: [{ item_name: 'เมาส์และคีย์บอร์ดไร้สาย', quantity: 2, unit: 'ชุด', unit_price: 1250, total_price: 2500 }] },
+        },
+      },
+      workflow: {
+        create: {
+          total_steps: 2,
+          current_step: 2,
+          status: WorkflowStatus.Pending,
+          steps: {
+            create: [
+              { step_order: 1, approver_id: userWipa.id, status: WorkflowStatus.Approved, action_date: new Date('2026-07-17T10:12:44Z'), comment: 'อนุมัติเบื้องต้น' },
+              { step_order: 2, approver_id: userPrasert.id, status: WorkflowStatus.Pending },
+            ],
+          },
+        },
+      },
+    },
+  });
+
+  // Document 8: OTHER-2026-0001 (Approved)
+  const doc8 = await prisma.document.create({
+    data: {
+      doc_number: 'OTHER-2026-0001',
+      title: 'เอกสารยินยอมให้เข้าตรวจแปลงผลิตวัตถุดิบ',
+      type_id: dtOther.id,
+      creator_id: userKittisak.id,
+      status: DocumentStatus.Approved,
+      created_at: new Date('2026-07-07T09:00:00Z'),
+      updated_at: new Date('2026-07-08T15:00:00Z'),
+      workflow: {
+        create: {
+          total_steps: 1,
+          current_step: 1,
+          status: WorkflowStatus.Approved,
+          steps: {
+            create: [
+              { step_order: 1, approver_id: userWipa.id, status: WorkflowStatus.Approved, action_date: new Date('2026-07-08T15:00:00Z'), comment: 'อนุญาตให้เข้าปฏิบัติงานตรวจเช็คแปลงการผลิตวัตถุดิบได้' },
+            ],
+          },
+        },
+      },
+    },
+  });
+
+  // Document 9: MM-2026-0001 (fallback to BK-2026-0002)
+  const doc9 = await prisma.document.create({
+    data: {
+      doc_number: 'MM-2026-0001',
+      title: 'บันทึกข้อความภายใน',
+      type_id: dtBK.id,
+      creator_id: userSomchai.id,
+      status: DocumentStatus.Approved,
+      created_at: new Date('2026-07-15T09:00:00Z'),
+      updated_at: new Date('2026-07-15T09:00:00Z'),
+      bk_form: {
+        create: {
+          subject: 'บันทึกข้อความภายใน',
+          detail: 'แจ้งเรื่องงาน',
+          department_id: deptProc.id,
+        },
+      },
+    },
+  });
+
   // ==========================================
   // 9. DOCUMENT VERSIONS (ประวัติเวอร์ชันเอกสาร)
   // ==========================================
@@ -411,10 +553,16 @@ async function main() {
   // ==========================================
   await prisma.notification.createMany({
     data: [
+      { user_id: adminUser.id, document_id: doc1.id, message: 'แจ้งเตือนระบบ: การสร้างเอกสาร PR-2026-0001 สำเร็จแล้ว', is_read: false, created_at: new Date('2026-07-24T10:15:00Z') },
+      { user_id: adminUser.id, document_id: doc3.id, message: 'แจ้งเตือนระบบ: เอกสาร BK-2026-0001 เข้าสู่สายการอนุมัติแล้ว', is_read: false, created_at: new Date('2026-07-24T10:30:00Z') },
+      { user_id: adminUser.id, document_id: doc2.id, message: 'แจ้งเตือนระบบ: อนุมัติเอกสาร PO-2026-0001 สำเร็จ (ทดสอบโดยผู้ดูแล)', is_read: true, read_at: new Date('2026-07-24T10:45:00Z'), created_at: new Date('2026-07-24T10:40:00Z') },
       { user_id: userPrasert.id, document_id: doc1.id, message: 'เอกสาร PR-2026-0001 ขอซื้ออุปกรณ์สำนักงาน รอการอนุมัติจากคุณ (Step 2)', is_read: false, created_at: new Date('2026-07-21T10:15:00Z') },
       { user_id: userSomchai.id, document_id: doc3.id, message: 'เอกสาร BK-2026-0001 บันทึกขออนุมัติจัดกิจกรรมอบรม รอการอนุมัติจากคุณ (Step 1)', is_read: false, created_at: new Date('2026-07-22T08:30:00Z') },
       { user_id: userWipa.id, document_id: doc2.id, message: 'เอกสาร PO-2026-0001 ได้รับการอนุมัติเสร็จสมบูรณ์เรียบร้อยแล้ว', is_read: true, read_at: new Date('2026-07-18T17:00:00Z'), created_at: new Date('2026-07-18T16:20:00Z') },
       { user_id: userNapa.id, document_id: doc4.id, message: 'เอกสาร PR-2026-0002 ถูกปฏิเสธ (Rejected) โดย คุณกิตติศักดิ์ พรหมมา', is_read: true, read_at: new Date('2026-07-14T12:00:00Z'), created_at: new Date('2026-07-14T11:45:00Z') },
+      { user_id: userSomchai.id, document_id: doc5.id, message: 'เอกสาร PO-2026-0004 ถูกปฏิเสธ (Rejected) โดย คุณประเสริฐ มีสุข', is_read: false, created_at: new Date('2026-07-17T13:20:10Z') },
+      { user_id: userPrasert.id, document_id: doc7.id, message: 'เอกสาร PR-2026-0005 ขอซื้อเมาส์และคีย์บอร์ด รอการอนุมัติจากคุณ (Step 2)', is_read: false, created_at: new Date('2026-07-17T10:12:44Z') },
+      { user_id: userKittisak.id, document_id: doc8.id, message: 'เอกสาร OTHER-2026-0001 ได้รับการอนุมัติเสร็จสมบูรณ์เรียบร้อยแล้ว', is_read: true, read_at: new Date('2026-07-08T16:00:00Z'), created_at: new Date('2026-07-08T15:00:00Z') },
     ],
   });
 

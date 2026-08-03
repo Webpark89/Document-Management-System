@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
+import { S3Module } from '../common/s3/s3.module';
 
 @Module({
+  imports: [S3Module],
   controllers: [AdminController],
   providers: [AdminService]
 })

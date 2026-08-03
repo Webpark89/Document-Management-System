@@ -17,14 +17,11 @@ import {
 } from "lucide-react";
 import { useToast } from '@views/components/providers/ToastProvider';
 import { useSidebar } from '@views/components/providers/SidebarProvider';
+import { adminService } from '@/controllers/services/admin.service';
 import {
-  APPROVAL_MATRIX,
   countActivePositionsInDepartment,
   countWorkflowsUsingApprover,
-  createInitialMasterTabData,
-  matrixToDocumentTypes,
   ROLE_OPTIONS,
-  type ApprovalMatrixState,
   type DepartmentRecord,
   type DocumentTypeRecord,
   type MasterDocumentTypeRecord,
@@ -103,8 +100,13 @@ function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-const SEED = createInitialMasterTabData();
-
+const EMPTY_TAB_DATA: TabData = {
+  doctype: [],
+  department: [],
+  position: [],
+  workflow: [],
+  signature: [],
+};
 const APPROVER_USERS = getApproverUsers();
 
 type FormState = {
@@ -121,6 +123,7 @@ type FormState = {
   approverName: string;
   position: string;
   signedCount: string;
+  imageUrl?: string;
   isActive: boolean;
   workflowApprovers: string[];
   workflowSteps: RoleOption[];
@@ -270,7 +273,6 @@ function validatePositionForm(form: FormState, rows: PositionRow[], editingId: s
   const nameError = validatePositionName(form.name, rows, editingId);
   if (nameError) errors.name = nameError;
   if (!form.level) errors.level = "กรุณาเลือกระดับ";
-  if (!form.department) errors.department = "กรุณาเลือกแผนก";
   return errors;
 }
 
@@ -320,6 +322,7 @@ const emptyForm = (): FormState => ({
   approverName: "",
   position: "",
   signedCount: "0",
+  imageUrl: "",
   isActive: true,
   workflowApprovers: ["", "", ""],
   workflowSteps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"],
@@ -387,11 +390,7 @@ function MasterDataPageContent() {
   const { isOpen } = useSidebar();
   const { signatures, saveSignatureRecord, toggleSignatureActive } = useSignatures();
   const [activeTab, setActiveTab] = useState<TabKey>("department");
-  const [data, setData] = useState<TabData>(SEED);
-  const [matrix, setMatrix] = useState<ApprovalMatrixState>(() => ({ ...APPROVAL_MATRIX }));
-  const [docTypes, setDocTypes] = useState<DocumentTypeRecord[]>(() =>
-    matrixToDocumentTypes({ ...APPROVAL_MATRIX })
-  );
+  const [data, setData] = useState<TabData>(EMPTY_TAB_DATA);
   const [showDeleted, setShowDeleted] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -411,6 +410,50 @@ function MasterDataPageContent() {
       setActiveTab(tab as TabKey);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [depts, pos, docTs, wfs, sigs] = await Promise.all([
+          adminService.getDepartmentsList().catch(() => []),
+          adminService.getPositionsList().catch(() => []),
+          adminService.getDocumentTypesList().catch(() => []),
+          adminService.getApprovalWorkflowsList().catch(() => []),
+          adminService.getSignaturesList().catch(() => []),
+        ]);
+        
+        setData(prev => ({
+          ...prev,
+          department: depts.length > 0 ? depts.map((d: any) => ({
+            id: d.id,
+            name: d.name,
+            code: d.name.substring(0, 3).toUpperCase(),
+            employeeCount: d.employeeCount || 0,
+            isActive: d.is_active,
+          })) : prev.department,
+          position: pos.length > 0 ? pos.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            level: p.level || "L1",
+            isActive: p.is_active,
+          })) : prev.position,
+          doctype: docTs.length > 0 ? docTs.map((dt: any) => ({
+            id: dt.id,
+            name: dt.type_name,
+            prefix: dt.prefix,
+            docCount: 0,
+            isActive: dt.is_active,
+          })) : prev.doctype,
+          workflow: (wfs as any[]).length > 0 ? (wfs as any[]) : prev.workflow,
+          signature: (sigs as any[]).length > 0 ? (sigs as any[]) : prev.signature,
+        }));
+      } catch (err) {
+        console.error("Failed to fetch master data", err);
+      }
+    };
+    
+    fetchData();
+  }, []);
 
   const rows = useMemo(() => {
     if (activeTab === "running") return [];
@@ -490,6 +533,7 @@ function MasterDataPageContent() {
         approverName: sig.approverName,
         position: sig.position,
         signedCount: String(sig.signedCount),
+        imageUrl: sig.imageUrl || "",
         isActive: sig.isActive,
         workflowApprovers: ["", "", ""],
         workflowSteps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย"],
@@ -503,7 +547,7 @@ function MasterDataPageContent() {
         fieldsCount: "fieldsCount" in row ? String(row.fieldsCount) : "0",
         employeeCount: "employeeCount" in row ? String(row.employeeCount) : "0",
         level: "level" in row ? row.level : "L1",
-        department: "department" in row ? row.department : "",
+        department: "department" in row ? String(row.department) : "",
         levels: "levels" in row ? String(row.levels) : "3",
         approverCount: "approverCount" in row ? String(row.approverCount) : "1",
         approverName: "approverName" in row ? row.approverName : "",
@@ -578,7 +622,52 @@ function MasterDataPageContent() {
 
     const wasEditing = !!editingId;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
+    
+    try {
+      if (activeTab === "department") {
+        if (wasEditing && editingId) {
+          await adminService.updateDepartment(editingId, { name: form.name.trim(), is_active: form.isActive });
+        } else {
+          await adminService.createDepartment(form.name.trim());
+        }
+      } else if (activeTab === "position") {
+        if (wasEditing && editingId) {
+          await adminService.updatePosition(editingId, { name: form.name.trim(), level: form.level, is_active: form.isActive });
+        } else {
+          await adminService.createPosition({ name: form.name.trim(), level: form.level });
+        }
+      } else if (activeTab === "doctype") {
+        if (wasEditing && editingId) {
+          await adminService.updateDocumentType(editingId, { type_name: form.name.trim(), prefix: form.prefix.trim().toUpperCase(), is_active: form.isActive });
+        } else {
+          await adminService.createDocumentType({ type_name: form.name.trim(), prefix: form.prefix.trim().toUpperCase() });
+        }
+      } else if (activeTab === "workflow") {
+        const num = Number(form.levels);
+        const levels = num >= 1 && num <= 4 ? num : 3;
+        const steps = (form.workflowSteps && form.workflowSteps.length > 0)
+          ? [...form.workflowSteps.slice(0, levels)]
+          : [];
+        // Ensure steps array is filled up to levels
+        while (steps.length < levels) steps.push(ROLE_OPTIONS[0]); 
+        
+        const prefix = form.prefix || "PR";
+        const docType = data.doctype.find((d: any) => d.prefix === prefix);
+        if (docType) {
+          await adminService.updateApprovalWorkflow(docType.id, { levels, steps });
+        }
+      } else if (activeTab === "signature") {
+        // Signatures are normally updated via user profile, but this mocks the admin edit
+        if (wasEditing && editingId) {
+          // not implemented in backend yet for direct signature upload via admin
+        }
+      }
+    } catch (err) {
+      showToast(`Failed to save to database: ${String(err)}`, "error");
+      setSaving(false);
+      return; // Do not update local state on failure
+    }
+
     const id = editingId ?? uid();
 
     setData((prev) => {
@@ -618,7 +707,6 @@ function MasterDataPageContent() {
             id,
             name: form.name.trim(),
             level: form.level,
-            department: form.department,
             isActive: form.isActive,
           };
           if (idx >= 0) list[idx] = row;
@@ -638,7 +726,7 @@ function MasterDataPageContent() {
             steps.push(ROLE_OPTIONS[0]);
           }
 
-          const docType = docTypes.find((d) => d.prefix === prefix);
+          const docType = data.doctype.find((d) => d.prefix === prefix);
           const documentTypeId = docType?.id ?? `doc-type-${prefix.toLowerCase()}`;
 
           const row: WorkflowRow = {
@@ -655,18 +743,6 @@ function MasterDataPageContent() {
           if (idx >= 0) list[idx] = row;
           else list.push(row);
 
-          setMatrix((prevMatrix) => {
-            const existing = prevMatrix[prefix];
-            if (!existing) return prevMatrix;
-            return {
-              ...prevMatrix,
-              [prefix]: {
-                ...existing,
-                steps: [...steps],
-              },
-            };
-          });
-
           return { ...prev, workflow: list };
         }
         case "signature": {
@@ -677,7 +753,7 @@ function MasterDataPageContent() {
             position: form.position,
             signedCount: existing ? existing.signedCount : 0,
             isActive: form.isActive,
-            imageUrl: existing?.imageUrl,
+            imageUrl: form.imageUrl || existing?.imageUrl,
           };
           saveSignatureRecord(row);
           return prev;
@@ -788,7 +864,6 @@ function MasterDataPageContent() {
             badge: <StatusBadge active={r.isActive} />,
             fields: [
               { label: "ระดับ", value: r.level },
-              { label: "แผนก", value: r.department },
             ],
             actions,
           };
@@ -835,11 +910,12 @@ function MasterDataPageContent() {
       }
       case "department": {
         const r = row as DepartmentRow;
+        const count = Math.max(Number(r.employeeCount || 0), countUsersInDepartment(r.name));
         return (
           <>
             <td className={tdSticky}>{r.name}</td>
             <td className={tdMuted}>{r.code}</td>
-            <td className={tdNum}>{r.employeeCount}</td>
+            <td className={tdNum}>{count}</td>
           </>
         );
       }
@@ -849,7 +925,6 @@ function MasterDataPageContent() {
           <>
             <td className={tdSticky}>{r.name}</td>
             <td className={tdMuted}>{r.level}</td>
-            <td className={tdMuted}>{r.department}</td>
           </>
         );
       }
@@ -938,7 +1013,6 @@ function MasterDataPageContent() {
           <>
             <th className={thSticky}>ชื่อตำแหน่ง</th>
             <th className={thCls}>ระดับ</th>
-            <th className={thCls}>แผนก</th>
           </>
         );
       case "workflow":
@@ -1176,28 +1250,6 @@ function MasterDataPageContent() {
             </select>
             {formErrors.level && <p className="mt-1 text-xs text-red-500">{formErrors.level}</p>}
           </div>
-          <div className="mb-3">
-            <label className="mb-1.5 block text-xs text-slate-500">แผนก</label>
-            <select
-              className={formErrors.department ? inputErrorCls : inputCls}
-              value={form.department}
-              onChange={(e) => {
-                setForm((f) => ({ ...f, department: e.target.value }));
-                clearError("department");
-              }}
-              onBlur={() => {
-                if (!form.department) setFieldError("department", "กรุณาเลือกแผนก");
-              }}
-            >
-              <option value="">เลือกแผนก</option>
-              {activeDepartments.map((dept) => (
-                <option key={dept.id} value={dept.name}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
-            {formErrors.department && <p className="mt-1 text-xs text-red-500">{formErrors.department}</p>}
-          </div>
           {renderStatusToggle()}
         </>
       );
@@ -1386,6 +1438,30 @@ function MasterDataPageContent() {
             {form.position || "—"}
           </div>
         </div>
+        <div className="mb-3">
+          <label className="mb-1.5 block text-xs text-slate-500">อัปโหลดไฟล์ลายเซ็น (PNG/JPG/SVG)</label>
+          <input
+            type="file"
+            accept="image/*"
+            className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = () => {
+                if (typeof reader.result === "string") {
+                  setForm((f) => ({ ...f, imageUrl: reader.result as string }));
+                }
+              };
+              reader.readAsDataURL(file);
+            }}
+          />
+          {form.imageUrl && (
+            <div className="mt-2 flex items-center justify-center p-3 border border-slate-200 rounded-lg bg-slate-50">
+              <img src={form.imageUrl} alt="Signature Preview" className="max-h-16 object-contain" />
+            </div>
+          )}
+        </div>
         {editingId && renderReadOnlyCount("จำนวนลงนาม", form.signedCount, "นับอัตโนมัติจากการใช้ลายเซ็น")}
         {renderStatusToggle()}
       </>
@@ -1407,7 +1483,6 @@ function MasterDataPageContent() {
         </nav>
       }
       title="Master Data"
-      subtitle="In-memory demo — resets on refresh"
       actions={
         activeTab === "running" || activeTab === "workflow" ? undefined : (
           <button type="button" onClick={openAdd} className={MD_MASTER_ADD_BTN}>
@@ -1488,7 +1563,7 @@ function MasterDataPageContent() {
         ) : activeTab === "workflow" ? (
           <WorkflowTab
             rows={rows as WorkflowRow[]}
-            docTypes={docTypes}
+            docTypes={data.doctype as any}
             showDeleted={showDeleted}
             onShowDeletedChange={setShowDeleted}
             stats={tabStats}

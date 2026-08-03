@@ -47,20 +47,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const token = getStoredAccessToken();
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    persistAccessToken(token);
     api
       .get<AuthUser>("/api/auth/me")
       .then((response) => {
         setUser(response.data);
       })
       .catch(() => {
-        clearAccessToken();
         setUser(null);
       })
       .finally(() => setLoading(false));
@@ -72,9 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isPublic = PUBLIC_ROUTES.some(
       (route) => pathname === route || pathname.startsWith(`${route}/`)
     );
-    const hasToken = Boolean(getStoredAccessToken());
 
-    if (!user && !isPublic && !hasToken) {
+    if (!user && !isPublic) {
       router.replace("/login");
       return;
     }
@@ -85,18 +76,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, loading, pathname, router]);
 
   const login = async (username: string, password: string) => {
-    const response = await api.post<{ access_token: string; user: AuthUser }>(
+    const response = await api.post<{ user: AuthUser }>(
       "/api/auth/login",
       { username: username.trim(), password }
     );
-    const { access_token, user: profile } = response.data;
-    persistAccessToken(access_token);
+    const profile = response.data.user;
     setUser(profile);
     return profile;
   };
 
-  const logout = () => {
-    clearAccessToken();
+  const logout = async () => {
+    try {
+      await api.post("/api/auth/logout");
+    } catch {}
     setUser(null);
     router.replace("/login");
   };

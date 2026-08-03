@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, AlertCircle, Eye, Download, FileText, X, Clock, FileUp, User } from "lucide-react";
-import { getDocuments } from '@views/features/documents/api';
+import { getDocumentById } from '@views/features/documents/api';
 import { Document, DocumentVersion } from '@views/features/documents/types';
 import PageHeader from '@views/components/shared/PageHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from '@views/components/ui/design-system';
@@ -15,13 +15,26 @@ function formatVersionDate(iso: string) {
   return new Date(iso).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" });
 }
 
+function getModifierName(uploaded_by: any): string {
+  if (!uploaded_by) return "ไม่ระบุ";
+  if (typeof uploaded_by === "object") {
+    if (uploaded_by.first_name || uploaded_by.last_name) {
+      return `${uploaded_by.first_name || ""} ${uploaded_by.last_name || ""}`.trim();
+    }
+    return uploaded_by.username || "ไม่ระบุ";
+  }
+  return String(uploaded_by);
+}
+
 function buildVersionDiffFields(older: DocumentVersion, newer: DocumentVersion) {
+  const olderUser = getModifierName(older.uploaded_by);
+  const newerUser = getModifierName(newer.uploaded_by);
   return [
     {
       label: "ผู้แก้ไข",
-      older: older.uploaded_by,
-      newer: newer.uploaded_by,
-      changed: older.uploaded_by !== newer.uploaded_by,
+      older: olderUser,
+      newer: newerUser,
+      changed: olderUser !== newerUser,
     },
     {
       label: "ขนาดไฟล์",
@@ -77,8 +90,7 @@ export default function DocumentVersionsPage() {
   const [viewingVersion, setViewingVersion] = useState<string | null>(null);
 
   useEffect(() => {
-    getDocuments().then(documents => {
-      const found = documents.find((d) => d.id === id);
+    getDocumentById(id).then((found) => {
       setDoc(found || null);
       setIsLoading(false);
     });
@@ -145,7 +157,9 @@ export default function DocumentVersionsPage() {
     const hours = Math.floor((timeDiffMs / (1000 * 60 * 60)) % 24);
     const timeStr = `แก้ไขห่างกัน ${days > 0 ? `${days} วัน ` : ""}${hours} ชั่วโมง`;
 
-    const sameUser = older.uploaded_by === newer.uploaded_by;
+    const olderUser = getModifierName(older.uploaded_by);
+    const newerUser = getModifierName(newer.uploaded_by);
+    const sameUser = olderUser === newerUser;
     const userStr = sameUser ? "แก้โดยคนเดียวกัน" : "แก้โดยคนละคน";
     const userColor = sameUser ? "text-indigo-600 bg-indigo-50 border-indigo-100" : "text-amber-600 bg-amber-50 border-amber-100";
 
@@ -265,7 +279,7 @@ export default function DocumentVersionsPage() {
                         timeStyle: "short",
                       })}
                     </td>
-                    <td className="py-4 text-xs font-semibold text-slate-800">{ver.uploaded_by}</td>
+                    <td className="py-4 text-xs font-semibold text-slate-800">{getModifierName(ver.uploaded_by)}</td>
                     <td className="py-4 pr-6 text-xs font-medium leading-relaxed text-slate-500">
                       {ver.remarks}
                     </td>
@@ -358,7 +372,7 @@ export default function DocumentVersionsPage() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500">{formatVersionDate(ver.created_at)}</p>
-                  <p className="mt-0.5 text-xs font-semibold text-slate-700">{ver.uploaded_by}</p>
+                  <p className="mt-0.5 text-xs font-semibold text-slate-700">{getModifierName(ver.uploaded_by)}</p>
                 </div>
               ))}
             </div>
@@ -483,7 +497,7 @@ export default function DocumentVersionsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><User className="w-3.5 h-3.5"/> แก้ไขโดย</span>
-                        <span className="text-sm font-bold text-slate-700">{selectedData[0].uploaded_by}</span>
+                        <span className="text-sm font-bold text-slate-700">{getModifierName(selectedData[0].uploaded_by)}</span>
                       </div>
                       <div>
                         <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> วันที่แก้ไข</span>
@@ -513,7 +527,7 @@ export default function DocumentVersionsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><User className="w-3.5 h-3.5"/> แก้ไขโดย</span>
-                        <span className="text-sm font-bold text-slate-700">{selectedData[1].uploaded_by}</span>
+                        <span className="text-sm font-bold text-slate-700">{getModifierName(selectedData[1].uploaded_by)}</span>
                       </div>
                       <div>
                         <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> วันที่แก้ไข</span>

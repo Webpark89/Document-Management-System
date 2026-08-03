@@ -8,6 +8,8 @@ import { DocumentsModule } from './documents/documents.module';
 import { WorkflowsModule } from './workflows/workflows.module';
 import { AdminModule } from './admin/admin.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { UsersModule } from './users/users.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { NotificationsModule } from './notifications/notifications.module';
     WorkflowsModule,
     AdminModule,
     NotificationsModule,
+    UsersModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

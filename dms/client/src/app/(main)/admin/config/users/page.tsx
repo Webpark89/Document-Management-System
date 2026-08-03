@@ -1,8 +1,8 @@
 "use client";
 
+import React, { Suspense, useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
 import {
   Eye,
   EyeOff,
@@ -19,15 +19,12 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
 import { useToast } from '@views/components/providers/ToastProvider';
+import { adminService } from "@/controllers/services/admin.service";
 import {
   DEPARTMENTS,
   POSITIONS,
 } from '@views/features/master-data';
 import {
-  MOCK_USERS,
-  prependConfigUser,
-  syncMockUsers,
-  updateConfigUser,
   USER_ROLE_OPTIONS,
   type ConfigUser,
 } from '@views/features/roles-users';
@@ -159,13 +156,8 @@ function CardSectionHeader({
 function CreateUserPreview({ form }: { form: UserForm }) {
   const displayName = form.fullName.trim() || "ชื่อผู้ใช้งาน";
   const initials = useMemo(() => {
-    const parts = displayName.split(" ").filter(Boolean);
-    if (parts.length === 0) return "?";
-    return parts
-      .map((p) => p[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
+    const name = displayName.trim();
+    return name ? name.charAt(0).toUpperCase() : "?";
   }, [displayName]);
 
   const joinedLabel = form.joinedAt
@@ -260,11 +252,17 @@ function roleBadge(role: string) {
 
 function UsersListView({
   users,
-  onUsersChange,
+  depts,
+  positions,
+  roles,
+  onRefresh,
   onCreate,
 }: {
   users: ConfigUser[];
-  onUsersChange: (next: ConfigUser[]) => void;
+  depts: any[];
+  positions: any[];
+  roles: any[];
+  onRefresh: () => void;
   onCreate: () => void;
 }) {
   const { showToast } = useToast();
@@ -300,11 +298,15 @@ function UsersListView({
     const next = !user.isActive;
     if (!confirm(`${next ? "เปิดใช้งาน" : "ปิดใช้งาน"} ${user.fullName}?`)) return;
     setTogglingId(user.id);
-    await new Promise((r) => setTimeout(r, 500));
-    updateConfigUser(user.id, { isActive: next });
-    onUsersChange([...MOCK_USERS]);
-    setTogglingId(null);
-    showToast(next ? "เปิดใช้งานผู้ใช้สำเร็จ" : "ปิดใช้งานผู้ใช้สำเร็จ", "success");
+    try {
+      await adminService.toggleUserActive(user.id);
+      onRefresh();
+      showToast(next ? "เปิดใช้งานผู้ใช้สำเร็จ" : "ปิดใช้งานผู้ใช้สำเร็จ", "success");
+    } catch {
+      showToast("เกิดข้อผิดพลาดในการเปลี่ยนสถานะ", "error");
+    } finally {
+      setTogglingId(null);
+    }
   };
 
   return (
@@ -322,7 +324,7 @@ function UsersListView({
           </nav>
         }
         title="Users"
-        subtitle="In-memory demo — resets on refresh"
+        subtitle="จัดการข้อมูลผู้ใช้งานและสิทธิ์การเข้าใช้งานระบบ"
         actions={
           <button type="button" onClick={onCreate} className={MD_ADD_BTN}>
             <Plus className="size-4" />
@@ -350,9 +352,9 @@ function UsersListView({
               <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
                 <select className={inputCls} value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}>
                   <option value="">ทุกแผนก</option>
-                  {DEPARTMENT_OPTIONS.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
+                  {depts.map((d) => (
+                    <option key={d.id} value={d.name}>
+                      {d.name}
                     </option>
                   ))}
                 </select>
@@ -405,7 +407,7 @@ function UsersListView({
                 ) : (
                   filtered.map((user) => (
                     <tr
-                      key={user.id}
+                       key={user.id}
                       className={`${MD_TR} cursor-pointer`}
                       onDoubleClick={() => setEditUser(user)}
                     >
@@ -464,12 +466,31 @@ function UsersListView({
       {editUser && (
         <EditUserModal
           user={editUser}
+          depts={depts}
+          positions={positions}
+          roles={roles}
           onClose={() => setEditUser(null)}
-          onSaved={(updated) => {
-            updateConfigUser(updated.id, updated);
-            onUsersChange([...MOCK_USERS]);
-            setEditUser(null);
-            showToast("แก้ไขผู้ใช้งานสำเร็จ", "success");
+          onSaved={async (updated) => {
+            try {
+              const department_id = depts.find(d => d.name === updated.department)?.id;
+              const position_id = positions.find(p => p.name === updated.position)?.id;
+              const role_id = roles.find(r => r.name === updated.role)?.id;
+
+              await adminService.updateUser(updated.id, {
+                email: updated.email,
+                first_name: updated.fullName.split(' ')[0] || updated.fullName,
+                last_name: updated.fullName.split(' ').slice(1).join(' ') || '',
+                department_id,
+                position_id,
+                role_id,
+                is_active: updated.isActive,
+              });
+              onRefresh();
+              setEditUser(null);
+              showToast("แก้ไขผู้ใช้งานสำเร็จ", "success");
+            } catch {
+              showToast("ไม่สามารถแก้ไขผู้ใช้งานได้", "error");
+            }
           }}
         />
       )}
@@ -478,10 +499,15 @@ function UsersListView({
         <ResetPasswordModal
           user={resetUser}
           onClose={() => setResetUser(null)}
-          onSaved={() => {
-            onUsersChange([...MOCK_USERS]);
-            setResetUser(null);
-            showToast("เปลี่ยนรหัสผ่านสำเร็จ", "success");
+          onSaved={async (newPassword) => {
+            try {
+              await adminService.resetUserPassword(resetUser.id, newPassword);
+              onRefresh();
+              setResetUser(null);
+              showToast("เปลี่ยนรหัสผ่านสำเร็จ", "success");
+            } catch {
+              showToast("ไม่สามารถตั้งรหัสผ่านใหม่ได้", "error");
+            }
           }}
         />
       )}
@@ -491,10 +517,16 @@ function UsersListView({
 
 function EditUserModal({
   user,
+  depts,
+  positions,
+  roles,
   onClose,
   onSaved,
 }: {
   user: ConfigUser;
+  depts: any[];
+  positions: any[];
+  roles: any[];
   onClose: () => void;
   onSaved: (user: ConfigUser) => void;
 }) {
@@ -518,7 +550,6 @@ function EditUserModal({
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
     onSaved({
       ...user,
       fullName: form.fullName.trim(),
@@ -543,7 +574,7 @@ function EditUserModal({
             <X className="size-4" />
           </button>
         </div>
-        <UserFormFields form={form} setForm={setForm} errors={errors} setErrors={setErrors} includePassword={false} />
+        <UserFormFields form={form} setForm={setForm} errors={errors} setErrors={setErrors} includePassword={false} depts={depts} positions={positions} roles={roles} />
         <div className="mt-6 flex justify-end gap-2">
           <button type="button" onClick={onClose} className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
             ยกเลิก
@@ -577,7 +608,7 @@ function ResetPasswordModal({
 }: {
   user: ConfigUser;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (password: string) => Promise<void>;
 }) {
   const [form, setForm] = useState<ResetPasswordForm>({ newPassword: "", confirmPassword: "" });
   const [errors, setErrors] = useState<ResetPasswordErrors>({});
@@ -601,10 +632,8 @@ function ResetPasswordModal({
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
-    updateConfigUser(user.id, { password: form.newPassword });
+    await onSaved(form.newPassword);
     setSaving(false);
-    onSaved();
   };
 
   const labelCls = "mb-1.5 block text-xs text-slate-500";
@@ -691,6 +720,9 @@ function UserFormFields({
   errors,
   setErrors,
   includePassword,
+  depts = [],
+  positions = [],
+  roles = [],
   layout = "default",
 }: {
   form: UserForm;
@@ -698,20 +730,16 @@ function UserFormFields({
   errors: FormErrors;
   setErrors: React.Dispatch<React.SetStateAction<FormErrors>>;
   includePassword: boolean;
+  depts?: any[];
+  positions?: any[];
+  roles?: any[];
   layout?: "default" | "create";
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
-  const positionsForDept = useMemo(
-    () =>
-      POSITIONS.filter((p) => p.isActive && p.department === form.department).map(
-        (p) => p.name
-      ),
-    [form.department]
-  );
-
-  const positionOptions =
-    positionsForDept.length > 0 ? positionsForDept : POSITIONS.filter((p) => p.isActive).map((p) => p.name);
+  const deptList = depts.length > 0 ? depts.map(d => d.name) : ["แผนก IT", "แผนกจัดซื้อ", "แผนก HR", "แผนกผลิต"];
+  const posList = positions.length > 0 ? positions.map(p => p.name) : ["ผู้อำนวยการ", "ผู้จัดการ", "หัวหน้าแผนก", "พนักงาน"];
+  const roleList = roles.length > 0 ? roles.map(r => r.name) : USER_ROLE_OPTIONS;
 
   const isCreateLayout = layout === "create";
   const fieldStackCls = isCreateLayout ? "flex flex-col gap-5" : "mt-4 space-y-3";
@@ -818,19 +846,15 @@ function UserFormFields({
         value={form.department}
         onChange={(e) => {
           const department = e.target.value;
-          const nextPositions = POSITIONS.filter(
-            (p) => p.isActive && p.department === department
-          ).map((p) => p.name);
           setForm((p) => ({
             ...p,
             department,
-            position: nextPositions.includes(p.position) ? p.position : (nextPositions[0] ?? ""),
           }));
           if (errors.department) setErrors((p) => ({ ...p, department: undefined }));
         }}
         className={fieldInputCls("department")}
       >
-        {DEPARTMENT_OPTIONS.map((d) => (
+        {deptList.map((d) => (
           <option key={d} value={d}>
             {d}
           </option>
@@ -851,7 +875,7 @@ function UserFormFields({
         }}
         className={fieldInputCls("position")}
       >
-        {positionOptions.map((p) => (
+        {posList.map((p) => (
           <option key={p} value={p}>
             {p}
           </option>
@@ -869,7 +893,7 @@ function UserFormFields({
         onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))}
         className={fieldInputCls("role")}
       >
-        {USER_ROLE_OPTIONS.map((r) => (
+        {roleList.map((r) => (
           <option key={r} value={r}>
             {r}
           </option>
@@ -921,21 +945,25 @@ function UserFormFields({
 }
 
 function CreateUserForm({
+  depts,
+  positions,
+  roles,
   onBack,
   onSaved,
 }: {
+  depts: any[];
+  positions: any[];
+  roles: any[];
   onBack: () => void;
   onSaved: (user: ConfigUser) => void;
 }) {
   const { showToast } = useToast();
-  const initialDept = DEPARTMENT_OPTIONS[0] ?? "";
-  const initialPositions = POSITIONS.filter(
-    (p) => p.isActive && p.department === initialDept
-  ).map((p) => p.name);
+  const initialDept = depts[0]?.name ?? "";
+  const allPositions = positions.map((p) => p.name);
   const [user, setUser] = useState<UserForm>({
     ...EMPTY_USER,
     department: initialDept,
-    position: initialPositions[0] ?? "",
+    position: allPositions[0] ?? "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
@@ -963,7 +991,7 @@ function CreateUserForm({
       user.phone.trim() ||
       user.joinedAt ||
       user.department !== initialDept ||
-      user.position !== (initialPositions[0] ?? "") ||
+      user.position !== (allPositions[0] ?? "") ||
       user.role !== USER_ROLE_OPTIONS[0] ||
       !user.isActive;
     if (hasData && !confirm("ยังไม่ได้บันทึกข้อมูล ต้องการออกจากหน้านี้หรือไม่?")) return;
@@ -975,7 +1003,6 @@ function CreateUserForm({
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
     const saved: ConfigUser = {
       id: uid(),
       fullName: user.fullName.trim(),
@@ -988,7 +1015,7 @@ function CreateUserForm({
       ...(user.phone.trim() ? { phone: user.phone.trim() } : {}),
       ...(user.joinedAt ? { joinedAt: user.joinedAt } : {}),
     };
-    onSaved(saved);
+    await onSaved(saved);
     setSaving(false);
     showToast("สร้างผู้ใช้งานสำเร็จ", "success");
   };
@@ -1013,7 +1040,7 @@ function CreateUserForm({
             </nav>
           }
           title="สร้างผู้ใช้งาน"
-          subtitle="In-memory demo — resets on refresh"
+          subtitle="จัดการข้อมูลผู้ใช้งานและสิทธิ์การเข้าใช้งานระบบ"
           actions={
             <div className="relative z-30 flex shrink-0 items-center gap-3">
               <button type="button" onClick={handleBack} className={BTN_SECONDARY}>
@@ -1071,17 +1098,82 @@ function UsersPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isCreateMode = searchParams.get("mode") === "new";
-  const [users, setUsers] = useState<ConfigUser[]>(MOCK_USERS);
+  
+  const [users, setUsers] = useState<ConfigUser[]>([]);
+  const [depts, setDepts] = useState<any[]>([]);
+  const [positions, setPositions] = useState<any[]>([]);
+  const [roles, setRoles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAll = async () => {
+    try {
+      const [uList, dList, pList, rList] = await Promise.all([
+        adminService.getUsersList(),
+        adminService.getDepartmentsList().catch(() => []),
+        adminService.getPositionsList().catch(() => []),
+        adminService.getRolesList().catch(() => []),
+      ]);
+      setDepts(dList);
+      setPositions(pList);
+      setRoles(rList);
+      const mapped = uList.map((u: any) => ({
+        id: u.id,
+        fullName: `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.username,
+        email: u.email,
+        department: u.department,
+        position: u.position,
+        role: u.role,
+        isActive: u.is_active,
+        joinedAt: u.created_at,
+      }));
+      setUsers(mapped);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchAll();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   if (isCreateMode) {
     return (
       <CreateUserForm
+        depts={depts}
+        positions={positions}
+        roles={roles}
         onBack={() => router.push("/admin/config/users")}
-        onSaved={(saved) => {
-          prependConfigUser(saved);
-          syncMockUsers();
-          setUsers([...MOCK_USERS]);
-          router.push("/admin/config/users");
+        onSaved={async (saved) => {
+          try {
+            const department_id = depts.find(d => d.name === saved.department)?.id;
+            const position_id = positions.find(p => p.name === saved.position)?.id;
+            const role_id = roles.find(r => r.name === saved.role)?.id;
+
+            await adminService.createUser({
+              username: saved.email.split('@')[0],
+              email: saved.email,
+              first_name: saved.fullName.split(' ')[0] || saved.fullName,
+              last_name: saved.fullName.split(' ').slice(1).join(' ') || '',
+              department_id,
+              position_id,
+              role_id,
+              password: saved.password,
+            });
+            await fetchAll();
+            router.push("/admin/config/users");
+          } catch {
+            // Toast will be shown inside CreateUserForm or handled via state
+          }
         }}
       />
     );
@@ -1090,7 +1182,10 @@ function UsersPageContent() {
   return (
     <UsersListView
       users={users}
-      onUsersChange={setUsers}
+      depts={depts}
+      positions={positions}
+      roles={roles}
+      onRefresh={fetchAll}
       onCreate={() => router.push("/admin/config/users?mode=new")}
     />
   );

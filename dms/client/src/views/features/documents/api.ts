@@ -37,12 +37,29 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
 export async function getDocuments(): Promise<Document[]> {
   try {
-    const res = await api.get<Document[]>("/api/documents");
-    return res.data || [];
+    const res = await api.get<any>("/api/documents");
+    if (Array.isArray(res.data)) return res.data;
+    if (res.data && Array.isArray(res.data.data)) return res.data.data;
+    return [];
   } catch (err) {
     console.warn("[getDocuments] Failed to fetch documents", err);
     return [];
   }
+}
+
+export async function getDocumentById(id: string): Promise<Document | null> {
+  try {
+    const res = await api.get<Document>(`/api/documents/${id}`);
+    if (res.data) return res.data;
+  } catch (err) {
+    console.warn(`[getDocumentById] Failed to fetch ${id}`, err);
+  }
+  const docs = await getDocuments();
+  return (
+    docs.find(
+      (d) => d.id === id || (d as any).real_id === id || (d as any).doc_number === id
+    ) || null
+  );
 }
 
 export interface CreateDocumentPayload {

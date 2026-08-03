@@ -23,6 +23,7 @@ import {
   MD_TR,
 } from '@views/components/ui/design-system';
 import { AdminPageHeader } from "@/app/(main)/admin/master-data/master-data-ui";
+import { adminService, AuditLogDto } from "@/controllers/services/admin.service";
 
 // ─── TYPES & MOCK DATA ────────────────────────────────────────────────────────
 type ActionType = "Login" | "Upload" | "Download" | "View" | "Edit" | "Delete" | "Approve" | "Reject" | "Signature";
@@ -72,6 +73,8 @@ function AuditLogsContent() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selectedModule, setSelectedModule] = useState<ModuleType | "All">("All");
+  const [realLogs, setRealLogs] = useState<AuditLogExtended[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
@@ -116,6 +119,26 @@ function AuditLogsContent() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    adminService.getAuditLogs(searchTerm).then((logs) => {
+      const mapped: AuditLogExtended[] = logs.map((l) => ({
+        id: l.id,
+        timestamp: l.created_at,
+        userId: l.user_id || "-",
+        userName: l.user_fullname || l.username,
+        action: (l.action as ActionType) || "View",
+        module: (l.module as ModuleType) || "Documents",
+        targetId: l.target_id || "",
+        targetLabel: l.target_id || "-",
+        targetType: "document",
+        ipAddress: l.ip_address || "127.0.0.1",
+      }));
+      setRealLogs(mapped.length > 0 ? mapped : EXTENDED_MOCK_LOGS);
+    }).catch(() => {
+      setRealLogs(EXTENDED_MOCK_LOGS);
+    }).finally(() => setLoading(false));
+  }, [searchTerm]);
+
   const toggleActionFilter = (action: ActionType) => {
     const newSet = new Set(selectedActions);
     if (newSet.has(action)) {
@@ -140,7 +163,7 @@ function AuditLogsContent() {
 
   // 1. Filter & Sort Data
   const filteredLogs = useMemo(() => {
-    const data = EXTENDED_MOCK_LOGS.filter(log => {
+    const data = [...realLogs].filter(log => {
       // 1. Search
       if (searchTerm) {
         const lowerTerm = searchTerm.toLowerCase();

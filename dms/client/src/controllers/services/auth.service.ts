@@ -11,11 +11,20 @@ export const authService = {
     }
   },
 
-  async login(username: string, password: string): Promise<{ user: User; token: string }> {
-    const res = await api.post<{ user: User; access_token: string }>("/api/auth/login", { username, password });
+  async login(username: string, password: string): Promise<{ user: User }> {
+    const res = await api.post<{ user: User }>("/api/auth/login", { username, password });
     return {
       user: res.data.user,
-      token: res.data.access_token,
     };
+  },
+
+  async forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+    const res = await api.post<{ success: boolean; message: string }>("/api/auth/forgot-password", { email });
+    return res.data;
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    const res = await api.post<{ success: boolean; message: string }>("/api/auth/reset-password", { token, newPassword });
+    return res.data;
   },
 };

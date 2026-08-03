@@ -31,7 +31,13 @@ const DEPARTMENTS = [
   "ฝ่ายวิศวกรรมและซ่อมบำรุง",
 ];
 
-const DOCUMENT_TYPES = ["All", "PR", "PO", "บันทึก", "Other"];
+const DOCUMENT_TYPES = [
+  { value: "All", label: "All" },
+  { value: "PR", label: "PR" },
+  { value: "PO", label: "PO" },
+  { value: "BK", label: "บันทึก" },
+  { value: "OTHER", label: "Other" },
+];
 
 import { getDocuments } from '@views/features/documents/api';
 
@@ -273,18 +279,24 @@ export default function ReportsPage() {
       );
     }
 
-    const stats = ["PR", "PO", "บันทึก", "Other"].map(type => {
-      const docs = completedDocs.filter(d => d.type === type);
+    const stats = ["PR", "PO", "BK", "OTHER"].map(prefix => {
+      const docs = completedDocs.filter(d => d.type === prefix);
       if (docs.length === 0) return null;
       const avg = docs.reduce((sum, d) => sum + (d.approvalDays as number), 0) / docs.length;
-      return { type, count: docs.length, avg };
+      
+      let displayName = prefix;
+      if (prefix === "BK") displayName = "บันทึก";
+      if (prefix === "OTHER") displayName = "Other";
+      
+      return { type: displayName, count: docs.length, avg };
     }).filter(Boolean) as { type: string, count: number, avg: number }[];
 
     const getTypeColor = (type: string) => {
       switch(type) {
         case "PR": return "bg-blue-500";
         case "PO": return "bg-purple-500";
-        case "บันทึก": return "bg-emerald-500";
+        case "บันทึก":
+        case "BK": return "bg-emerald-500";
         default: return "bg-slate-500";
       }
     };
@@ -451,7 +463,7 @@ export default function ReportsPage() {
                   onChange={(e) => setFilterType(e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                 >
-                  {DOCUMENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  {DOCUMENT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
               <div>

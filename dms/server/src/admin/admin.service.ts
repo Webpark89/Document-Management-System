@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { S3Service } from '../common/s3/s3.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private s3Service: S3Service) {}
 
   // ---- Users ----
   async getUsers() {
@@ -67,6 +68,35 @@ export class AdminService {
     });
   }
 
+  async updateUser(id: string, dto: any) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('ไม่พบผู้ใช้งาน');
+
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        email: dto.email,
+        first_name: dto.first_name,
+        last_name: dto.last_name,
+        department_id: dto.department_id,
+        position_id: dto.position_id,
+        role_id: dto.role_id,
+        is_active: dto.is_active,
+      },
+    });
+  }
+
+  async resetUserPassword(id: string, rawPassword: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('ไม่พบผู้ใช้งาน');
+
+    const passwordHash = await bcrypt.hash(rawPassword, 10);
+    return this.prisma.user.update({
+      where: { id },
+      data: { password_hash: passwordHash },
+    });
+  }
+
   // ---- Roles ----
   async getRoles() {
     const roles = await this.prisma.role.findMany({
@@ -96,11 +126,44 @@ export class AdminService {
 
   // ---- Departments & Positions ----
   async getDepartments() {
-    return this.prisma.department.findMany({ orderBy: { name: 'asc' } });
+    const departments = await this.prisma.department.findMany({
+      include: {
+        _count: {
+          select: { users: { where: { is_deleted: false } } },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    return departments.map((d) => ({
+      ...d,
+      employeeCount: d._count?.users ?? 0,
+    }));
+  }
+
+  async createDepartment(name: string) {
+    return this.prisma.department.create({ data: { name } });
+  }
+
+  async updateDepartment(id: string, dto: { name?: string; is_active?: boolean }) {
+    return this.prisma.department.update({ where: { id }, data: dto });
   }
 
   async getPositions() {
     return this.prisma.position.findMany({ orderBy: { name: 'asc' } });
+  }
+
+  async createPosition(dto: { name: string; level?: string }) {
+    return this.prisma.position.create({ 
+      data: { 
+        name: dto.name,
+        level: dto.level || 'L1'
+      } 
+    });
+  }
+
+  async updatePosition(id: string, dto: { name?: string; level?: string; is_active?: boolean }) {
+    return this.prisma.position.update({ where: { id }, data: dto });
   }
 
   async getDocumentTypes() {
@@ -110,11 +173,169 @@ export class AdminService {
     });
   }
 
+  async createDocumentType(dto: { type_name: string; prefix: string }) {
+    return this.prisma.$transaction(async (tx) => {
+      const docType = await tx.documentType.create({
+        data: {
+          type_name: dto.type_name,
+          prefix: dto.prefix,
+        },
+      });
+      await tx.runningNumber.create({
+        data: {
+          document_type_id: docType.id,
+          prefix: dto.prefix,
+          year_format: 'YYYY',
+          current_number: 0,
+          padding_length: 4,
+        },
+      });
+      return docType;
+    });
+  }
+
+  async updateDocumentType(id: string, dto: { type_name?: string; prefix?: string; is_active?: boolean }) {
+    return this.prisma.documentType.update({ where: { id }, data: dto });
+  }
+
+  // ---- Master Data (Approval Matrix & Running Numbers) ----
+  async getApprovalMatrix() {
+    return this.prisma.approvalMatrix.findMany({
+      include: {
+        document_type: true,
+        required_role: true,
+      },
+      orderBy: [
+        { document_type_id: 'asc' },
+        { step_order: 'asc' },
+      ],
+    });
+  }
+
+  async getApprovalWorkflows() {
+    const docTypes = await this.prisma.documentType.findMany({
+      include: {
+        approval_matrix: {
+          include: { required_role: true },
+          orderBy: { step_order: 'asc' },
+        },
+      },
+      orderBy: { prefix: 'asc' },
+    });
+
+    return docTypes.map(dt => ({
+      id: dt.id,
+      documentTypeId: dt.id,
+      name: dt.type_name,
+      prefix: dt.prefix,
+      levels: dt.approval_matrix.length || 3,
+      approverCount: dt.approval_matrix.length || 3,
+      approvers: dt.approval_matrix.map(am => am.required_role?.name || ''),
+      steps: dt.approval_matrix.map(am => am.required_role?.name || ''),
+      isActive: dt.is_active,
+    }));
+  }
+
+  async updateApprovalWorkflow(documentTypeId: string, dto: { levels: number; steps: string[] }) {
+    // Note: To truly map steps to roles, we need the Role records. 
+    // We match by Role name because the frontend passes string array of role names.
+    const allRoles = await this.prisma.role.findMany();
+    
+    // Clear existing matrix for this document type
+    await this.prisma.approvalMatrix.deleteMany({
+      where: { document_type_id: documentTypeId }
+    });
+    
+    // Create new steps
+    for (let i = 0; i < dto.levels; i++) {
+      const stepName = dto.steps[i];
+      let role = allRoles.find(r => r.name === stepName);
+      if (!role && stepName) {
+         // Create the role if it doesn't exist (edge case protection)
+         role = await this.prisma.role.create({ data: { name: stepName } });
+         allRoles.push(role);
+      }
+      
+      if (role) {
+        await this.prisma.approvalMatrix.create({
+          data: {
+            document_type_id: documentTypeId,
+            step_order: i + 1,
+            required_role_id: role.id
+          }
+        });
+      }
+    }
+    
+    return { success: true };
+  }
+
+  async getSignatures() {
+    const users = await this.prisma.user.findMany({
+      where: { signature_image_path: { not: null } },
+      include: { position: true }
+    });
+    
+    return Promise.all(users.map(async (user) => {
+      const signedUrl = await this.s3Service.getSignedUrl(user.signature_image_path!);
+      return {
+        id: user.id,
+        approverName: `${user.first_name} ${user.last_name}`,
+        position: user.position?.name || 'Unknown',
+        signedCount: 0, // Mocked for now, normally a join with DocumentVersion/WorkflowStep
+        isActive: user.is_active,
+        imageUrl: signedUrl,
+      };
+    }));
+  }
+
+  async createApprovalMatrixStep(dto: any) {
+    return this.prisma.approvalMatrix.create({
+      data: {
+        document_type_id: dto.document_type_id,
+        step_order: dto.step_order,
+        required_role_id: dto.approver_role_id,
+      },
+    });
+  }
+
+  async updateApprovalMatrixStep(id: string, dto: any) {
+    return this.prisma.approvalMatrix.update({
+      where: { id },
+      data: {
+        step_order: dto.step_order,
+        required_role_id: dto.approver_role_id,
+      },
+    });
+  }
+
+  async updateRunningNumber(id: string, dto: any) {
+    return this.prisma.runningNumber.update({
+      where: { id },
+      data: {
+        last_reset_year: dto.last_reset_year,
+        current_number: dto.current_number,
+        padding_length: dto.padding_length,
+      },
+    });
+  }
+
   // ---- Audit Logs ----
   async getAuditLogs(search?: string, action?: string) {
     const where: any = {};
     if (action && action !== 'All') {
       where.action = action;
+    }
+
+    if (search) {
+      where.OR = [
+        { action: { contains: search, mode: 'insensitive' } },
+        { module: { contains: search, mode: 'insensitive' } },
+        { target_id: { contains: search, mode: 'insensitive' } },
+        { user: { first_name: { contains: search, mode: 'insensitive' } } },
+        { user: { last_name: { contains: search, mode: 'insensitive' } } },
+        { user: { username: { contains: search, mode: 'insensitive' } } },
+      ];
     }
 
     const logs = await this.prisma.auditLog.findMany({

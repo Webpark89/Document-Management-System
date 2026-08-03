@@ -12,10 +12,27 @@ export interface JwtPayload {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private prisma: PrismaService) {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error('JWT_SECRET env variable is not set');
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (request) => {
+          let token = null;
+          if (request && request.cookies) {
+            token = request.cookies['access_token'];
+          }
+          if (!token && request && request.headers) {
+            // fallback to bearer header
+            const authHeader = request.headers['authorization'];
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+              token = authHeader.substring(7);
+            }
+          }
+          return token;
+        },
+      ]),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'dms-secret-key-2026',
+      secretOrKey: secret,
     });
   }
 
@@ -41,6 +58,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       department: user.department?.name || null,
       email: user.email,
       position: user.position?.name || null,
+      signature_image_path: user.signature_image_path || null,
     };
   }
 }

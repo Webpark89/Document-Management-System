@@ -17,6 +17,16 @@ export class WorkflowsController {
   constructor(private readonly workflowsService: WorkflowsService) {}
 
   @UseGuards(JwtAuthGuard)
+  @Post('workflows/:documentId/submit')
+  async submitWorkflow(
+    @Param('documentId') documentId: string,
+    @Body() body: { workflow_steps?: Array<{ step_order: number; approver_id?: string }> },
+    @CurrentUser() user: any,
+  ) {
+    return this.workflowsService.submitWorkflow(documentId, user.id, body.workflow_steps);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('approvals')
   async getApprovals(@CurrentUser() user: any) {
     return this.workflowsService.getApprovalsForUser(user.id);

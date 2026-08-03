@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 
+import { getNotifications, NotificationItem } from '@views/features/notifications/api';
+
 type PageHeaderProps = {
   title: string;
   subtitle?: string;
@@ -24,18 +26,17 @@ export default function PageHeader({
   className,
 }: PageHeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
-  const notifications: any[] = [];
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  React.useEffect(() => {
+    getNotifications().then(data => setNotifications(data || []));
+  }, []);
+
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   const { user } = useAuth();
   const displayName = user?.full_name || user?.username || "User";
-  const initials = displayName
-    .split(" ")
-    .filter(Boolean)
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = displayName.trim() ? displayName.trim().charAt(0).toUpperCase() : "U";
 
   return (
     <header className={cn("mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between", className)}>

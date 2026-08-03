@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from "react";
 import { SIGNATURES, type SignatureRecord } from '@views/features/master-data';
 
 type AddSignatureInput = {
@@ -18,6 +18,8 @@ type SignatureContextValue = {
   findByApproverName: (name: string) => SignatureRecord | undefined;
 };
 
+import { adminService } from "@/controllers/services/admin.service";
+
 const globalForSignature = globalThis as unknown as {
   SignatureContext: React.Context<SignatureContextValue | undefined>;
 };
@@ -29,12 +31,12 @@ if (process.env.NODE_ENV !== "production") {
   globalForSignature.SignatureContext = SignatureContext;
 }
 
-function cloneSignatures() {
-  return SIGNATURES.map((row) => ({ ...row }));
-}
-
 export function SignatureProvider({ children }: { children: React.ReactNode }) {
-  const [signatures, setSignatures] = useState<SignatureRecord[]>(cloneSignatures);
+  const [signatures, setSignatures] = useState<SignatureRecord[]>([]);
+
+  useEffect(() => {
+    adminService.getSignaturesList().then(data => setSignatures(data as SignatureRecord[])).catch(() => {});
+  }, []);
 
   const addSignature = useCallback((input: AddSignatureInput) => {
     const record: SignatureRecord = {

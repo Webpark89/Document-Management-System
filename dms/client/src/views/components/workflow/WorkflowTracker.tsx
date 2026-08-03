@@ -67,18 +67,19 @@ export function WorkflowTracker({ workflow }: WorkflowTrackerProps) {
                   </span>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                <div className="space-y-1.5 text-sm">
                   {step.approverName && (
-                    <p className="text-gray-600">
-                      ผู้อนุมัติ: <span className="font-semibold text-gray-800">{step.approverName}</span>
-                    </p>
+                    <div className="flex items-start gap-1.5 text-slate-600">
+                      <span className="text-slate-400 font-medium shrink-0">ผู้อนุมัติ:</span>
+                      <span className="font-bold text-slate-800 leading-snug">{step.approverName}</span>
+                    </div>
                   )}
                   
                   {step.actionDate && (
-                    <p className="text-gray-500 flex items-center gap-1.5 sm:justify-end">
-                      <Clock className="w-3.5 h-3.5" />
-                      {step.actionDate}
-                    </p>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                      <Clock className="w-3.5 h-3.5 shrink-0" />
+                      <span>{step.actionDate}</span>
+                    </div>
                   )}
                 </div>
                 

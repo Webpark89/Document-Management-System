@@ -13,6 +13,7 @@ import {
   MD_ADD_BTN,
 } from '@views/components/ui/admin';
 import { APP_CARD_LG } from '@views/components/ui/design-system';
+import { usersService } from '@/controllers/services/users.service';
 
 const ROLE_BADGE: Record<string, string> = {
   Administrator: "bg-violet-50 text-violet-700 ring-1 ring-violet-100",
@@ -85,18 +86,12 @@ export default function ProfilePage() {
   );
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(mySignature?.imageUrl ?? null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [sendingResetLink, setSendingResetLink] = useState(false);
 
   const initials = useMemo(
-    () =>
-      displayName
-        .split(" ")
-        .filter(Boolean)
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase(),
+    () => (displayName.trim() ? displayName.trim().charAt(0).toUpperCase() : "U"),
     [displayName]
   );
 
@@ -114,33 +109,38 @@ export default function ProfilePage() {
       setPreviewUrl(typeof reader.result === "string" ? reader.result : null);
     };
     reader.readAsDataURL(file);
+    setSelectedFile(file);
   };
 
   const handleSave = async () => {
-    if (!previewUrl) {
+    if (!previewUrl || !selectedFile) {
       showToast("กรุณาอัปโหลดลายเซ็นก่อนบันทึก", "error");
       return;
     }
 
     setSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    
+    try {
+      await usersService.uploadSignature(selectedFile);
+      
+      const position = displayRole === "Administrator" ? "ผู้ดูแลระบบ" : displayRole;
 
-    const position =
-      displayRole === "Administrator" ? "ผู้ดูแลระบบ" : displayRole;
-
-    if (mySignature) {
-      updateSignature(mySignature.id, { imageUrl: previewUrl, position });
-      showToast("อัปเดตลายเซ็นสำเร็จ", "success");
-    } else {
-      addSignature({
-        approverName: displayName,
-        position,
-        imageUrl: previewUrl,
-      });
-      showToast("บันทึกลายเซ็นสำเร็จ — แสดงใน Master Data > ลายเซ็น", "success");
+      if (mySignature) {
+        updateSignature(mySignature.id, { imageUrl: previewUrl, position });
+        showToast("อัปเดตลายเซ็นสำเร็จ", "success");
+      } else {
+        addSignature({
+          approverName: displayName,
+          position,
+          imageUrl: previewUrl,
+        });
+        showToast("บันทึกลายเซ็นสำเร็จ", "success");
+      }
+    } catch (error) {
+      showToast("เกิดข้อผิดพลาดในการอัปโหลดลายเซ็น", "error");
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false);
   };
 
   const handleSendResetLink = async () => {

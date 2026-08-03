@@ -24,6 +24,7 @@ import {
   Legend
 } from "recharts";
 import { getDocuments } from '@views/features/documents/api';
+import { dashboardService, DashboardStats } from '@/controllers/services/dashboard.service';
 import { useAuth } from '@views/components/providers/AuthProvider';
 import PageHeader from '@views/components/shared/PageHeader';
 import DataTableHeader from '@views/components/ui/DataTableHeader';
@@ -62,12 +63,15 @@ export default function DashboardPage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
 
   const [documents, setDocuments] = useState<any[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
-    getDocuments().then(docs => {
-      // Map to dashboard structure
-      const mapped = docs.map(d => ({
+    Promise.all([
+      getDocuments().catch(() => []),
+      dashboardService.getStats().catch(() => null),
+    ]).then(([docs, statsData]) => {
+      const mapped = docs.map((d: any) => ({
         id: d.id,
         title: d.title || d.name,
         type: d.type,
@@ -78,6 +82,7 @@ export default function DashboardPage() {
         value: typeof d.amount === "string" ? parseFloat(d.amount.replace(/[^0-9.-]+/g,"")) : (d.amount || 0)
       }));
       setDocuments(mapped);
+      setStats(statsData);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -157,12 +162,13 @@ export default function DashboardPage() {
     return data.slice(0, 8);
   }, [dashboardData, sortKey, sortDirection]);
 
-  // Stats
-  const total = dashboardData.length;
-  const approved = dashboardData.filter(d => d.status === "Approved").length;
-  const pending = dashboardData.filter(d => d.status === "Pending").length;
+  // Stats from backend or calculated fallback
+  const total = stats?.total ?? dashboardData.length;
+  const approved = stats?.approved ?? dashboardData.filter(d => d.status === "Approved").length;
+  const pending = stats?.pending ?? dashboardData.filter(d => d.status === "Pending").length;
   const rejected = dashboardData.filter(d => d.status === "Rejected").length;
   const cancelled = dashboardData.filter(d => d.status === "Cancelled").length;
+  const actionRequiredCount = stats?.actionRequired ?? 0;
 
   // Chart 1: Type Distribution
   const typeData = useMemo(() => {
@@ -251,7 +257,7 @@ export default function DashboardPage() {
                 <div className="relative z-10 flex-1">
                   <p className="text-indigo-100 font-bold uppercase text-[11px] tracking-wider mb-2">งานของฉันที่ต้องทำวันนี้</p>
                   <h3 className="text-2xl font-black mb-1">เอกสารรอฉันอนุมัติ</h3>
-                  <div className="text-5xl font-black my-4">2</div>
+                  <div className="text-5xl font-black my-4">{actionRequiredCount}</div>
                   <p className="text-xs text-indigo-100 font-medium">กรุณาตรวจสอบและอนุมัติเอกสารเพื่อให้กระบวนการทำงานดำเนินการต่อ</p>
                 </div>
                 <Link href="/approvals" className="relative z-10 mt-6 bg-white text-indigo-700 hover:bg-indigo-50 px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between transition-colors shadow-sm">

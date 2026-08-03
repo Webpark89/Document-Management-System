@@ -12,6 +12,7 @@ import BKForm, { BKSubmitData } from '@views/components/forms/BKForm';
 import UploadOnlyForm, { OtherSubmitData } from '@views/components/forms/UploadOnlyForm';
 import { useToast } from '@views/components/providers/ToastProvider';
 import { addDocument } from '@views/features/documents/api';
+import { documentsService } from '@/controllers/services/documents.service';
 
 import type { DocumentStatus } from '@models';
 
@@ -212,29 +213,31 @@ export default function DocumentUploadPage() {
   const handleOtherSubmit = async (data: OtherSubmitData) => {
     setIsSubmitting(true);
     try {
-      const runningNum = generateActualDocNumber("Other");
+      if (!data.file) {
+        throw new Error("กรุณาเลือกไฟล์ PDF");
+      }
 
-      const apiPayload = {
-        title: data.title,
-        prefix: "OTHER",
-        purpose: data.description,
-        workflow_steps: data.workflowSteps.map((step) => ({
-          step_order: step.stepOrder,
-          approver_id: step.approverName || "admin",
-        })),
-      };
+      const formData = new FormData();
+      formData.append("file", data.file);
+      formData.append("title", data.title);
+      formData.append("prefix", "OTHER");
+      formData.append("purpose", data.description);
 
-      const created = await addDocument(apiPayload);
+      const approverIds = data.workflowSteps.map((step) => step.approverName || "admin");
+      formData.append("approver_ids", JSON.stringify(approverIds));
+
+      const created = await documentsService.uploadDocument(formData);
+      
       mutate("documents");
       showToast(
         data.isDraft
-          ? `บันทึกร่างเอกสาร ${created.id || runningNum} เรียบร้อยแล้ว (Draft)`
-          : `ส่งเอกสารขออนุมัติ ${created.id || runningNum} สำเร็จแล้ว (Pending Review)`
+          ? `อัปโหลดและบันทึกร่าง ${created.doc_number || created.id} สำเร็จ`
+          : `ส่งเอกสารขออนุมัติ ${created.doc_number || created.id} สำเร็จ`
       );
       router.push("/documents");
       router.refresh();
-    } catch (error) {
-      showToast("เกิดข้อผิดพลาดในการสร้างเอกสาร");
+    } catch (error: any) {
+      showToast(error.message || "เกิดข้อผิดพลาดในการอัปโหลดไฟล์เอกสาร");
     } finally {
       setIsSubmitting(false);
     }

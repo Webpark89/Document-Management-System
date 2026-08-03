@@ -26,22 +26,24 @@ type NavItem = {
   href: string;
   icon?: React.ElementType;
   tablerIcon?: string;
+  roles?: string[];
 };
 
 type NavGroup = {
   name: string;
   href: string;
   tablerIcon: string;
+  roles?: string[];
   children: NavItem[];
 };
 
 const FLAT_NAV_ITEMS: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Documents", href: "/documents", icon: FileText },
-  { name: "Approvals", href: "/approvals", icon: CheckSquare },
-  { name: "Master Data", href: "/admin/master-data", icon: Database },
-  { name: "Reports", href: "/admin/reports", icon: BarChart3 },
-  { name: "Audit Logs", href: "/admin/audit-logs", icon: Activity },
+  { name: "Approvals", href: "/approvals", icon: CheckSquare, roles: ["Administrator", "Executive", "Manager"] },
+  { name: "Master Data", href: "/admin/master-data", icon: Database, roles: ["Administrator"] },
+  { name: "Reports", href: "/admin/reports", icon: BarChart3, roles: ["Administrator", "Executive"] },
+  { name: "Audit Logs", href: "/admin/audit-logs", icon: Activity, roles: ["Administrator"] },
   { name: "Profile", href: "/profile", icon: User },
 ];
 
@@ -49,11 +51,18 @@ const CONFIG_GROUP: NavGroup = {
   name: "Config",
   href: "/admin/config",
   tablerIcon: "settings-2",
+  roles: ["Administrator"],
   children: [
-    { name: "Roles", href: "/admin/config/roles", tablerIcon: "shield-lock" },
-    { name: "Users", href: "/admin/config/users", tablerIcon: "users" },
+    { name: "Roles", href: "/admin/config/roles", tablerIcon: "shield-lock", roles: ["Administrator"] },
+    { name: "Users", href: "/admin/config/users", tablerIcon: "users", roles: ["Administrator"] },
   ],
 };
+
+function hasAccess(roles?: string[], userRole?: string) {
+  if (!roles || roles.length === 0) return true;
+  if (!userRole) return false;
+  return roles.includes(userRole);
+}
 
 function isConfigRoute(pathname: string) {
   return pathname === CONFIG_GROUP.href || pathname.startsWith(`${CONFIG_GROUP.href}/`);
@@ -121,14 +130,8 @@ export default function Sidebar() {
   const displayName = user?.full_name || user?.username || "User";
   const displaySub = user?.username || "user@dms.local";
   const initials = useMemo(() => {
-    const source = displayName || displaySub;
-    return source
-      .split(" ")
-      .filter(Boolean)
-      .map((part) => part[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
+    const source = (displayName || displaySub).trim();
+    return source ? source.charAt(0).toUpperCase() : "U";
   }, [displayName, displaySub]);
 
   const isConfigActive =
@@ -159,7 +162,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-2">
-        {FLAT_NAV_ITEMS.slice(0, 4).map((item) => {
+        {FLAT_NAV_ITEMS.slice(0, 4).filter(item => hasAccess(item.roles, user?.role)).map((item) => {
           const Icon = item.icon;
           const isActive = isNavItemActive(pathname, item.href, configSelectedManual);
 
@@ -183,66 +186,68 @@ export default function Sidebar() {
           );
         })}
 
-        <div className="space-y-2">
-          <div 
-            className={`${navItemClass(isConfigActive, isOpen)} ${isOpen ? "cursor-pointer gap-0 pr-2" : "cursor-pointer"}`}
-            onClick={() => {
-              if (!isOpen) toggle();
-              setConfigExpanded((prev) => {
-                const next = !prev;
-                setConfigSelectedManual(next);
-                return next;
-              });
-            }}
-            title={!isOpen ? CONFIG_GROUP.name : undefined}
-          >
-            <div className={`flex min-w-0 items-center gap-3.5 ${isOpen ? "min-w-0 flex-1" : ""}`}>
-              <i
-                className={`${TABLER_ICON} ti-${CONFIG_GROUP.tablerIcon} ${
-                  isConfigActive ? "text-blue-600" : "text-slate-400"
-                }`}
-              />
-              {isOpen && <span className="truncate">{CONFIG_GROUP.name}</span>}
-            </div>
-            {isOpen && (
-              <div className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors">
-                <ChevronRight
-                  className={`size-4 shrink-0 transition-transform duration-200 ${
-                    configExpanded ? "rotate-90" : ""
+        {hasAccess(CONFIG_GROUP.roles, user?.role) && (
+          <div className="space-y-2">
+            <div 
+              className={`${navItemClass(isConfigActive, isOpen)} ${isOpen ? "cursor-pointer gap-0 pr-2" : "cursor-pointer"}`}
+              onClick={() => {
+                if (!isOpen) toggle();
+                setConfigExpanded((prev) => {
+                  const next = !prev;
+                  setConfigSelectedManual(next);
+                  return next;
+                });
+              }}
+              title={!isOpen ? CONFIG_GROUP.name : undefined}
+            >
+              <div className={`flex min-w-0 items-center gap-3.5 ${isOpen ? "min-w-0 flex-1" : ""}`}>
+                <i
+                  className={`${TABLER_ICON} ti-${CONFIG_GROUP.tablerIcon} ${
+                    isConfigActive ? "text-blue-600" : "text-slate-400"
                   }`}
                 />
+                {isOpen && <span className="truncate">{CONFIG_GROUP.name}</span>}
+              </div>
+              {isOpen && (
+                <div className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors">
+                  <ChevronRight
+                    className={`size-4 shrink-0 transition-transform duration-200 ${
+                      configExpanded ? "rotate-90" : ""
+                    }`}
+                  />
+                </div>
+              )}
+            </div>
+
+            {isOpen && configExpanded && (
+              <div className="space-y-2">
+                {CONFIG_GROUP.children.filter(child => hasAccess(child.roles, user?.role)).map((child) => {
+                  const isChildActive = isChildNavActive(pathname, child.href, configSelectedManual);
+
+                  return (
+                    <Link
+                      key={child.name}
+                      href={child.href}
+                      onClick={() => setConfigSelectedManual(false)}
+                      className={navItemClass(isChildActive, isOpen, true)}
+                    >
+                      {child.tablerIcon && (
+                        <i
+                          className={`${TABLER_ICON} ti-${child.tablerIcon} ${
+                            isChildActive ? "text-blue-600" : "text-slate-400"
+                          }`}
+                        />
+                      )}
+                      <span className="truncate">{child.name}</span>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>
+        )}
 
-          {isOpen && configExpanded && (
-            <div className="space-y-2">
-              {CONFIG_GROUP.children.map((child) => {
-                const isChildActive = isChildNavActive(pathname, child.href, configSelectedManual);
-
-                return (
-                  <Link
-                    key={child.name}
-                    href={child.href}
-                    onClick={() => setConfigSelectedManual(false)}
-                    className={navItemClass(isChildActive, isOpen, true)}
-                  >
-                    {child.tablerIcon && (
-                      <i
-                        className={`${TABLER_ICON} ti-${child.tablerIcon} ${
-                          isChildActive ? "text-blue-600" : "text-slate-400"
-                        }`}
-                      />
-                    )}
-                    <span className="truncate">{child.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {FLAT_NAV_ITEMS.slice(4).map((item) => {
+        {FLAT_NAV_ITEMS.slice(4).filter(item => hasAccess(item.roles, user?.role)).map((item) => {
           const Icon = item.icon;
           const isActive = isNavItemActive(pathname, item.href, configSelectedManual);
 

@@ -11,7 +11,7 @@ export interface OtherSubmitData {
   title: string;
   sender: string;
   description: string;
-  fileName: string;
+  file: File | null;
   workflowSteps: WorkflowStepInput[];
   isDraft: boolean;
 }
@@ -62,7 +62,7 @@ export default function UploadOnlyForm({
       title,
       sender: defaultRequester,
       description,
-      fileName: uploadedFile ? uploadedFile.name : "document.pdf",
+      file: uploadedFile,
       workflowSteps,
       isDraft,
     });

@@ -10,7 +10,7 @@ export interface PositionRecord {
   id: string;
   name: string;
   level: string;
-  department: string;
+  department?: string;
   isActive: boolean;
 }
 
