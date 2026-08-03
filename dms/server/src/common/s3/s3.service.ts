@@ -121,7 +121,7 @@ export class S3Service {
   /**
    * สร้าง Signed URL หรือ URL สำหรับแสดงผลไฟล์
    */
-  async getSignedUrl(key: string, expiresIn = 3600): Promise<string> {
+  async getSignedUrl(key: string, expiresIn = 900): Promise<string> {
     if (this.client) {
       try {
         const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });

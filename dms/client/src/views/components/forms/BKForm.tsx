@@ -58,11 +58,11 @@ export default function BKForm({
     buildWorkflowStepsForMatrixKey("BK")
   );
 
-
+  const todayStr = new Date().toLocaleDateString('th-TH');
 
   const triggerSubmit = (isDraft: boolean) => {
     if (!title.trim()) {
-      alert("กรุณากรอกหัวข้อเรื่องเอกสาร");
+      alert("กรุณากรอกหัวข้อเรื่องเอกสาร (Title)");
       return;
     }
     onSubmit({
@@ -84,101 +84,108 @@ export default function BKForm({
       }}
       className="space-y-6"
     >
-      {/* HEADER METADATA */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-        <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-            Running Number (Preview)
-          </label>
-          <div className="bg-white border border-slate-200/80 rounded-xl px-3.5 py-2 font-mono text-sm font-bold text-slate-600 shadow-xs">
-            {runningNumberPreview}
+      <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+        <div className="text-sm">
+          <span className="font-bold text-slate-500 mr-2">Preview ID:</span> 
+          <span className="font-mono text-blue-600">{runningNumberPreview}</span>
+        </div>
+        <div className="text-xs text-slate-400 font-bold flex items-center gap-2">
+          <FileCode2 className="w-4 h-4" />
+          คลิกที่ข้อความที่มีเส้นประเพื่อพิมพ์ข้อมูลแบบออนไลน์
+        </div>
+      </div>
+
+      {/* A4 WYSIWYG Editor Container */}
+      <div className="bg-slate-200/50 py-10 flex justify-center overflow-auto rounded-xl border border-slate-200 shadow-inner">
+        <div className="bg-white w-[210mm] min-h-[297mm] shadow-xl flex flex-col p-[20mm] text-[14px] text-slate-900 leading-relaxed font-sans relative origin-top">
+          
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-16 h-16 border-2 border-slate-800 flex items-center justify-center font-black text-xl text-slate-900 rounded-full">
+              ตรา
+            </div>
+            <h1 className="text-3xl font-bold text-center flex-1 mr-16">บันทึกข้อความ</h1>
           </div>
-        </div>
 
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Requester Name (ผู้เสนอเอกสาร)
-          </label>
-          <input
-            type="text"
-            readOnly
-            value={defaultRequester}
-            className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-bold text-slate-700 cursor-not-allowed"
-          />
-        </div>
+          <div className="grid grid-cols-[100px_1fr_60px_1fr] gap-x-2 mb-4 items-end">
+            <span className="font-bold text-lg">ส่วนราชการ</span>
+            <input 
+              type="text" 
+              placeholder="กรอกชื่อส่วนราชการ/แผนก..."
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+              className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 focus:border-b-2 bg-blue-50/30 px-1 transition-all" 
+            />
+            <span className="font-bold text-lg ml-4">วันที่</span>
+            <span className="border-b border-dotted border-slate-400 pb-1">{todayStr}</span>
+          </div>
 
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Department (แผนกที่สังกัด)
-          </label>
-          <select
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500/10 focus:border-slate-500 transition-all cursor-pointer"
-          >
-            {DEPARTMENTS.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
-              </option>
+          <div className="grid grid-cols-[60px_1fr] gap-x-2 mb-4 items-end">
+            <span className="font-bold text-lg">เรื่อง</span>
+            <textarea
+              rows={1}
+              required
+              placeholder="กรอกชื่อเรื่อง..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onInput={(e) => {
+                e.currentTarget.style.height = 'auto';
+                e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+              }}
+              className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 focus:border-b-2 bg-blue-50/30 px-1 transition-all resize-none overflow-hidden block w-full"
+            />
+          </div>
+
+          <div className="grid grid-cols-[60px_1fr] gap-x-2 mb-8 items-end">
+            <span className="font-bold text-lg">เรียน</span>
+            <input 
+              type="text" 
+              defaultValue="ผู้บริหาร / ผู้เกี่ยวข้อง"
+              className="border-b border-dotted border-slate-400 pb-1 focus:outline-none focus:border-slate-600 focus:border-b-2 bg-transparent px-1" 
+            />
+          </div>
+
+          <div className="flex-1 mt-4">
+            <textarea 
+              value={detail}
+              onChange={(e) => setDetail(e.target.value)}
+              placeholder="พิมพ์รายละเอียดบันทึกข้อความที่นี่..."
+              className="w-full h-full min-h-[400px] border border-transparent hover:border-blue-200 focus:border-blue-400 rounded-lg p-2 resize-none focus:outline-none bg-blue-50/10 transition-colors indent-10 leading-loose whitespace-pre-wrap"
+            />
+          </div>
+
+          {/* Signatures placeholder */}
+          <div className="mt-12 flex justify-end gap-16 flex-wrap">
+            <div className="flex flex-col items-center w-48">
+              <div className="h-20 w-full flex items-center justify-center border-b border-dotted border-slate-400 mb-2 relative">
+                <span className="text-slate-300 text-[10px] text-center">(ระบบจะดึงลายเซ็นต์อัตโนมัติ)</span>
+              </div>
+              <div className="text-center w-full">
+                <p className="font-bold text-sm">( {defaultRequester} )</p>
+                <p className="text-xs mt-1">{department || "ผู้จัดทำ"}</p>
+              </div>
+            </div>
+            {workflowSteps.map((step, idx) => (
+              <div key={idx} className="flex flex-col items-center w-48">
+                <div className="h-20 w-full flex items-center justify-center border-b border-dotted border-slate-400 mb-2 relative">
+                  <span className="text-slate-300 text-[10px] text-center">(รออนุมัติตามสายงาน)</span>
+                </div>
+                <div className="text-center w-full">
+                  <p className="font-bold text-sm">( _________________ )</p>
+                  <p className="text-xs mt-1 truncate" title={step.roleName}>{step.roleName}</p>
+                </div>
+              </div>
             ))}
-          </select>
+          </div>
+
         </div>
       </div>
 
-      {/* FORM FIELDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Document Subject (เรื่องที่ขอเสนออนุมัติ) <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="เช่น บันทึกขออนุมัติจัดกิจกรรมสัมมนาประจำปี"
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500/10 focus:border-slate-500 transition-all"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Document Category (หมวดหมู่เอกสาร)
-          </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:border-slate-500 transition-all cursor-pointer"
-          >
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Document Details / Description (รายละเอียดเนื้อหาโดยสรุป)
-          </label>
-          <textarea
-            rows={4}
-            value={detail}
-            onChange={(e) => setDetail(e.target.value)}
-            placeholder="สรุปวัตถุประสงค์ ผลกระทบ และสิ่งที่ขออนุมัติ..."
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl p-3 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-slate-500 transition-all resize-none"
-          />
-        </div>
-
-
+      <div className="mt-8 border-t border-slate-200 pt-6">
+        <ApprovalWorkflowSection
+          steps={workflowSteps}
+          onChange={setWorkflowSteps}
+        />
       </div>
-
-      {/* WORKFLOW MATRIX SELECTION */}
-      <ApprovalWorkflowSection
-        steps={workflowSteps}
-        onChange={setWorkflowSteps}
-      />
 
       {/* ACTION BUTTONS (Draft & Submit) */}
       <div className="flex items-center justify-between pt-4 border-t border-slate-100">

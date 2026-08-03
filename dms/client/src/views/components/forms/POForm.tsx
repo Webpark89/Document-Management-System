@@ -169,286 +169,307 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
       }}
       className="space-y-6"
     >
-      {/* HEADER METADATA */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-linear-to-br from-purple-50 to-white p-5 rounded-3xl border border-purple-100 shadow-xs relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-        <div>
-          <label className="block text-xs font-bold text-purple-600/70 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-            <Briefcase className="w-3.5 h-3.5" />
-            Running Number (Preview)
-          </label>
-          <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-xl px-4 py-2.5 font-mono text-sm font-bold text-purple-700 shadow-sm flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
-            {runningNumberPreview}
-          </div>
+      <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+        <div className="text-sm">
+          <span className="font-bold text-slate-500 mr-2">Preview ID:</span> 
+          <span className="font-mono text-purple-600">{runningNumberPreview}</span>
         </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Requester Name (ผู้สั่งซื้อ/จัดทำ)
-          </label>
-          <input
-            type="text"
-            readOnly
-            value={defaultRequester}
-            className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-bold text-slate-700 cursor-not-allowed"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Department (แผนกที่สั่งซื้อ)
-          </label>
-          <select
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/10 focus:border-purple-500 transition-all cursor-pointer"
-          >
-            {DEPARTMENTS.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
-              </option>
-            ))}
-          </select>
+        <div className="text-xs text-slate-400 font-bold flex items-center gap-2">
+          <UploadCloud className="w-4 h-4" />
+          คลิกที่ข้อความที่มีเส้นประเพื่อพิมพ์ข้อมูลแบบออนไลน์
         </div>
       </div>
 
-      <div className="h-px bg-linear-to-r from-transparent via-slate-200 to-transparent my-6"></div>
-
-      {/* FORM FIELDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="md:col-span-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Document Title / Subject (เรื่องใบสั่งซื้อ) <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="เช่น สั่งซื้อเครื่องคอมพิวเตอร์และจอมอนิเตอร์สำหรับพนักงานใหม่"
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/10 focus:border-purple-500 transition-all"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Vendor Name (ชื่อผู้ขาย/คู่ค้า) <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={vendorName}
-            onChange={(e) => setVendorName(e.target.value)}
-            placeholder="เช่น บริษัท เดลล์ คอร์ปอเรชั่น (ประเทศไทย) จำกัด"
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/10 focus:border-purple-500 transition-all"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Vendor Contact (เบอร์ติดต่อ/อีเมล)
-          </label>
-          <input
-            type="text"
-            value={vendorContact}
-            onChange={(e) => setVendorContact(e.target.value)}
-            placeholder="02-123-4567 / sales@dell.co.th"
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/10 focus:border-purple-500 transition-all"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Delivery Date (วันที่กำหนดส่งมอบ)
-          </label>
-          <input
-            type="date"
-            required
-            value={deliveryDate}
-            onChange={(e) => setDeliveryDate(e.target.value)}
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:border-purple-500 transition-all"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Payment Terms (เงื่อนไขการชำระเงิน)
-          </label>
-          <select
-            value={paymentTerms}
-            onChange={(e) => setPaymentTerms(e.target.value)}
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:border-purple-500 transition-all cursor-pointer"
-          >
-            {PAYMENT_TERMS_OPTIONS.map((term) => (
-              <option key={term} value={term}>
-                {term}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* LINE ITEMS TABLE */}
-      <div>
-        <div className="flex justify-between items-center mb-3">
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            Line Items (รายการสั่งซื้อ)
-          </h4>
-          <button
-            type="button"
-            onClick={handleAddItem}
-            className="flex items-center gap-1 text-xs font-bold text-purple-600 hover:text-purple-700 transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add Item
-          </button>
-        </div>
-
-        <div className="border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-3 pl-4">Description (รายละเอียดสินค้า)</th>
-                <th className="py-3 w-16 text-center">Qty</th>
-                <th className="py-3 w-20 text-center">Unit (หน่วย)</th>
-                <th className="py-3 w-28 text-right">Unit Price (฿)</th>
-                <th className="py-3 w-20 text-center">VAT (%)</th>
-                <th className="py-3 w-28 text-right">Total (฿)</th>
-                <th className="py-3 w-32 pl-3">Remark</th>
-                <th className="py-3 w-10 text-center pr-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {items.map((item) => {
-                const itemSubtotal = item.quantity * item.unitPrice;
-                const itemTotal = itemSubtotal * (1 + item.vatPercent / 100);
-                return (
-                  <tr key={item.id} className="hover:bg-slate-50/40 transition-colors">
-                    <td className="py-2.5 pl-4">
-                      <input
-                        type="text"
-                        required
-                        value={item.description}
-                        onChange={(e) =>
-                          handleItemChange(item.id, "description", e.target.value)
-                        }
-                        placeholder="ชื่อสินค้า / รุ่น / สเปก..."
-                        className="w-full bg-transparent border-none text-sm font-semibold text-slate-700 placeholder-slate-300 focus:outline-none focus:ring-0 p-0"
-                      />
-                    </td>
-                    <td className="py-2.5 text-center">
-                      <input
-                        type="number"
-                        min="1"
-                        required
-                        value={item.quantity}
-                        onChange={(e) =>
-                          handleItemChange(
-                            item.id,
-                            "quantity",
-                            Math.max(1, parseInt(e.target.value) || 0)
-                          )
-                        }
-                        className="w-14 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-center text-sm font-semibold text-slate-700 focus:outline-none focus:border-purple-500"
-                      />
-                    </td>
-                    <td className="py-2.5 text-center">
-                      <select
-                        value={item.unit}
-                        onChange={(e) =>
-                          handleItemChange(item.id, "unit", e.target.value)
-                        }
-                        className="w-20 bg-slate-50 border border-slate-200 rounded-lg px-1.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:border-purple-500 cursor-pointer"
-                      >
-                        {UNITS.map((u) => (
-                          <option key={u} value={u}>
-                            {u}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="py-2.5 text-right">
-                      <input
-                        type="number"
-                        min="0"
-                        required
-                        value={item.unitPrice || ""}
-                        onChange={(e) =>
-                          handleItemChange(
-                            item.id,
-                            "unitPrice",
-                            Math.max(0, parseFloat(e.target.value) || 0)
-                          )
-                        }
-                        placeholder="0"
-                        className="w-24 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-right text-sm font-semibold text-slate-700 focus:outline-none focus:border-purple-500"
-                      />
-                    </td>
-                    <td className="py-2.5 text-center">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={item.vatPercent}
-                        onChange={(e) =>
-                          handleItemChange(
-                            item.id,
-                            "vatPercent",
-                            Math.max(0, parseFloat(e.target.value) || 0)
-                          )
-                        }
-                        className="w-14 bg-slate-50 border border-slate-200 rounded-lg px-1.5 py-1 text-center text-xs font-semibold text-slate-700 focus:outline-none focus:border-purple-500"
-                      />
-                    </td>
-                    <td className="py-2.5 text-right text-sm font-bold text-slate-800">
-                      {itemTotal.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </td>
-                    <td className="py-2.5 pl-3">
-                      <input
-                        type="text"
-                        value={item.remark}
-                        onChange={(e) =>
-                          handleItemChange(item.id, "remark", e.target.value)
-                        }
-                        placeholder="หมายเหตุ..."
-                        className="w-full bg-slate-50/50 border border-slate-150 rounded-lg px-2 py-1 text-xs text-slate-600 focus:outline-none focus:border-purple-500"
-                      />
-                    </td>
-                    <td className="py-2.5 text-center pr-3">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(item.id)}
-                        disabled={items.length === 1}
-                        className="text-slate-300 hover:text-rose-500 disabled:opacity-30 transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+      {/* A4 WYSIWYG Editor Container */}
+      <div className="bg-slate-200/50 py-10 flex justify-center overflow-auto rounded-xl border border-slate-200 shadow-inner">
+        <div className="bg-white w-[210mm] min-h-[297mm] shadow-xl flex flex-col p-[12mm] text-[12px] text-slate-800 leading-snug font-sans relative origin-top">
+          
+          {/* Header Block (Industrial Style) */}
+          <div className="flex justify-between items-start border-b-2 border-purple-800 pb-4 mb-4">
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 border-2 border-purple-800 flex items-center justify-center font-black text-xl text-purple-900">
+                LOGO
+              </div>
+              <div>
+                <h1 className="font-bold text-lg text-purple-900">บริษัท นิสซุย (ประเทศไทย) จำกัด</h1>
+                <p className="text-slate-700 mt-1 max-w-[200px] leading-tight">เลขที่ 123 อาคารนิสซุย ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110</p>
+                <p className="text-slate-700 mt-1 font-semibold">เลขประจำตัวผู้เสียภาษี: 0105559000123</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-end">
+              <div className="border-2 border-purple-800 px-4 py-2 mb-2 text-center w-64 bg-purple-100 text-purple-900">
+                 <h2 className="text-xl font-black">ใบสั่งซื้อ/สั่งจ้าง</h2>
+                 <p className="text-xs font-bold uppercase">PURCHASE ORDER</p>
+              </div>
+              
+              <table className="border-collapse border border-slate-800 text-left text-[11px] w-64">
+                <tbody>
+                  <tr>
+                    <th className="border border-slate-800 px-2 py-1 bg-purple-50 font-bold w-1/3">เลขที่ / No.</th>
+                    <td className="border border-slate-800 px-2 py-1 font-bold text-slate-400 text-center">{runningNumberPreview}</td>
+                  </tr>
+                  <tr>
+                    <th className="border border-slate-800 px-2 py-1 bg-purple-50 font-bold">วันที่ / Date</th>
+                    <td className="border border-slate-800 px-2 py-1 text-center font-bold text-slate-900">
+                      {new Date().toLocaleDateString('th-TH')}
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-      {/* PRICE SUMMARY TABLE */}
-      <div className="flex flex-col items-end gap-2 bg-slate-50 rounded-2xl p-4 border border-slate-100 max-w-sm ml-auto text-sm font-semibold text-slate-600">
-        <div className="flex justify-between w-full">
-          <span>Subtotal (รวมราคาก่อน VAT):</span>
-          <span>฿{subTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-        </div>
-        <div className="flex justify-between w-full border-b border-slate-200 pb-2">
-          <span>Total VAT (ภาษีมูลค่าเพิ่ม):</span>
-          <span>฿{totalVat.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-        </div>
-        <div className="flex justify-between w-full pt-2 text-lg font-black text-purple-700 items-center">
-          <span>Net Total (ราคารวมสุทธิ):</span>
-          <span className="bg-purple-100 px-3 py-1 rounded-xl shadow-xs">฿{netTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          {/* Parties Info */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+             {/* Vendor Info */}
+             <div className="border border-slate-800 p-2 relative group">
+                <p className="font-bold border-b border-slate-800 pb-1 mb-2 text-purple-900">ผู้ขาย / Vendor</p>
+                <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 text-[11px]">
+                  <span className="text-slate-600 font-bold mt-1">ชื่อร้าน/บริษัท:</span>
+                  <textarea
+                    rows={1}
+                    required
+                    value={vendorName}
+                    onChange={(e) => setVendorName(e.target.value)}
+                    onInput={(e) => {
+                      e.currentTarget.style.height = 'auto';
+                      e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                    }}
+                    placeholder="ระบุชื่อผู้ขาย..."
+                    className="border-b border-dotted border-purple-400 pb-1 focus:outline-none focus:border-purple-600 font-bold text-slate-900 bg-purple-50/30 px-1 w-full resize-none overflow-hidden block"
+                  />
+                  
+                  <span className="text-slate-600 font-bold mt-1">ข้อมูลติดต่อ:</span>
+                  <textarea
+                    rows={1}
+                    value={vendorContact}
+                    onChange={(e) => setVendorContact(e.target.value)}
+                    onInput={(e) => {
+                      e.currentTarget.style.height = 'auto';
+                      e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                    }}
+                    placeholder="ระบุเบอร์โทร/อีเมล..."
+                    className="border-b border-dotted border-purple-400 pb-1 focus:outline-none focus:border-purple-600 font-bold text-slate-900 bg-purple-50/30 px-1 w-full resize-none overflow-hidden block"
+                  />
+
+                  <span className="text-slate-600 font-bold mt-1">วันที่ส่งมอบ:</span>
+                  <input 
+                    type="date"
+                    required
+                    value={deliveryDate}
+                    onChange={(e) => setDeliveryDate(e.target.value)}
+                    className="border-b border-dotted border-purple-400 pb-1 focus:outline-none focus:border-purple-600 font-bold text-slate-900 bg-transparent w-full"
+                  />
+                  
+                  <span className="text-slate-600 font-bold mt-1">เงื่อนไขชำระเงิน:</span>
+                  <select
+                    value={paymentTerms}
+                    onChange={(e) => setPaymentTerms(e.target.value)}
+                    className="border-b border-dotted border-purple-400 pb-1 focus:outline-none focus:border-purple-600 font-bold text-slate-900 bg-transparent cursor-pointer w-full"
+                  >
+                    {PAYMENT_TERMS_OPTIONS.map(term => <option key={term} value={term}>{term}</option>)}
+                  </select>
+                </div>
+             </div>
+             
+             {/* Buyer Info */}
+             <div className="border border-slate-800 p-2">
+                <p className="font-bold border-b border-slate-800 pb-1 mb-2 text-purple-900">ผู้ซื้อ / Buyer</p>
+                <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 text-[11px]">
+                  <span className="text-slate-600 font-bold">ชื่อ / Name:</span>
+                  <span className="font-bold text-slate-900">{defaultRequester}</span>
+                  <span className="text-slate-600 font-bold mt-1">แผนก / Dept:</span>
+                  <select
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    className="border-b border-dotted border-purple-400 pb-1 focus:outline-none focus:border-purple-600 font-bold text-slate-900 bg-transparent cursor-pointer"
+                  >
+                    {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                  </select>
+
+                  <span className="text-slate-600 font-bold mt-1">เรื่อง:</span>
+                  <textarea
+                    rows={1}
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    onInput={(e) => {
+                      e.currentTarget.style.height = 'auto';
+                      e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                    }}
+                    placeholder="ระบุเรื่อง..."
+                    className="border-b border-dotted border-purple-400 pb-1 focus:outline-none focus:border-purple-600 font-bold text-slate-900 bg-purple-50/30 px-1 w-full resize-none overflow-hidden block"
+                  />
+                </div>
+             </div>
+          </div>
+
+          {/* Items Table - Strict Borders */}
+          <div className="flex-1">
+            <div className="flex justify-end mb-1">
+              <button
+                type="button"
+                onClick={handleAddItem}
+                className="flex items-center gap-1 text-[10px] font-bold text-purple-600 hover:text-purple-700 bg-purple-50 px-2 py-1 rounded"
+              >
+                <Plus className="w-3 h-3" /> เพิ่มรายการ
+              </button>
+            </div>
+            <table className="w-full border-collapse border-2 border-slate-800">
+              <thead>
+                <tr className="bg-purple-100 border-b-2 border-slate-800 text-purple-900">
+                  <th className="border-r border-slate-800 py-1 px-1 text-center w-8 font-bold">No.</th>
+                  <th className="border-r border-slate-800 py-1 px-1 text-center font-bold">รายการ (Description)</th>
+                  <th className="border-r border-slate-800 py-1 px-1 text-center w-14 font-bold">จำนวน</th>
+                  <th className="border-r border-slate-800 py-1 px-1 text-center w-14 font-bold">หน่วย</th>
+                  <th className="border-r border-slate-800 py-1 px-1 text-center w-20 font-bold">ราคา/หน่วย</th>
+                  <th className="border-r border-slate-800 py-1 px-1 text-center w-12 font-bold">VAT%</th>
+                  <th className="border-r border-slate-800 py-1 px-1 text-center w-24 font-bold">จำนวนเงิน</th>
+                  <th className="py-1 px-1 text-center w-8"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, idx) => {
+                  const itemSubtotal = item.quantity * item.unitPrice;
+                  const itemTotal = itemSubtotal * (1 + item.vatPercent / 100);
+                  
+                  return (
+                    <tr key={item.id} className="border-b border-slate-400 group hover:bg-slate-50">
+                      <td className="border-r border-slate-800 py-1 px-1 text-center align-middle">{idx + 1}</td>
+                      <td className="border-r border-slate-800 py-1 px-1 align-top">
+                        <textarea
+                          rows={1}
+                          required
+                          value={item.description}
+                          onChange={(e) => handleItemChange(item.id, "description", e.target.value)}
+                          onInput={(e) => {
+                            e.currentTarget.style.height = 'auto';
+                            e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                          }}
+                          placeholder="ชื่อรายการ..."
+                          className="w-full bg-transparent border-none text-xs font-semibold text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-400 p-1 resize-none overflow-hidden block"
+                        />
+                        <textarea
+                          rows={1}
+                          value={item.remark}
+                          onChange={(e) => handleItemChange(item.id, "remark", e.target.value)}
+                          onInput={(e) => {
+                            e.currentTarget.style.height = 'auto';
+                            e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                          }}
+                          placeholder="หมายเหตุ..."
+                          className="w-full bg-transparent border-none text-[10px] text-slate-500 placeholder-slate-300 focus:outline-none mt-1 px-1 resize-none overflow-hidden block"
+                        />
+                      </td>
+                      <td className="border-r border-slate-800 py-1 px-1 align-middle text-center">
+                        <input
+                          type="number"
+                          min="1"
+                          required
+                          value={item.quantity}
+                          onChange={(e) => handleItemChange(item.id, "quantity", Math.max(1, parseInt(e.target.value) || 0))}
+                          className="w-10 text-center bg-transparent focus:outline-none focus:bg-purple-50 p-1 font-bold text-slate-900"
+                        />
+                      </td>
+                      <td className="border-r border-slate-800 py-1 px-1 align-middle text-center">
+                        <select
+                          value={item.unit}
+                          onChange={(e) => handleItemChange(item.id, "unit", e.target.value)}
+                          className="w-12 bg-transparent focus:outline-none focus:bg-purple-50 text-[11px] p-1 cursor-pointer font-bold text-slate-900"
+                        >
+                          {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                        </select>
+                      </td>
+                      <td className="border-r border-slate-800 py-1 px-1 align-middle text-right">
+                        <input
+                          type="number"
+                          min="0"
+                          required
+                          value={item.unitPrice || ""}
+                          onChange={(e) => handleItemChange(item.id, "unitPrice", Math.max(0, parseFloat(e.target.value) || 0))}
+                          placeholder="0"
+                          className="w-16 text-right bg-transparent focus:outline-none focus:bg-purple-50 p-1 font-bold text-slate-900"
+                        />
+                      </td>
+                      <td className="border-r border-slate-800 py-1 px-1 align-middle text-center">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={item.vatPercent}
+                          onChange={(e) => handleItemChange(item.id, "vatPercent", Math.max(0, parseFloat(e.target.value) || 0))}
+                          className="w-10 text-center bg-transparent focus:outline-none focus:bg-purple-50 p-1 text-[11px]"
+                        />
+                      </td>
+                      <td className="border-r border-slate-800 py-2 px-2 text-right align-middle font-bold text-slate-900">
+                        {itemTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                      </td>
+                      <td className="py-1 px-1 text-center align-middle">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(item.id)}
+                          disabled={items.length === 1}
+                          className="text-slate-300 hover:text-rose-500 disabled:opacity-30 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Footer Totals */}
+          <div className="mt-4 grid grid-cols-[1fr_auto] border-2 border-slate-800 items-stretch">
+             <div className="p-3 border-r-2 border-slate-800 flex flex-col justify-between">
+                <div>
+                  <span className="font-bold text-slate-900">หมายเหตุ / Remarks:</span>
+                  <p className="mt-1 text-slate-700 text-[11px]">เอกสารใบสั่งซื้อฉบับนี้จะสมบูรณ์เมื่อมีลายเซ็นต์ผู้อนุมัติครบถ้วน</p>
+                </div>
+             </div>
+             <div className="w-[200px] flex flex-col">
+                <div className="grid grid-cols-[100px_1fr] px-2 py-1 border-b border-slate-800 text-[11px]">
+                  <span>รวมเป็นเงิน<br/><span className="text-[9px]">Sub Total</span></span>
+                  <span className="text-right flex items-center justify-end font-bold">{subTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                </div>
+                <div className="grid grid-cols-[100px_1fr] px-2 py-1 border-b border-slate-800 text-[11px]">
+                  <span>ภาษีมูลค่าเพิ่ม<br/><span className="text-[9px]">VAT</span></span>
+                  <span className="text-right flex items-center justify-end font-bold">{totalVat.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                </div>
+                <div className="grid grid-cols-[100px_1fr] p-2 bg-purple-800 text-white font-bold flex-1 items-center">
+                  <span>ยอดสุทธิ<br/><span className="text-[9px] font-normal">Grand Total</span></span>
+                  <span className="text-right text-lg">{netTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                </div>
+             </div>
+          </div>
+
+          {/* Signatures Placeholder */}
+          <div className={`mt-6 grid grid-cols-${Math.max(2, Math.min(workflowSteps.length + 1, 4))} gap-4 text-center`}>
+            <div className="border border-slate-800 p-1 flex flex-col h-28">
+              <div className="flex-1 flex items-center justify-center text-[10px] text-slate-400">
+                (ระบบจะดึงลายเซ็นต์อัตโนมัติ)
+              </div>
+              <div className="w-full border-t border-slate-800 pt-1 text-center bg-white">
+                <p className="font-bold text-slate-900 text-[11px]">ผู้จัดทำ (Prepared By)</p>
+                <p className="text-[10px] text-slate-700 mt-0.5">วันที่ {new Date().toLocaleDateString('th-TH')}</p>
+              </div>
+            </div>
+            {workflowSteps.map((step, idx) => (
+              <div key={idx} className="border border-slate-800 p-1 flex flex-col h-28">
+                <div className="flex-1 flex items-center justify-center text-[10px] text-slate-400">
+                  (รออนุมัติตามสายงาน)
+                </div>
+                <div className="w-full border-t border-slate-800 pt-1 text-center bg-white">
+                  <p className="font-bold text-slate-900 text-[11px] truncate px-1" title={step.roleName}>{step.roleName}</p>
+                  <p className="text-[10px] text-slate-700 mt-0.5">วันที่ ____/____/____</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
 

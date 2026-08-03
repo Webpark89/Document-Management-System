@@ -81,7 +81,7 @@ export class DocumentsService {
     ]);
 
     return {
-      data: docs.map((d) => this.mapDocumentToResponse(d)),
+      data: await Promise.all(docs.map((d) => this.mapDocumentToResponse(d))),
       meta: {
         total,
         page: Number(page),
@@ -128,7 +128,7 @@ export class DocumentsService {
       throw new NotFoundException(`ไม่พบเอกสารรหัส ${id}`);
     }
 
-    return this.mapDocumentToResponse(doc);
+    return await this.mapDocumentToResponse(doc);
   }
 
   async create(dto: CreateDocumentDto, creatorId: string) {
@@ -380,7 +380,7 @@ export class DocumentsService {
     return { success: true, message: 'ลบเอกสารสำเร็จ' };
   }
 
-  private mapDocumentToResponse(doc: any) {
+  private async mapDocumentToResponse(doc: any) {
     const creatorName = doc.creator
       ? `${doc.creator.first_name} ${doc.creator.last_name}`
       : 'ไม่ระบุ';
@@ -390,6 +390,34 @@ export class DocumentsService {
       : doc.po_form
         ? `฿${Number(doc.po_form.total_amount).toLocaleString()}`
         : '-';
+
+    const creatorSigUrl = doc.creator?.signature_image_path
+      ? await this.s3.getSignedUrl(doc.creator.signature_image_path)
+      : null;
+
+    let workflow = doc.workflow;
+    if (workflow && workflow.steps) {
+      const stepsWithSig = await Promise.all(
+        workflow.steps.map(async (step: any) => {
+          let signature_url: string | null = null;
+          if (step.approver?.signature_image_path) {
+            signature_url = await this.s3.getSignedUrl(
+              step.approver.signature_image_path,
+            );
+          }
+          return {
+            ...step,
+            approver: step.approver
+              ? {
+                  ...step.approver,
+                  signature_url,
+                }
+              : null,
+          };
+        }),
+      );
+      workflow = { ...workflow, steps: stepsWithSig };
+    }
 
     return {
       id: doc.doc_number || doc.id,
@@ -402,6 +430,12 @@ export class DocumentsService {
       status: doc.status,
       sender: creatorName,
       creator_name: creatorName,
+      creator: doc.creator
+        ? {
+            ...doc.creator,
+            signature_url: creatorSigUrl,
+          }
+        : null,
       department: doc.creator?.department?.name || 'แผนกทั่วไป',
       submittedDate: doc.created_at
         ? new Date(doc.created_at).toLocaleDateString('th-TH')
@@ -412,7 +446,7 @@ export class DocumentsService {
       pr_form: doc.pr_form,
       po_form: doc.po_form,
       bk_form: doc.bk_form,
-      workflow: doc.workflow,
+      workflow,
       versions: doc.versions,
     };
   }

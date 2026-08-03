@@ -292,57 +292,64 @@ export class WorkflowsService {
     const isLastStep = workflow.current_step >= workflow.total_steps;
     const hasSignature = dto.signature_x !== undefined && dto.signature_y !== undefined;
 
-    // ---- PDF-LIB: ฝังลายเซ็นลงบน PDF (ถ้ามีพิกัด) ----
+    // ---- PDF-LIB: ฝังลายเซ็นลงบน PDF (ถ้ามีพิกัด + มีไฟล์) ----
     let newVersionKey: string | null = null;
     let newVersionNumber = 1;
 
     if (hasSignature) {
       const latestVersion = (doc as any).versions?.[0];
+
       if (!latestVersion?.file_path) {
-        throw new BadRequestException('เอกสารยังไม่มีไฟล์ PDF กรุณาอัปโหลดก่อน');
+        this.logger.warn(`No PDF version found for doc ${documentId} — skipping signature embed`);
+      } else {
+        // โหลดผู้อนุมัติเพื่อเอา signature_image_path
+        const approver = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!approver?.signature_image_path) {
+          this.logger.warn(`Approver ${userId} has no signature — skipping PDF embed`);
+        } else {
+          try {
+            // โหลดทั้ง PDF และรูปลายเซ็นจาก R2 เป็น Buffer
+            const [pdfBuffer, signatureBuffer] = await Promise.all([
+              this.s3.downloadFile(latestVersion.file_path),
+              this.s3.downloadFile(approver.signature_image_path),
+            ]);
+
+            // ฝังลายเซ็นด้วย pdf-lib
+            const pdfDoc = await PDFDocument.load(pdfBuffer);
+            const sigPage = dto.signature_page ? dto.signature_page - 1 : 0;
+            const page = pdfDoc.getPage(sigPage);
+
+            // รองรับ PNG และ JPG
+            const isJpg = approver.signature_image_path.toLowerCase().match(/\.(jpg|jpeg)$/);
+            const sigImage = isJpg
+              ? await pdfDoc.embedJpg(signatureBuffer)
+              : await pdfDoc.embedPng(signatureBuffer);
+
+            const sigWidth = dto.signature_width ?? 120;
+            const sigHeight = dto.signature_height ?? 60;
+
+            page.drawImage(sigImage, {
+              x: dto.signature_x!,
+              y: dto.signature_y!,
+              width: sigWidth,
+              height: sigHeight,
+            });
+
+            const signedPdfBytes = await pdfDoc.save();
+            const signedBuffer = Buffer.from(signedPdfBytes);
+
+            newVersionNumber = latestVersion.version_number + 1;
+            newVersionKey = `documents/${doc.doc_number}/v${newVersionNumber}.pdf`;
+
+            // อัปโหลด PDF ใหม่ขึ้น R2 — ถ้า DB fail ด้านล่างจะลบออก
+            await this.s3.uploadFile(newVersionKey, signedBuffer, 'application/pdf');
+          } catch (embedErr: any) {
+            this.logger.warn(`PDF signature embed skipped for ${documentId}: ${embedErr.message}`);
+            // ไม่ throw — ปล่อยให้อนุมัติต่อโดยไม่มี embedded signature
+            newVersionKey = null;
+          }
+        }
       }
-
-      // โหลดผู้อนุมัติเพื่อเอา signature_image_path
-      const approver = await this.prisma.user.findUnique({ where: { id: userId } });
-      if (!approver?.signature_image_path) {
-        throw new BadRequestException('ผู้อนุมัติยังไม่ได้อัปโหลดลายเซ็น กรุณาไปอัปโหลดที่หน้าโปรไฟล์');
-      }
-
-      // โหลดทั้ง PDF และรูปลายเซ็นจาก R2 เป็น Buffer (ไม่โชว์ URL ให้ Frontend)
-      const [pdfBuffer, signatureBuffer] = await Promise.all([
-        this.s3.downloadFile(latestVersion.file_path),
-        this.s3.downloadFile(approver.signature_image_path),
-      ]);
-
-      // ฝังลายเซ็นด้วย pdf-lib
-      const pdfDoc = await PDFDocument.load(pdfBuffer);
-      const sigPage = dto.signature_page ? dto.signature_page - 1 : 0;
-      const page = pdfDoc.getPage(sigPage);
-
-      // รองรับ PNG และ JPG
-      const isJpg = approver.signature_image_path.toLowerCase().match(/\.(jpg|jpeg)$/);
-      const sigImage = isJpg
-        ? await pdfDoc.embedJpg(signatureBuffer)
-        : await pdfDoc.embedPng(signatureBuffer);
-
-      const sigWidth = dto.signature_width ?? 120;
-      const sigHeight = dto.signature_height ?? 60;
-
-      page.drawImage(sigImage, {
-        x: dto.signature_x!,
-        y: dto.signature_y!,
-        width: sigWidth,
-        height: sigHeight,
-      });
-
-      const signedPdfBytes = await pdfDoc.save();
-      const signedBuffer = Buffer.from(signedPdfBytes);
-
-      newVersionNumber = latestVersion.version_number + 1;
-      newVersionKey = `documents/${doc.doc_number}/v${newVersionNumber}.pdf`;
-
-      // อัปโหลด PDF ใหม่ขึ้น R2 — ถ้า DB fail ด้านล่างจะลบออก
-      await this.s3.uploadFile(newVersionKey, signedBuffer, 'application/pdf');
     }
 
     // ---- Prisma $transaction: อัปเดต DB ทั้งหมด ----

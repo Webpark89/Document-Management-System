@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Building2, KeyRound, Loader2, Pencil, PenLine, Upload, User } from "lucide-react";
 import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
 import { useAuth } from '@views/components/providers/AuthProvider';
@@ -85,10 +85,18 @@ export default function ProfilePage() {
     [signatures, displayName, user?.username, findByApproverName]
   );
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(mySignature?.imageUrl ?? null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [sendingResetLink, setSendingResetLink] = useState(false);
+
+  useEffect(() => {
+    usersService.getMySignatureUrl().then((res) => {
+      if (res.url) {
+        setPreviewUrl(res.url);
+      }
+    }).catch(() => {});
+  }, []);
 
   const initials = useMemo(
     () => (displayName.trim() ? displayName.trim().charAt(0).toUpperCase() : "U"),
@@ -113,26 +121,30 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
-    if (!previewUrl || !selectedFile) {
-      showToast("กรุณาอัปโหลดลายเซ็นก่อนบันทึก", "error");
+    if (!selectedFile) {
+      showToast("กรุณาเลือกไฟล์ลายเซ็นใหม่ก่อนบันทึก", "error");
       return;
     }
 
     setSaving(true);
     
     try {
-      await usersService.uploadSignature(selectedFile);
+      const res = await usersService.uploadSignature(selectedFile);
+      if (res.url) {
+        setPreviewUrl(res.url);
+      }
+      setSelectedFile(null);
       
       const position = displayRole === "Administrator" ? "ผู้ดูแลระบบ" : displayRole;
 
       if (mySignature) {
-        updateSignature(mySignature.id, { imageUrl: previewUrl, position });
+        updateSignature(mySignature.id, { imageUrl: res.url || previewUrl || undefined, position });
         showToast("อัปเดตลายเซ็นสำเร็จ", "success");
       } else {
         addSignature({
           approverName: displayName,
           position,
-          imageUrl: previewUrl,
+          imageUrl: res.url || previewUrl || undefined,
         });
         showToast("บันทึกลายเซ็นสำเร็จ", "success");
       }

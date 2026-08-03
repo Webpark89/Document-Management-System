@@ -149,241 +149,267 @@ export default function PRForm({ onSubmit, onCancel, runningNumberPreview }: PRF
       }}
       className="space-y-6"
     >
-      {/* HEADER METADATA */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-        <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-            Running Number (Preview)
-          </label>
-          <div className="bg-white border border-slate-200/80 rounded-xl px-3.5 py-2 font-mono text-sm font-bold text-blue-600 shadow-xs">
-            {runningNumberPreview}
-          </div>
+      <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+        <div className="text-sm">
+          <span className="font-bold text-slate-500 mr-2">Preview ID:</span> 
+          <span className="font-mono text-blue-600">{runningNumberPreview}</span>
         </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Requester Name (ผู้ขออนุมัติ)
-          </label>
-          <input
-            type="text"
-            readOnly
-            value={defaultRequester}
-            className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-bold text-slate-700 cursor-not-allowed"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Department (แผนกที่สังกัด)
-          </label>
-          <select
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all cursor-pointer"
-          >
-            {DEPARTMENTS.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
-              </option>
-            ))}
-          </select>
+        <div className="text-xs text-slate-400 font-bold flex items-center gap-2">
+          <UploadCloud className="w-4 h-4" />
+          คลิกที่ข้อความที่มีเส้นประเพื่อพิมพ์ข้อมูลแบบออนไลน์
         </div>
       </div>
 
-      {/* FORM FIELDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-3">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Document Title / Subject (เรื่องขอซื้อ) <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="เช่น ขอซื้อวัสดุอุปกรณ์สำนักงาน ประจำไตรมาส 3/2026"
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Requested Date (วันที่ขอซื้อ)
-          </label>
-          <input
-            type="date"
-            required
-            value={requestedDate}
-            onChange={(e) => setRequestedDate(e.target.value)}
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:border-blue-500 transition-all"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Required Date (วันที่ต้องการใช้สินค้า)
-          </label>
-          <input
-            type="date"
-            required
-            value={requiredDate}
-            onChange={(e) => setRequiredDate(e.target.value)}
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:border-blue-500 transition-all"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Purpose / Justification (วัตถุประสงค์)
-          </label>
-          <input
-            type="text"
-            value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
-            placeholder="เพื่อใช้ในโครงการระบบทดสอบ..."
-            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all"
-          />
-        </div>
-      </div>
-
-      {/* LINE ITEMS TABLE */}
-      <div>
-        <div className="flex justify-between items-center mb-3">
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            Line Items (รายการขอซื้อ)
-          </h4>
-          <button
-            type="button"
-            onClick={handleAddItem}
-            className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add Item
-          </button>
-        </div>
-
-        <div className="border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-3 pl-4">Description (รายละเอียด)</th>
-                <th className="py-3 w-20 text-center">Qty</th>
-                <th className="py-3 w-24 text-center">Unit (หน่วย)</th>
-                <th className="py-3 w-28 text-right">Unit Price (฿)</th>
-                <th className="py-3 w-28 text-right">Total (฿)</th>
-                <th className="py-3 w-36 pl-3">Remark (หมายเหตุ)</th>
-                <th className="py-3 w-10 text-center pr-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {items.map((item) => {
-                const total = item.quantity * item.unitPrice;
-                return (
-                  <tr key={item.id} className="hover:bg-slate-50/40 transition-colors">
-                    <td className="py-2.5 pl-4">
-                      <input
-                        type="text"
-                        required
-                        value={item.description}
-                        onChange={(e) =>
-                          handleItemChange(item.id, "description", e.target.value)
-                        }
-                        placeholder="ชื่อพัสดุ / อุปกรณ์..."
-                        className="w-full bg-transparent border-none text-sm font-semibold text-slate-700 placeholder-slate-300 focus:outline-none focus:ring-0 p-0"
+      {/* A4 WYSIWYG Editor Container */}
+      <div className="bg-slate-200/50 py-10 flex justify-center overflow-auto rounded-xl border border-slate-200 shadow-inner">
+        <div className="bg-white w-[210mm] min-h-[297mm] shadow-xl flex flex-col p-[12mm] text-[12px] text-slate-800 leading-snug font-sans relative origin-top">
+          
+          {/* Header Block (Industrial Style) */}
+          <div className="flex justify-between items-start border-b-2 border-blue-800 pb-4 mb-4">
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 border-2 border-blue-800 flex items-center justify-center font-black text-xl text-blue-900">
+                LOGO
+              </div>
+              <div>
+                <h1 className="font-bold text-lg text-blue-900">บริษัท นิสซุย (ประเทศไทย) จำกัด</h1>
+                <p className="text-slate-700 mt-1 max-w-[200px] leading-tight">เลขที่ 123 อาคารนิสซุย ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110</p>
+                <p className="text-slate-700 mt-1 font-semibold">เลขประจำตัวผู้เสียภาษี: 0105559000123</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-end">
+              <div className="border-2 border-blue-800 px-4 py-2 mb-2 text-center w-64 bg-blue-100 text-blue-900">
+                 <h2 className="text-xl font-black">ใบขออนุมัติจัดซื้อ/จัดจ้าง</h2>
+                 <p className="text-xs font-bold uppercase">PURCHASE REQUEST</p>
+              </div>
+              
+              <table className="border-collapse border border-slate-800 text-left text-[11px] w-64">
+                <tbody>
+                  <tr>
+                    <th className="border border-slate-800 px-2 py-1 bg-blue-50 font-bold w-1/3">เลขที่ / No.</th>
+                    <td className="border border-slate-800 px-2 py-1 font-bold text-slate-400 text-center">{runningNumberPreview}</td>
+                  </tr>
+                  <tr>
+                    <th className="border border-slate-800 px-2 py-1 bg-blue-50 font-bold">วันที่ / Date</th>
+                    <td className="border border-slate-800 px-2 py-1 text-center">
+                      <input 
+                        type="date"
+                        value={requestedDate}
+                        onChange={(e) => setRequestedDate(e.target.value)}
+                        className="w-full text-center focus:outline-none bg-blue-50/50"
                       />
                     </td>
-                    <td className="py-2.5 text-center">
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Parties Info */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+             <div className="border border-slate-800 p-2 relative group">
+                <p className="font-bold border-b border-slate-800 pb-1 mb-2 text-blue-900">ผู้เสนอขอจัดซื้อ / Requester</p>
+                <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 text-[11px]">
+                  <span className="text-slate-600 font-bold">ชื่อ / Name:</span>
+                  <span className="font-bold text-slate-900">{defaultRequester}</span>
+                  <span className="text-slate-600 font-bold mt-1">แผนก / Dept:</span>
+                  <select
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 font-bold text-slate-900 bg-transparent cursor-pointer"
+                  >
+                    {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                  </select>
+                </div>
+             </div>
+             
+             <div className="border border-slate-800 p-2">
+                <p className="font-bold border-b border-slate-800 pb-1 mb-2 text-blue-900">เรื่องและวัตถุประสงค์ / Purpose</p>
+                <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 text-[11px]">
+                  <span className="text-slate-600 font-bold mt-1">เรื่อง:</span>
+                  <textarea
+                    rows={1}
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    onInput={(e) => {
+                      e.currentTarget.style.height = 'auto';
+                      e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                    }}
+                    placeholder="ระบุเรื่อง..."
+                    className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 font-bold text-slate-900 bg-blue-50/30 px-1 w-full resize-none overflow-hidden block"
+                  />
+                  
+                  <span className="text-slate-600 font-bold mt-1">วัตถุประสงค์:</span>
+                  <textarea
+                    rows={1}
+                    value={purpose}
+                    onChange={(e) => setPurpose(e.target.value)}
+                    onInput={(e) => {
+                      e.currentTarget.style.height = 'auto';
+                      e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                    }}
+                    placeholder="ระบุวัตถุประสงค์..."
+                    className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 font-bold text-slate-900 bg-blue-50/30 px-1 w-full resize-none overflow-hidden block"
+                  />
+
+                  <span className="text-slate-600 font-bold mt-1">วันที่ต้องการ:</span>
+                  <input 
+                    type="date"
+                    required
+                    value={requiredDate}
+                    onChange={(e) => setRequiredDate(e.target.value)}
+                    className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 font-bold text-slate-900 bg-transparent w-full"
+                  />
+                </div>
+             </div>
+          </div>
+
+          {/* Items Table - Strict Borders */}
+          <div className="flex-1">
+            <div className="flex justify-end mb-1">
+              <button
+                type="button"
+                onClick={handleAddItem}
+                className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded"
+              >
+                <Plus className="w-3 h-3" /> เพิ่มรายการ
+              </button>
+            </div>
+            <table className="w-full border-collapse border-2 border-slate-800">
+              <thead>
+                <tr className="bg-blue-100 border-b-2 border-slate-800 text-blue-900">
+                  <th className="border-r border-slate-800 py-1 px-1 text-center w-8 font-bold">No.</th>
+                  <th className="border-r border-slate-800 py-1 px-1 text-center font-bold">รายการ (Description)</th>
+                  <th className="border-r border-slate-800 py-1 px-1 text-center w-16 font-bold">จำนวน</th>
+                  <th className="border-r border-slate-800 py-1 px-1 text-center w-16 font-bold">หน่วย</th>
+                  <th className="border-r border-slate-800 py-1 px-1 text-center w-20 font-bold">ราคา/หน่วย</th>
+                  <th className="border-r border-slate-800 py-1 px-1 text-center w-24 font-bold">จำนวนเงิน</th>
+                  <th className="py-1 px-1 text-center w-8"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, idx) => (
+                  <tr key={item.id} className="border-b border-slate-400 group hover:bg-slate-50">
+                    <td className="border-r border-slate-800 py-1 px-1 text-center align-middle">{idx + 1}</td>
+                    <td className="border-r border-slate-800 py-1 px-1 align-top">
+                      <textarea
+                        rows={1}
+                        required
+                        value={item.description}
+                        onChange={(e) => handleItemChange(item.id, "description", e.target.value)}
+                        onInput={(e) => {
+                          e.currentTarget.style.height = 'auto';
+                          e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                        }}
+                        placeholder="ชื่อรายการ..."
+                        className="w-full bg-transparent border-none text-xs font-semibold text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-400 p-1 resize-none overflow-hidden block"
+                      />
+                      <textarea
+                        rows={1}
+                        value={item.remark}
+                        onChange={(e) => handleItemChange(item.id, "remark", e.target.value)}
+                        onInput={(e) => {
+                          e.currentTarget.style.height = 'auto';
+                          e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                        }}
+                        placeholder="หมายเหตุ..."
+                        className="w-full bg-transparent border-none text-[10px] text-slate-500 placeholder-slate-300 focus:outline-none mt-1 px-1 resize-none overflow-hidden block"
+                      />
+                    </td>
+                    <td className="border-r border-slate-800 py-1 px-1 align-middle text-center">
                       <input
                         type="number"
                         min="1"
                         required
                         value={item.quantity}
-                        onChange={(e) =>
-                          handleItemChange(
-                            item.id,
-                            "quantity",
-                            Math.max(1, parseInt(e.target.value) || 0)
-                          )
-                        }
-                        className="w-14 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-center text-sm font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
+                        onChange={(e) => handleItemChange(item.id, "quantity", Math.max(1, parseInt(e.target.value) || 0))}
+                        className="w-12 text-center bg-transparent focus:outline-none focus:bg-blue-50 p-1 font-bold text-slate-900"
                       />
                     </td>
-                    <td className="py-2.5 text-center">
+                    <td className="border-r border-slate-800 py-1 px-1 align-middle text-center">
                       <select
                         value={item.unit}
-                        onChange={(e) =>
-                          handleItemChange(item.id, "unit", e.target.value)
-                        }
-                        className="w-20 bg-slate-50 border border-slate-200 rounded-lg px-1.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
+                        onChange={(e) => handleItemChange(item.id, "unit", e.target.value)}
+                        className="w-14 bg-transparent focus:outline-none focus:bg-blue-50 text-[11px] p-1 cursor-pointer font-bold text-slate-900"
                       >
-                        {UNITS.map((u) => (
-                          <option key={u} value={u}>
-                            {u}
-                          </option>
-                        ))}
+                        {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                       </select>
                     </td>
-                    <td className="py-2.5 text-right">
+                    <td className="border-r border-slate-800 py-1 px-1 align-middle text-right">
                       <input
                         type="number"
                         min="0"
                         required
                         value={item.unitPrice || ""}
-                        onChange={(e) =>
-                          handleItemChange(
-                            item.id,
-                            "unitPrice",
-                            Math.max(0, parseFloat(e.target.value) || 0)
-                          )
-                        }
+                        onChange={(e) => handleItemChange(item.id, "unitPrice", Math.max(0, parseFloat(e.target.value) || 0))}
                         placeholder="0"
-                        className="w-24 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-right text-sm font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
+                        className="w-16 text-right bg-transparent focus:outline-none focus:bg-blue-50 p-1 font-bold text-slate-900"
                       />
                     </td>
-                    <td className="py-2.5 text-right text-sm font-bold text-slate-800">
-                      {total.toLocaleString()}
+                    <td className="border-r border-slate-800 py-2 px-2 text-right align-middle font-bold text-slate-900">
+                      {(item.quantity * item.unitPrice).toLocaleString(undefined, {minimumFractionDigits: 2})}
                     </td>
-                    <td className="py-2.5 pl-3">
-                      <input
-                        type="text"
-                        value={item.remark}
-                        onChange={(e) =>
-                          handleItemChange(item.id, "remark", e.target.value)
-                        }
-                        placeholder="หมายเหตุ..."
-                        className="w-full bg-slate-50/50 border border-slate-150 rounded-lg px-2 py-1 text-xs text-slate-600 focus:outline-none focus:border-blue-500"
-                      />
-                    </td>
-                    <td className="py-2.5 text-center pr-3">
+                    <td className="py-1 px-1 text-center align-middle">
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(item.id)}
                         disabled={items.length === 1}
-                        className="text-slate-300 hover:text-rose-500 disabled:opacity-30 transition-colors cursor-pointer"
+                        className="text-slate-300 hover:text-rose-500 disabled:opacity-30 cursor-pointer"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Footer Totals */}
+          <div className="mt-4 grid grid-cols-[1fr_auto] border-2 border-slate-800 items-stretch">
+             <div className="p-3 border-r-2 border-slate-800 flex flex-col justify-between">
+                <div>
+                  <span className="font-bold text-slate-900">หมายเหตุ / Remarks:</span>
+                  <p className="mt-1 text-slate-700 text-[11px]">เอกสารใบขอซื้อนี้ไม่รวมภาษีมูลค่าเพิ่มในขั้นตอนนี้</p>
+                </div>
+             </div>
+             <div className="w-[200px] flex flex-col">
+                <div className="grid grid-cols-[100px_1fr] p-2 bg-blue-800 text-white font-bold flex-1 items-center">
+                  <span>ยอดสุทธิ<br/><span className="text-[9px] font-normal">Grand Total</span></span>
+                  <span className="text-right text-lg">{grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                </div>
+             </div>
+          </div>
+
+          {/* Signatures Placeholder */}
+          <div className={`mt-6 grid grid-cols-${Math.max(2, Math.min(workflowSteps.length + 1, 4))} gap-4 text-center`}>
+            <div className="border border-slate-800 p-1 flex flex-col h-28">
+              <div className="flex-1 flex items-center justify-center text-[10px] text-slate-400">
+                (ระบบจะดึงลายเซ็นต์อัตโนมัติ)
+              </div>
+              <div className="w-full border-t border-slate-800 pt-1 text-center bg-white">
+                <p className="font-bold text-slate-900 text-[11px]">ผู้จัดทำ (Prepared By)</p>
+                <p className="text-[10px] text-slate-700 mt-0.5">วันที่ {todayStr}</p>
+              </div>
+            </div>
+            {workflowSteps.map((step, idx) => (
+              <div key={idx} className="border border-slate-800 p-1 flex flex-col h-28">
+                <div className="flex-1 flex items-center justify-center text-[10px] text-slate-400">
+                  (รออนุมัติตามสายงาน)
+                </div>
+                <div className="w-full border-t border-slate-800 pt-1 text-center bg-white">
+                  <p className="font-bold text-slate-900 text-[11px] truncate px-1" title={step.roleName}>{step.roleName}</p>
+                  <p className="text-[10px] text-slate-700 mt-0.5">วันที่ ____/____/____</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
 
-      {/* GRAND TOTAL */}
-      <div className="flex justify-end items-center gap-4 bg-slate-50 rounded-2xl p-4 border border-slate-100">
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-          Grand Total (ราคารวมสุทธิ)
-        </span>
-        <span className="text-2xl font-extrabold text-blue-600">
-          ฿{grandTotal.toLocaleString()}
-        </span>
-      </div>
-
-      {/* FILE UPLOAD ATTACHMENT */}
-      <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+      <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 mt-4">
         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
           Attach Reference Document (แนบไฟล์เอกสารอ้างอิง เช่น ใบเสนอราคา)
         </label>

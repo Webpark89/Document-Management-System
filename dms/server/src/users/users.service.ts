@@ -28,6 +28,32 @@ export class UsersService {
       data: { signature_image_path: objectKey },
     });
 
-    return { success: true, path: objectKey };
+    // Write AuditLog for legal compliance
+    await this.prisma.auditLog.create({
+      data: {
+        user_id: userId,
+        action: 'Signature',
+        module: 'User',
+        target_id: userId,
+        details: { objectKey },
+      },
+    });
+
+    const signedUrl = await this.s3Service.getSignedUrl(objectKey);
+    return { success: true, path: objectKey, url: signedUrl };
+  }
+
+  async getMySignatureUrl(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { signature_image_path: true },
+    });
+
+    if (!user || !user.signature_image_path) {
+      return { url: null };
+    }
+
+    const signedUrl = await this.s3Service.getSignedUrl(user.signature_image_path);
+    return { url: signedUrl };
   }
 }
