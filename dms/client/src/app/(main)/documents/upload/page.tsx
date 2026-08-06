@@ -11,8 +11,10 @@ import POForm, { POSubmitData } from '@views/components/forms/POForm';
 import BKForm, { BKSubmitData } from '@views/components/forms/BKForm';
 import UploadOnlyForm, { OtherSubmitData } from '@views/components/forms/UploadOnlyForm';
 import { useToast } from '@views/components/providers/ToastProvider';
+import { swalConfirm } from "@/lib/swal";
 import { addDocument } from '@views/features/documents/api';
 import { documentsService } from '@/controllers/services/documents.service';
+import { workflowsService } from '@/controllers/services/workflows.service';
 
 import type { DocumentStatus } from '@models';
 
@@ -36,6 +38,18 @@ export default function DocumentUploadPage() {
   };
 
   const handlePRSubmit = async (data: PRSubmitData) => {
+    const confirmed = await swalConfirm({
+      title: data.isDraft ? "ยืนยันการบันทึกร่างเอกสาร?" : "ยืนยันการส่งขออนุมัติเอกสาร?",
+      text: data.isDraft
+        ? "เอกสารจะถูกบันทึกไว้ในระบบในสถานะร่าง (Draft)"
+        : "เอกสารจะถูกส่งเข้าสู่กระบวนการอนุมัติ (Workflow)",
+      confirmButtonText: data.isDraft ? "บันทึกร่าง" : "ส่งขออนุมัติ",
+      cancelButtonText: "ยกเลิก",
+      icon: "question",
+      confirmButtonColor: "#2563eb",
+    });
+    if (!confirmed) return;
+
     setIsSubmitting(true);
     try {
       const runningNum = generateActualDocNumber("PR");
@@ -86,11 +100,15 @@ export default function DocumentUploadPage() {
         })),
         workflow_steps: data.workflowSteps.map((step) => ({
           step_order: step.stepOrder,
-          approver_id: step.approverName || "admin",
+          approver_id: step.approverId || step.approverName || "admin",
         })),
       };
 
       const created = await addDocument(apiPayload);
+      if (!data.isDraft && created && (created.id || (created as any).real_id)) {
+        const docIdToSubmit = created.id || (created as any).real_id;
+        await workflowsService.submitWorkflow(docIdToSubmit, apiPayload.workflow_steps);
+      }
       mutate("documents");
       showToast(
         data.isDraft
@@ -107,6 +125,18 @@ export default function DocumentUploadPage() {
   };
 
   const handlePOSubmit = async (data: POSubmitData) => {
+    const confirmed = await swalConfirm({
+      title: data.isDraft ? "ยืนยันการบันทึกร่างเอกสาร?" : "ยืนยันการส่งขออนุมัติเอกสาร?",
+      text: data.isDraft
+        ? "เอกสารจะถูกบันทึกไว้ในระบบในสถานะร่าง (Draft)"
+        : "เอกสารจะถูกส่งเข้าสู่กระบวนการอนุมัติ (Workflow)",
+      confirmButtonText: data.isDraft ? "บันทึกร่าง" : "ส่งขออนุมัติ",
+      cancelButtonText: "ยกเลิก",
+      icon: "question",
+      confirmButtonColor: "#2563eb",
+    });
+    if (!confirmed) return;
+
     setIsSubmitting(true);
     try {
       const runningNum = generateActualDocNumber("PO");
@@ -159,11 +189,15 @@ export default function DocumentUploadPage() {
         })),
         workflow_steps: data.workflowSteps.map((step) => ({
           step_order: step.stepOrder,
-          approver_id: step.approverName || "admin",
+          approver_id: step.approverId || step.approverName || "admin",
         })),
       };
 
       const created = await addDocument(apiPayload);
+      if (!data.isDraft && created && (created.id || (created as any).real_id)) {
+        const docIdToSubmit = created.id || (created as any).real_id;
+        await workflowsService.submitWorkflow(docIdToSubmit, apiPayload.workflow_steps);
+      }
       mutate("documents");
       showToast(
         data.isDraft
@@ -180,6 +214,18 @@ export default function DocumentUploadPage() {
   };
 
   const handleBKSubmit = async (data: BKSubmitData) => {
+    const confirmed = await swalConfirm({
+      title: data.isDraft ? "ยืนยันการบันทึกร่างเอกสาร?" : "ยืนยันการส่งขออนุมัติเอกสาร?",
+      text: data.isDraft
+        ? "เอกสารจะถูกบันทึกไว้ในระบบในสถานะร่าง (Draft)"
+        : "เอกสารจะถูกส่งเข้าสู่กระบวนการอนุมัติ (Workflow)",
+      confirmButtonText: data.isDraft ? "บันทึกร่าง" : "ส่งขออนุมัติ",
+      cancelButtonText: "ยกเลิก",
+      icon: "question",
+      confirmButtonColor: "#2563eb",
+    });
+    if (!confirmed) return;
+
     setIsSubmitting(true);
     try {
       const runningNum = generateActualDocNumber("บันทึก");
@@ -190,11 +236,15 @@ export default function DocumentUploadPage() {
         purpose: data.detail,
         workflow_steps: data.workflowSteps.map((step) => ({
           step_order: step.stepOrder,
-          approver_id: step.approverName || "admin",
+          approver_id: step.approverId || step.approverName || "admin",
         })),
       };
 
       const created = await addDocument(apiPayload);
+      if (!data.isDraft && created && (created.id || (created as any).real_id)) {
+        const docIdToSubmit = created.id || (created as any).real_id;
+        await workflowsService.submitWorkflow(docIdToSubmit, apiPayload.workflow_steps);
+      }
       mutate("documents");
       showToast(
         data.isDraft
@@ -223,11 +273,18 @@ export default function DocumentUploadPage() {
       formData.append("prefix", "OTHER");
       formData.append("purpose", data.description);
 
-      const approverIds = data.workflowSteps.map((step) => step.approverName || "admin");
+      const approverIds = data.workflowSteps.map((step) => step.approverId || step.approverName || "admin");
       formData.append("approver_ids", JSON.stringify(approverIds));
 
       const created = await documentsService.uploadDocument(formData);
-      
+      if (!data.isDraft && created && (created.id || (created as any).real_id)) {
+        const docIdToSubmit = created.id || (created as any).real_id;
+        const mappedSteps = data.workflowSteps.map((step) => ({
+          step_order: step.stepOrder,
+          approver_id: step.approverId || step.approverName || "admin",
+        }));
+        await workflowsService.submitWorkflow(docIdToSubmit, mappedSteps);
+      }
       mutate("documents");
       showToast(
         data.isDraft

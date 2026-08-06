@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -19,7 +19,7 @@ import {
   ADMIN_PAGE_SHELL,
   AdminPageHeader,
 } from '@views/components/ui/admin';
-import { MOCK_ROLES, MOCK_USERS } from '@views/features/roles-users';
+import { adminService } from "@/controllers/services/admin.service";
 
 const ACTION_CARDS = [
   {
@@ -68,14 +68,26 @@ const NAV_CARDS = [
 export default function ConfigPage() {
   const router = useRouter();
 
-  const stats = useMemo(() => {
-    const activeUsers = MOCK_USERS.filter((u) => u.isActive).length;
-    return {
-      totalRoles: MOCK_ROLES.length,
-      totalUsers: MOCK_USERS.length,
-      activeUsers,
-      inactiveUsers: MOCK_USERS.length - activeUsers,
-    };
+  const [stats, setStats] = React.useState({
+    totalRoles: 0,
+    totalUsers: 0,
+    activeUsers: 0,
+    inactiveUsers: 0,
+  });
+
+  React.useEffect(() => {
+    Promise.all([
+      adminService.getRolesList(),
+      adminService.getUsersList()
+    ]).then(([roles, users]) => {
+      const activeUsers = users.filter((u: any) => u.is_active).length;
+      setStats({
+        totalRoles: roles.length,
+        totalUsers: users.length,
+        activeUsers,
+        inactiveUsers: users.length - activeUsers,
+      });
+    }).catch(() => {});
   }, []);
 
   return (

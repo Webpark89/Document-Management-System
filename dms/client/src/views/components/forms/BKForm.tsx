@@ -6,7 +6,7 @@ import { useAuth } from '@views/components/providers/AuthProvider';
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
 } from "./ApprovalWorkflowSection";
-import { buildWorkflowStepsForMatrixKey } from '@views/features/master-data';
+
 
 export interface BKSubmitData {
   title: string;
@@ -25,12 +25,12 @@ interface BKFormProps {
 }
 
 const DEPARTMENTS = [
-  "ฝ่ายบริหารทั่วไป",
-  "ฝ่ายเทคโนโลยีสารสนเทศ (IT)",
-  "ฝ่ายจัดซื้อและพัสดุ",
-  "ฝ่ายบัญชีและการเงิน",
-  "ฝ่ายบริหารทรัพยากรบุคคล (HR)",
-  "ฝ่ายวิศวกรรมและซ่อมบำรุง",
+  "แผนกจัดซื้อ",
+  "แผนกบัญชีและการเงิน",
+  "แผนกคลังสินค้าและจัดส่ง",
+  "แผนกเทคโนโลยีสารสนเทศ",
+  "แผนกทรัพยากรบุคคล",
+  "แผนกผลิต",
 ];
 
 const CATEGORIES = [
@@ -54,9 +54,38 @@ export default function BKForm({
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [detail, setDetail] = useState("");
 
-  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>(() =>
-    buildWorkflowStepsForMatrixKey("BK")
-  );
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([]);
+
+  React.useEffect(() => {
+    async function loadWorkflow() {
+      try {
+        const { adminService } = await import("@/controllers/services/admin.service");
+        const workflows = (await adminService.getApprovalWorkflowsList()) as any[];
+        const bkFlow = Array.isArray(workflows) ? workflows.find((w: any) => w.prefix === "BK") : null;
+        if (bkFlow && bkFlow.steps && bkFlow.steps.length > 0) {
+          setWorkflowSteps(
+            bkFlow.steps.map((role: string, idx: number) => ({
+              id: String(idx + 1),
+              stepOrder: idx + 1,
+              roleName: role,
+              approverName: "",
+            }))
+          );
+        } else {
+          setWorkflowSteps([
+            { id: "1", stepOrder: 1, roleName: "ผู้จัดการแผนก (Department Manager)", approverName: "" },
+            { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
+          ]);
+        }
+      } catch (err) {
+        setWorkflowSteps([
+          { id: "1", stepOrder: 1, roleName: "ผู้จัดการแผนก (Department Manager)", approverName: "" },
+          { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
+        ]);
+      }
+    }
+    loadWorkflow();
+  }, []);
 
   const todayStr = new Date().toLocaleDateString('th-TH');
 

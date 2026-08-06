@@ -5,6 +5,7 @@ import { Send, Loader2 } from "lucide-react";
 import { workflowsService } from "@/controllers/services/workflows.service";
 import { useToast } from "@views/components/providers/ToastProvider";
 import { useRouter } from "next/navigation";
+import { swalConfirm } from "@/lib/swal";
 
 interface ResubmitButtonProps {
   documentId: string;
@@ -17,9 +18,19 @@ export function ResubmitButton({ documentId, docStatus, onSuccess }: ResubmitBut
   const { showToast } = useToast();
   const router = useRouter();
 
-  if (docStatus !== "Draft") return null;
+  if (docStatus !== "Draft" && docStatus !== "Returned" && docStatus !== "Returned for Revision") return null;
 
   const handleResubmit = async () => {
+    const confirmed = await swalConfirm({
+      title: "ส่งขออนุมัติใหม่อีกครั้ง?",
+      text: `คุณต้องการส่งเอกสารเข้าสู่กระบวนการอนุมัติใหม่อีกครั้งหรือไม่?`,
+      confirmButtonText: "ส่งขออนุมัติใหม่",
+      cancelButtonText: "ยกเลิก",
+      icon: "question",
+      confirmButtonColor: "#f59e0b",
+    });
+    if (!confirmed) return;
+
     setIsSubmitting(true);
     try {
       const ok = await workflowsService.submitWorkflow(documentId);

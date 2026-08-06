@@ -11,7 +11,7 @@ import { getStatusVariant } from "@/lib/document-status";
 import DataTableHeader from '@views/components/ui/DataTableHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
 
-type TabStatus = "Pending" | "Approved" | "Returned for Revision" | "All";
+type TabStatus = "Pending" | "Approved" | "Returned" | "All";
 
 export default function ApprovalsInboxPage() {
   const router = useRouter();
@@ -24,12 +24,12 @@ export default function ApprovalsInboxPage() {
   const handleSort = (key: string) => {
     if (sortKey !== key) {
       setSortKey(key);
-      setSortDirection("desc"); // 1st click: desc
+      setSortDirection("desc");
     } else {
       if (sortDirection === "desc") {
-        setSortDirection("asc"); // 2nd click: asc
+        setSortDirection("asc");
       } else {
-        setSortKey(null); // 3rd click: reset
+        setSortKey(null);
         setSortDirection(null);
       }
     }
@@ -42,14 +42,18 @@ export default function ApprovalsInboxPage() {
   // Filter logic according to specs
   const pendingCount = approvals.filter((item) => item.status === "Pending").length;
   const approvedCount = approvals.filter((item) => item.status === "Approved").length;
-  const returnedCount = approvals.filter((item) => item.status === "Returned for Revision").length;
+  const returnedCount = approvals.filter((item) => item.status === "Returned" || item.status === "Returned for Revision").length;
   const allCount = approvals.length;
 
   const filteredApprovals = approvals
     .filter((item) => {
       // Status tab filter
-      if (activeTab !== "All" && item.status !== activeTab) {
-        return false;
+      if (activeTab !== "All") {
+        if (activeTab === "Returned") {
+          if (item.status !== "Returned" && item.status !== "Returned for Revision") return false;
+        } else if (item.status !== activeTab) {
+          return false;
+        }
       }
       // Search filter (name, id, requester)
       if (searchQuery.trim()) {
@@ -66,13 +70,17 @@ export default function ApprovalsInboxPage() {
       const statusPriority: Record<string, number> = {
         "Pending": 4,
         "Draft": 3,
-        "Returned for Revision": 2,
         "Returned": 2,
+        "Returned for Revision": 2,
         "Approved": 1,
         "Cancelled": 0
       };
 
-      const parseThaiDate = (dateStr: string) => {
+      const parseThaiDate = (dateStr?: string) => {
+        if (!dateStr) return 0;
+        const timestamp = Date.parse(dateStr);
+        if (!isNaN(timestamp)) return timestamp;
+
         const months: Record<string, number> = {
           "ม.ค.": 0, "ก.พ.": 1, "มี.ค.": 2, "เม.ย.": 3, "พ.ค.": 4, "มิ.ย.": 5,
           "ก.ค.": 6, "ส.ค.": 7, "ก.ย.": 8, "ต.ค.": 9, "พ.ย.": 10, "ธ.ค.": 11
@@ -199,9 +207,9 @@ export default function ApprovalsInboxPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab("Returned for Revision")}
+              onClick={() => setActiveTab("Returned")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                activeTab === "Returned for Revision"
+                activeTab === "Returned"
                   ? "bg-rose-600 text-white border-rose-600 shadow-sm"
                   : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
               }`}
@@ -209,7 +217,7 @@ export default function ApprovalsInboxPage() {
               ส่งกลับแก้ไข (Returned)
               <span
                 className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
-                  activeTab === "Returned for Revision"
+                  activeTab === "Returned"
                     ? "bg-white/20 text-white"
                     : "bg-rose-100 text-rose-700"
                 }`}

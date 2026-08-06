@@ -2,14 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { FileType2, HelpCircle, Inbox, Loader2, Plus, X, Lock, Trash2 } from "lucide-react";
+import { swalConfirm } from "@/lib/swal";
 import { useSidebar } from '@views/components/providers/SidebarProvider';
 import {
   DEFAULT_FORM_META,
   DEFAULT_FORM_FIELDS,
   FORM_TYPE_DESCRIPTIONS,
   FORM_TYPE_OPTIONS,
-  appendRunningConfig,
-  appendWorkflowRecord,
   type FormFieldConfig,
   type ApprovalMatrixEntry,
   type ApprovalMatrixState,
@@ -272,18 +271,6 @@ export default function DocumentTypesTab({
     nextMatrix[prefix] = entry;
     onMatrixChange(nextMatrix);
 
-    const matrixKey = editingKey ?? prefix;
-    appendRunningConfig(matrixKey, entry);
-    
-    // Auto-cascade Workflow Config creation
-    appendWorkflowRecord({
-      id: docTypeId,
-      typeName,
-      prefix,
-      isActive: entry.isActive,
-      steps: entry.steps,
-    });
-
     const nextDocTypes = [...docTypes];
     const idx = editingKey ? nextDocTypes.findIndex((d) => d.key === editingKey) : -1;
     const row: DocumentTypeRecord = {
@@ -313,9 +300,16 @@ export default function DocumentTypesTab({
     }
   };
 
-  const handleDelete = (row: DocumentTypeRecord) => {
+  const handleDelete = async (row: DocumentTypeRecord) => {
     if (row.docCount > 0) return;
-    if (!confirm(`ยืนยันการลบ "${row.typeName}"?`)) return;
+    const confirmed = await swalConfirm({
+      title: "ยืนยันการลบประเภทเอกสาร",
+      text: `คุณต้องการลบประเภทเอกสาร "${row.typeName}" หรือไม่?`,
+      confirmButtonText: "ลบรายการ",
+      cancelButtonText: "ยกเลิก",
+      icon: "warning",
+    });
+    if (!confirmed) return;
     const nextMatrix = { ...matrix };
     delete nextMatrix[row.key];
     onMatrixChange(nextMatrix);

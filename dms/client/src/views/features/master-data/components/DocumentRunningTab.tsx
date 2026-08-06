@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Hash, Inbox, Loader2, X } from "lucide-react";
+import { swalConfirm } from "@/lib/swal";
 import { useSidebar } from '@views/components/providers/SidebarProvider';
 import {
   RESET_CYCLE_LABELS,
@@ -127,8 +128,17 @@ export default function DocumentRunningTab({ showToast }: Props) {
     setModalOpen(true);
   };
 
-  const closeModal = () => {
-    if (isDirty && !confirm("ยังไม่ได้บันทึกข้อมูล ต้องการปิดหน้าต่างนี้หรือไม่?")) return;
+  const closeModal = async () => {
+    if (isDirty) {
+      const confirmed = await swalConfirm({
+        title: "ปิดหน้าต่างโดยไม่บันทึก?",
+        text: "ข้อมูลที่คุณแก้ไขยังไม่ได้บันทึก คุณต้องการปิดหน้าต่างนี้หรือไม่?",
+        confirmButtonText: "ปิดหน้าต่าง",
+        cancelButtonText: "ยกเลิก",
+        icon: "warning",
+      });
+      if (!confirmed) return;
+    }
     setModalOpen(false);
     setEditingKey(null);
     setBaseline("");

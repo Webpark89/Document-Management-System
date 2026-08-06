@@ -16,6 +16,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -57,44 +58,23 @@ export class DocumentsController {
     return doc.versions || [];
   }
 
-  /**
-   * GET /documents/:id/signed-url
-   * คืน Signed URL ของ PDF ล่าสุด (อายุ 1 ชั่วโมง) สำหรับให้ Frontend แสดงผล
-   */
   @Get(':id/signed-url')
   async getSignedUrl(@Param('id') id: string) {
-    return this.documentsService.getLatestVersionSignedUrl(id);
+    return this.documentsService.getLatestVersionDownloadUrl(id);
   }
 
-  /**
-   * GET /documents/file/*
-   * เสิร์ฟไฟล์ PDF จาก Storage สำหรับ Local / Presigned URL fallback
-   */
-  @Get('file/*key')
-  async streamFile(@Param('key') key: string, @Res() res: any) {
-    const decodedKey = decodeURIComponent(Array.isArray(key) ? key.join('/') : key);
-    const buffer = await this.documentsService.getFileBuffer(decodedKey);
-    
-    let contentType = 'application/octet-stream';
-    const ext = decodedKey.toLowerCase().split('.').pop();
-    if (ext === 'pdf') {
-      contentType = 'application/pdf';
-    } else if (ext === 'png') {
-      contentType = 'image/png';
-    } else if (ext === 'jpg' || ext === 'jpeg') {
-      contentType = 'image/jpeg';
-    } else if (ext === 'svg') {
-      contentType = 'image/svg+xml';
-    }
-    
-    res.setHeader('Content-Type', contentType);
+  @Get(':id/download')
+  async downloadFile(
+    @Param('id') id: string,
+    @Res() res: any,
+    @Query('v') version?: number,
+  ) {
+    const buffer = await this.documentsService.getFileBuffer(id, version);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="document-${id}.pdf"`);
     res.send(buffer);
   }
 
-  /**
-   * POST /documents
-   * สร้างเอกสารแบบไม่มีไฟล์ PDF (Draft เปล่า)
-   */
   @Post()
   async create(
     @Body() dto: CreateDocumentDto,
@@ -103,12 +83,6 @@ export class DocumentsController {
     return this.documentsService.create(dto, user.id);
   }
 
-  /**
-   * POST /documents/upload
-   * สร้างเอกสาร + อัปโหลดไฟล์ PDF พร้อมกันทีเดียว
-   * Form fields: title, prefix, purpose, approver_ids (JSON array)
-   * File field: file (PDF เท่านั้น, max 20MB)
-   */
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocument(
@@ -151,10 +125,6 @@ export class DocumentsController {
     return this.documentsService.createWithFile(dto, user.id, file, approverIds);
   }
 
-  /**
-   * DELETE /documents/:id
-   * Soft delete (is_deleted = true)
-   */
   @Delete(':id')
   async remove(@Param('id') id: string, @CurrentUser() user: any) {
     return this.documentsService.softDelete(id, {

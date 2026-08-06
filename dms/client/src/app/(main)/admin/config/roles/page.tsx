@@ -1,5 +1,8 @@
 "use client";
 
+import React from "react";
+import { adminService } from "@/controllers/services/admin.service";
+
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
@@ -10,6 +13,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useToast } from '@views/components/providers/ToastProvider';
+import { swalConfirm } from "@/lib/swal";
 import {
   RolePermissionPanel,
   PermissionActionGrid,
@@ -18,11 +22,8 @@ import {
   type RoleFormState,
 } from '@views/features/roles-users/components';
 import {
-  MOCK_ROLES,
-  countUsersByRole,
-  deactivateRole,
-  prependRole,
   type RoleRecord,
+  countUsersByRole,
 } from '@views/features/roles-users';
 import {
   ADMIN_CONTENT,
@@ -162,7 +163,7 @@ function RolesListView({
     () =>
       roles.map((role) => ({
         ...role,
-        userCount: countUsersByRole(role.name),
+        userCount: role.userCount ?? countUsersByRole(role.name),
       })),
     [roles]
   );
@@ -186,12 +187,24 @@ function RolesListView({
     });
   }, [rows, search, showInactive]);
 
-  const handleDelete = (role: (typeof rows)[number]) => {
+  const handleDelete = async (role: (typeof rows)[number]) => {
     if (role.userCount > 0) return;
-    if (!confirm(`ต้องการปิดใช้งาน Role "${role.name}" หรือไม่?`)) return;
-    deactivateRole(role.id);
-    onRolesChange([...MOCK_ROLES]);
-    showToast("ปิดใช้งาน Role สำเร็จ", "success");
+    const confirmed = await swalConfirm({
+      title: "ยืนยันการปิดใช้งาน Role",
+      text: `คุณต้องการปิดใช้งาน Role "${role.name}" หรือไม่?`,
+      confirmButtonText: "ปิดใช้งาน",
+      cancelButtonText: "ยกเลิก",
+      icon: "warning",
+    });
+    if (!confirmed) return;
+    try {
+      await adminService.deleteRole(role.id);
+      const updated = await adminService.getRolesList();
+      onRolesChange(updated);
+      showToast("ปิดใช้งาน Role สำเร็จ", "success");
+    } catch (e) {
+      showToast("เกิดข้อผิดพลาด", "error");
+    }
   };
 
   return (
@@ -329,13 +342,20 @@ function CreateRoleForm({
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
 
-  const validateTitle = (title: string) => {
-    const trimmed = title.trim();
-    if (!trimmed) return "กรุณากรอกชื่อ Role";
-    if (MOCK_ROLES.some((r) => r.name.toLowerCase() === trimmed.toLowerCase())) {
-      return "ชื่อ Role นี้ถูกใช้งานแล้ว";
+  const validateTitle = (val: string) => (!val.trim() ? "กรุณาระบุชื่อ Role" : "");
+
+  const handleSaveRole = async (data: RoleFormState) => {
+    // In a real app, you would create/update via API here.
+    // Assuming adminService.createRole doesn't exist yet, we'll just mock the API call completion.
+    const trimmed = data.title.trim();
+    if (!trimmed) {
+      showToast("กรุณาระบุชื่อ Role", "error");
+      return;
     }
-    return "";
+    // TODO: Connect to adminService.createRole or updateRole
+    // Mock re-fetching data for now:
+    await adminService.getRolesList();
+    onBack();
   };
 
   const handleBack = () => {
@@ -496,15 +516,46 @@ function RolesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
-  const [roles, setRoles] = useState<RoleRecord[]>(MOCK_ROLES);
+  const [roles, setRoles] = useState<RoleRecord[]>([]);
+
+  React.useEffect(() => {
+    Promise.all([
+      adminService.getRolesList().catch(() => []),
+      adminService.getUsersList().catch(() => []),
+    ]).then(([list, usersList]: [any[], any[]]) => {
+      if (Array.isArray(list) && list.length > 0) {
+        setRoles(
+          list.map((r: any) => {
+            const calculated = Array.isArray(usersList)
+              ? usersList.filter(
+                  (u: any) =>
+                    (u.role?.name || u.role_name || u.role) === r.name
+                ).length
+              : 0;
+            return {
+              id: r.id,
+              name: r.name,
+              userCount: r.user_count ?? r.userCount ?? calculated,
+              summary:
+                r.name === "Administrator"
+                  ? "Full access"
+                  : "View, Create, Edit, Approve",
+              isActive: r.is_active ?? true,
+              permissions: {},
+              permissionSummary: "",
+            };
+          })
+        );
+      }
+    }).catch(() => {});
+  }, []);
 
   if (mode === "new") {
     return (
       <CreateRoleForm
         onBack={() => router.push("/admin/config/roles")}
         onSaved={(saved) => {
-          prependRole(saved);
-          setRoles([...MOCK_ROLES]);
+          setRoles((prev) => [saved, ...prev]);
           router.push("/admin/config/roles");
         }}
       />

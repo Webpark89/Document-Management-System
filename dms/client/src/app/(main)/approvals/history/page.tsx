@@ -18,6 +18,7 @@ import {
 import PageHeader from '@views/components/shared/PageHeader';
 import { Badge } from '@views/components/ui/badge';
 import { getApprovals, Approval } from '@views/features/workflow/api';
+import { getDocuments } from '@views/features/documents/api';
 import { getStatusVariant } from "@/lib/document-status";
 import DataTableHeader from '@views/components/ui/DataTableHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
@@ -124,12 +125,42 @@ const MOCK_APPROVAL_HISTORY: ApprovalHistoryItem[] = [
 
 export default function ApprovalHistoryPage() {
   const router = useRouter();
-  const [historyItems, setHistoryItems] = useState<ApprovalHistoryItem[]>(MOCK_APPROVAL_HISTORY);
+  const [historyItems, setHistoryItems] = useState<ApprovalHistoryItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAction, setSelectedAction] = useState<string>("All");
   
   const [sortKey, setSortKey] = useState<string | null>("actionDate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>("desc");
+
+  useEffect(() => {
+    getDocuments().then(docs => {
+      const realHistory: ApprovalHistoryItem[] = [];
+      docs.forEach(doc => {
+        if (doc.workflow && doc.workflow.steps) {
+          doc.workflow.steps.forEach((step: any) => {
+            if (step.status === "Approved" || step.status === "Rejected") {
+              const approverName = step.approver
+                ? `${step.approver.first_name || ''} ${step.approver.last_name || ''}`.trim()
+                : "ผู้อนุมัติ";
+              realHistory.push({
+                id: step.id || `${doc.id}-${step.step_order}`,
+                docId: doc.id,
+                docName: doc.title || doc.name,
+                amount: doc.amount || "-",
+                requester: doc.creator_name || doc.sender || "ไม่ระบุ",
+                approverName,
+                action: step.status as any,
+                actionDate: step.action_date ? new Date(step.action_date).toLocaleDateString("th-TH") : "—",
+                comment: step.comment || "อนุมัติตามขั้นตอน",
+                level: `L${step.step_order}/${doc.workflow.total_steps || step.step_order}`,
+              });
+            }
+          });
+        }
+      });
+      setHistoryItems(realHistory);
+    }).catch(() => {});
+  }, []);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);

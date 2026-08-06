@@ -14,8 +14,6 @@ import {
 } from "lucide-react";
 import { useToast } from '@views/components/providers/ToastProvider';
 import {
-  APPROVAL_MATRIX,
-  matrixToDocumentTypes,
   type ApprovalMatrixState,
   type DocumentTypeRecord,
 } from '@views/features/master-data';
@@ -44,20 +42,42 @@ const MASTER_DATA_NAV: {
   { href: "/admin/master-data", label: "รูปแบบเลขที่เอกสาร", icon: ListOrdered, tab: "running" },
 ];
 
-function cloneMatrix(matrix: ApprovalMatrixState): ApprovalMatrixState {
-  return Object.fromEntries(
-    Object.entries(matrix).map(([key, entry]) => [key, { ...entry, steps: [...entry.steps] }])
-  );
-}
+
 
 export default function DocFormsPage() {
   const pathname = usePathname();
   const { showToast } = useToast();
   const [addRequest, setAddRequest] = useState(0);
-  const [matrix, setMatrix] = useState<ApprovalMatrixState>(() => cloneMatrix(APPROVAL_MATRIX));
-  const [docTypes, setDocTypes] = useState<DocumentTypeRecord[]>(() =>
-    matrixToDocumentTypes(cloneMatrix(APPROVAL_MATRIX))
-  );
+  const [matrix, setMatrix] = useState<any>({});
+  const [docTypes, setDocTypes] = useState<DocumentTypeRecord[]>([]);
+
+  import("react").then((React) => {}); // Just for safety if we need to mock import
+
+  const { useEffect } = require("react");
+  
+  useEffect(() => {
+    async function fetchDocTypes() {
+      try {
+        const { adminService } = await import("@/controllers/services/admin.service");
+        const list = await adminService.getDocumentTypesList();
+        const mappedList: DocumentTypeRecord[] = list.map((dto: any) => ({
+          id: dto.id,
+          key: dto.prefix,
+          typeName: dto.type_name,
+          prefix: dto.prefix,
+          formType: "OTHER-style" as import("@views/features/master-data").FormTypeStyle,
+          formCode: dto.prefix + "-FRM",
+          fieldsCount: 0,
+          docCount: 0,
+          isActive: dto.is_active,
+        }));
+        setDocTypes(mappedList);
+      } catch (err) {
+        console.error("Failed to fetch document types", err);
+      }
+    }
+    fetchDocTypes();
+  }, []);
 
   const toast = (message: string, type: "success" | "error") => showToast(message, type);
 

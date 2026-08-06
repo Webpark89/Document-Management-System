@@ -7,7 +7,7 @@ export type DocumentStatus =
   | "Draft"
   | "Pending"
   | "Approved"
-  | "Returned for Revision"
+  | "Returned"
   | "Cancelled";
 
 export type DocumentType = "PR" | "PO" | "MEMO" | "OTHER" | "Certificate" | "General" | "Data Record" | "PDF" | "Other" | string;

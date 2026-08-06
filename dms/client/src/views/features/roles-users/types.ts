@@ -14,6 +14,7 @@ export interface AdminUser {
 export interface RoleRecord {
   id: string;
   name: string;
+  userCount?: number;
   permissionSummary: string;
   isActive: boolean;
 }

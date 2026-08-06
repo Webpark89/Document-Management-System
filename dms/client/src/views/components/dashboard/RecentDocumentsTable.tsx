@@ -83,8 +83,8 @@ export function RecentDocumentsTable({
           </thead>
           <tbody className="divide-y divide-slate-50/80">
             {documents.length > 0 ? (
-              documents.map((doc) => (
-                <tr key={doc.id} className="hover:bg-slate-50/50 transition-colors group">
+              documents.map((doc, index) => (
+                <tr key={(doc as any).real_id || `${doc.id}-${index}`} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="py-4 pl-2 flex items-center gap-3">
                     <DocumentTypeIcon type={doc.type} size="md" />
                     <div>

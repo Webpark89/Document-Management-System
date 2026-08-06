@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { S3Service } from '../common/s3/s3.service';
+import { EncryptionService } from '../common/encryption/encryption.service';
 import { ApproveStepDto } from './dto/approve-step.dto';
 import { RejectStepDto } from './dto/reject-step.dto';
 import { PDFDocument } from 'pdf-lib';
@@ -11,7 +11,7 @@ export class WorkflowsService {
 
   constructor(
     private prisma: PrismaService,
-    private s3: S3Service,
+    private encryption: EncryptionService,
   ) {}
 
   async submitWorkflow(documentId: string, userId: string, customSteps?: Array<{ step_order: number; approver_id?: string }>) {
@@ -30,20 +30,70 @@ export class WorkflowsService {
       throw new NotFoundException('ไม่พบเอกสาร');
     }
 
-    if (doc.status !== 'Draft') {
-      throw new BadRequestException('เอกสารไม่ได้อยู่ในสถานะร่าง ไม่สามารถส่งอนุมัติได้');
+    if (doc.status !== 'Draft' && doc.status !== 'Returned') {
+      throw new BadRequestException('เอกสารไม่ได้อยู่ในสถานะร่างหรือส่งกลับแก้ไข ไม่สามารถส่งอนุมัติได้');
     }
 
     // 1. Resolve steps (from ApprovalMatrix or Custom/System default)
     let stepsToCreate: Array<{ step_order: number; approver_id: string | null; status: 'Pending' }> = [];
 
     if (customSteps && customSteps.length > 0) {
-      // Map custom steps
-      stepsToCreate = customSteps.map((s) => ({
-        step_order: s.step_order,
-        approver_id: s.approver_id || null,
-        status: 'Pending',
-      }));
+      // Map custom steps with robust user resolution (support UUID, username, or full name)
+      stepsToCreate = await Promise.all(
+        customSteps.map(async (s) => {
+          let resolvedApproverId: string | null = null;
+          const targetId = s.approver_id?.trim();
+
+          if (targetId) {
+            // 1. Try finding user by exact UUID
+            const userById = await this.prisma.user.findFirst({
+              where: { id: targetId, is_active: true, is_deleted: false },
+            });
+            if (userById) {
+              resolvedApproverId = userById.id;
+            } else {
+              // 2. Try finding user by username
+              const userByUsername = await this.prisma.user.findFirst({
+                where: { username: targetId, is_active: true, is_deleted: false },
+              });
+              if (userByUsername) {
+                resolvedApproverId = userByUsername.id;
+              } else {
+                // 3. Try finding user by full name match
+                const allUsers = await this.prisma.user.findMany({
+                  where: { is_active: true, is_deleted: false },
+                });
+                const lowerTarget = targetId.toLowerCase();
+                const match = allUsers.find(
+                  (u) =>
+                    `${u.first_name} ${u.last_name}`.trim().toLowerCase() === lowerTarget ||
+                    u.first_name.trim().toLowerCase() === lowerTarget
+                );
+                if (match) resolvedApproverId = match.id;
+              }
+            }
+          }
+
+          // Fallback if still unassigned
+          if (!resolvedApproverId) {
+            const adminUser = await this.prisma.user.findFirst({
+              where: { role: { name: 'Administrator' }, is_active: true, is_deleted: false },
+            });
+            const fallbackUser =
+              adminUser ||
+              (await this.prisma.user.findFirst({
+                where: { is_active: true, is_deleted: false },
+              }));
+            resolvedApproverId = fallbackUser?.id || null;
+          }
+
+          return {
+            step_order: s.step_order,
+            approver_id: resolvedApproverId,
+            status: 'Pending' as const,
+          };
+        })
+      );
     } else {
       const creatorUser = await this.prisma.user.findUnique({
         where: { id: doc.creator_id },
@@ -191,7 +241,14 @@ export class WorkflowsService {
       orderBy: { workflow: { created_at: 'desc' } },
     });
 
-    return steps.map((s) => {
+    const activeSteps = steps.filter((s) => {
+      if (s.status === 'Pending') {
+        return s.step_order === s.workflow.current_step;
+      }
+      return true;
+    });
+
+    return activeSteps.map((s) => {
       const doc = s.workflow.document;
       const creatorName = doc.creator
         ? `${doc.creator.first_name} ${doc.creator.last_name}`
@@ -260,6 +317,19 @@ export class WorkflowsService {
           : undefined,
         comment: s.comment,
         signature_applied: s.signature_applied,
+        signature_url: s.approver?.signature_encrypted
+          ? `/api/users/${s.approver.id}/signature`
+          : null,
+        approver: s.approver
+          ? {
+              id: s.approver.id,
+              first_name: s.approver.first_name,
+              last_name: s.approver.last_name,
+              signature_url: s.approver.signature_encrypted
+                ? `/api/users/${s.approver.id}/signature`
+                : null,
+            }
+          : null,
       })),
     };
   }
@@ -293,34 +363,38 @@ export class WorkflowsService {
     const hasSignature = dto.signature_x !== undefined && dto.signature_y !== undefined;
 
     // ---- PDF-LIB: ฝังลายเซ็นลงบน PDF (ถ้ามีพิกัด + มีไฟล์) ----
-    let newVersionKey: string | null = null;
+    let signedBuffer: Buffer | null = null;
     let newVersionNumber = 1;
 
     if (hasSignature) {
       const latestVersion = (doc as any).versions?.[0];
 
-      if (!latestVersion?.file_path) {
+      if (!latestVersion?.file_data) {
         this.logger.warn(`No PDF version found for doc ${documentId} — skipping signature embed`);
       } else {
-        // โหลดผู้อนุมัติเพื่อเอา signature_image_path
         const approver = await this.prisma.user.findUnique({ where: { id: userId } });
-        if (!approver?.signature_image_path) {
+        if (!approver?.signature_encrypted) {
           this.logger.warn(`Approver ${userId} has no signature — skipping PDF embed`);
         } else {
           try {
-            // โหลดทั้ง PDF และรูปลายเซ็นจาก R2 เป็น Buffer
-            const [pdfBuffer, signatureBuffer] = await Promise.all([
-              this.s3.downloadFile(latestVersion.file_path),
-              this.s3.downloadFile(approver.signature_image_path),
-            ]);
+            const decryptedSig = this.encryption.decrypt(approver.signature_encrypted);
+            let signatureBuffer: Buffer;
+            let isJpg = false;
 
-            // ฝังลายเซ็นด้วย pdf-lib
+            const matches = decryptedSig.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+            if (matches) {
+              const mime = matches[1];
+              isJpg = mime.includes('jpeg') || mime.includes('jpg');
+              signatureBuffer = Buffer.from(matches[2], 'base64');
+            } else {
+              signatureBuffer = Buffer.from(decryptedSig, 'base64');
+            }
+
+            const pdfBuffer = Buffer.from(latestVersion.file_data);
             const pdfDoc = await PDFDocument.load(pdfBuffer);
             const sigPage = dto.signature_page ? dto.signature_page - 1 : 0;
             const page = pdfDoc.getPage(sigPage);
 
-            // รองรับ PNG และ JPG
-            const isJpg = approver.signature_image_path.toLowerCase().match(/\.(jpg|jpeg)$/);
             const sigImage = isJpg
               ? await pdfDoc.embedJpg(signatureBuffer)
               : await pdfDoc.embedPng(signatureBuffer);
@@ -336,105 +410,90 @@ export class WorkflowsService {
             });
 
             const signedPdfBytes = await pdfDoc.save();
-            const signedBuffer = Buffer.from(signedPdfBytes);
-
+            signedBuffer = Buffer.from(signedPdfBytes);
             newVersionNumber = latestVersion.version_number + 1;
-            newVersionKey = `documents/${doc.doc_number}/v${newVersionNumber}.pdf`;
-
-            // อัปโหลด PDF ใหม่ขึ้น R2 — ถ้า DB fail ด้านล่างจะลบออก
-            await this.s3.uploadFile(newVersionKey, signedBuffer, 'application/pdf');
           } catch (embedErr: any) {
             this.logger.warn(`PDF signature embed skipped for ${documentId}: ${embedErr.message}`);
-            // ไม่ throw — ปล่อยให้อนุมัติต่อโดยไม่มี embedded signature
-            newVersionKey = null;
+            signedBuffer = null;
           }
         }
       }
     }
 
     // ---- Prisma $transaction: อัปเดต DB ทั้งหมด ----
-    try {
-      await this.prisma.$transaction(async (tx) => {
-        // 1. อัปเดต WorkflowStep ปัจจุบัน
-        await tx.workflowStep.update({
-          where: { id: currentStepObj.id },
-          data: {
-            status: 'Approved',
-            action_date: new Date(),
-            comment: dto.comment,
-            approver_id: userId,
-            signature_applied: hasSignature,
-          },
-        });
-
-        // 2. สร้าง DocumentVersion ใหม่ (ถ้ามีการฝังลายเซ็น)
-        if (hasSignature && newVersionKey) {
-          await tx.documentVersion.create({
-            data: {
-              document_id: doc.id,
-              version_number: newVersionNumber,
-              file_path: newVersionKey,
-              file_extension: 'pdf',
-              uploaded_by_id: userId,
-              remarks: `ลายเซ็น Step ${workflow.current_step}`,
-            },
-          });
-        }
-
-        // 3. อัปเดต Workflow + Document
-        if (isLastStep) {
-          await tx.workflow.update({ where: { id: workflow.id }, data: { status: 'Approved' } });
-          await tx.document.update({ where: { id: doc.id }, data: { status: 'Approved' } });
-        } else {
-          await tx.workflow.update({
-            where: { id: workflow.id },
-            data: { current_step: workflow.current_step + 1 },
-          });
-        }
-
-        // 4. Notification
-        await tx.notification.create({
-          data: {
-            user_id: doc.creator_id,
-            document_id: doc.id,
-            message: isLastStep
-              ? `เอกสาร ${doc.doc_number} ได้รับการอนุมัติครบถ้วนแล้ว`
-              : `เอกสาร ${doc.doc_number} ผ่านการอนุมัติขั้นตอนที่ ${workflow.current_step}`,
-          },
-        });
-
-        // 5. AuditLog
-        await tx.auditLog.create({
-          data: {
-            user_id: userId,
-            action: hasSignature ? 'Signature' : 'Approve',
-            module: 'Workflow',
-            target_id: doc.id,
-            details: {
-              oldState: { current_step: workflow.current_step, status: workflow.status },
-              newState: {
-                current_step: isLastStep ? workflow.current_step : workflow.current_step + 1,
-                status: isLastStep ? 'Approved' : 'Pending',
-              },
-              extra: {
-                doc_number: doc.doc_number,
-                step: workflow.current_step,
-                comment: dto.comment,
-                signature_applied: hasSignature,
-                new_version: newVersionNumber,
-              },
-            },
-          },
-        });
+    await this.prisma.$transaction(async (tx) => {
+      // 1. อัปเดต WorkflowStep ปัจจุบัน
+      await tx.workflowStep.update({
+        where: { id: currentStepObj.id },
+        data: {
+          status: 'Approved',
+          action_date: new Date(),
+          comment: dto.comment,
+          approver_id: userId,
+          signature_applied: hasSignature,
+        },
       });
-    } catch (err) {
-      // Rollback: ถ้า DB fail ลบไฟล์ใหม่ออกจาก R2 เพื่อไม่ให้มีขยะ
-      if (newVersionKey) {
-        await this.s3.deleteFile(newVersionKey);
-        this.logger.error(`Transaction failed — rolled back R2 file: ${newVersionKey}`);
+
+      // 2. สร้าง DocumentVersion ใหม่ (ถ้ามีการฝังลายเซ็น)
+      if (hasSignature && signedBuffer) {
+        await tx.documentVersion.create({
+          data: {
+            document_id: doc.id,
+            version_number: newVersionNumber,
+            file_data: signedBuffer,
+            file_extension: 'pdf',
+            uploaded_by_id: userId,
+            remarks: `ลายเซ็น Step ${workflow.current_step}`,
+          },
+        });
       }
-      throw err;
-    }
+
+      // 3. อัปเดต Workflow + Document
+      if (isLastStep) {
+        await tx.workflow.update({ where: { id: workflow.id }, data: { status: 'Approved' } });
+        await tx.document.update({ where: { id: doc.id }, data: { status: 'Approved' } });
+      } else {
+        await tx.workflow.update({
+          where: { id: workflow.id },
+          data: { current_step: workflow.current_step + 1 },
+        });
+      }
+
+      // 4. Notification
+      await tx.notification.create({
+        data: {
+          user_id: doc.creator_id,
+          document_id: doc.id,
+          message: isLastStep
+            ? `เอกสาร ${doc.doc_number} ได้รับการอนุมัติครบถ้วนแล้ว`
+            : `เอกสาร ${doc.doc_number} ผ่านการอนุมัติขั้นตอนที่ ${workflow.current_step}`,
+        },
+      });
+
+      // 5. AuditLog
+      await tx.auditLog.create({
+        data: {
+          user_id: userId,
+          action: hasSignature ? 'Signature' : 'Approve',
+          module: 'Workflow',
+          target_id: doc.id,
+          details: {
+            oldState: { current_step: workflow.current_step, status: workflow.status },
+            newState: {
+              current_step: isLastStep ? workflow.current_step : workflow.current_step + 1,
+              status: isLastStep ? 'Approved' : 'Pending',
+            },
+            extra: {
+              doc_number: doc.doc_number,
+              step: workflow.current_step,
+              comment: dto.comment,
+              signature_applied: hasSignature,
+              new_version: newVersionNumber,
+            },
+          },
+        },
+      });
+    });
 
     return {
       success: true,
@@ -476,7 +535,7 @@ export class WorkflowsService {
     }
 
     const isReturn = dto.reject_type === 'return';
-    const newDocStatus = isReturn ? 'Draft' : 'Rejected';
+    const newDocStatus = isReturn ? 'Returned' : 'Rejected';
     const newWfStatus = 'Rejected';
 
     await this.prisma.workflow.update({

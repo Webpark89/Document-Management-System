@@ -6,7 +6,7 @@ import { useAuth } from '@views/components/providers/AuthProvider';
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
 } from "./ApprovalWorkflowSection";
-import { buildWorkflowStepsForMatrixKey } from '@views/features/master-data';
+
 
 export interface PRItemInput {
   id: string;
@@ -38,12 +38,12 @@ interface PRFormProps {
 }
 
 const DEPARTMENTS = [
-  "ฝ่ายเทคโนโลยีสารสนเทศ (IT)",
-  "ฝ่ายจัดซื้อและพัสดุ",
-  "ฝ่ายบัญชีและการเงิน",
-  "ฝ่ายบริหารทรัพยากรบุคคล (HR)",
-  "ฝ่ายบริหารทั่วไป",
-  "ฝ่ายวิศวกรรมและซ่อมบำรุง",
+  "แผนกจัดซื้อ",
+  "แผนกบัญชีและการเงิน",
+  "แผนกคลังสินค้าและจัดส่ง",
+  "แผนกเทคโนโลยีสารสนเทศ",
+  "แผนกทรัพยากรบุคคล",
+  "แผนกผลิต",
 ];
 
 const UNITS = ["ชิ้น", "เครื่อง", "ชุด", "กล่อง", "แพ็ค", "งวด", "งาน"];
@@ -76,9 +76,38 @@ export default function PRForm({ onSubmit, onCancel, runningNumberPreview }: PRF
     },
   ]);
 
-  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>(() =>
-    buildWorkflowStepsForMatrixKey("PR")
-  );
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([]);
+
+  React.useEffect(() => {
+    async function loadWorkflow() {
+      try {
+        const { adminService } = await import("@/controllers/services/admin.service");
+        const workflows = (await adminService.getApprovalWorkflowsList()) as any[];
+        const prFlow = Array.isArray(workflows) ? workflows.find((w: any) => w.prefix === "PR") : null;
+        if (prFlow && prFlow.steps && prFlow.steps.length > 0) {
+          setWorkflowSteps(
+            prFlow.steps.map((role: string, idx: number) => ({
+              id: String(idx + 1),
+              stepOrder: idx + 1,
+              roleName: role,
+              approverName: "",
+            }))
+          );
+        } else {
+          setWorkflowSteps([
+            { id: "1", stepOrder: 1, roleName: "หัวหน้าฝ่ายจัดซื้อ (Purchasing Manager)", approverName: "" },
+            { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
+          ]);
+        }
+      } catch (err) {
+        setWorkflowSteps([
+          { id: "1", stepOrder: 1, roleName: "หัวหน้าฝ่ายจัดซื้อ (Purchasing Manager)", approverName: "" },
+          { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
+        ]);
+      }
+    }
+    loadWorkflow();
+  }, []);
 
   const handleAddItem = () => {
     const newId = String(items.length + 1);

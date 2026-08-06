@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { WorkflowsController } from './workflows.controller';
 import { WorkflowsService } from './workflows.service';
-import { S3Module } from '../common/s3/s3.module';
+import { EncryptionModule } from '../common/encryption/encryption.module';
 
 @Module({
-  imports: [S3Module],
+  imports: [EncryptionModule],
   controllers: [WorkflowsController],
   providers: [WorkflowsService],
 })

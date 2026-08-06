@@ -13,7 +13,7 @@ export interface Approval {
   submittedDate: string;
   currentLevel: number;
   maxLevels: number;
-  status: "Draft" | "Pending" | "Approved" | "Returned for Revision" | "Cancelled";
+  status: "Draft" | "Pending" | "Approved" | "Returned" | "Returned for Revision" | "Cancelled" | string;
 }
 
 export interface WorkflowStep {

@@ -99,45 +99,58 @@ export function DocumentSignerViewer({
 
         {/* 3 TOOL BUTTONS */}
         {initialStatus === "Pending" && (
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setActiveTool("signature")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTool === "signature"
-                  ? "bg-blue-600 text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-              ลายเซ็น
-            </button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTool("signature");
+                  handlePlaceStamp();
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  placedElements.signature || signaturePlaced
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : activeTool === "signature"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                {placedElements.signature || signaturePlaced ? "วางลายเซ็นแล้ว ✓" : "ประทับลายเซ็น"}
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveTool("text")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTool === "text"
-                  ? "bg-blue-600 text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Type className="w-3.5 h-3.5" />
-              ข้อความ
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTool("text");
+                  handlePlaceStamp();
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTool === "text"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Type className="w-3.5 h-3.5" />
+                ข้อความ
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveTool("date")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTool === "date"
-                  ? "bg-blue-600 text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              วันที่
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTool("date");
+                  handlePlaceStamp();
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTool === "date"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                วันที่
+              </button>
+            </div>
           </div>
         )}
       </div>

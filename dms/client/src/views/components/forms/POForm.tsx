@@ -6,7 +6,7 @@ import { useAuth } from '@views/components/providers/AuthProvider';
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
 } from "./ApprovalWorkflowSection";
-import { buildWorkflowStepsForMatrixKey } from '@views/features/master-data';
+
 
 export interface POItemInput {
   id: string;
@@ -40,12 +40,12 @@ interface POFormProps {
 }
 
 const DEPARTMENTS = [
-  "ฝ่ายจัดซื้อและพัสดุ",
-  "ฝ่ายเทคโนโลยีสารสนเทศ (IT)",
-  "ฝ่ายบัญชีและการเงิน",
-  "ฝ่ายบริหารทรัพยากรบุคคล (HR)",
-  "ฝ่ายบริหารทั่วไป",
-  "ฝ่ายวิศวกรรมและซ่อมบำรุง",
+  "แผนกจัดซื้อ",
+  "แผนกบัญชีและการเงิน",
+  "แผนกคลังสินค้าและจัดส่ง",
+  "แผนกเทคโนโลยีสารสนเทศ",
+  "แผนกทรัพยากรบุคคล",
+  "แผนกผลิต",
 ];
 
 const UNITS = ["ชิ้น", "เครื่อง", "ชุด", "กล่อง", "แพ็ค", "งวด", "งาน"];
@@ -87,9 +87,38 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
     },
   ]);
 
-  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>(() =>
-    buildWorkflowStepsForMatrixKey("PO")
-  );
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([]);
+
+  React.useEffect(() => {
+    async function loadWorkflow() {
+      try {
+        const { adminService } = await import("@/controllers/services/admin.service");
+        const workflows = (await adminService.getApprovalWorkflowsList()) as any[];
+        const poFlow = Array.isArray(workflows) ? workflows.find((w: any) => w.prefix === "PO") : null;
+        if (poFlow && poFlow.steps && poFlow.steps.length > 0) {
+          setWorkflowSteps(
+            poFlow.steps.map((role: string, idx: number) => ({
+              id: String(idx + 1),
+              stepOrder: idx + 1,
+              roleName: role,
+              approverName: "",
+            }))
+          );
+        } else {
+          setWorkflowSteps([
+            { id: "1", stepOrder: 1, roleName: "ผู้จัดการฝ่ายบัญชี/การเงิน (Finance Manager)", approverName: "" },
+            { id: "2", stepOrder: 2, roleName: "กรรมการผู้จัดการ (Managing Director)", approverName: "" },
+          ]);
+        }
+      } catch (err) {
+        setWorkflowSteps([
+          { id: "1", stepOrder: 1, roleName: "ผู้จัดการฝ่ายบัญชี/การเงิน (Finance Manager)", approverName: "" },
+          { id: "2", stepOrder: 2, roleName: "กรรมการผู้จัดการ (Managing Director)", approverName: "" },
+        ]);
+      }
+    }
+    loadWorkflow();
+  }, []);
 
   const handleAddItem = () => {
     const newId = String(items.length + 1);

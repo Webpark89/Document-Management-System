@@ -34,14 +34,38 @@ export default function UploadOnlyForm({
   const [description, setDescription] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
-  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([
-    {
-      id: "1",
-      stepOrder: 1,
-      roleName: "หัวหน้าแผนก (Department Head)",
-      approverName: "สมชาย ใจดี",
-    },
-  ]);
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([]);
+
+  React.useEffect(() => {
+    async function loadWorkflow() {
+      try {
+        const { adminService } = await import("@/controllers/services/admin.service");
+        const workflows = (await adminService.getApprovalWorkflowsList()) as any[];
+        const docFlow = Array.isArray(workflows) ? workflows.find((w: any) => w.prefix === "OTHER" || w.prefix === "DOC") : null;
+        if (docFlow && docFlow.steps && docFlow.steps.length > 0) {
+          setWorkflowSteps(
+            docFlow.steps.map((role: string, idx: number) => ({
+              id: String(idx + 1),
+              stepOrder: idx + 1,
+              roleName: role,
+              approverName: "",
+            }))
+          );
+        } else {
+          setWorkflowSteps([
+            { id: "1", stepOrder: 1, roleName: "หัวหน้าแผนก (Department Head)", approverName: "" },
+            { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
+          ]);
+        }
+      } catch (err) {
+        setWorkflowSteps([
+          { id: "1", stepOrder: 1, roleName: "หัวหน้าแผนก (Department Head)", approverName: "" },
+          { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
+        ]);
+      }
+    }
+    loadWorkflow();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

@@ -1,11 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { S3Service } from '../common/s3/s3.service';
+import { EncryptionService } from '../common/encryption/encryption.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService, private s3Service: S3Service) {}
+  constructor(
+    private prisma: PrismaService,
+    private encryption: EncryptionService,
+  ) {}
 
   // ---- Users ----
   async getUsers() {
@@ -18,6 +21,22 @@ export class AdminService {
       orderBy: { created_at: 'desc' },
     });
 
+    const cleanPosition = (name?: string): string => {
+      if (!name || name === '-') return '-';
+      let clean = name.trim()
+        .replace(/ฝ่ายจัดซื้อ|ฝ่ายผลิต|ฝ่ายบัญชี|ฝ่ายส่งมอบ|ฝ่ายคลังสินค้า|ฝ่ายทรัพยากรบุคคล|คลังสินค้า/g, '')
+        .replace(/\s+(HR|IT|QA|QC|ACC|PUR|WH|LOG)\b/gi, '')
+        .trim();
+
+      if (clean === 'เจ้าหน้าที่' || clean === 'เจ้าหน้าที่ HR' || clean === 'เจ้าหน้าที่บัญชี') return 'เจ้าหน้าที่';
+      if (clean === 'ผู้จัดการ' || clean === 'ผู้จัดการฝ่าย') return 'ผู้จัดการฝ่าย';
+      if (clean === 'ผู้อำนวยการ' || clean === 'ผู้อำนวยการฝ่าย') return 'ผู้อำนวยการ';
+      if (clean === 'หัวหน้า' || clean === 'หัวหน้างาน') return 'หัวหน้างาน / หัวหน้าแผนก';
+      if (clean.includes('ผู้ดูแลระบบ')) return 'ผู้ดูแลระบบ';
+
+      return clean || name;
+    };
+
     return users.map((u) => ({
       id: u.id,
       username: u.username,
@@ -25,7 +44,7 @@ export class AdminService {
       first_name: u.first_name,
       last_name: u.last_name,
       department: u.department?.name || '-',
-      position: u.position?.name || '-',
+      position: cleanPosition(u.position?.name),
       role: u.role?.name || 'Employee',
       is_active: u.is_active,
       created_at: u.created_at,
@@ -122,6 +141,15 @@ export class AdminService {
 
   async createRole(name: string) {
     return this.prisma.role.create({ data: { name } });
+  }
+
+  async deleteRole(id: string) {
+    const role = await this.prisma.role.findUnique({ where: { id } });
+    if (!role) throw new NotFoundException('ไม่พบ Role');
+    return this.prisma.role.update({
+      where: { id },
+      data: { is_active: false },
+    });
   }
 
   // ---- Departments & Positions ----
@@ -272,21 +300,28 @@ export class AdminService {
 
   async getSignatures() {
     const users = await this.prisma.user.findMany({
-      where: { signature_image_path: { not: null } },
+      where: { is_deleted: false },
       include: { position: true }
     });
     
-    return Promise.all(users.map(async (user) => {
-      const signedUrl = await this.s3Service.getSignedUrl(user.signature_image_path!);
+    return users.map((user) => {
+      let imageUrl: string | null = null;
+      if (user.signature_encrypted) {
+        try {
+          imageUrl = this.encryption.decrypt(user.signature_encrypted);
+        } catch {
+          imageUrl = null;
+        }
+      }
       return {
         id: user.id,
         approverName: `${user.first_name} ${user.last_name}`,
         position: user.position?.name || 'Unknown',
-        signedCount: 0, // Mocked for now, normally a join with DocumentVersion/WorkflowStep
+        signedCount: 0,
         isActive: user.is_active,
-        imageUrl: signedUrl,
+        imageUrl,
       };
-    }));
+    });
   }
 
   async createApprovalMatrixStep(dto: any) {

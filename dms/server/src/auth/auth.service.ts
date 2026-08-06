@@ -42,17 +42,26 @@ export class AuthService {
 
     const token = this.jwtService.sign(payload);
 
+    const empId = (() => {
+      if (user.username === 'admin') return 'EMP-00001';
+      const match = user.username?.match(/\d+/);
+      if (match) return `EMP-${String(100 + parseInt(match[0], 10)).padStart(5, '0')}`;
+      const hex = (user.id || '').replace(/-/g, '').substring(0, 6);
+      return `EMP-${(parseInt(hex || '0', 16) % 90000) + 10000}`;
+    })();
+
     return {
       access_token: token,
       user: {
         id: user.id,
+        employee_id: empId,
         username: user.username,
         full_name: `${user.first_name} ${user.last_name}`,
         role: user.role?.name || 'Employee',
         department: user.department?.name || null,
         email: user.email,
         position: user.position?.name || null,
-        signature_image_path: user.signature_image_path || null,
+        signature_url: user.signature_encrypted ? `/api/users/${user.id}/signature` : null,
       },
     };
   }

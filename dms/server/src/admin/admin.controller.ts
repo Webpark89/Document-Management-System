@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   Query,
@@ -55,6 +56,11 @@ export class AdminController {
   @Post('roles')
   async createRole(@Body('name') name: string) {
     return this.adminService.createRole(name);
+  }
+
+  @Delete('roles/:id')
+  async deleteRole(@Param('id') id: string) {
+    return this.adminService.deleteRole(id);
   }
 
   @Get('departments')

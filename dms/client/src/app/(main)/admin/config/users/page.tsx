@@ -20,10 +20,7 @@ import {
 import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
 import { useToast } from '@views/components/providers/ToastProvider';
 import { adminService } from "@/controllers/services/admin.service";
-import {
-  DEPARTMENTS,
-  POSITIONS,
-} from '@views/features/master-data';
+// Removed mock imports
 import {
   USER_ROLE_OPTIONS,
   type ConfigUser,
@@ -78,15 +75,13 @@ type UserForm = {
 
 type FormErrors = Partial<Record<keyof UserForm, string>>;
 
-const DEPARTMENT_OPTIONS = DEPARTMENTS.filter((d) => d.isActive).map((d) => d.name);
-
 const EMPTY_USER: UserForm = {
   fullName: "",
   email: "",
   password: "",
   phone: "",
   joinedAt: "",
-  department: DEPARTMENT_OPTIONS[0] ?? "",
+  department: "",
   position: "",
   role: USER_ROLE_OPTIONS[0],
   isActive: true,
@@ -1116,12 +1111,31 @@ function UsersPageContent() {
       setDepts(dList);
       setPositions(pList);
       setRoles(rList);
+      function cleanPositionName(name: string): string {
+        if (!name) return "—";
+        const exactMatch = pList.find((p: any) => p.name === name || p.id === name);
+        if (exactMatch) return exactMatch.name;
+        let clean = name.trim();
+        clean = clean
+          .replace(/ฝ่ายจัดซื้อ|ฝ่ายผลิต|ฝ่ายบัญชี|ฝ่ายส่งมอบ|ฝ่ายคลังสินค้า|ฝ่ายทรัพยากรบุคคล|คลังสินค้า/g, "")
+          .replace(/\s+(HR|IT|QA|QC|ACC|PUR|WH|LOG)\b/gi, "")
+          .trim();
+
+        if (clean === "เจ้าหน้าที่" || clean === "เจ้าหน้าที่ HR" || clean === "เจ้าหน้าที่บัญชี" || clean === "เจ้าหน้าที่ปฏิบัติการ" || clean === "พนักงาน") return "พนักงาน";
+        if (clean === "หัวหน้า" || clean === "หัวหน้างาน" || clean === "หัวหน้าแผนก" || clean.includes("หัวหน้า")) return "หัวหน้าแผนก";
+        if (clean === "ผู้จัดการ" || clean === "ผู้จัดการฝ่าย" || clean.includes("ผู้จัดการ")) return "ผู้จัดการฝ่าย";
+        if (clean === "ผู้อำนวยการ" || clean === "ผู้อำนวยการฝ่าย") return "ผู้อำนวยการ";
+        if (clean.includes("ผู้บริหาร") || clean.includes("Executive") || clean.includes("กรรมการ")) return "ผู้บริหาร";
+
+        return clean || name;
+      }
+
       const mapped = uList.map((u: any) => ({
         id: u.id,
         fullName: `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.username,
         email: u.email,
         department: u.department,
-        position: u.position,
+        position: cleanPositionName(u.position),
         role: u.role,
         isActive: u.is_active,
         joinedAt: u.created_at,

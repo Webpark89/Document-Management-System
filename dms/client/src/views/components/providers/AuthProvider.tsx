@@ -19,6 +19,7 @@ type AuthUser = {
   employee_id?: string;
   position?: string;
   joined_at?: string;
+  signature_url?: string | null;
 };
 
 type AuthContextValue = {

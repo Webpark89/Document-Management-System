@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
-import { S3Module } from '../common/s3/s3.module';
+import { EncryptionModule } from '../common/encryption/encryption.module';
 
 @Module({
-  imports: [S3Module],
+  imports: [EncryptionModule],
   controllers: [AdminController],
   providers: [AdminService]
 })

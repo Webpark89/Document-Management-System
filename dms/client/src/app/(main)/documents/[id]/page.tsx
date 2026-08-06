@@ -74,6 +74,15 @@ export default function DocumentDetailPage({ params }: PageProps) {
         </Link>
 
         <div className="flex items-center gap-3">
+          {(doc.status === "Pending" || doc.status === "Returned" || doc.status === "Draft") && (
+            <Link
+              href={`/documents/upload?edit=${doc.id}`}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition-all shadow-xs cursor-pointer"
+            >
+              ✏️ แก้ไขเอกสาร (Edit Document)
+            </Link>
+          )}
+
           <ResubmitButton
             documentId={doc.id}
             docStatus={doc.status}

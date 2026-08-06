@@ -5,6 +5,7 @@ import { Check, X, Loader2, AlertTriangle, RotateCcw, Ban } from "lucide-react";
 import { submitApprove, submitReject } from '@views/features/workflow/api';
 import { useRouter } from "next/navigation";
 import { useToast } from '@views/components/providers/ToastProvider';
+import { swalConfirm, swalError } from "@/lib/swal";
 
 interface ApprovalActionsProps {
   documentId: string;
@@ -22,10 +23,19 @@ export function ApprovalActions({ documentId, signaturePlaced }: ApprovalActions
 
   const handleApprove = async () => {
     if (!signaturePlaced) {
-      alert("⚠️ กรุณาวางลายเซ็นบนเอกสาร (หรือกดปุ่มประทับลายเซ็น) ใน PDF Viewer ก่อนทำการอนุมัติ!");
-      showToast("กรุณาประทับลายเซ็นลงบนเอกสารก่อนอนุมัติ", "error");
+      swalError("ต้องประทับลายเซ็นก่อนอนุมัติ", "กรุณาวางลายเซ็นบนเอกสาร (หรือกดปุ่มประทับลายเซ็น) ใน PDF Viewer ก่อนทำการอนุมัติ");
       return;
     }
+
+    const confirmed = await swalConfirm({
+      title: "ยืนยันการอนุมัติเอกสาร?",
+      text: "คุณต้องการอนุมัติเอกสารนี้และส่งไปยังขั้นตอนถัดไปหรือไม่?",
+      confirmButtonText: "อนุมัติเอกสาร",
+      cancelButtonText: "ยกเลิก",
+      icon: "question",
+      confirmButtonColor: "#2563eb",
+    });
+    if (!confirmed) return;
 
     setIsSubmitting(true);
     try {
@@ -165,7 +175,7 @@ export function ApprovalActions({ documentId, signaturePlaced }: ApprovalActions
                     ตีกลับให้ผู้สร้างแก้ไข (Reject & Return)
                   </div>
                   <p className="text-[11px] text-slate-500 font-medium">
-                    สถานะเอกสารจะเปลี่ยนเป็น Draft เพื่อให้ผู้สร้างแก้ไขและส่งขออนุมัติใหม่ได้
+                    สถานะเอกสารจะเปลี่ยนเป็น Returned (ส่งกลับแก้ไข) เพื่อให้ผู้สร้างแก้ไขและส่งขออนุมัติใหม่ได้
                   </p>
                 </div>
               </label>

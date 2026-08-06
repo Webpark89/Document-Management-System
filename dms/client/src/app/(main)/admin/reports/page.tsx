@@ -53,11 +53,31 @@ export default function ReportsPage() {
   const [dateTo, setDateTo] = useState("");
   const [filterType, setFilterType] = useState("All");
   const [filterDept, setFilterDept] = useState("All");
+  const [departments, setDepartments] = useState<string[]>([
+    "All",
+    "แผนกจัดซื้อ",
+    "แผนกบัญชีและการเงิน",
+    "แผนกคลังสินค้าและจัดส่ง",
+    "แผนกเทคโนโลยีสารสนเทศ",
+    "แผนกทรัพยากรบุคคล",
+    "แผนกผลิต"
+  ]);
 
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
 
   const [documents, setDocuments] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    fetch("/api/admin/departments")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setDepartments(["All", ...data.map((d: any) => d.name || d)]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   React.useEffect(() => {
     getDocuments().then(docs => {
@@ -67,8 +87,13 @@ export default function ReportsPage() {
         department: d.department || "ทั่วไป",
         status: d.status,
         date: d.submittedDate || d.created_at,
-        value: typeof d.amount === "string" ? parseFloat(d.amount.replace(/[^0-9.-]+/g,"")) : (d.amount || 0),
-        approvalDays: Math.floor(Math.random() * 5) + 1 // Mock approval days until real workflow history is complete
+        approvalDays: (() => {
+          const doc: any = d;
+          if (!doc.created_at || !doc.updated_at) return 1;
+          const diff = new Date(doc.updated_at).getTime() - new Date(doc.created_at).getTime();
+          const days = Math.ceil(diff / (1000 * 3600 * 24));
+          return days > 0 ? days : 1;
+        })()
       }));
       setDocuments(mapped);
     });
@@ -237,8 +262,8 @@ export default function ReportsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50/80">
-              {filteredData.map(doc => (
-                <tr key={doc.id} className="hover:bg-slate-50/50 transition-colors">
+              {filteredData.map((doc, idx) => (
+                <tr key={(doc as any).real_id || `${doc.id}-${idx}`} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-4 pl-4 text-sm font-bold text-slate-500">{doc.id}</td>
                   <td className="py-4 text-xs font-semibold px-2">
                     <span className="bg-slate-50 border border-slate-100 text-slate-600 px-2.5 py-1 rounded-md">
@@ -473,7 +498,11 @@ export default function ReportsPage() {
                   onChange={(e) => setFilterDept(e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                 >
-                  {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                  {departments.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

@@ -1,12 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ShieldCheck, UserCheck } from "lucide-react";
+import { adminService } from "@/controllers/services/admin.service";
 
 export interface WorkflowStepInput {
   id: string;
   stepOrder: number;
   roleName: string;
+  approverId?: string;
   approverName: string;
 }
 
@@ -15,34 +17,71 @@ interface ApprovalWorkflowSectionProps {
   onChange: (steps: WorkflowStepInput[]) => void;
 }
 
-const DEFAULT_ROLES = [
-  "หัวหน้าแผนก (Department Head)",
-  "ผู้จัดการฝ่าย (Division Manager)",
-  "ผู้จัดการฝ่ายจัดซื้อ (Procurement Manager)",
-  "ผู้อำนวยการ (Director / VP)",
-  "ประธานบริหาร (CEO)",
-  "เจ้าหน้าที่ตรวจสอบ (Audit Officer)",
-];
-
-const MOCK_APPROVERS = [
-  { name: "สมชาย ใจดี", role: "หัวหน้าแผนก IT" },
-  { name: "วิภา รักดี", role: "ผู้จัดการฝ่ายจัดซื้อ" },
-  { name: "อรทัย สุขใจ", role: "ผู้อำนวยการการเงิน" },
-  { name: "ชาญชัย มีสุข", role: "ประธานบริหาร" },
-  { name: "กิตติศักดิ์ พรหมมา", role: "ผู้จัดการฝ่าย HR" },
-];
-
 export default function ApprovalWorkflowSection({
   steps,
   onChange,
 }: ApprovalWorkflowSectionProps) {
-  const handleStepChange = (
-    id: string,
-    field: keyof WorkflowStepInput,
-    value: string
-  ) => {
+  const [users, setUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    adminService
+      .getUsersList()
+      .then((res) => {
+        const activeUsers = (res || []).filter((u: any) => u.is_active);
+        setUsers(activeUsers);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Auto-fill empty or unassigned steps when users load or steps change
+  useEffect(() => {
+    if (users.length === 0) return;
+
+    let currentSteps = steps;
+    if (!currentSteps || currentSteps.length === 0) {
+      currentSteps = [
+        { id: "1", stepOrder: 1, roleName: "ผู้จัดการแผนก (Department Manager)", approverName: "" },
+        { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
+      ];
+    }
+
+    let changed = currentSteps.length !== steps.length;
+    const updated = currentSteps.map((step, idx) => {
+      const match = users.find(
+        (u) =>
+          u.id === step.approverId ||
+          `${u.first_name} ${u.last_name}`.trim().toLowerCase() === step.approverName.trim().toLowerCase() ||
+          u.username === step.approverName
+      );
+
+      if (!match || !step.approverName || !step.approverId) {
+        changed = true;
+        const userToAssign = users[idx % users.length];
+        return {
+          ...step,
+          approverId: userToAssign.id,
+          approverName: `${userToAssign.first_name} ${userToAssign.last_name}`,
+        };
+      }
+      return step;
+    });
+
+    if (changed) {
+      onChange(updated);
+    }
+  }, [users, steps, onChange]);
+
+  const handleApproverSelect = (id: string, selectedUserId: string) => {
+    const selectedUser = users.find((u) => u.id === selectedUserId);
+    if (!selectedUser) return;
+    const fullName = `${selectedUser.first_name} ${selectedUser.last_name}`;
+
     onChange(
-      steps.map((s) => (s.id === id ? { ...s, [field]: value } : s))
+      steps.map((s) =>
+        s.id === id
+          ? { ...s, approverId: selectedUser.id, approverName: fullName }
+          : s
+      )
     );
   };
 
@@ -71,10 +110,20 @@ export default function ApprovalWorkflowSection({
 
       <div className="space-y-3">
         {steps.map((step) => {
-          // Find chosen approvers in other steps
-          const otherChosenApprovers = new Set(
-            steps.filter((s) => s.id !== step.id).map((s) => s.approverName)
+          // Find chosen approver IDs in other steps
+          const otherChosenIds = new Set(
+            steps
+              .filter((s) => s.id !== step.id && s.approverId)
+              .map((s) => s.approverId)
           );
+
+          const currentSelectedUser = users.find(
+            (u) =>
+              u.id === step.approverId ||
+              `${u.first_name} ${u.last_name}`.trim().toLowerCase() === step.approverName.trim().toLowerCase()
+          );
+
+          const currentVal = currentSelectedUser?.id || step.approverId || "";
 
           return (
             <div
@@ -105,23 +154,25 @@ export default function ApprovalWorkflowSection({
                   </label>
                   <div className="relative">
                     <select
-                      value={step.approverName}
+                      value={currentVal}
                       onChange={(e) =>
-                        handleStepChange(step.id, "approverName", e.target.value)
+                        handleApproverSelect(step.id, e.target.value)
                       }
                       className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500 appearance-none pr-8 cursor-pointer"
                     >
-                      {MOCK_APPROVERS.map((appr) => {
-                        const isChosenInOtherStep = otherChosenApprovers.has(
-                          appr.name
-                        );
+                      {users.length === 0 && (
+                        <option value="">กำลังโหลดรายชื่อ...</option>
+                      )}
+                      {users.map((u) => {
+                        const fullName = `${u.first_name} ${u.last_name}`;
+                        const isChosenInOtherStep = otherChosenIds.has(u.id);
                         return (
                           <option
-                            key={appr.name}
-                            value={appr.name}
+                            key={u.id}
+                            value={u.id}
                             disabled={isChosenInOtherStep}
                           >
-                            {appr.name} ({appr.role})
+                            {fullName} ({u.role?.name || "N/A"})
                             {isChosenInOtherStep ? " — เลือกแล้วในขั้นอื่น" : ""}
                           </option>
                         );

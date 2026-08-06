@@ -1,59 +1,87 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { S3Service } from '../common/s3/s3.service';
+import { EncryptionService } from '../common/encryption/encryption.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService, private s3Service: S3Service) {}
+  constructor(
+    private prisma: PrismaService,
+    private encryption: EncryptionService,
+  ) {}
 
   async uploadSignature(userId: string, file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('ไม่พบไฟล์รูปภาพลายเซ็น');
     }
 
-    // Ensure it's an image
     if (!file.mimetype.startsWith('image/')) {
       throw new BadRequestException('กรุณาอัปโหลดไฟล์รูปภาพเท่านั้น');
     }
 
-    const ext = file.originalname.split('.').pop() || 'png';
-    const objectKey = `signatures/${userId}.${ext}`;
+    // Convert image buffer to base64 with data URI prefix
+    const base64Data = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
     
-    // Upload to S3
-    await this.s3Service.uploadFile(objectKey, file.buffer, file.mimetype);
-    
-    // Update DB
+    // Encrypt the signature
+    const encryptedSignature = this.encryption.encrypt(base64Data);
+
+    // Save encrypted signature in DB
     await this.prisma.user.update({
       where: { id: userId },
-      data: { signature_image_path: objectKey },
+      data: { signature_encrypted: encryptedSignature },
     });
 
-    // Write AuditLog for legal compliance
+    // Write AuditLog
     await this.prisma.auditLog.create({
       data: {
         user_id: userId,
         action: 'Signature',
         module: 'User',
         target_id: userId,
-        details: { objectKey },
+        details: { encrypted: true },
       },
     });
 
-    const signedUrl = await this.s3Service.getSignedUrl(objectKey);
-    return { success: true, path: objectKey, url: signedUrl };
+    return { success: true, url: base64Data };
   }
 
   async getMySignatureUrl(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { signature_image_path: true },
+      select: { signature_encrypted: true },
     });
 
-    if (!user || !user.signature_image_path) {
+    if (!user || !user.signature_encrypted) {
       return { url: null };
     }
 
-    const signedUrl = await this.s3Service.getSignedUrl(user.signature_image_path);
-    return { url: signedUrl };
+    const decrypted = this.encryption.decrypt(user.signature_encrypted);
+    return { url: decrypted };
+  }
+
+  async getSignatureBuffer(userId: string): Promise<{ buffer: Buffer; mimeType: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { signature_encrypted: true },
+    });
+
+    if (!user || !user.signature_encrypted) {
+      throw new NotFoundException('ไม่พบลายเซ็นของผู้ใช้นี้');
+    }
+
+    const decrypted = this.encryption.decrypt(user.signature_encrypted);
+    // Parse data URI format: data:image/png;base64,...
+    const matches = decrypted.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+    if (!matches) {
+      // Fallback if raw base64 string
+      return {
+        buffer: Buffer.from(decrypted, 'base64'),
+        mimeType: 'image/png',
+      };
+    }
+
+    return {
+      mimeType: matches[1],
+      buffer: Buffer.from(matches[2], 'base64'),
+    };
   }
 }

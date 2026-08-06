@@ -65,6 +65,27 @@ function CardSectionHeader({
   );
 }
 
+function formatEmployeeId(u: any): string {
+  if (!u) return "—";
+  if (u.employee_id && typeof u.employee_id === "string" && !u.employee_id.includes("-")) {
+    return u.employee_id;
+  }
+  const username = u.username || "";
+  if (username.toLowerCase() === "admin") return "EMP-00001";
+  const match = username.match(/\d+/);
+  if (match) {
+    const num = parseInt(match[0], 10);
+    return `EMP-${String(100 + num).padStart(5, "0")}`;
+  }
+  const idStr = String(u.id || "");
+  if (idStr.length > 0) {
+    const hex = idStr.replace(/-/g, "").substring(0, 6);
+    const num = (parseInt(hex, 16) % 90000) + 10000;
+    return `EMP-${num}`;
+  }
+  return "EMP-00101";
+}
+
 export default function ProfilePage() {
   const { user } = useAuth();
   const { signatures, addSignature, updateSignature, findByApproverName } = useSignatures();
@@ -167,7 +188,7 @@ export default function ProfilePage() {
   const profileMeta = useMemo(
     () => ({
       email: displayEmail,
-      employeeId: user?.employee_id ?? user?.id ?? "—",
+      employeeId: formatEmployeeId(user),
       position: user?.position ?? "—",
       joinedAt: user?.joined_at
         ? new Date(user.joined_at).toLocaleDateString("th-TH", {
@@ -177,7 +198,7 @@ export default function ProfilePage() {
           })
         : "—",
     }),
-    [displayEmail, user?.employee_id, user?.id, user?.position, user?.joined_at]
+    [displayEmail, user]
   );
 
   const handleEditInfo = () => {
@@ -296,13 +317,17 @@ export default function ProfilePage() {
                           <dd className="mt-0.5 text-slate-400">—</dd>
                         </div>
                       </dl>
-                      <div className="flex flex-1 items-center justify-center">
+                      <div className="flex flex-1 items-center justify-center relative overflow-hidden select-none p-2 rounded-lg bg-slate-50/50 border border-slate-100">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={previewUrl}
                           alt="ลายเซ็น"
-                          className="max-h-20 max-w-full object-contain"
+                          className="max-h-20 max-w-full object-contain pointer-events-none"
                         />
+                        <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center rotate-[-12deg] opacity-20 text-[10px] font-extrabold text-rose-600 tracking-wider uppercase select-none">
+                          <span>FOR PREVIEW ONLY</span>
+                          <span>ตัวอย่างลายเซ็นระบบ</span>
+                        </div>
                       </div>
                     </>
                   ) : (

@@ -83,14 +83,15 @@ export const adminService = {
     return res.data;
   },
 
+  async deleteRole(id: string): Promise<any> {
+    const res = await api.delete(`/api/admin/roles/${id}`);
+    return res.data;
+  },
+
   // ---- Departments ----
   async getDepartments(): Promise<string[]> {
-    try {
-      const list = await this.getDepartmentsList();
-      return list.map((d) => d.name);
-    } catch {
-      return ["แผนก IT", "แผนกจัดซื้อ", "แผนก HR", "แผนกผลิต"];
-    }
+    const list = await this.getDepartmentsList();
+    return list.map((d) => d.name);
   },
 
   async getDepartmentsList(): Promise<DepartmentDto[]> {
@@ -110,12 +111,8 @@ export const adminService = {
 
   // ---- Positions ----
   async getPositions(): Promise<string[]> {
-    try {
-      const list = await this.getPositionsList();
-      return list.map((p) => p.name);
-    } catch {
-      return ["ผู้อำนวยการ", "ผู้จัดการ", "หัวหน้าแผนก", "พนักงาน"];
-    }
+    const list = await this.getPositionsList();
+    return list.map((p) => p.name);
   },
 
   async getPositionsList(): Promise<PositionDto[]> {
@@ -151,12 +148,8 @@ export const adminService = {
 
   // ---- Approval Matrix & Running Numbers ----
   async getApprovalMatrix() {
-    try {
-      const res = await api.get("/api/admin/approval-matrix");
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await api.get("/api/admin/approval-matrix");
+    return res.data;
   },
 
   async createApprovalMatrixStep(payload: { document_type_id: string; step_order: number; approver_role_id: string }) {

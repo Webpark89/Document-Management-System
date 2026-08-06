@@ -15,18 +15,15 @@ export const DEPARTMENTS: DepartmentRecord[] = [
   { id: "3", name: "แผนกคลังสินค้าและจัดส่ง", code: "WH", employeeCount: 15, isActive: true },
   { id: "4", name: "แผนกเทคโนโลยีสารสนเทศ", code: "IT", employeeCount: 6, isActive: true },
   { id: "5", name: "แผนกทรัพยากรบุคคล", code: "HR", employeeCount: 5, isActive: true },
-  { id: "6", name: "แผนกบริหารงานทั่วไป", code: "GA", employeeCount: 7, isActive: true },
-  { id: "7", name: "แผนกประกันคุณภาพ", code: "QA", employeeCount: 9, isActive: true },
-  { id: "8", name: "แผนกผลิต", code: "PROD", employeeCount: 20, isActive: true },
+  { id: "6", name: "แผนกผลิต", code: "PROD", employeeCount: 20, isActive: true },
 ];
 
 export const POSITIONS: PositionRecord[] = [
-  { id: "1", name: "ผู้จัดการฝ่ายจัดซื้อ", level: "L3", department: "แผนกจัดซื้อ", isActive: true },
-  { id: "2", name: "เจ้าหน้าที่บัญชี", level: "L1", department: "แผนกบัญชีและการเงิน", isActive: true },
-  { id: "3", name: "หัวหน้าคลังสินค้า", level: "L2", department: "แผนกคลังสินค้าและจัดส่ง", isActive: true },
-  { id: "4", name: "ผู้ดูแลระบบ IT", level: "L3", department: "แผนกเทคโนโลยีสารสนเทศ", isActive: true },
-  { id: "5", name: "เจ้าหน้าที่ HR", level: "L1", department: "แผนกทรัพยากรบุคคล", isActive: true },
-  { id: "6", name: "ผู้อำนวยการฝ่ายผลิต", level: "L4", department: "แผนกผลิต", isActive: true },
+  { id: "1", name: "พนักงาน", level: "L1", department: "ทั่วไป", isActive: true },
+  { id: "2", name: "หัวหน้าแผนก", level: "L2", department: "ทั่วไป", isActive: true },
+  { id: "3", name: "ผู้จัดการฝ่าย", level: "L3", department: "ทั่วไป", isActive: true },
+  { id: "4", name: "ผู้อำนวยการ", level: "L4", department: "ทั่วไป", isActive: true },
+  { id: "5", name: "ผู้บริหาร", level: "L5", department: "ทั่วไป", isActive: true },
 ];
 
 export const DOCUMENT_TYPES: MasterDocumentTypeRecord[] = [

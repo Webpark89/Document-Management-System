@@ -13,12 +13,14 @@ export function getStatusVariant(status: string): BadgeVariant {
       return "green";
     case "Pending":
       return "amber";
+    case "Returned":
     case "Returned for Revision":
+      return "amber";
+    case "Cancelled":
+    case "Rejected":
       return "destructive";
     case "Draft":
       return "secondary";
-    case "Cancelled":
-      return "outline";
     default:
       return "secondary";
   }

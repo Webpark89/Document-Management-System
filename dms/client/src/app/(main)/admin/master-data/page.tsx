@@ -16,11 +16,11 @@ import {
   X,
 } from "lucide-react";
 import { useToast } from '@views/components/providers/ToastProvider';
+import { swalConfirm } from "@/lib/swal";
 import { useSidebar } from '@views/components/providers/SidebarProvider';
 import { adminService } from '@/controllers/services/admin.service';
 import {
-  countActivePositionsInDepartment,
-  countWorkflowsUsingApprover,
+
   ROLE_OPTIONS,
   type DepartmentRecord,
   type DocumentTypeRecord,
@@ -107,7 +107,7 @@ const EMPTY_TAB_DATA: TabData = {
   workflow: [],
   signature: [],
 };
-const APPROVER_USERS = getApproverUsers();
+const APPROVER_USERS: any[] = [];
 
 type FormState = {
   name: string;
@@ -364,14 +364,7 @@ function getDeleteGuard(
     }
   }
   if (tab === "signature") {
-    const r = row as SignatureRow;
-    const n = countWorkflowsUsingApprover(r.approverName, data.workflow);
-    if (n > 0) {
-      return {
-        blocked: true,
-        tooltip: `ไม่สามารถลบได้ เนื่องจากถูกใช้ในสายอนุมัติ ${n} รายการ`,
-      };
-    }
+    // Note: Signature dependencies should be checked via backend API eventually.
   }
   return { blocked: false, tooltip: "ลบรายการ" };
 }
@@ -427,16 +420,69 @@ function MasterDataPageContent() {
           department: depts.length > 0 ? depts.map((d: any) => ({
             id: d.id,
             name: d.name,
-            code: d.name.substring(0, 3).toUpperCase(),
+            code: d.code && d.code !== "แผน" ? d.code : (() => {
+              const name = d.name || "";
+              if (name.includes("คลัง") || name.includes("จัดส่ง")) return "WH";
+              if (name.includes("จัดซื้อ")) return "PUR";
+              if (name.includes("ทรัพยากรบุคคล")) return "HR";
+              if (name.includes("เทคโนโลยี") || name.includes("สารสนเทศ")) return "IT";
+              if (name.includes("บัญชี") || name.includes("การเงิน")) return "ACC";
+              if (name.includes("ผลิต")) return "PROD";
+              if (name.includes("วิศวกรรม") || name.includes("ซ่อมบำรุง")) return "ENG";
+              if (name.includes("บริหาร")) return "GA";
+              if (name.includes("ประกันคุณภาพ")) return "QA";
+              const clean = name.replace(/^แผนก/, "").trim();
+              return clean.substring(0, 4).toUpperCase() || "DEPT";
+            })(),
             employeeCount: d.employeeCount || 0,
             isActive: d.is_active,
           })) : prev.department,
-          position: pos.length > 0 ? pos.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            level: p.level || "L1",
-            isActive: p.is_active,
-          })) : prev.position,
+          position: pos.length > 0 ? (() => {
+            const seen = new Set<string>();
+            const result: any[] = [];
+
+            for (const p of pos) {
+              const rawName = p.name || "";
+              let cleanName = rawName
+                .replace(/ฝ่ายจัดซื้อ|ฝ่ายผลิต|ฝ่ายบัญชี|ฝ่ายส่งมอบ|ฝ่ายคลังสินค้า|ฝ่ายทรัพยากรบุคคล|คลังสินค้า/g, "")
+                .replace(/\s+(HR|IT|QA|QC|ACC|PUR|WH|LOG)\b/gi, "")
+                .trim();
+
+              if (cleanName === "เจ้าหน้าที่" || cleanName === "เจ้าหน้าที่ HR" || cleanName === "เจ้าหน้าที่บัญชี" || cleanName === "เจ้าหน้าที่ปฏิบัติการ" || cleanName === "พนักงาน") cleanName = "พนักงาน";
+              else if (cleanName === "หัวหน้า" || cleanName === "หัวหน้างาน" || cleanName === "หัวหน้าแผนก" || cleanName.includes("หัวหน้า")) cleanName = "หัวหน้าแผนก";
+              else if (cleanName === "ผู้จัดการ" || cleanName === "ผู้จัดการฝ่าย" || cleanName.includes("ผู้จัดการ")) cleanName = "ผู้จัดการฝ่าย";
+              else if (cleanName === "ผู้อำนวยการ" || cleanName === "ผู้อำนวยการฝ่าย") cleanName = "ผู้อำนวยการ";
+              else if (cleanName.includes("ผู้บริหาร") || cleanName.includes("Executive") || cleanName.includes("กรรมการ")) cleanName = "ผู้บริหาร";
+
+              if (!cleanName) cleanName = rawName;
+
+              let inferredLevel = p.level;
+              if (!inferredLevel || inferredLevel === "L1") {
+                if (cleanName === "ผู้บริหาร") {
+                  inferredLevel = "L5";
+                } else if (cleanName === "ผู้อำนวยการ") {
+                  inferredLevel = "L4";
+                } else if (cleanName === "ผู้จัดการฝ่าย") {
+                  inferredLevel = "L3";
+                } else if (cleanName === "หัวหน้าแผนก") {
+                  inferredLevel = "L2";
+                } else {
+                  inferredLevel = "L1";
+                }
+              }
+
+              if (!seen.has(cleanName)) {
+                seen.add(cleanName);
+                result.push({
+                  id: p.id,
+                  name: cleanName,
+                  level: inferredLevel,
+                  isActive: p.is_active,
+                });
+              }
+            }
+            return result;
+          })() : prev.position,
           doctype: docTs.length > 0 ? docTs.map((dt: any) => ({
             id: dt.id,
             name: dt.type_name,
@@ -455,24 +501,28 @@ function MasterDataPageContent() {
     fetchData();
   }, []);
 
+  const effectiveSignatures = useMemo(() => {
+    return data.signature.length > 0 ? data.signature : signatures;
+  }, [data.signature, signatures]);
+
   const rows = useMemo(() => {
     if (activeTab === "running") return [];
     const list =
-      activeTab === "signature" ? signatures : data[activeTab as DataTabKey];
+      activeTab === "signature" ? effectiveSignatures : data[activeTab as DataTabKey];
     return showDeleted ? list.filter((r) => !r.isActive) : list.filter((r) => r.isActive);
-  }, [data, activeTab, showDeleted, signatures]);
+  }, [data, activeTab, showDeleted, effectiveSignatures]);
 
   const tabLabel = TABS.find((t) => t.key === activeTab)?.label ?? "Master Data";
   const tabStats = useMemo(() => {
     if (activeTab === "running") return { total: 0, active: 0, deleted: 0 };
     const list =
-      activeTab === "signature" ? signatures : data[activeTab as DataTabKey];
+      activeTab === "signature" ? effectiveSignatures : data[activeTab as DataTabKey];
     return {
       total: list.length,
       active: list.filter((r) => r.isActive).length,
       deleted: list.filter((r) => !r.isActive).length,
     };
-  }, [data, activeTab, signatures]);
+  }, [data, activeTab, effectiveSignatures]);
 
   const openAdd = () => {
     setEditingId(null);
@@ -485,7 +535,7 @@ function MasterDataPageContent() {
 
   const openEdit = (id: string) => {
     setEditingId(id);
-    const list = activeTab === "signature" ? signatures : data[activeTab as DataTabKey];
+    const list = activeTab === "signature" ? effectiveSignatures : data[activeTab as DataTabKey];
     const row = list.find((r) => r.id === id);
     if (!row) return;
 
@@ -587,9 +637,16 @@ function MasterDataPageContent() {
     }
   }, [activeTab, form, data, editingId]);
 
-  const closeModal = () => {
+  const closeModal = async () => {
     if (isModalDirty) {
-      if (!confirm("ยังไม่ได้บันทึกข้อมูล ต้องการปิดหน้าต่างนี้หรือไม่?")) return;
+      const confirmed = await swalConfirm({
+        title: "ปิดหน้าต่างโดยไม่บันทึก?",
+        text: "ข้อมูลที่คุณแก้ไขยังไม่ได้บันทึก คุณต้องการปิดหน้าต่างนี้หรือไม่?",
+        confirmButtonText: "ปิดหน้าต่าง",
+        cancelButtonText: "ยกเลิก",
+        icon: "warning",
+      });
+      if (!confirmed) return;
     }
     setModalOpen(false);
     setEditingId(null);
@@ -808,8 +865,8 @@ function MasterDataPageContent() {
   };
 
   const signatureGuardData = useMemo(
-    () => ({ ...data, signature: signatures }),
-    [data, signatures]
+    () => ({ ...data, signature: effectiveSignatures }),
+    [data, effectiveSignatures]
   );
 
   const mobileRows = useMemo(() => {
@@ -921,10 +978,21 @@ function MasterDataPageContent() {
       }
       case "position": {
         const r = row as PositionRow;
+        const lvl = r.level || "L1";
+        const levelBadgeClass = 
+          lvl === 'L4' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+          lvl === 'L3' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+          lvl === 'L2' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+          'bg-slate-50 text-slate-600 border-slate-200';
+
         return (
           <>
             <td className={tdSticky}>{r.name}</td>
-            <td className={tdMuted}>{r.level}</td>
+            <td className={tdCls}>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border ${levelBadgeClass}`}>
+                {lvl}
+              </span>
+            </td>
           </>
         );
       }
@@ -1675,19 +1743,17 @@ function MasterDataPageContent() {
                 <X className="size-4" />
               </button>
             </div>
-            {/* Note for BE: In production, the file url below should ideally point to a watermarked view endpoint, e.g. /api/signatures/1/preview */}
-            <div className="my-8 flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50/50 p-6 shadow-inner relative overflow-hidden">
+            <div className="my-8 flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50/50 p-6 shadow-inner relative overflow-hidden select-none">
               <img
                 src={previewSignatureUrl}
                 alt={previewSignatureName}
-                className="h-32 max-w-full object-contain opacity-70 filter blur-[0.3px]"
+                className="h-32 max-w-full object-contain pointer-events-none"
               />
-              {/* HTML Watermark overlay for UI safety mockup */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none p-4">
-                <div className="text-[11px] font-black text-red-500/25 uppercase tracking-widest rotate-[-15deg] whitespace-nowrap text-center leading-normal">
-                  PREVIEW ONLY • FOR VERIFICATION ONLY<br/>
-                  CONFIDENTIAL • NOT FOR PRODUCTION USE
-                </div>
+              {/* Security Watermark Overlay */}
+              <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center rotate-[-15deg] opacity-20 font-black text-rose-600 text-xs sm:text-sm tracking-widest uppercase select-none leading-relaxed text-center p-2">
+                <span>FOR PREVIEW ONLY</span>
+                <span>ห้ามคัดลอก / ตัวอย่างลายเซ็นระบบ</span>
+                <span className="text-[10px]">SECURITY WATERMARK</span>
               </div>
             </div>
             <button

@@ -5,7 +5,6 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { S3Service } from '../common/s3/s3.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 
 export interface FindAllOptions {
@@ -20,10 +19,7 @@ export interface FindAllOptions {
 
 @Injectable()
 export class DocumentsService {
-  constructor(
-    private prisma: PrismaService,
-    private s3: S3Service,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async findAll(options: FindAllOptions) {
     const {
@@ -36,13 +32,11 @@ export class DocumentsService {
       currentUserRole,
     } = options;
 
-    // Clamp limit to prevent abuse (max 100 per page)
     const take = Math.min(Math.max(Number(limit), 1), 100);
     const skip = (Math.max(Number(page), 1) - 1) * take;
 
     const where: any = { is_deleted: false };
 
-    // Non-admin users see only their own documents
     if (currentUserRole !== 'Administrator' && currentUserId) {
       where.creator_id = currentUserId;
     }
@@ -72,7 +66,14 @@ export class DocumentsService {
           pr_form: true,
           po_form: true,
           bk_form: true,
-          workflow: { include: { steps: true } },
+          workflow: {
+          include: {
+            steps: {
+              include: { approver: { include: { role: true } } },
+              orderBy: { step_order: 'asc' },
+            },
+          },
+        },
         },
         orderBy: { created_at: 'desc' },
         skip,
@@ -132,7 +133,6 @@ export class DocumentsService {
   }
 
   async create(dto: CreateDocumentDto, creatorId: string) {
-    // Creator must exist — no auto-create
     const creator = await this.prisma.user.findUnique({
       where: { id: creatorId },
     });
@@ -140,14 +140,12 @@ export class DocumentsService {
       throw new BadRequestException('ไม่พบข้อมูลผู้สร้างเอกสาร');
     }
 
-    // Resolve Department
     const deptId =
       creator.department_id ||
       (() => {
         throw new BadRequestException('ผู้ใช้ยังไม่ได้กำหนดแผนก');
       })();
 
-    // Resolve Document Type
     let prefix = (dto.prefix || 'PR').toUpperCase();
     if (prefix === 'MEMO') prefix = 'BK';
 
@@ -158,7 +156,6 @@ export class DocumentsService {
       throw new BadRequestException(`ไม่พบประเภทเอกสาร prefix="${prefix}"`);
     }
 
-    // Auto-generate doc_number with optimistic locking via transaction
     const docNumber = await this.prisma.$transaction(async (tx) => {
       let running = await tx.runningNumber.findUnique({
         where: { document_type_id: docType.id },
@@ -196,7 +193,6 @@ export class DocumentsService {
       return `${docType.prefix}-${currentYear}-${paddedStr}`;
     });
 
-    // Calculate Items
     let totalAmount = 0;
     const itemsData = (dto.items || []).map((item) => {
       const itemTotal =
@@ -212,7 +208,6 @@ export class DocumentsService {
       };
     });
 
-    // Build form data by type
     const docData: any = {
       doc_number: docNumber,
       title: dto.title,
@@ -258,7 +253,14 @@ export class DocumentsService {
         pr_form: true,
         po_form: true,
         bk_form: true,
-        workflow: { include: { steps: true } },
+        workflow: {
+          include: {
+            steps: {
+              include: { approver: { include: { role: true } } },
+              orderBy: { step_order: 'asc' },
+            },
+          },
+        },
       },
     });
 
@@ -282,30 +284,21 @@ export class DocumentsService {
     return this.mapDocumentToResponse(createdDoc);
   }
 
-  /**
-   * สร้างเอกสาร + อัปโหลดไฟล์ PDF ขึ้น R2 พร้อมกัน
-   * ใช้สำหรับ POST /documents/upload (multipart/form-data)
-   */
   async createWithFile(
     dto: CreateDocumentDto,
     creatorId: string,
     file: Express.Multer.File,
     approverIds: string[] = [],
   ) {
-    // สร้างเอกสารก่อน (ใช้ logic เดิม)
     const doc = await this.create(dto, creatorId);
-    const s3Key = `documents/${doc.doc_number}/v1.pdf`;
 
     try {
-      // อัปโหลดไฟล์ขึ้น R2 / Storage
-      await this.s3.uploadFile(s3Key, file.buffer, 'application/pdf');
-
-      // สร้าง DocumentVersion แรก
+      // Store PDF buffer directly in Postgres
       const version = await this.prisma.documentVersion.create({
         data: {
           document_id: doc.real_id,
           version_number: 1,
-          file_path: s3Key,
+          file_data: file.buffer,
           file_size: String(file.size),
           file_extension: 'pdf',
           uploaded_by_id: creatorId,
@@ -313,46 +306,59 @@ export class DocumentsService {
         },
       });
 
-      return { ...doc, version_number: version.version_number, file_path: s3Key };
+      return { ...doc, version_number: version.version_number };
     } catch (err) {
-      // Rollback: ลบเอกสารที่เพิ่งสร้างเพื่อไม่ให้เป็น orphan record
       await this.prisma.document.delete({ where: { id: doc.real_id } }).catch(() => {});
       throw err;
     }
   }
 
-  /**
-   * คืน Signed URL ของ PDF เวอร์ชันล่าสุด (อายุ 1 ชั่วโมง)
-   * ใช้สำหรับ GET /documents/:id/signed-url
-   */
-  async getLatestVersionSignedUrl(id: string): Promise<{ url: string; expires_in: number }> {
+  async getLatestVersionDownloadUrl(id: string): Promise<{ url: string }> {
     const doc = await this.findOne(id);
-    const versions: any[] = doc.versions || [];
-
-    if (!versions.length) {
-      throw new NotFoundException('เอกสารยังไม่มีไฟล์ PDF กรุณาอัปโหลดไฟล์ก่อน');
-    }
-
-    // หยิบ version ล่าสุด (version_number สูงสุด)
-    const latest = versions.sort((a, b) => b.version_number - a.version_number)[0];
-
-    const url = await this.s3.getSignedUrl(latest.file_path, 3600);
-    return { url, expires_in: 3600 };
+    return { url: `/api/documents/${doc.real_id || doc.id}/download` };
   }
 
-  async getFileBuffer(key: string): Promise<Buffer> {
-    return this.s3.downloadFile(key);
+  async getFileBuffer(documentId: string, versionNumber?: number): Promise<Buffer> {
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        documentId,
+      );
+
+    const doc = await this.prisma.document.findFirst({
+      where: {
+        OR: isUuid ? [{ id: documentId }, { doc_number: documentId }] : [{ doc_number: documentId }],
+        is_deleted: false,
+      },
+    });
+
+    if (!doc) {
+      throw new NotFoundException('ไม่พบเอกสาร');
+    }
+
+    const versionWhere: any = { document_id: doc.id };
+    if (versionNumber) {
+      versionWhere.version_number = Number(versionNumber);
+    }
+
+    const version = await this.prisma.documentVersion.findFirst({
+      where: versionWhere,
+      orderBy: { version_number: 'desc' },
+    });
+
+    if (!version || !version.file_data) {
+      throw new NotFoundException('ไม่พบไฟล์ PDF ในฐานข้อมูล');
+    }
+
+    return version.file_data;
   }
 
   async softDelete(id: string, currentUser: { id: string; role: string }) {
-
     const doc = await this.prisma.document.findFirst({
       where: { OR: [{ id }, { doc_number: id }], is_deleted: false },
     });
 
     if (!doc) throw new NotFoundException('ไม่พบเอกสาร');
 
-    // Only owner or Administrator can delete
     const isOwner = doc.creator_id === currentUser.id;
     const isAdmin = currentUser.role === 'Administrator';
     if (!isOwner && !isAdmin) {
@@ -391,63 +397,70 @@ export class DocumentsService {
         ? `฿${Number(doc.po_form.total_amount).toLocaleString()}`
         : '-';
 
-    const creatorSigUrl = doc.creator?.signature_image_path
-      ? await this.s3.getSignedUrl(doc.creator.signature_image_path)
+    const creatorSigUrl = doc.creator?.signature_encrypted
+      ? `/api/users/${doc.creator.id}/signature`
       : null;
 
     let workflow = doc.workflow;
     if (workflow && workflow.steps) {
-      const stepsWithSig = await Promise.all(
-        workflow.steps.map(async (step: any) => {
-          let signature_url: string | null = null;
-          if (step.approver?.signature_image_path) {
-            signature_url = await this.s3.getSignedUrl(
-              step.approver.signature_image_path,
-            );
-          }
-          return {
-            ...step,
-            approver: step.approver
-              ? {
-                  ...step.approver,
-                  signature_url,
-                }
-              : null,
-          };
-        }),
-      );
+      const stepsWithSig = workflow.steps.map((step: any) => {
+        let signature_url: string | null = null;
+        if (step.approver?.signature_encrypted) {
+          signature_url = `/api/users/${step.approver.id}/signature`;
+        }
+        return {
+          ...step,
+          approver: step.approver
+            ? {
+                ...step.approver,
+                signature_url,
+              }
+            : null,
+        };
+      });
       workflow = { ...workflow, steps: stepsWithSig };
     }
 
     return {
       id: doc.doc_number || doc.id,
       real_id: doc.id,
-      name: doc.title,
       title: doc.title,
-      doc_number: doc.doc_number,
+      name: doc.title,
       type: doc.type?.prefix || 'PR',
-      type_name: doc.type?.type_name || 'เอกสารทั่วไป',
-      status: doc.status,
-      sender: creatorName,
+      doc_type: doc.type?.type_name || 'ใบขอซื้อ',
       creator_name: creatorName,
+      sender: creatorName,
+      created_at: doc.created_at,
+      status: doc.status,
+      amount,
+      department: doc.creator?.department?.name || 'ไม่ระบุ',
       creator: doc.creator
         ? {
-            ...doc.creator,
+            id: doc.creator.id,
+            first_name: doc.creator.first_name,
+            last_name: doc.creator.last_name,
+            email: doc.creator.email,
+            department: doc.creator.department?.name,
+            position: doc.creator.position?.name,
+            role: doc.creator.role?.name,
             signature_url: creatorSigUrl,
           }
         : null,
-      department: doc.creator?.department?.name || 'แผนกทั่วไป',
-      submittedDate: doc.created_at
-        ? new Date(doc.created_at).toLocaleDateString('th-TH')
-        : '',
-      created_at: doc.created_at,
-      amount,
-      version: 'v1.0',
       pr_form: doc.pr_form,
       po_form: doc.po_form,
       bk_form: doc.bk_form,
+      versions: doc.versions?.map((v: any) => ({
+        id: v.id,
+        version_number: v.version_number,
+        file_size: v.file_size,
+        file_extension: v.file_extension,
+        created_at: v.created_at,
+        uploaded_by: v.uploaded_by
+          ? `${v.uploaded_by.first_name} ${v.uploaded_by.last_name}`
+          : 'ไม่ระบุ',
+        download_url: `/api/documents/${doc.id}/download?v=${v.version_number}`,
+      })),
       workflow,
-      versions: doc.versions,
     };
   }
 }
