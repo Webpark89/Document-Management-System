@@ -28,6 +28,7 @@ import {
 import { getDocuments } from '@views/features/documents/api';
 import { dashboardService, DashboardStats } from '@/controllers/services/dashboard.service';
 import { useAuth } from '@views/components/providers/AuthProvider';
+import { formatThaiDate } from '@/lib/format-date';
 import PageHeader from '@views/components/shared/PageHeader';
 import DataTableHeader from '@views/components/ui/DataTableHeader';
 import { AppStatCard, StatCardGrid } from '@views/components/ui/AppStatCard';
@@ -59,6 +60,7 @@ const TYPE_COLORS = {
 export default function DashboardPage() {
   const { user } = useAuth();
 
+  const [isMounted, setIsMounted] = useState(false);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
 
@@ -84,6 +86,7 @@ export default function DashboardPage() {
   ]);
 
   React.useEffect(() => {
+    setIsMounted(true);
     Promise.all([
       getDocuments().catch(() => []),
       dashboardService.getStats().catch(() => null),
@@ -338,10 +341,7 @@ export default function DashboardPage() {
             <FileText className="w-8 h-8" />
           </div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">คุณยังไม่มีเอกสารในระบบ</h2>
-          <p className="text-slate-500 mb-6 max-w-md mx-auto">เริ่มสร้างเอกสารแรกของคุณเพื่อเข้าสู่กระบวนการอนุมัติได้ทันที</p>
-          <Link href="/documents/upload" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-sm">
-            + สร้างเอกสารใหม่
-          </Link>
+          <p className="text-slate-500 max-w-md mx-auto">เริ่มสร้างเอกสารได้ที่หน้า "ส่งเรื่องขออนุมัติ"</p>
         </div>
       ) : (
         <>
@@ -388,19 +388,21 @@ export default function DashboardPage() {
             <div className={`lg:col-span-2 ${APP_CARD_LG} flex flex-col`}>
               <h3 className="text-sm font-bold text-slate-800 mb-6">เอกสารตามประเภท (จำนวนจริง)</h3>
               <div className="flex-1 min-h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={typeData} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600, fill: '#64748b' }} width={60} />
-                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
-                      {typeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                      <LabelList dataKey="value" position="right" style={{ fontSize: 12, fill: '#334155', fontWeight: 700 }} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                {isMounted && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={typeData} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
+                      <XAxis type="number" hide />
+                      <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600, fill: '#64748b' }} width={60} />
+                      <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
+                        {typeData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                        <LabelList dataKey="value" position="right" style={{ fontSize: 12, fill: '#334155', fontWeight: 700 }} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
 
@@ -408,26 +410,28 @@ export default function DashboardPage() {
             <div className={`${APP_CARD_LG} flex flex-col lg:col-span-1`}>
               <h3 className="text-sm font-bold text-slate-800 mb-2">สัดส่วนสถานะอนุมัติ (จำนวนจริง)</h3>
               <div className="flex-1 min-h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={statusData}
-                      innerRadius={50}
-                      outerRadius={70}
-                      paddingAngle={5}
-                      dataKey="value"
-                      stroke="none"
-                      label={({ name, value }) => `${value}`}
-                      labelLine={false}
-                    >
-                      {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }} />
-                  </PieChart>
-                </ResponsiveContainer>
+                {isMounted && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        innerRadius={50}
+                        outerRadius={70}
+                        paddingAngle={5}
+                        dataKey="value"
+                        stroke="none"
+                        label={({ name, value }) => `${value}`}
+                        labelLine={false}
+                      >
+                        {statusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                      <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
 
@@ -477,7 +481,7 @@ export default function DashboardPage() {
                         </span>
                       </td>
                       <td className="py-4 px-4 text-sm font-semibold text-slate-700">{doc.submittedBy}</td>
-                      <td className="py-4 pr-6 pl-4 text-sm text-slate-400 font-medium">{doc.date}</td>
+                      <td className="py-4 pr-6 pl-4 text-sm text-slate-400 font-medium">{formatThaiDate(doc.date)}</td>
                     </tr>
                   ))}
                   {recentActivity.length === 0 && (

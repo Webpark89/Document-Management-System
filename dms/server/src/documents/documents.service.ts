@@ -38,7 +38,10 @@ export class DocumentsService {
     const where: any = { is_deleted: false };
 
     if (currentUserRole !== 'Administrator' && currentUserId) {
-      where.creator_id = currentUserId;
+      where.OR = [
+        { creator_id: currentUserId },
+        { status: 'Approved' }
+      ];
     }
 
     if (status && status !== 'All') {
@@ -66,6 +69,10 @@ export class DocumentsService {
           pr_form: true,
           po_form: true,
           bk_form: true,
+          versions: {
+            orderBy: { version_number: 'desc' },
+            take: 1,
+          },
           workflow: {
           include: {
             steps: {
@@ -421,15 +428,27 @@ export class DocumentsService {
       workflow = { ...workflow, steps: stepsWithSig };
     }
 
+    const approvers = doc.workflow?.steps
+      ? doc.workflow.steps
+          .map((st: any) =>
+            st.approver
+              ? `${st.approver.first_name} ${st.approver.last_name}`
+              : null,
+          )
+          .filter((name: any): name is string => Boolean(name))
+      : [];
+
     return {
       id: doc.doc_number || doc.id,
       real_id: doc.id,
+      folder_id: doc.folder_id,
       title: doc.title,
       name: doc.title,
       type: doc.type?.prefix || 'PR',
       doc_type: doc.type?.type_name || 'ใบขอซื้อ',
       creator_name: creatorName,
       sender: creatorName,
+      approvers,
       created_at: doc.created_at,
       status: doc.status,
       amount,
@@ -446,8 +465,22 @@ export class DocumentsService {
             signature_url: creatorSigUrl,
           }
         : null,
-      pr_form: doc.pr_form,
-      po_form: doc.po_form,
+      pr_form: doc.pr_form
+        ? {
+            ...doc.pr_form,
+            attachment_file_name: doc.versions?.[0]?.file_extension
+              ? `document_v${doc.versions[0].version_number}.${doc.versions[0].file_extension}`
+              : undefined,
+          }
+        : null,
+      po_form: doc.po_form
+        ? {
+            ...doc.po_form,
+            attachment_file_name: doc.versions?.[0]?.file_extension
+              ? `document_v${doc.versions[0].version_number}.${doc.versions[0].file_extension}`
+              : undefined,
+          }
+        : null,
       bk_form: doc.bk_form,
       versions: doc.versions?.map((v: any) => ({
         id: v.id,

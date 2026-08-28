@@ -21,11 +21,17 @@ export class AuthService {
       include: {
         department: true,
         position: true,
-        role: true,
+        role: {
+          include: {
+            permissions: {
+              include: { permission: true }
+            }
+          }
+        },
       },
     });
 
-    if (!user || !user.is_active) {
+    if (!user || !user.is_active || user.is_deleted) {
       throw new UnauthorizedException('ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง');
     }
 
@@ -62,6 +68,7 @@ export class AuthService {
         email: user.email,
         position: user.position?.name || null,
         signature_url: user.signature_encrypted ? `/api/users/${user.id}/signature` : null,
+        permissions: user.role?.permissions.map(p => `${p.permission.module}:${p.permission.action}`) || [],
       },
     };
   }

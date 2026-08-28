@@ -112,41 +112,101 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     ],
   },
 
-  // ─── หน้า Document Center ───────────────────────────────────────────────────
+  // ─── ส่งเรื่องขออนุมัติ (/submissions) ─────────────────────────────────────────────────
+  {
+    key: "submissions",
+    label: "ส่งเรื่องขออนุมัติ (My Submissions)",
+    items: [
+      { key: "view_list",             label: "ดูรายการเอกสารที่ฉันส่งขออนุมัติ",                                    actions: ["view"] },
+      { key: "search_sort",           label: "ค้นหาและเรียงลำดับรายการ",                                           actions: ["view"] },
+      { key: "filter_status",         label: "กรองสถานะ (Pending / Draft / Returned)",                             actions: ["view"] },
+      { key: "open_doc_detail",       label: "เปิดดูรายละเอียดเอกสาร",                                            actions: ["view"] },
+      { key: "create_document",       label: "สร้างเอกสารใหม่",                                                   actions: ["create"] },
+      { key: "edit_document",         label: "แก้ไขเอกสาร (Draft / Returned)",                                   actions: ["edit"] },
+      { key: "delete_document",       label: "ลบเอกสาร (เฉพาะ Draft)",                                           actions: ["delete"] },
+      { key: "submit_document",       label: "ส่งเอกสารเข้าระบบอนุมัติ",                                         actions: ["create"] },
+      { key: "view_approval_history", label: "ดูประวัติการอนุมัติทั้งหมด (ปุ่ม: ประวัติการอนุมัติ)",              actions: ["view"] },
+    ],
+  },
+
+  // ─── รายการรออนุมัติ (/approvals) ─────────────────────────────────────────────────
+  {
+    key: "approvals",
+    label: "รายการรออนุมัติ (Pending Approvals)",
+    items: [
+      { key: "view_list",             label: "ดูเอกสารที่ฉันต้องอนุมัติ",                                         actions: ["view"] },
+      { key: "search_sort",           label: "ค้นหาและเรียงลำดับรายการ",                                           actions: ["view"] },
+      { key: "open_doc_detail",       label: "เปิดดูรายละเอียดเอกสาร",                                            actions: ["view"] },
+      { key: "approve_document",      label: "อนุมัติเอกสาร",                                                     actions: ["approve"] },
+      { key: "reject_document",       label: "ปฏิเสธ / Reject เอกสาร",                                           actions: ["approve"] },
+      { key: "return_document",       label: "ส่งคืนเอกสาร (Return for Revision)",                                actions: ["approve"] },
+      { key: "place_signature",       label: "วางลายเซ็น e-Signature (ผู้อนุมัติ)",                               actions: ["approve"] },
+      { key: "add_comment",           label: "เพิ่มความคิดเห็น / หมายเหตุ",                                       actions: ["edit"] },
+    ],
+  },
+
+  // ─── คลังเอกสาร (/documents) ───────────────────────────────────────────────
   {
     key: "document",
-    label: "หน้า Document (ศูนย์เอกสาร)",
+    label: "คลังเอกสาร (Document Center)",
     items: [
-      { key: "create_document",       label: "สร้างเอกสาร",                                                        actions: ["create"] },
-      { key: "scope_dropdown",        label: "ดรอปดาวน์เลือกการมองเห็น (Department Documents / All Documents / My Documents)", actions: ["view"] },
+      { key: "view_list",             label: "ดูรายการเอกสารทั้งหมด",                                             actions: ["view"] },
+      { key: "view_detail",           label: "เปิดดูรายละเอียดเอกสาร",                                            actions: ["view"] },
+      { key: "preview_document",      label: "Preview เอกสารในหน้านี้ (Document Preview Panel)",                  actions: ["view"] },
+      { key: "scope_dropdown",        label: "ดรอปดาวน์ขอบเขตการมองเห็น (All / แผนกฉัน / เอกสารฉัน / เลือกแผนก)", actions: ["view"] },
+      { key: "search_filter",         label: "ค้นหา กรองประเภท กรองสถานะ กรองวันที่",                            actions: ["view"] },
+      { key: "create_document",       label: "สร้างเอกสารใหม่",                                                   actions: ["create"] },
+      { key: "upload_attachment",     label: "อัปโหลดไฟล์แนบ",                                                   actions: ["create"] },
+      { key: "edit_document",         label: "แก้ไขเอกสาร (Draft / Returned)",                                   actions: ["edit"] },
+      { key: "submit_document",       label: "ส่งเอกสารเข้าระบบอนุมัติ",                                         actions: ["create"] },
+      { key: "recall_document",       label: "ดึงเอกสารคืน (Recall)",                                            actions: ["edit"] },
+      { key: "delete_document",       label: "ลบเอกสาร (เฉพาะ Draft)",                                           actions: ["delete"] },
+      { key: "download_document",     label: "Download / Export เอกสาร",                                          actions: ["view"] },
+      { key: "bulk_select",           label: "เลือกหลายรายการพร้อมกัน (Bulk Select)",                             actions: ["edit"] },
+      { key: "view_version_history",  label: "ดูประวัติเวอร์ชัน (Version History)",                              actions: ["view"] },
+      { key: "view_timeline",         label: "ดู Timeline การอนุมัติ",                                           actions: ["view"] },
+      { key: "place_signature",       label: "วางลายเซ็น e-Signature (ผู้จัดทำ)",                               actions: ["edit"] },
+      { key: "view_folders",          label: "ดูและเข้าถึงโฟลเดอร์",                                             actions: ["view"] },
+      { key: "manage_folders",        label: "สร้าง / แก้ไข / ลบ / ปักหมุดโฟลเดอร์",                           actions: ["create", "edit", "delete"] },
+      { key: "move_to_folder",        label: "ย้ายเอกสารเข้าโฟลเดอร์",                                           actions: ["edit"] },
     ],
   },
 
-  // ─── หน้า Document Review ──────────────────────────────────────────────────
+  // ─── หน้า Notifications ────────────────────────────────────────────────────
+
   {
-    key: "document_review",
-    label: "หน้า Document Review",
+    key: "notifications",
+    label: "หน้า Notifications (การแจ้งเตือน)",
     items: [
-      { key: "edit_document",         label: "แก้ไขเอกสาร (ในสถานะ Pending / Return / Draft)",                    actions: ["edit"] },
+      { key: "view_notifications",    label: "ดูการแจ้งเตือน",                                                    actions: ["view"] },
+      { key: "mark_read",             label: "ทำเครื่องหมายว่าอ่านแล้ว",                                         actions: ["edit"] },
     ],
   },
 
-  // ─── หน้า Approval ─────────────────────────────────────────────────────────
+  // ─── หน้า Reports ──────────────────────────────────────────────────────────
   {
-    key: "approval",
-    label: "หน้า Approval (การอนุมัติ)",
+    key: "reports",
+    label: "หน้า Reports (รายงาน)",
     items: [
-      { key: "approve_document",      label: "อนุมัติเอกสาร",                                                     actions: ["approve"] },
+      { key: "access",                label: "เข้าถึงหน้า Reports ได้",                                           actions: ["view"] },
+      { key: "view_reports",          label: "ดูรายงานสรุป",                                                      actions: ["view"] },
+      { key: "export_reports",        label: "Export รายงาน (PDF / Excel)",                                       actions: ["view"] },
+      { key: "view_all_dept",         label: "ดูรายงานของทุกแผนก (ไม่จำกัดเฉพาะแผนกตัวเอง)",                    actions: ["view"] },
     ],
   },
 
   // ─── หน้า Master Data ───────────────────────────────────────────────────────
   {
     key: "masterdata",
-    label: "หน้า Master Data",
+    label: "หน้า Master Data (ข้อมูลหลัก)",
     items: [
-      { key: "access",                label: "เข้าถึงหน้านี้ได้",                                                  actions: ["view"] },
-      { key: "manage_all",            label: "สร้าง / แก้ไข / ลบ ทุกๆหัวข้อในหน้านี้",                            actions: ["create", "edit", "delete"] },
+      { key: "access",                label: "เข้าถึงหน้า Master Data ได้",                                       actions: ["view"] },
+      { key: "doc_types",             label: "ประเภทเอกสาร (Document Types)",                                     actions: ["view", "create", "edit", "delete"] },
+      { key: "workflow",              label: "กระบวนการอนุมัติ (Workflow / Approval Matrix)",                     actions: ["view", "create", "edit", "delete"] },
+      { key: "departments",           label: "แผนก (Departments)",                                               actions: ["view", "create", "edit", "delete"] },
+      { key: "positions",             label: "ตำแหน่ง (Positions)",                                              actions: ["view", "create", "edit", "delete"] },
+      { key: "running_numbers",       label: "เลขที่เอกสารอัตโนมัติ (Running Numbers)",                          actions: ["view", "edit"] },
+      { key: "signatures",            label: "ลายเซ็น (Signature Management)",                                    actions: ["view", "create", "edit", "delete"] },
     ],
   },
 
@@ -156,26 +216,33 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     label: "หน้า Config (ตั้งค่าระบบ)",
     items: [
       { key: "access",                label: "เข้าถึงเมนูหัวข้อนี้ได้",                                            actions: ["view"] },
-      { key: "role_management",       label: "Role (สร้าง / แก้ไข / ลบ)",                                         actions: ["create", "edit", "delete"] },
-      { key: "user_management",       label: "User (สร้าง / แก้ไข / ลบ)",                                         actions: ["create", "edit", "delete"] },
+      { key: "role_management",       label: "Role (ดู / สร้าง / แก้ไข / ลบ)",                                    actions: ["view", "create", "edit", "delete"] },
+      { key: "user_management",       label: "User (ดู / สร้าง / แก้ไข / ลบ)",                                    actions: ["view", "create", "edit", "delete"] },
     ],
   },
 
   // ─── หน้า Audit Log ────────────────────────────────────────────────────────
   {
     key: "auditlog",
-    label: "หน้า Audit Log",
+    label: "หน้า Audit Log (บันทึกกิจกรรม)",
     items: [
-      { key: "access",                label: "สามารถเข้าถึงหน้านี้ได้",                                            actions: ["view"] },
+      { key: "access",                label: "เข้าถึงหน้า Audit Log ได้",                                         actions: ["view"] },
+      { key: "view_all_logs",         label: "ดู Log ของผู้ใช้ทุกคน (ไม่จำกัดเฉพาะตัวเอง)",                     actions: ["view"] },
+      { key: "export_logs",           label: "Export Audit Log",                                                  actions: ["view"] },
+      { key: "search_filter",         label: "ค้นหาและกรอง Log",                                                 actions: ["view"] },
     ],
   },
 
   // ─── หน้า Profile ──────────────────────────────────────────────────────────
   {
     key: "profile",
-    label: "หน้า Profile",
+    label: "หน้า Profile (โปรไฟล์ผู้ใช้)",
     items: [
-      { key: "access",                label: "สามารถเข้าถึงหน้านี้ได้",                                            actions: ["view"] },
+      { key: "view_own",              label: "ดูโปรไฟล์ตัวเอง",                                                   actions: ["view"] },
+      { key: "edit_own",              label: "แก้ไขข้อมูลโปรไฟล์ตัวเอง",                                        actions: ["edit"] },
+      { key: "change_password",       label: "เปลี่ยนรหัสผ่านตัวเอง",                                           actions: ["edit"] },
+      { key: "upload_signature",      label: "อัปโหลด / จัดการลายเซ็นของตัวเอง",                               actions: ["edit"] },
+      { key: "view_others",           label: "ดูโปรไฟล์ผู้ใช้คนอื่น (Admin)",                                    actions: ["view"] },
     ],
   },
 ];
@@ -415,14 +482,14 @@ export function RolePermissionPanel({
 
             return (
               <div key={section.key}>
-                <div className="flex items-center bg-slate-50/60 px-6 py-3">
+                <div className="flex items-center bg-blue-50/50 border-t border-b border-blue-100 px-6 py-3">
                   <button
                     type="button"
                     onClick={() => toggleSection(section.key)}
-                    className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm font-semibold text-slate-700"
+                    className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm font-bold text-blue-900"
                   >
                     <ChevronRight
-                      className={`size-4 shrink-0 text-slate-500 transition-transform duration-200 ${
+                      className={`size-4 shrink-0 text-blue-500 transition-transform duration-200 ${
                         expanded[section.key] ? "rotate-90" : ""
                       }`}
                     />
@@ -432,7 +499,7 @@ export function RolePermissionPanel({
                     </span>
                   </button>
                   <label
-                    className={`flex ${ACTION_COLS_W} shrink-0 items-center justify-end gap-2 text-xs font-medium text-slate-500`}
+                    className={`flex ${ACTION_COLS_W} shrink-0 items-center justify-end gap-2 text-xs font-medium text-blue-600`}
                   >
                     <IndeterminateCheckbox
                       state={sectionState}
@@ -454,7 +521,7 @@ export function RolePermissionPanel({
                       </colgroup>
                       <thead className={MD_THEAD}>
                         <tr>
-                          <th className={MD_TH}>รายการ</th>
+                          <th className={`${MD_TH} font-normal text-slate-400`}>รายการ</th>
                           {PERMISSION_ACTIONS.map((action) => (
                             <th key={action.key} className={PERM_MATRIX_ACTION_TH}>
                               {action.label}

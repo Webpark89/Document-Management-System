@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const admin = await prisma.role.findFirst({ where: { name: 'Administrator' } }); const count = await prisma.rolePermission.count({ where: { role_id: admin.id } }); console.log('Admin Permissions Count:', count); } main().finally(() => prisma.$disconnect());

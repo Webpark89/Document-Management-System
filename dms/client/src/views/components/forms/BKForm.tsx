@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { Save, Send, FileCode2, UploadCloud } from "lucide-react";
 import { useAuth } from '@views/components/providers/AuthProvider';
+import { formatThaiDate } from "@/lib/format-date";
+import Step2Visibility, { VisibilityData } from "./Step2Visibility";
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
 } from "./ApprovalWorkflowSection";
@@ -14,6 +16,7 @@ export interface BKSubmitData {
   department: string;
   category: string;
   detail: string;
+  attachmentFileName?: string;
   workflowSteps: WorkflowStepInput[];
   isDraft: boolean;
 }
@@ -22,6 +25,9 @@ interface BKFormProps {
   onSubmit: (data: BKSubmitData) => void;
   onCancel: () => void;
   runningNumberPreview: string;
+  currentStep: number;
+  onNext: () => void;
+  onBack: () => void;
 }
 
 const DEPARTMENTS = [
@@ -44,6 +50,7 @@ export default function BKForm({
   onSubmit,
   onCancel,
   runningNumberPreview,
+  currentStep, onNext, onBack
 }: BKFormProps) {
   const { user } = useAuth();
   const defaultRequester = user?.full_name || user?.username || "Administrator";
@@ -53,7 +60,9 @@ export default function BKForm({
   const [department, setDepartment] = useState(defaultDept);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [detail, setDetail] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
+  const [visibility, setVisibility] = useState<VisibilityData>({ type: "CompanyWide", departments: [], users: [] });
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([]);
 
   React.useEffect(() => {
@@ -87,7 +96,13 @@ export default function BKForm({
     loadWorkflow();
   }, []);
 
-  const todayStr = new Date().toLocaleDateString('th-TH');
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadedFile(e.target.files[0]);
+    }
+  };
+
+  const todayStr = formatThaiDate(new Date());
 
   const triggerSubmit = (isDraft: boolean) => {
     if (!title.trim()) {
@@ -100,6 +115,7 @@ export default function BKForm({
       department,
       category,
       detail,
+      attachmentFileName: uploadedFile ? uploadedFile.name : undefined,
       workflowSteps,
       isDraft,
     });
@@ -113,6 +129,8 @@ export default function BKForm({
       }}
       className="space-y-6"
     >
+      {(currentStep === 1 || currentStep === 4) && (
+        <>
       <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
         <div className="text-sm">
           <span className="font-bold text-slate-500 mr-2">Preview ID:</span> 
@@ -201,6 +219,9 @@ export default function BKForm({
                 <div className="text-center w-full">
                   <p className="font-bold text-sm">( _________________ )</p>
                   <p className="text-xs mt-1 truncate" title={step.roleName}>{step.roleName}</p>
+                  {currentStep === 4 && step.approverName && (
+                    <p className="text-[10px] text-blue-600 font-bold mt-1 leading-tight">{step.approverName}</p>
+                  )}
                 </div>
               </div>
             ))}
@@ -209,42 +230,125 @@ export default function BKForm({
         </div>
       </div>
 
-      <div className="mt-8 border-t border-slate-200 pt-6">
-        <ApprovalWorkflowSection
-          steps={workflowSteps}
-          onChange={setWorkflowSteps}
-        />
-      </div>
+          {currentStep === 1 && (
+            <div className="flex justify-end pt-4 border-t border-slate-100 mt-6">
+              <button
+                type="button"
+                onClick={(e) => {
+                  const form = e.currentTarget.closest('form');
+                  if (form && !form.checkValidity()) {
+                    form.reportValidity();
+                  } else {
+                    onNext();
+                  }
+                }}
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-blue-100 cursor-pointer"
+              >
+                Next Step (ถัดไป)
+              </button>
+            </div>
+          )}
+          {currentStep === 4 && (
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-6">
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl text-sm transition-all cursor-pointer"
+              >
+                Back (ย้อนกลับ)
+              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => triggerSubmit(true)}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-all cursor-pointer border border-slate-200"
+                >
+                  <Save className="w-4 h-4" />
+                  Save as Draft (บันทึกร่าง)
+                </button>
+                <button
+                  type="submit"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-slate-200 cursor-pointer active:scale-95"
+                >
+                  <Send className="w-4 h-4" />
+                  Submit Document (ส่งขออนุมัติ)
+                </button>
+              </div>
+            </div>
+          )}
+          </>
+      )}
 
-      {/* ACTION BUTTONS (Draft & Submit) */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl text-sm transition-all cursor-pointer"
-        >
-          Cancel
-        </button>
+      {currentStep === 2 && (
+        <>
+          <Step2Visibility
+            uploadedFile={uploadedFile}
+            onFileChange={handleFileChange}
+            visibility={visibility}
+            onVisibilityChange={setVisibility}
+          />
+          <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-6">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl text-sm transition-all cursor-pointer"
+            >
+              Back (ย้อนกลับ)
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                const form = e.currentTarget.closest('form');
+                if (form && !form.checkValidity()) {
+                  form.reportValidity();
+                } else {
+                  onNext();
+                }
+              }}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-blue-100 cursor-pointer"
+            >
+              Next Step (ถัดไป)
+            </button>
+          </div>
+        </>
+      )}
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => triggerSubmit(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-all cursor-pointer border border-slate-200"
-          >
-            <Save className="w-4 h-4" />
-            Save as Draft (บันทึกร่าง)
-          </button>
+      {currentStep === 3 && (
+        <>
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <ApprovalWorkflowSection
+              steps={workflowSteps}
+              onChange={setWorkflowSteps}
+            />
+          </div>
 
-          <button
-            type="submit"
-            className="flex items-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-slate-200 cursor-pointer active:scale-95"
-          >
-            <Send className="w-4 h-4" />
-            Submit Document (ส่งขออนุมัติ)
-          </button>
-        </div>
-      </div>
+          {/* ACTION BUTTONS (Draft & Submit) */}
+          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl text-sm transition-all cursor-pointer"
+            >
+              Back (ย้อนกลับ)
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                const form = e.currentTarget.closest('form');
+                if (form && !form.checkValidity()) {
+                  form.reportValidity();
+                } else {
+                  onNext();
+                }
+              }}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-blue-100 cursor-pointer"
+            >
+              Next Step (Preview)
+            </button>
+          </div>
+          </>
+      )}
     </form>
   );
 }

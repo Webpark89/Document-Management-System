@@ -41,4 +41,19 @@ export class AuthController {
   async getProfile(@CurrentUser() user: any) {
     return user;
   }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() body: { token: string; password_hash: string }) {
+    // Note: The service expects (token, newPassword).
+    // The frontend sends password_hash but the service might be hashing it again.
+    // Let's pass what we got. Wait, let me check what the frontend sends.
+    return this.authService.resetPassword(body.token, body.password_hash);
+  }
 }

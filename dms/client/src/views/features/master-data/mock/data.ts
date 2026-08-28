@@ -49,7 +49,7 @@ export const WORKFLOWS: WorkflowRecord[] = [
     levels: 3,
     approverCount: 3,
     approvers: ["สมชาย ใจดี", "วิภา รักดี", "ประเสริฐ มีสุข"],
-    steps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"],
+    steps: ["หัวหน้าแผนก", "ผู้บริหาร"],
     isActive: true,
   },
   {
@@ -60,7 +60,7 @@ export const WORKFLOWS: WorkflowRecord[] = [
     levels: 4,
     approverCount: 4,
     approvers: ["สมชาย ใจดี", "วิภา รักดี", "ประเสริฐ มีสุข", "นภา สุขใจ"],
-    steps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ", "ผู้อำนวยการ"],
+    steps: ["หัวหน้าแผนก", "ผู้บริหาร"],
     isActive: true,
   },
   {
@@ -71,7 +71,7 @@ export const WORKFLOWS: WorkflowRecord[] = [
     levels: 2,
     approverCount: 2,
     approvers: ["สมชาย ใจดี", "กิตติศักดิ์ พรหมมา"],
-    steps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย"],
+    steps: ["หัวหน้าแผนก", "ผู้บริหาร"],
     isActive: true,
   },
   {
@@ -124,7 +124,7 @@ export const APPROVAL_MATRIX: ApprovalMatrixState = {
     fieldsCount: DEFAULT_FORM_FIELDS["PR-style"].length,
     docCount: 24,
     isActive: true,
-    steps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"],
+    steps: ["หัวหน้าแผนก", "ผู้บริหาร"],
     fields: [...DEFAULT_FORM_FIELDS["PR-style"]],
   },
   PO: {
@@ -136,7 +136,7 @@ export const APPROVAL_MATRIX: ApprovalMatrixState = {
     fieldsCount: DEFAULT_FORM_FIELDS["PO-style"].length,
     docCount: 18,
     isActive: true,
-    steps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ", "ผู้อำนวยการ"],
+    steps: ["หัวหน้าแผนก", "ผู้บริหาร"],
     fields: [...DEFAULT_FORM_FIELDS["PO-style"]],
   },
   BK: {
@@ -148,7 +148,7 @@ export const APPROVAL_MATRIX: ApprovalMatrixState = {
     fieldsCount: DEFAULT_FORM_FIELDS["BK-style"].length,
     docCount: 10,
     isActive: true,
-    steps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย"],
+    steps: ["หัวหน้าแผนก", "ผู้บริหาร"],
     fields: [...DEFAULT_FORM_FIELDS["BK-style"]],
   },
   OTHER: {
@@ -172,12 +172,11 @@ export const DOC_TYPE_TO_MATRIX_KEY = {
   OTHER: "OTHER",
 } as const;
 
-const DEFAULT_APPROVER_BY_ROLE = {
-  "หัวหน้าแผนก": "สมชาย ใจดี",
-  "ผู้จัดการฝ่าย": "กิตติศักดิ์ พรหมมา",
-  "ผู้จัดการฝ่ายจัดซื้อ": "วิภา รักดี",
-  "ผู้อำนวยการ": "อรทัย สุขใจ",
-  "ฝ่ายบุคคล": "กิตติศักดิ์ พรหมมา",
-} as const;
+const DEFAULT_APPROVER_BY_ROLE: Record<string, string> = {
+  "พนักงาน": "สมชาย ใจดี",
+  "หัวหน้าแผนก": "กิตติศักดิ์ พรหมมา",
+  "ผู้บริหาร": "วิภา รักดี",
+  "ผู้ดูแลระบบ": "อรทัย สุขใจ",
+};
 
 export { DEFAULT_APPROVER_BY_ROLE };

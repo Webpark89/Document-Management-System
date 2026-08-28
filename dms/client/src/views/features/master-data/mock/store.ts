@@ -61,7 +61,7 @@ export function appendWorkflowRecord(docType: { id: string; typeName: string; pr
     levels,
     approverCount: levels,
     approvers: [],
-    steps: docType.steps.length > 0 ? [...docType.steps] : ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"],
+    steps: docType.steps.length > 0 ? [...docType.steps] : ["หัวหน้าแผนก", "ผู้บริหาร", "ผู้ดูแลระบบ"],
     isActive: docType.isActive,
   });
 }

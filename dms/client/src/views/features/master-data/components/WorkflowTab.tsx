@@ -57,7 +57,8 @@ export default function WorkflowTab({
 
   const getDocTypeName = (row: WorkflowRecord) => {
     const doc = docTypes.find((d) => d.id === row.documentTypeId || d.prefix === row.prefix);
-    return doc ? `${doc.typeName} (${row.prefix})` : row.prefix || "-";
+    const typeName = doc ? (doc.typeName || (doc as any).name || (doc as any).title) : undefined;
+    return typeName ? `${typeName} (${row.prefix})` : row.name || row.prefix || "-";
   };
 
   const mobileRows = rows.map((row) => ({

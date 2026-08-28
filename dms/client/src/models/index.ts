@@ -1,7 +1,7 @@
 // Document Models & Types (Aligned with Nissui Requirements)
 
-export type DocumentStatus = "Draft" | "Pending" | "Approved" | "Rejected" | "Cancelled";
-export type DocumentType = "PR" | "PO" | "บันทึก" | "Other";
+export type DocumentStatus = "Draft" | "Pending" | "Approved" | "Rejected" | "Cancelled" | "Returned";
+export type DocumentType = string;
 
 export interface Document {
   id: string;
@@ -100,7 +100,7 @@ export interface User {
   position: string;
   role: UserRole;
   is_active: boolean;
-  signature_image_path?: string;
+  signature_encrypted?: string;
   created_at: string;
 }
 
@@ -157,8 +157,11 @@ export interface AuditLog {
   action: "Login" | "Upload" | "Download" | "View" | "Edit" | "Delete" | "Approve" | "Reject" | "Signature";
   module: string;
   target_id?: string;
-  target_display?: string;
+  details?: {
+    oldState?: any;
+    newState?: any;
+    extra?: any;
+  };
   ip_address: string;
-  comment?: string;
   created_at: string;
 }

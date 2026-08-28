@@ -15,6 +15,7 @@ export type DocumentType = "PR" | "PO" | "MEMO" | "OTHER" | "Certificate" | "Gen
 export interface Document {
   id: string;              // doc_number, e.g. "PR-2026-0001"
   real_id?: string;
+  folder_id?: string;
   name: string;            // title
   title?: string;
   type: DocumentType;
@@ -22,6 +23,7 @@ export interface Document {
   sender: string;          // creator_name
   creator_name?: string;
   department?: string;
+  approvers?: string[];
   submittedDate: string;   // formatted date string
   created_at?: string;
   status: DocumentStatus | string;

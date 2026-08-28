@@ -11,6 +11,8 @@ import {
   Plus,
   Search,
   Shield,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { useToast } from '@views/components/providers/ToastProvider';
 import { swalConfirm } from "@/lib/swal";
@@ -130,13 +132,19 @@ function DeleteRoleButton({
 }) {
   return (
     <span className="group relative inline-flex">
-      <button type="button" onClick={onDelete} disabled={blocked} className={btnDanger}>
-        ลบ
+      <button
+        type="button"
+        onClick={onDelete}
+        disabled={blocked}
+        title={blocked ? undefined : "ลบ Role"}
+        className="inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <Trash2 className="size-4" />
       </button>
       {blocked && (
         <span
           role="tooltip"
-          className="pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 hidden w-64 rounded-md bg-slate-800 px-2.5 py-1.5 text-xs leading-snug text-white shadow-lg group-hover:block"
+          className="pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 hidden w-64 rounded-lg bg-slate-900 px-3 py-1.5 text-xs leading-snug text-white shadow-xl group-hover:block"
         >
           {tooltip}
         </span>
@@ -222,7 +230,7 @@ function RolesListView({
           </nav>
         }
         title="Roles"
-        subtitle="In-memory demo — resets on refresh"
+        subtitle="จัดการบทบาท กำหนดสิทธิ์ และควบคุมการเข้าถึงระบบ"
         actions={
           <button type="button" onClick={onCreate} className={MD_ADD_BTN}>
             <Plus className="size-4" />
@@ -232,30 +240,7 @@ function RolesListView({
       />
 
       <div className={`${ADMIN_CONTENT} mt-6 min-w-0 max-w-full space-y-6`}>
-        <StatCards total={stats.total} active={stats.active} inactive={stats.inactive} icon={Shield} />
-
         <div className={`${MD_TABLE_CARD} min-w-0 max-w-full`}>
-          <div className="space-y-3 border-b border-slate-100 bg-slate-50/40 p-4">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="ค้นหาชื่อ Role..."
-                className={`${inputCls} pl-9`}
-              />
-            </div>
-            <label className="flex shrink-0 items-center gap-2 text-sm font-medium text-slate-700">
-              <input
-                type="checkbox"
-                checked={showInactive}
-                onChange={(e) => setShowInactive(e.target.checked)}
-                className="rounded border-gray-200 text-blue-600 focus:ring-2 focus:ring-blue-100"
-              />
-              แสดง Role ที่ปิดใช้งาน
-            </label>
-          </div>
 
           <div className="min-w-0 overflow-x-auto">
             <table className="w-full min-w-0 table-fixed text-sm">
@@ -265,7 +250,7 @@ function RolesListView({
                   <th className={`${MD_TH_STATUS} w-[7.5rem]`}>จำนวนผู้ใช้งาน</th>
                   <th className={MD_TH}>สิทธิ์ (ดู/สร้าง/แก้ไข/ลบ/อนุมัติ)</th>
                   <th className={MD_TH_STATUS}>สถานะ</th>
-                  <th className={`${MD_TH_STATUS} w-[11rem] min-w-[11rem]`}>จัดการ</th>
+                  <th className={`${MD_TH_STATUS} w-[8rem] min-w-[8rem]`}>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -282,16 +267,20 @@ function RolesListView({
                     return (
                       <tr
                         key={role.id}
-                        className={`${MD_TR} cursor-pointer`}
+                        className={`${MD_TR} cursor-pointer hover:bg-slate-50/80 transition-colors`}
                         onDoubleClick={() =>
                           router.push(`/admin/config/roles?mode=edit&id=${role.id}`)
                         }
                       >
-                        <td className={`${tdCls} min-w-0 font-medium`}>{role.name}</td>
-                        <td className={`${MD_TD_NUM} w-[7.5rem]`}>{role.userCount}</td>
+                        <td className={`${tdCls} min-w-0 font-bold text-slate-800`}>{role.name}</td>
+                        <td className={`${MD_TD_NUM} w-[7.5rem]`}>
+                          <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                            {role.userCount}
+                          </span>
+                        </td>
                         <td className={`${tdCls} min-w-0`}>
                           <PermissionActionGrid
-                            summary={role.permissionSummary}
+                            summary={role.permissionSummary || role.summary}
                             roleName={role.name}
                           />
                         </td>
@@ -299,15 +288,16 @@ function RolesListView({
                           <StatusBadge active={role.isActive} />
                         </td>
                         <td
-                          className={`${MD_TD_STATUS} w-[11rem] min-w-[11rem] whitespace-nowrap`}
+                          className={`${MD_TD_STATUS} w-[8rem] min-w-[8rem] whitespace-nowrap`}
                           onDoubleClick={(e) => e.stopPropagation()}
                         >
-                          <div className="flex shrink-0 justify-center gap-1.5">
+                          <div className="flex shrink-0 justify-center items-center gap-2">
                             <Link
                               href={`/admin/config/roles?mode=edit&id=${role.id}`}
-                              className={btnGhost}
+                              title="แก้ไข Role"
+                              className="inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
                             >
-                              แก้ไข
+                              <Pencil className="size-4" />
                             </Link>
                             <DeleteRoleButton
                               blocked={deleteBlocked}
@@ -334,7 +324,7 @@ function CreateRoleForm({
   onSaved,
 }: {
   onBack: () => void;
-  onSaved: (role: RoleRecord) => void;
+  onSaved: () => void;
 }) {
   const { showToast } = useToast();
   const [role, setRole] = useState<RoleFormState>(EMPTY_ROLE);
@@ -343,20 +333,6 @@ function CreateRoleForm({
   const [dirty, setDirty] = useState(false);
 
   const validateTitle = (val: string) => (!val.trim() ? "กรุณาระบุชื่อ Role" : "");
-
-  const handleSaveRole = async (data: RoleFormState) => {
-    // In a real app, you would create/update via API here.
-    // Assuming adminService.createRole doesn't exist yet, we'll just mock the API call completion.
-    const trimmed = data.title.trim();
-    if (!trimmed) {
-      showToast("กรุณาระบุชื่อ Role", "error");
-      return;
-    }
-    // TODO: Connect to adminService.createRole or updateRole
-    // Mock re-fetching data for now:
-    await adminService.getRolesList();
-    onBack();
-  };
 
   const handleBack = () => {
     if (dirty && !confirm("ยังไม่ได้บันทึกข้อมูล ต้องการออกจากหน้านี้หรือไม่?")) return;
@@ -368,16 +344,30 @@ function CreateRoleForm({
     setTitleError(err);
     if (err) return;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
-    const saved: RoleRecord = {
-      id: uid(),
-      name: role.title.trim(),
-      permissionSummary: summarizePermissions(role.permissions),
-      isActive: true,
-    };
-    onSaved(saved);
-    setSaving(false);
-    showToast("สร้าง Role สำเร็จ", "success");
+    
+    try {
+      const created = await adminService.createRole(role.title.trim());
+      
+      const dtoPermissions: any[] = [];
+      Object.entries(role.permissions).forEach(([sectionKey, items]) => {
+        Object.entries(items).forEach(([itemKey, actions]) => {
+          Object.entries(actions as Record<string, boolean>).forEach(([action, value]) => {
+            if (value) {
+              dtoPermissions.push({ module: `${sectionKey}.${itemKey}`, action });
+            }
+          });
+        });
+      });
+
+      await adminService.updateRole(created.id, { permissions: dtoPermissions });
+
+      onSaved();
+      showToast("สร้าง Role สำเร็จ", "success");
+    } catch (e) {
+      showToast("เกิดข้อผิดพลาดในการสร้าง Role", "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -395,7 +385,7 @@ function CreateRoleForm({
           </nav>
         }
         title="สร้าง Role"
-        subtitle="In-memory demo — resets on refresh"
+        subtitle="จัดการสิทธิ์การเข้าถึง"
         actions={
           <div className="flex items-center gap-2">
             <button type="button" onClick={handleBack} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
@@ -446,17 +436,60 @@ function CreateRoleForm({
   );
 }
 
-function EditRoleForm() {
+function EditRoleForm({ roleId }: { roleId: string }) {
+  const router = useRouter();
   const { showToast } = useToast();
-  const [role, setRole] = useState<RoleFormState>(EDIT_ROLE);
+  const [role, setRole] = useState<RoleFormState>(EMPTY_ROLE);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    if (!roleId) return;
+    adminService.getRoleById(roleId).then(data => {
+      const presets: any = {};
+      (data.permissions || []).forEach((p: any) => {
+         const parts = p.module.split('.');
+         if (parts.length === 2) {
+            const [sec, item] = parts;
+            if (!presets[sec]) presets[sec] = {};
+            if (!presets[sec][item]) presets[sec][item] = {};
+            presets[sec][item][p.action] = true;
+         }
+      });
+      setRole({
+         title: data.name,
+         productTypes: { all: true, dms: true, esign: true, reports: true, archive: true },
+         permissions: buildPermissions(presets)
+      });
+      setLoading(false);
+    });
+  }, [roleId]);
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
-    setSaving(false);
-    showToast("บันทึกสิทธิ์สำเร็จ", "success");
+    const dtoPermissions: any[] = [];
+    Object.entries(role.permissions).forEach(([sectionKey, items]) => {
+      Object.entries(items).forEach(([itemKey, actions]) => {
+        Object.entries(actions as Record<string, boolean>).forEach(([action, value]) => {
+          if (value) {
+            dtoPermissions.push({ module: `${sectionKey}.${itemKey}`, action });
+          }
+        });
+      });
+    });
+
+    try {
+      await adminService.updateRole(roleId, { name: role.title, permissions: dtoPermissions });
+      showToast("บันทึกสิทธิ์สำเร็จ", "success");
+      router.push("/admin/config/roles");
+    } catch {
+      showToast("เกิดข้อผิดพลาด", "error");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) return <div className="p-8 text-center"><Loader2 className="mx-auto size-8 animate-spin text-blue-500" /></div>;
 
   return (
     <div className={ADMIN_PAGE_SHELL}>
@@ -473,7 +506,7 @@ function EditRoleForm() {
           </nav>
         }
         title="แก้ไข Role"
-        subtitle="In-memory demo — resets on refresh"
+        subtitle="จัดการสิทธิ์การเข้าถึง"
         actions={
           <div className="flex items-center gap-2">
             <Link href="/admin/config/roles" className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
@@ -532,17 +565,24 @@ function RolesPageContent() {
                     (u.role?.name || u.role_name || u.role) === r.name
                 ).length
               : 0;
+            const actions = Array.isArray(r.permissions)
+              ? Array.from(new Set(r.permissions.map((p: any) => p.action)))
+              : [];
+            const permSummary =
+              r.name === "Administrator"
+                ? "Full access"
+                : actions.length > 0
+                  ? actions.join(", ")
+                  : "view, create, edit, approve";
+
             return {
               id: r.id,
               name: r.name,
               userCount: r.user_count ?? r.userCount ?? calculated,
-              summary:
-                r.name === "Administrator"
-                  ? "Full access"
-                  : "View, Create, Edit, Approve",
+              summary: permSummary,
               isActive: r.is_active ?? true,
               permissions: {},
-              permissionSummary: "",
+              permissionSummary: permSummary,
             };
           })
         );
@@ -554,16 +594,15 @@ function RolesPageContent() {
     return (
       <CreateRoleForm
         onBack={() => router.push("/admin/config/roles")}
-        onSaved={(saved) => {
-          setRoles((prev) => [saved, ...prev]);
-          router.push("/admin/config/roles");
+        onSaved={() => {
+          window.location.href = "/admin/config/roles";
         }}
       />
     );
   }
 
   if (mode === "edit") {
-    return <EditRoleForm />;
+    return <EditRoleForm roleId={searchParams.get("id") || ""} />;
   }
 
   return (

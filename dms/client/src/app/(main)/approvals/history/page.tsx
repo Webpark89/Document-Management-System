@@ -20,6 +20,7 @@ import { Badge } from '@views/components/ui/badge';
 import { getApprovals, Approval } from '@views/features/workflow/api';
 import { getDocuments } from '@views/features/documents/api';
 import { getStatusVariant } from "@/lib/document-status";
+import { formatThaiDate } from "@/lib/format-date";
 import DataTableHeader from '@views/components/ui/DataTableHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
 
@@ -329,7 +330,7 @@ export default function ApprovalHistoryPage() {
                       className="hover:bg-blue-50/50 transition-colors group cursor-pointer"
                     >
                       <td className="py-4 pl-4 text-xs font-semibold text-slate-500">
-                        {item.actionDate}
+                        {formatThaiDate(item.actionDate, true)}
                       </td>
                       <td className="py-4">
                         <p className="text-sm font-bold text-slate-800 leading-snug group-hover:text-blue-600 transition-colors">

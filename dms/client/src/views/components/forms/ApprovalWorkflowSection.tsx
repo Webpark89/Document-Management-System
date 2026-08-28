@@ -56,7 +56,17 @@ export default function ApprovalWorkflowSection({
 
       if (!match || !step.approverName || !step.approverId) {
         changed = true;
-        const userToAssign = users[idx % users.length];
+        // Filter valid users for this step
+        const validUsers = users.filter((u) => {
+          if (!step.roleName) return true;
+          const userPosition = u.position?.name || u.position || "";
+          if (!userPosition) return true;
+          return userPosition === step.roleName;
+        });
+
+        const pool = validUsers.length > 0 ? validUsers : users;
+        const userToAssign = pool[idx % pool.length];
+
         return {
           ...step,
           approverId: userToAssign.id,
@@ -163,20 +173,28 @@ export default function ApprovalWorkflowSection({
                       {users.length === 0 && (
                         <option value="">กำลังโหลดรายชื่อ...</option>
                       )}
-                      {users.map((u) => {
-                        const fullName = `${u.first_name} ${u.last_name}`;
-                        const isChosenInOtherStep = otherChosenIds.has(u.id);
-                        return (
-                          <option
-                            key={u.id}
-                            value={u.id}
-                            disabled={isChosenInOtherStep}
-                          >
-                            {fullName} ({u.role?.name || "N/A"})
-                            {isChosenInOtherStep ? " — เลือกแล้วในขั้นอื่น" : ""}
-                          </option>
-                        );
-                      })}
+                      {users
+                        .filter((u) => {
+                          // Filter users by position matching step.roleName
+                          if (!step.roleName) return true;
+                          const userPosition = u.position?.name || u.position || "";
+                          if (!userPosition) return true; // Show users with no position just in case
+                          return userPosition === step.roleName;
+                        })
+                        .map((u) => {
+                          const fullName = `${u.first_name} ${u.last_name}`;
+                          const isChosenInOtherStep = otherChosenIds.has(u.id);
+                          return (
+                            <option
+                              key={u.id}
+                              value={u.id}
+                              disabled={isChosenInOtherStep}
+                            >
+                              {fullName} ({u.position?.name || u.position || "N/A"})
+                              {isChosenInOtherStep ? " — เลือกแล้วในขั้นอื่น" : ""}
+                            </option>
+                          );
+                        })}
                     </select>
                     <UserCheck className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
                   </div>

@@ -22,6 +22,7 @@ type FormType = "PR" | "PO" | "บันทึก" | "Other";
 
 export default function DocumentUploadPage() {
   const [docType, setDocType] = useState<FormType>("PR");
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const { showToast } = useToast();
@@ -320,7 +321,37 @@ export default function DocumentUploadPage() {
       />
 
       {/* TYPE SELECTOR - 4 CARDS */}
+      
+      {/* WIZARD STEPPER */}
+      <div className="mb-6 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center justify-between relative overflow-hidden">
+        <div className="absolute top-1/2 left-[10%] right-[10%] h-0.5 bg-slate-100 -z-0 -translate-y-1/2"></div>
+        <div className="absolute top-1/2 left-[10%] h-0.5 bg-blue-600 -z-0 -translate-y-1/2 transition-all duration-500" style={{ width: `${(currentStep - 1) * 33.33}%` }}></div>
+        
+        {[
+          { step: 1, label: "กรอกข้อมูล", desc: "Select Type & Fill Form" },
+          { step: 2, label: "แนบไฟล์และสิทธิ", desc: "Attachments & Visibility" },
+          { step: 3, label: "สายการอนุมัติ", desc: "Workflow & Submit" },
+          { step: 4, label: "ตรวจสอบ", desc: "Preview & Submit" }
+        ].map((s) => (
+          <div key={s.step} className="flex flex-col items-center relative z-10 bg-white px-2">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm mb-2 transition-colors ${
+              currentStep === s.step 
+                ? "bg-blue-600 text-white ring-4 ring-blue-50" 
+                : currentStep > s.step 
+                  ? "bg-blue-600 text-white" 
+                  : "bg-slate-100 text-slate-400"
+            }`}>
+              {currentStep > s.step ? "✓" : s.step}
+            </div>
+            <span className={`text-xs font-bold ${currentStep >= s.step ? "text-slate-800" : "text-slate-400"}`}>{s.label}</span>
+            <span className="text-[10px] text-slate-400 hidden sm:block">{s.desc}</span>
+          </div>
+        ))}
+      </div>
+      
       <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-6">
+        {currentStep === 1 && (
+
         <div>
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
             เลือกประเภทเอกสาร (Select Document Type)
@@ -436,6 +467,8 @@ export default function DocumentUploadPage() {
           </div>
         </div>
 
+        )}
+
         {/* FORMS SECTION */}
         <div className="border-t border-slate-100 pt-6 relative">
           {isSubmitting && (
@@ -451,6 +484,7 @@ export default function DocumentUploadPage() {
             <PRForm
               onSubmit={handlePRSubmit}
               onCancel={() => router.push("/documents")}
+              currentStep={currentStep} onNext={() => setCurrentStep(p => p + 1)} onBack={() => setCurrentStep(p => p - 1)}
               runningNumberPreview={getRunningNumberPreview("PR")}
             />
           )}
@@ -459,6 +493,7 @@ export default function DocumentUploadPage() {
             <POForm
               onSubmit={handlePOSubmit}
               onCancel={() => router.push("/documents")}
+              currentStep={currentStep} onNext={() => setCurrentStep(p => p + 1)} onBack={() => setCurrentStep(p => p - 1)}
               runningNumberPreview={getRunningNumberPreview("PO")}
             />
           )}
@@ -467,6 +502,7 @@ export default function DocumentUploadPage() {
             <BKForm
               onSubmit={handleBKSubmit}
               onCancel={() => router.push("/documents")}
+              currentStep={currentStep} onNext={() => setCurrentStep(p => p + 1)} onBack={() => setCurrentStep(p => p - 1)}
               runningNumberPreview={getRunningNumberPreview("บันทึก")}
             />
           )}
@@ -475,6 +511,7 @@ export default function DocumentUploadPage() {
             <UploadOnlyForm
               onSubmit={handleOtherSubmit}
               onCancel={() => router.push("/documents")}
+              currentStep={currentStep} onNext={() => setCurrentStep(p => p + 1)} onBack={() => setCurrentStep(p => p - 1)}
               runningNumberPreview={getRunningNumberPreview("Other")}
             />
           )}

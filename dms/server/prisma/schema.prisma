@@ -18,9 +18,11 @@ model Department {
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now()) @updatedAt
 
-  users       User[]
-  pr_forms    PRForm[]
-  bk_forms    BKForm[]
+  users              User[]
+  pr_forms           PRForm[]
+  bk_forms           BKForm[]
+  folders            Folder[]
+  folder_permissions FolderPermission[]
 
   @@map("departments")
 }
@@ -128,6 +130,8 @@ model User {
   workflow_steps       WorkflowStep[]
   notifications        Notification[]
   audit_logs           AuditLog[]
+  folders_created      Folder[]
+  folder_permissions   FolderPermission[]
 
   @@map("users")
 }
@@ -156,6 +160,7 @@ model Document {
   status      DocumentStatus @default(Draft)
   search_text String?        @db.Text
   tags        String[]
+  folder_id   String?
   is_deleted  Boolean        @default(false)
   
   created_at  DateTime       @default(now())
@@ -164,6 +169,7 @@ model Document {
   // Relations
   type        DocumentType   @relation(fields: [type_id], references: [id])
   creator     User           @relation(fields: [creator_id], references: [id])
+  folder      Folder?        @relation(fields: [folder_id], references: [id], onDelete: SetNull)
   
   pr_form     PRForm?
   po_form     POForm?
@@ -176,6 +182,7 @@ model Document {
   @@index([status, is_deleted])
   @@index([creator_id])
   @@index([type_id])
+  @@index([folder_id])
   @@index([created_at])
   @@map("documents")
 }
@@ -433,4 +440,69 @@ model AuditLog {
   user        User?       @relation(fields: [user_id], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
+}
+
+// ==========================================
+// GROUP 7: FOLDER MANAGEMENT
+// ==========================================
+
+enum FolderVisibility {
+  Private       // เจ้าของเท่านั้น
+  Department    // คนในแผนกเดียวกัน
+  Shared        // กำหนดเอง
+  CompanyWide   // ทุกคนในองค์กร
+  AdminOnly     // เฉพาะ Admin / Executive
+}
+
+model Folder {
+  id            String            @id @default(uuid())
+  name          String
+  description   String?
+  color         String?
+  icon          String?
+  
+  visibility    FolderVisibility  @default(CompanyWide)
+  
+  parent_id     String?
+  creator_id    String
+  department_id String?
+  
+  is_deleted    Boolean           @default(false)
+  created_at    DateTime          @default(now())
+  updated_at    DateTime          @updatedAt
+
+  // Relations
+  parent        Folder?           @relation("FolderChildren", fields: [parent_id], references: [id])
+  children      Folder[]          @relation("FolderChildren")
+  creator       User              @relation(fields: [creator_id], references: [id])
+  department    Department?       @relation(fields: [department_id], references: [id])
+  
+  documents     Document[]
+  permissions   FolderPermission[]
+
+  @@index([parent_id])
+  @@index([creator_id])
+  @@index([visibility])
+  @@map("folders")
+}
+
+model FolderPermission {
+  id            String   @id @default(uuid())
+  folder_id     String
+  
+  user_id       String?
+  department_id String?
+  
+  can_view      Boolean  @default(true)
+  can_edit      Boolean  @default(false)
+  
+  created_at    DateTime @default(now())
+
+  folder        Folder      @relation(fields: [folder_id], references: [id], onDelete: Cascade)
+  user          User?       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  department    Department? @relation(fields: [department_id], references: [id], onDelete: Cascade)
+
+  @@unique([folder_id, user_id])
+  @@unique([folder_id, department_id])
+  @@map("folder_permissions")
 }

@@ -93,7 +93,6 @@ const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
   { key: "position", label: "ตำแหน่ง", icon: Briefcase },
   { key: "workflow", label: "Workflow", icon: Workflow },
   { key: "signature", label: "ลายเซ็น", icon: Signature },
-  { key: "running", label: "รูปแบบเลขที่เอกสาร", icon: ListOrdered },
 ];
 
 function uid() {
@@ -325,7 +324,7 @@ const emptyForm = (): FormState => ({
   imageUrl: "",
   isActive: true,
   workflowApprovers: ["", "", ""],
-  workflowSteps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"],
+  workflowSteps: ["หัวหน้าแผนก", "ผู้บริหาร", "ผู้ดูแลระบบ"],
 });
 
 function buildEmptyForm(departments: DepartmentRow[]): FormState {
@@ -437,52 +436,12 @@ function MasterDataPageContent() {
             employeeCount: d.employeeCount || 0,
             isActive: d.is_active,
           })) : prev.department,
-          position: pos.length > 0 ? (() => {
-            const seen = new Set<string>();
-            const result: any[] = [];
-
-            for (const p of pos) {
-              const rawName = p.name || "";
-              let cleanName = rawName
-                .replace(/ฝ่ายจัดซื้อ|ฝ่ายผลิต|ฝ่ายบัญชี|ฝ่ายส่งมอบ|ฝ่ายคลังสินค้า|ฝ่ายทรัพยากรบุคคล|คลังสินค้า/g, "")
-                .replace(/\s+(HR|IT|QA|QC|ACC|PUR|WH|LOG)\b/gi, "")
-                .trim();
-
-              if (cleanName === "เจ้าหน้าที่" || cleanName === "เจ้าหน้าที่ HR" || cleanName === "เจ้าหน้าที่บัญชี" || cleanName === "เจ้าหน้าที่ปฏิบัติการ" || cleanName === "พนักงาน") cleanName = "พนักงาน";
-              else if (cleanName === "หัวหน้า" || cleanName === "หัวหน้างาน" || cleanName === "หัวหน้าแผนก" || cleanName.includes("หัวหน้า")) cleanName = "หัวหน้าแผนก";
-              else if (cleanName === "ผู้จัดการ" || cleanName === "ผู้จัดการฝ่าย" || cleanName.includes("ผู้จัดการ")) cleanName = "ผู้จัดการฝ่าย";
-              else if (cleanName === "ผู้อำนวยการ" || cleanName === "ผู้อำนวยการฝ่าย") cleanName = "ผู้อำนวยการ";
-              else if (cleanName.includes("ผู้บริหาร") || cleanName.includes("Executive") || cleanName.includes("กรรมการ")) cleanName = "ผู้บริหาร";
-
-              if (!cleanName) cleanName = rawName;
-
-              let inferredLevel = p.level;
-              if (!inferredLevel || inferredLevel === "L1") {
-                if (cleanName === "ผู้บริหาร") {
-                  inferredLevel = "L5";
-                } else if (cleanName === "ผู้อำนวยการ") {
-                  inferredLevel = "L4";
-                } else if (cleanName === "ผู้จัดการฝ่าย") {
-                  inferredLevel = "L3";
-                } else if (cleanName === "หัวหน้าแผนก") {
-                  inferredLevel = "L2";
-                } else {
-                  inferredLevel = "L1";
-                }
-              }
-
-              if (!seen.has(cleanName)) {
-                seen.add(cleanName);
-                result.push({
-                  id: p.id,
-                  name: cleanName,
-                  level: inferredLevel,
-                  isActive: p.is_active,
-                });
-              }
-            }
-            return result;
-          })() : prev.position,
+          position: pos.length > 0 ? pos.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            level: p.level || "L1",
+            isActive: p.is_active,
+          })) : prev.position,
           doctype: docTs.length > 0 ? docTs.map((dt: any) => ({
             id: dt.id,
             name: dt.type_name,
@@ -545,7 +504,7 @@ function MasterDataPageContent() {
       const wf = row as WorkflowRow;
       const initialSteps: RoleOption[] = (wf.steps && wf.steps.length > 0)
         ? [...wf.steps]
-        : ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"];
+        : ["หัวหน้าแผนก", "ผู้บริหาร", "ผู้ดูแลระบบ"];
       while (initialSteps.length < wf.levels) {
         initialSteps.push(ROLE_OPTIONS[0]);
       }
@@ -586,7 +545,7 @@ function MasterDataPageContent() {
         imageUrl: sig.imageUrl || "",
         isActive: sig.isActive,
         workflowApprovers: ["", "", ""],
-        workflowSteps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย"],
+        workflowSteps: ["หัวหน้าแผนก", "ผู้บริหาร"],
       };
     } else {
       nextForm = {
@@ -605,7 +564,7 @@ function MasterDataPageContent() {
         signedCount: "signedCount" in row ? String(row.signedCount) : "0",
         isActive: row.isActive,
         workflowApprovers: ["", "", ""],
-        workflowSteps: ["หัวหน้าแผนก", "ผู้จัดการฝ่าย"],
+        workflowSteps: ["หัวหน้าแผนก", "ผู้บริหาร"],
       };
     }
 
@@ -832,7 +791,7 @@ function MasterDataPageContent() {
     );
   };
 
-  const softDelete = (id: string) => {
+  const softDelete = async (id: string) => {
     if (activeTab === "running") return;
     if (activeTab === "signature") {
       toggleSignatureActive(id);
@@ -844,24 +803,49 @@ function MasterDataPageContent() {
     const guard = getDeleteGuard(activeTab as DataTabKey, row, data);
     if (guard.blocked) return;
     if (!confirm("ยืนยันการลบรายการนี้?")) return;
-    setData((prev) => ({
-      ...prev,
-      [activeTab]: prev[activeTab as DataTabKey].map((r) => (r.id === id ? { ...r, isActive: false } : r)),
-    }));
-    showToast("ลบข้อมูลสำเร็จ", "success");
+
+    try {
+      if (activeTab === "position") {
+        await adminService.deletePosition(id);
+      } else if (activeTab === "department") {
+        await adminService.deleteDepartment(id);
+      } else if (activeTab === "doctype") {
+        await adminService.updateDocumentType(id, { is_active: false });
+      }
+
+      setData((prev) => ({
+        ...prev,
+        [activeTab]: prev[activeTab as DataTabKey].filter((r) => r.id !== id),
+      }));
+      showToast("ลบข้อมูลสำเร็จ", "success");
+    } catch (err) {
+      showToast("เกิดข้อผิดพลาดในการลบข้อมูล", "error");
+    }
   };
 
-  const restore = (id: string) => {
+  const restore = async (id: string) => {
     if (activeTab === "signature") {
       toggleSignatureActive(id);
       showToast("กู้คืนสถานะลายเซ็นสำเร็จ", "success");
       return;
     }
-    setData((prev) => ({
-      ...prev,
-      [activeTab]: prev[activeTab as DataTabKey].map((r) => (r.id === id ? { ...r, isActive: true } : r)),
-    }));
-    showToast("กู้คืนข้อมูลสำเร็จ", "success");
+    try {
+      if (activeTab === "position") {
+        await adminService.updatePosition(id, { is_active: true });
+      } else if (activeTab === "department") {
+        await adminService.updateDepartment(id, { is_active: true });
+      } else if (activeTab === "doctype") {
+        await adminService.updateDocumentType(id, { is_active: true });
+      }
+
+      setData((prev) => ({
+        ...prev,
+        [activeTab]: prev[activeTab as DataTabKey].map((r) => (r.id === id ? { ...r, isActive: true } : r)),
+      }));
+      showToast("กู้คืนข้อมูลสำเร็จ", "success");
+    } catch (err) {
+      showToast("เกิดข้อผิดพลาดในการกู้คืนข้อมูล", "error");
+    }
   };
 
   const signatureGuardData = useMemo(
@@ -878,7 +862,7 @@ function MasterDataPageContent() {
         activeTab === "signature" ? undefined : row.isActive ? (
         <RowActions
           onEdit={() => openEdit(row.id)}
-          onDelete={() => softDelete(row.id)}
+          onDelete={activeTab === "position" ? undefined : () => softDelete(row.id)}
           deleteBlocked={guard.blocked}
           deleteTooltip={guard.tooltip}
         />
@@ -1326,7 +1310,7 @@ function MasterDataPageContent() {
       const levelCount = Number(form.levels) || 3;
       const currentSteps: RoleOption[] = form.workflowSteps && form.workflowSteps.length > 0
         ? [...form.workflowSteps]
-        : ["หัวหน้าแผนก", "ผู้จัดการฝ่าย", "ผู้จัดการฝ่ายจัดซื้อ"];
+        : ["หัวหน้าแผนก", "ผู้บริหาร", "ผู้ดูแลระบบ"];
       const steps = currentSteps.slice(0, levelCount);
 
       const updateStepRole = (idx: number, role: RoleOption) => {
@@ -1552,7 +1536,7 @@ function MasterDataPageContent() {
       }
       title="Master Data"
       actions={
-        activeTab === "running" || activeTab === "workflow" ? undefined : (
+        activeTab === "running" || activeTab === "workflow" || activeTab === "position" ? undefined : (
           <button type="button" onClick={openAdd} className={MD_MASTER_ADD_BTN}>
             <Plus className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
             เพิ่ม
@@ -1694,7 +1678,7 @@ function MasterDataPageContent() {
                             return (
                               <RowActions
                                 onEdit={() => openEdit(row.id)}
-                                onDelete={() => softDelete(row.id)}
+                                onDelete={activeTab === "position" ? undefined : () => softDelete(row.id)}
                                 deleteBlocked={guard.blocked}
                                 deleteTooltip={guard.tooltip}
                               />
@@ -1709,13 +1693,6 @@ function MasterDataPageContent() {
                 </tbody>
               </table>
             </MasterDataTableWrap>
-
-            <StatCards
-              total={tabStats.total}
-              active={tabStats.active}
-              inactive={tabStats.deleted}
-              icon={TabIcon}
-            />
           </>
         )}
       </section>

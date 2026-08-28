@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { Plus, Trash2, Save, Send, UploadCloud, Briefcase, FileSignature, HelpCircle } from "lucide-react";
 import { useAuth } from '@views/components/providers/AuthProvider';
+import { formatThaiDate } from "@/lib/format-date";
+import Step2Visibility, { VisibilityData } from "./Step2Visibility";
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
 } from "./ApprovalWorkflowSection";
@@ -37,6 +39,9 @@ interface POFormProps {
   onSubmit: (data: POSubmitData) => void;
   onCancel: () => void;
   runningNumberPreview: string;
+  currentStep: number;
+  onNext: () => void;
+  onBack: () => void;
 }
 
 const DEPARTMENTS = [
@@ -58,7 +63,7 @@ const PAYMENT_TERMS_OPTIONS = [
   "มัดจำ 30% ชำระส่วนที่เหลือวันส่งมอบ",
 ];
 
-export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POFormProps) {
+export default function POForm({ onSubmit, onCancel, runningNumberPreview , currentStep, onNext, onBack }: POFormProps) {
   const { user } = useAuth();
   const defaultRequester = user?.full_name || user?.username || "Administrator";
   const defaultDept = user?.department || DEPARTMENTS[0];
@@ -87,6 +92,7 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
     },
   ]);
 
+  const [visibility, setVisibility] = useState<VisibilityData>({ type: "CompanyWide", departments: [], users: [] });
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([]);
 
   React.useEffect(() => {
@@ -198,6 +204,8 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
       }}
       className="space-y-6"
     >
+      {(currentStep === 1 || currentStep === 4) && (
+        <>
       <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
         <div className="text-sm">
           <span className="font-bold text-slate-500 mr-2">Preview ID:</span> 
@@ -241,7 +249,7 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
                   <tr>
                     <th className="border border-slate-800 px-2 py-1 bg-purple-50 font-bold">วันที่ / Date</th>
                     <td className="border border-slate-800 px-2 py-1 text-center font-bold text-slate-900">
-                      {new Date().toLocaleDateString('th-TH')}
+                      {formatThaiDate(new Date())}
                     </td>
                   </tr>
                 </tbody>
@@ -483,7 +491,7 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
               </div>
               <div className="w-full border-t border-slate-800 pt-1 text-center bg-white">
                 <p className="font-bold text-slate-900 text-[11px]">ผู้จัดทำ (Prepared By)</p>
-                <p className="text-[10px] text-slate-700 mt-0.5">วันที่ {new Date().toLocaleDateString('th-TH')}</p>
+                <p className="text-[10px] text-slate-700 mt-0.5">วันที่ {formatThaiDate(new Date())}</p>
               </div>
             </div>
             {workflowSteps.map((step, idx) => (
@@ -493,6 +501,9 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
                 </div>
                 <div className="w-full border-t border-slate-800 pt-1 text-center bg-white">
                   <p className="font-bold text-slate-900 text-[11px] truncate px-1" title={step.roleName}>{step.roleName}</p>
+                  {currentStep === 4 && step.approverName && (
+                    <p className="text-[10px] text-blue-600 font-bold leading-tight">{step.approverName}</p>
+                  )}
                   <p className="text-[10px] text-slate-700 mt-0.5">วันที่ ____/____/____</p>
                 </div>
               </div>
@@ -502,87 +513,124 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview }: POF
         </div>
       </div>
 
-      {/* FILE UPLOAD ATTACHMENT */}
-      <div className="bg-linear-to-b from-slate-50/50 to-white p-6 rounded-3xl border border-slate-200 shadow-xs group transition-all hover:border-purple-300">
-        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-          <FileSignature className="w-4 h-4 text-purple-500" />
-          Attach Reference Document (แนบไฟล์เอกสารอ้างอิง เช่น ใบเสนอราคา)
-        </label>
-        <div className="border-2 border-dashed border-slate-300 group-hover:border-purple-400 group-hover:bg-purple-50/30 rounded-2xl p-8 text-center transition-all cursor-pointer relative bg-white overflow-hidden">
-          <input
-            type="file"
-            accept=".pdf,.doc,.docx"
-            onChange={handleFileChange}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-          />
-          
-          {uploadedFile ? (
-            <div className="flex flex-col items-center gap-3 relative z-0">
-              <div className="p-4 bg-purple-100 rounded-full text-purple-600 shadow-sm ring-4 ring-purple-50">
-                <FileSignature className="w-8 h-8" />
-              </div>
-              <div>
-                <p className="text-base font-bold text-slate-800">{uploadedFile.name}</p>
-                <p className="text-xs text-slate-500 mt-1 font-medium bg-slate-100 px-2.5 py-0.5 rounded-full inline-block">
-                  {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-              </div>
+          {currentStep === 1 && (
+            <div className="flex justify-end pt-4 border-t border-slate-100 mt-6">
+              <button
+                type="button"
+                onClick={(e) => {
+                  const form = e.currentTarget.closest('form');
+                  if (form && !form.checkValidity()) {
+                    form.reportValidity();
+                  } else {
+                    onNext();
+                  }
+                }}
+                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-purple-100 cursor-pointer"
+              >
+                Next Step (ถัดไป)
+              </button>
             </div>
-          ) : (
-            <div className="flex flex-col items-center gap-3 relative z-0">
-              <div className="p-4 bg-slate-100 rounded-full text-slate-400 group-hover:bg-purple-100 group-hover:text-purple-600 group-hover:scale-110 transition-all duration-300">
-                <UploadCloud className="w-8 h-8" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-700 group-hover:text-purple-700 transition-colors">
-                  คลิก หรือ ลากไฟล์เอกสารอ้างอิงมาวางที่นี่
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  รองรับไฟล์ PDF, DOC, DOCX (ขนาดสูงสุดไม่เกิน 25MB)
-                </p>
+          )}
+          {currentStep === 4 && (
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-6">
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl text-sm transition-all cursor-pointer"
+              >
+                Back (ย้อนกลับ)
+              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => triggerSubmit(true)}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-all cursor-pointer border border-slate-200"
+                >
+                  <Save className="w-4 h-4" />
+                  Save as Draft (บันทึกร่าง)
+                </button>
+                <button
+                  type="submit"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-purple-100 cursor-pointer active:scale-95"
+                >
+                  <Send className="w-4 h-4" />
+                  Submit PO Document (ส่งขออนุมัติ)
+                </button>
               </div>
             </div>
           )}
-        </div>
-      </div>
+        </>
+      )}
 
-      {/* WORKFLOW MATRIX SELECTION */}
-      <ApprovalWorkflowSection
-        steps={workflowSteps}
-        onChange={setWorkflowSteps}
-      />
+      {currentStep === 2 && (
+        <>
+          <Step2Visibility
+            uploadedFile={uploadedFile}
+            onFileChange={handleFileChange}
+            visibility={visibility}
+            onVisibilityChange={setVisibility}
+          />
+          <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-6">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl text-sm transition-all cursor-pointer"
+            >
+              Back (ย้อนกลับ)
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                const form = e.currentTarget.closest('form');
+                if (form && !form.checkValidity()) {
+                  form.reportValidity();
+                } else {
+                  onNext();
+                }
+              }}
+              className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-purple-100 cursor-pointer"
+            >
+              Next Step (ถัดไป)
+            </button>
+          </div>
+        </>
+      )}
 
-      {/* ACTION BUTTONS (Draft & Submit) */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl text-sm transition-all cursor-pointer"
-        >
-          Cancel
-        </button>
+      {currentStep === 3 && (
+        <>
+          {/* WORKFLOW MATRIX SELECTION */}
+          <ApprovalWorkflowSection
+            steps={workflowSteps}
+            onChange={setWorkflowSteps}
+          />
 
-        <div className="flex items-center gap-3">
-          {/* Save as Draft Button */}
-          <button
-            type="button"
-            onClick={() => triggerSubmit(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-all cursor-pointer border border-slate-200"
-          >
-            <Save className="w-4 h-4" />
-            Save as Draft (บันทึกร่าง)
-          </button>
+          {/* ACTION BUTTONS (Draft & Submit) */}
+          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl text-sm transition-all cursor-pointer"
+            >
+              Back (ย้อนกลับ)
+            </button>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-purple-100 cursor-pointer active:scale-95"
-          >
-            <Send className="w-4 h-4" />
-            Submit PO Document (ส่งขออนุมัติ)
-          </button>
-        </div>
-      </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                const form = e.currentTarget.closest('form');
+                if (form && !form.checkValidity()) {
+                  form.reportValidity();
+                } else {
+                  onNext();
+                }
+              }}
+              className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-purple-100 cursor-pointer"
+            >
+              Next Step (Preview)
+            </button>
+          </div>
+          </>
+      )}
     </form>
   );
 }

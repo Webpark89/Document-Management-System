@@ -20,6 +20,7 @@ type AuthUser = {
   position?: string;
   joined_at?: string;
   signature_url?: string | null;
+  permissions?: string[];
 };
 
 type AuthContextValue = {

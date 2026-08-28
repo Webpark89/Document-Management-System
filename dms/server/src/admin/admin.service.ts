@@ -63,7 +63,7 @@ export class AdminService {
     const rawPassword = dto.password || 'folk2546';
     const passwordHash = await bcrypt.hash(rawPassword, 10);
 
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         username: dto.username,
         email: dto.email,
@@ -74,7 +74,25 @@ export class AdminService {
         position_id: dto.position_id,
         role_id: dto.role_id,
       },
+      include: {
+        department: true,
+        position: true,
+        role: true,
+      },
     });
+
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      department: user.department?.name || '-',
+      position: user.position?.name || '-',
+      role: user.role?.name || 'Employee',
+      is_active: user.is_active,
+      created_at: user.created_at,
+    };
   }
 
   async toggleUserActive(id: string) {
@@ -91,7 +109,7 @@ export class AdminService {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('ไม่พบผู้ใช้งาน');
 
-    return this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id },
       data: {
         email: dto.email,
@@ -102,7 +120,25 @@ export class AdminService {
         role_id: dto.role_id,
         is_active: dto.is_active,
       },
+      include: {
+        department: true,
+        position: true,
+        role: true,
+      },
     });
+
+    return {
+      id: updatedUser.id,
+      username: updatedUser.username,
+      email: updatedUser.email,
+      first_name: updatedUser.first_name,
+      last_name: updatedUser.last_name,
+      department: updatedUser.department?.name || '-',
+      position: updatedUser.position?.name || '-',
+      role: updatedUser.role?.name || 'Employee',
+      is_active: updatedUser.is_active,
+      created_at: updatedUser.created_at,
+    };
   }
 
   async resetUserPassword(id: string, rawPassword: string) {
@@ -143,6 +179,61 @@ export class AdminService {
     return this.prisma.role.create({ data: { name } });
   }
 
+  async getRoleById(id: string) {
+    const r = await this.prisma.role.findUnique({
+      where: { id },
+      include: {
+        permissions: {
+          include: { permission: true },
+        },
+        _count: { select: { users: true } },
+      },
+    });
+    if (!r) throw new NotFoundException('Role not found');
+    return {
+      id: r.id,
+      name: r.name,
+      is_active: r.is_active,
+      user_count: r._count.users,
+      permissions: r.permissions.map((p) => ({
+        module: p.permission.module,
+        action: p.permission.action,
+      })),
+    };
+  }
+
+  async updateRole(id: string, dto: { name?: string; permissions?: { module: string; action: string }[] }) {
+    const role = await this.prisma.role.findUnique({ where: { id } });
+    if (!role) throw new NotFoundException('Role not found');
+    
+    if (dto.name) {
+      await this.prisma.role.update({ where: { id }, data: { name: dto.name } });
+    }
+
+    if (dto.permissions) {
+      // Clear existing permissions for this role
+      await this.prisma.rolePermission.deleteMany({ where: { role_id: id } });
+
+      for (const p of dto.permissions) {
+        // Find or create the permission
+        const perm = await this.prisma.permission.upsert({
+          where: { module_action: { module: p.module, action: p.action } },
+          update: {},
+          create: { module: p.module, action: p.action },
+        });
+
+        await this.prisma.rolePermission.create({
+          data: {
+            role_id: id,
+            permission_id: perm.id,
+          },
+        });
+      }
+    }
+
+    return this.getRoleById(id);
+  }
+
   async deleteRole(id: string) {
     const role = await this.prisma.role.findUnique({ where: { id } });
     if (!role) throw new NotFoundException('ไม่พบ Role');
@@ -177,6 +268,16 @@ export class AdminService {
     return this.prisma.department.update({ where: { id }, data: dto });
   }
 
+  async deleteDepartment(id: string) {
+    const dept = await this.prisma.department.findUnique({ where: { id } });
+    if (!dept) throw new NotFoundException('ไม่พบข้อมูลแผนก');
+    const userCount = await this.prisma.user.count({ where: { department_id: id, is_deleted: false } });
+    if (userCount > 0) {
+      return this.prisma.department.update({ where: { id }, data: { is_active: false } });
+    }
+    return this.prisma.department.delete({ where: { id } });
+  }
+
   async getPositions() {
     return this.prisma.position.findMany({ orderBy: { name: 'asc' } });
   }
@@ -192,6 +293,16 @@ export class AdminService {
 
   async updatePosition(id: string, dto: { name?: string; level?: string; is_active?: boolean }) {
     return this.prisma.position.update({ where: { id }, data: dto });
+  }
+
+  async deletePosition(id: string) {
+    const pos = await this.prisma.position.findUnique({ where: { id } });
+    if (!pos) throw new NotFoundException('ไม่พบข้อมูลตำแหน่ง');
+    const userCount = await this.prisma.user.count({ where: { position_id: id, is_deleted: false } });
+    if (userCount > 0) {
+      return this.prisma.position.update({ where: { id }, data: { is_active: false } });
+    }
+    return this.prisma.position.delete({ where: { id } });
   }
 
   async getDocumentTypes() {

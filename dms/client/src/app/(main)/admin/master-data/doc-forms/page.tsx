@@ -39,7 +39,6 @@ const MASTER_DATA_NAV: {
   { href: "/admin/master-data", label: "ตำแหน่ง", icon: Briefcase, tab: "position" },
   { href: "/admin/master-data", label: "Workflow", icon: Workflow, tab: "workflow" },
   { href: "/admin/master-data", label: "ลายเซ็น", icon: Signature, tab: "signature" },
-  { href: "/admin/master-data", label: "รูปแบบเลขที่เอกสาร", icon: ListOrdered, tab: "running" },
 ];
 
 

@@ -10,9 +10,18 @@ import { swalConfirm, swalError } from "@/lib/swal";
 interface ApprovalActionsProps {
   documentId: string;
   signaturePlaced: boolean;
+  canApprove?: boolean;
+  activeApproverName?: string;
+  currentStep?: number;
 }
 
-export function ApprovalActions({ documentId, signaturePlaced }: ApprovalActionsProps) {
+export function ApprovalActions({ 
+  documentId, 
+  signaturePlaced, 
+  canApprove = true, 
+  activeApproverName,
+  currentStep = 1
+}: ApprovalActionsProps) {
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -72,6 +81,23 @@ export function ApprovalActions({ documentId, signaturePlaced }: ApprovalActions
       setIsSubmitting(false);
     }
   };
+
+  if (!canApprove) {
+    return (
+      <div className="bg-slate-50 rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-2">
+        <div className="flex items-center gap-2 text-slate-700 font-bold text-xs">
+          <AlertTriangle className="w-4 h-4 text-amber-500" />
+          <span>อยู่ระหว่างการรออนุมัติ (Step {currentStep})</span>
+        </div>
+        <p className="text-xs text-slate-500 font-medium leading-relaxed">
+          เอกสารฉบับนี้อยู่ในระหว่างการรอพิจารณาโดย <strong className="text-slate-800">{activeApproverName || "ผู้อนุมัติประจำขั้นตอน"}</strong>
+        </p>
+        <div className="text-[11px] text-slate-400 pt-1">
+          🔒 ปุ่มอนุมัติและลายเซ็นจะเปิดให้ใช้งานเมื่อเป็นลำดับสิทธิ์ของคุณเท่านั้น
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

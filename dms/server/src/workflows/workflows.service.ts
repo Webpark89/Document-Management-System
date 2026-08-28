@@ -234,7 +234,10 @@ export class WorkflowsService {
                 po_form: true,
               },
             },
-            steps: { orderBy: { step_order: 'asc' } },
+            steps: {
+              include: { approver: true },
+              orderBy: { step_order: 'asc' },
+            },
           },
         },
       },
@@ -242,10 +245,9 @@ export class WorkflowsService {
     });
 
     const activeSteps = steps.filter((s) => {
-      if (s.status === 'Pending') {
-        return s.step_order === s.workflow.current_step;
-      }
-      return true;
+      // Only show steps that are Pending AND are the current step in the workflow.
+      // If the workflow is already Rejected/Returned/Approved, it shouldn't show in the pending list.
+      return s.status === 'Pending' && s.step_order === s.workflow.current_step && s.workflow.status === 'Pending';
     });
 
     return activeSteps.map((s) => {
@@ -259,6 +261,14 @@ export class WorkflowsService {
           ? `฿${Number(doc.po_form.total_amount).toLocaleString()}`
           : '-';
 
+      const approvers = (s.workflow.steps || [])
+        .map((st) =>
+          st.approver
+            ? `${st.approver.first_name} ${st.approver.last_name}`
+            : null,
+        )
+        .filter((name): name is string => Boolean(name));
+
       return {
         id: doc.doc_number || doc.id,
         real_id: doc.id,
@@ -267,7 +277,8 @@ export class WorkflowsService {
         name: doc.title,
         type: doc.type?.prefix || 'PR',
         sender: creatorName,
-        submittedDate: new Date(doc.created_at).toLocaleDateString('th-TH'),
+        approvers,
+        submittedDate: doc.created_at,
         amount,
         status: doc.status,
         stepStatus: s.status,
@@ -307,6 +318,7 @@ export class WorkflowsService {
       steps: workflow.steps.map((s) => ({
         id: s.id,
         step_order: s.step_order,
+        approver_id: s.approver_id,
         approver_name: s.approver
           ? `${s.approver.first_name} ${s.approver.last_name}`
           : 'ยังไม่ระบุตัวบุคคล',
@@ -451,7 +463,23 @@ export class WorkflowsService {
       // 3. อัปเดต Workflow + Document
       if (isLastStep) {
         await tx.workflow.update({ where: { id: workflow.id }, data: { status: 'Approved' } });
-        await tx.document.update({ where: { id: doc.id }, data: { status: 'Approved' } });
+
+        // Auto-assign department folder if not assigned yet
+        let autoFolderId: string | null = doc.folder_id || null;
+        if (!autoFolderId) {
+          const creatorUser = await tx.user.findUnique({ where: { id: doc.creator_id } });
+          if (creatorUser?.department_id) {
+            const deptFolder = await tx.folder.findFirst({
+              where: { department_id: creatorUser.department_id, is_deleted: false, visibility: 'Department' },
+            });
+            if (deptFolder) autoFolderId = deptFolder.id;
+          }
+        }
+
+        await tx.document.update({
+          where: { id: doc.id },
+          data: { status: 'Approved', folder_id: autoFolderId },
+        });
       } else {
         await tx.workflow.update({
           where: { id: workflow.id },

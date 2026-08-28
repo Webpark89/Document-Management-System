@@ -14,6 +14,7 @@ import {
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { useSignatures } from '@views/components/providers/SignatureProvider';
 import { documentsService } from '@/controllers/services/documents.service';
+import { formatThaiDate } from '@/lib/format-date';
 import { DocumentPreview } from "../documents/DocumentPreview";
 
 interface DocumentSignerViewerProps {
@@ -24,6 +25,8 @@ interface DocumentSignerViewerProps {
   signaturePlaced: boolean;
   onSignatureChange?: (placed: boolean) => void;
   doc?: any;
+  canSign?: boolean;
+  activeApproverName?: string;
 }
 
 type ToolMode = "signature" | "text" | "date";
@@ -36,6 +39,8 @@ export function DocumentSignerViewer({
   signaturePlaced,
   onSignatureChange,
   doc,
+  canSign = true,
+  activeApproverName,
 }: DocumentSignerViewerProps) {
   const { user } = useAuth();
   const { signatures, findByApproverName } = useSignatures();
@@ -61,11 +66,9 @@ export function DocumentSignerViewer({
   }, [documentId]);
 
   const handlePlaceStamp = () => {
-    const todayStr = new Date().toLocaleDateString("th-TH", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }) + " 10:22 น.";
+    if (!canSign) return;
+
+    const todayStr = formatThaiDate(new Date(), true);
 
     if (activeTool === "signature") {
       setPlacedElements((prev) => ({ ...prev, signature: true }));
@@ -90,67 +93,75 @@ export function DocumentSignerViewer({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-slate-100">
         <div>
           <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            PDF Viewer & E-Signature Controls (สเปคหน้า 9)
+            PDF Viewer & E-Signature Controls
           </h4>
           <p className="text-xs text-slate-400 font-medium">
-            เลือกเครื่องมือเพื่อทดลองประทับลายเซ็น ข้อความ หรือวันที่ลงบนไฟล์ PDF
+            {canSign 
+              ? "เลือกเครื่องมือเพื่อประทับลายเซ็น ข้อความ หรือวันที่ลงบนไฟล์ PDF"
+              : `🔒 โหมดดูอย่างเดียว: รอการอนุมัติโดย ${activeApproverName || "ผู้อนุมัติประจำขั้นตอน"}`}
           </p>
         </div>
 
-        {/* 3 TOOL BUTTONS */}
+        {/* 3 TOOL BUTTONS (Only if authorized approver and pending) */}
         {initialStatus === "Pending" && (
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTool("signature");
-                  handlePlaceStamp();
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  placedElements.signature || signaturePlaced
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : activeTool === "signature"
-                    ? "bg-blue-600 text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-                {placedElements.signature || signaturePlaced ? "วางลายเซ็นแล้ว ✓" : "ประทับลายเซ็น"}
-              </button>
+            {canSign ? (
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTool("signature");
+                    handlePlaceStamp();
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    placedElements.signature || signaturePlaced
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : activeTool === "signature"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  {placedElements.signature || signaturePlaced ? "วางลายเซ็นแล้ว ✓" : "ประทับลายเซ็น"}
+                </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTool("text");
-                  handlePlaceStamp();
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeTool === "text"
-                    ? "bg-blue-600 text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <Type className="w-3.5 h-3.5" />
-                ข้อความ
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTool("text");
+                    handlePlaceStamp();
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    activeTool === "text"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Type className="w-3.5 h-3.5" />
+                  ข้อความ
+                </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTool("date");
-                  handlePlaceStamp();
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeTool === "date"
-                    ? "bg-blue-600 text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <Calendar className="w-3.5 h-3.5" />
-                วันที่
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTool("date");
+                    handlePlaceStamp();
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    activeTool === "date"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  วันที่
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-xs font-bold shadow-2xs">
+                <span>🔒 สงวนสิทธิ์การวางลายเซ็นสำหรับผู้อนุมัติ</span>
+              </div>
+            )}
           </div>
         )}
       </div>

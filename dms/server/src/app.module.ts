@@ -8,6 +8,7 @@ import { AdminModule } from './admin/admin.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { UsersModule } from './users/users.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { FoldersModule } from './folders/folders.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     NotificationsModule,
     UsersModule,
     DashboardModule,
+    FoldersModule,
   ],
   controllers: [],
   providers: [],

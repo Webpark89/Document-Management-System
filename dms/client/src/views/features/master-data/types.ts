@@ -53,11 +53,10 @@ export interface SignatureRecord {
 }
 
 export const ROLE_OPTIONS = [
+  "พนักงาน",
   "หัวหน้าแผนก",
-  "ผู้จัดการฝ่าย",
-  "ผู้จัดการฝ่ายจัดซื้อ",
-  "ผู้อำนวยการ",
-  "ฝ่ายบุคคล",
+  "ผู้บริหาร",
+  "ผู้ดูแลระบบ",
 ] as const;
 
 export type RoleOption = (typeof ROLE_OPTIONS)[number];

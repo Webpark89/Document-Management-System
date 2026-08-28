@@ -5,21 +5,7 @@ import { Download, FileText } from "lucide-react";
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { useSignatures } from '@views/components/providers/SignatureProvider';
 import { API_BASE_URL } from '@/lib';
-
-function formatThaiDate(dateVal?: string | Date | null): string {
-  if (!dateVal) return "..../..../....";
-  try {
-    const d = new Date(dateVal);
-    if (isNaN(d.getTime())) return String(dateVal);
-    return d.toLocaleDateString("th-TH", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return String(dateVal);
-  }
-}
+import { formatThaiDate } from '@/lib/format-date';
 
 interface DocumentPreviewProps {
   doc: any;
@@ -254,7 +240,7 @@ export function DocumentPreview({ doc, hideHeader, isViewer, tempSignature, onSi
                       approverName = user.full_name || user.username || "Approver";
                     }
 
-                    const roleLabel = step.approver?.role?.name || `ผู้อนุมัติ ลำดับที่ ${step.step_order}`;
+                    const roleLabel = step.role || step.role_name || step.approver_role || step.approver?.role?.name || `ผู้อนุมัติ ลำดับที่ ${step.step_order || idx + 1}`;
                     const sigObj = findByApproverName(approverName) || signatures.find(s => s.approverName === approverName || s.imageUrl);
                     const stepSigUrl = step.signature_url || step.approver?.signature_url || (step.approver?.id ? `/api/users/${step.approver.id}/signature` : null) || sigObj?.imageUrl;
                     const stepDate = step.actionDate || step.action_date || (step.updated_at ? new Date(step.updated_at).toLocaleDateString('th-TH') : "");
@@ -569,7 +555,7 @@ export function DocumentPreview({ doc, hideHeader, isViewer, tempSignature, onSi
                       signatures.find(s => s.approverName === approverName || s.imageUrl);
 
                     const stepDate = formatThaiDate(step.actionDate || step.action_date || step.updated_at);
-                    const roleLabel = step.approver?.role?.name || (steps.length === 1 ? "ผู้อนุมัติ" : `ผู้อนุมัติ ลำดับที่ ${step.step_order}`);
+                    const roleLabel = step.role || step.role_name || step.approver_role || step.approver?.role?.name || (steps.length === 1 ? "ผู้อนุมัติ" : `ผู้อนุมัติ ลำดับที่ ${step.step_order || idx + 1}`);
 
                     const stepSigUrl = step.signature_url || step.approver?.signature_url || (step.approver?.id ? `/api/users/${step.approver.id}/signature` : null) || sigObj?.imageUrl;
                     const currentUserSigUrl = user?.signature_url || (user?.id ? `/api/users/${user.id}/signature` : null);

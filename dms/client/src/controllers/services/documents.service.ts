@@ -3,10 +3,8 @@ import type { Document } from '@models';
 
 export const documentsService = {
   async getDocuments(): Promise<Document[]> {
-    const res = await api.get<any>("/api/documents");
-    if (Array.isArray(res.data)) return res.data;
-    if (res.data && Array.isArray(res.data.data)) return res.data.data;
-    return [];
+    const res = await api.get<{ data: Document[]; meta: any }>("/api/documents");
+    return res.data?.data || [];
   },
 
   async getDocumentById(id: string): Promise<Document | undefined> {
@@ -51,18 +49,8 @@ export const documentsService = {
   },
 
   async uploadDocument(formData: FormData): Promise<Document> {
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    const res = await fetch(`${API_BASE}/api/documents/upload`, {
-      method: "POST",
-      body: formData,
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      throw new Error(`อัปโหลดล้มเหลว: ${res.statusText}`);
-    }
-
-    return res.json();
+    const res = await api.post<Document>("/api/documents/upload", formData);
+    return res.data;
   },
 
   async getDocumentSignedUrl(id: string): Promise<{ url: string; expires_in: number } | null> {

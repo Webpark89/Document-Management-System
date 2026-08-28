@@ -4,12 +4,14 @@
 // ============================================================
 
 import { api } from "@/lib";
+import { formatThaiDate } from "@/lib/format-date";
 
 export interface Approval {
   id: string;
   name: string;
   amount: string;
   requester: string;
+  approvers?: string[];
   submittedDate: string;
   currentLevel: number;
   maxLevels: number;
@@ -21,6 +23,7 @@ export interface WorkflowStep {
   stepOrder: number;
   roleName: string;
   approverName?: string;
+  approverId?: string | null;
   status: "Pending" | "Approved" | "Rejected";
   actionDate?: string;
   comment?: string;
@@ -49,7 +52,8 @@ export async function getApprovals(): Promise<Approval[]> {
         name: item.name,
         amount: item.amount,
         requester: item.sender,
-        submittedDate: item.submittedDate,
+        approvers: item.approvers || [],
+        submittedDate: formatThaiDate(item.submittedDate || item.created_at || item.createdAt),
         currentLevel: item.stepOrder,
         maxLevels: item.totalSteps,
         status: mappedStatus,
@@ -76,6 +80,7 @@ export async function getWorkflow(documentId: string): Promise<WorkflowData | nu
         stepOrder: s.step_order,
         roleName: s.approver_role,
         approverName: s.approver_name,
+        approverId: s.approver_id,
         status: s.status,
         actionDate: s.action_date,
         comment: s.comment,

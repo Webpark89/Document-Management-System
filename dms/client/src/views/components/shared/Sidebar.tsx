@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   FileText,
@@ -14,8 +14,10 @@ import {
   ChevronRight,
   LogOut,
   FileBox,
+  Folder,
   Activity,
   User,
+  Send
 } from "lucide-react";
 import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
 import { useAuth } from '@views/components/providers/AuthProvider';
@@ -27,56 +29,76 @@ type NavItem = {
   icon?: React.ElementType;
   tablerIcon?: string;
   roles?: string[];
+  permission?: string;
 };
 
 type NavGroup = {
   name: string;
   href: string;
-  tablerIcon: string;
-  roles?: string[];
+  tablerIcon?: string;
+  icon?: any;
+  /** permission key that must exist to see this item: "section.item:action" */
+  permission?: string;
   children: NavItem[];
 };
 
+// permission key format: "section.item:action"
+// no permission = visible to all authenticated users
 const FLAT_NAV_ITEMS: NavItem[] = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Documents", href: "/documents", icon: FileText },
-  { name: "Approvals", href: "/approvals", icon: CheckSquare, roles: ["Administrator", "Executive", "Manager"] },
-  { name: "Master Data", href: "/admin/master-data", icon: Database, roles: ["Administrator"] },
-  { name: "Reports", href: "/admin/reports", icon: BarChart3, roles: ["Administrator", "Executive"] },
-  { name: "Audit Logs", href: "/admin/audit-logs", icon: Activity, roles: ["Administrator"] },
+  { name: "แดชบอร์ด", href: "/dashboard", icon: LayoutDashboard },
+  { name: "ส่งเรื่องขออนุมัติ", href: "/submissions", icon: Send, roles: [] },
+  { name: "รายการรออนุมัติ", href: "/approvals", icon: CheckSquare, roles: [] },
+  { name: "Master Data", href: "/admin/master-data", icon: Database, roles: [], permission: "masterdata.access:view" },
+  { name: "Reports", href: "/admin/reports", icon: BarChart3, roles: [], permission: "reports.access:view" },
+  { name: "Audit Logs", href: "/admin/audit-logs", icon: Activity, roles: [], permission: "auditlog.access:view" },
   { name: "Profile", href: "/profile", icon: User },
 ];
+
+const DOCUMENTS_GROUP: NavGroup = {
+  name: "คลังเอกสาร",
+  href: "/documents",
+  icon: FileBox,
+  children: [
+    { name: "เอกสารทั้งหมด", href: "/documents", icon: FileText, roles: [] },
+    { name: "โฟลเดอร์", href: "/folders", icon: Folder, roles: [] },
+  ],
+};
 
 const CONFIG_GROUP: NavGroup = {
   name: "Config",
   href: "/admin/config",
   tablerIcon: "settings-2",
-  roles: ["Administrator"],
+  permission: "config.access:view",
   children: [
-    { name: "Roles", href: "/admin/config/roles", tablerIcon: "shield-lock", roles: ["Administrator"] },
-    { name: "Users", href: "/admin/config/users", tablerIcon: "users", roles: ["Administrator"] },
+    { name: "Roles", href: "/admin/config/roles", tablerIcon: "shield-lock", roles: [], permission: "config.role_management:view" },
+    { name: "Users", href: "/admin/config/users", tablerIcon: "users", roles: [], permission: "config.user_management:view" },
   ],
 };
 
-function hasAccess(roles?: string[], userRole?: string) {
-  if (!roles || roles.length === 0) return true;
-  if (!userRole) return false;
-  return roles.includes(userRole);
+function hasAccess(item: { roles?: string[]; permission?: string }, userRole?: string, permissions?: string[]) {
+  // If item has a permission key, check it
+  if (item.permission) {
+    return permissions?.includes(item.permission) ?? false;
+  }
+  // No restrictions
+  return true;
+}
+
+function isDocsRoute(pathname: string) {
+  return pathname === "/documents" || pathname.startsWith("/documents/") || pathname === "/folders" || pathname.startsWith("/folders/");
 }
 
 function isConfigRoute(pathname: string) {
-  return pathname === CONFIG_GROUP.href || pathname.startsWith(`${CONFIG_GROUP.href}/`);
+  return pathname === "/admin/config" || pathname.startsWith("/admin/config/");
 }
 
-function isNavItemActive(pathname: string, href: string, configSelectedManual: boolean) {
-  if (configSelectedManual) return false;
-  if (isConfigRoute(pathname)) return false;
+function isNavItemActive(pathname: string, href: string) {
+  if (isConfigRoute(pathname) || isDocsRoute(pathname)) return false;
   if (pathname === href) return true;
   return pathname.startsWith(`${href}/`);
 }
 
-function isChildNavActive(pathname: string, href: string, configSelectedManual: boolean) {
-  if (configSelectedManual) return false;
+function isChildNavActive(pathname: string, href: string) {
   if (pathname === href) return true;
   return pathname.startsWith(`${href}/`);
 }
@@ -106,14 +128,19 @@ function navItemClass(isActive: boolean, isOpen: boolean, isChild = false) {
 export default function Sidebar() {
   const { isOpen, toggle } = useSidebar();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const folderId = searchParams?.get("folderId");
   const { user, logout } = useAuth();
+  
   const [configExpanded, setConfigExpanded] = useState(() => isConfigRoute(pathname));
-  const [configSelectedManual, setConfigSelectedManual] = useState(false);
+  const [docsExpanded, setDocsExpanded] = useState(() => isDocsRoute(pathname));
 
   useEffect(() => {
-    setConfigSelectedManual(false);
     if (isConfigRoute(pathname)) {
       setConfigExpanded(true);
+    }
+    if (isDocsRoute(pathname)) {
+      setDocsExpanded(true);
     }
   }, [pathname]);
 
@@ -134,8 +161,9 @@ export default function Sidebar() {
     return source ? source.charAt(0).toUpperCase() : "U";
   }, [displayName, displaySub]);
 
-  const isConfigActive =
-    configSelectedManual || (isConfigRoute(pathname) && !configExpanded);
+  // Highlight parent IF route matches AND (sidebar closed OR menu collapsed)
+  const isConfigActive = isConfigRoute(pathname) && (!isOpen || !configExpanded);
+  const isDocsActive = isDocsRoute(pathname) && (!isOpen || !docsExpanded);
 
   return (
     <aside
@@ -162,15 +190,14 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-2">
-        {FLAT_NAV_ITEMS.slice(0, 4).filter(item => hasAccess(item.roles, user?.role)).map((item) => {
+        {FLAT_NAV_ITEMS.slice(0, 3).filter(item => hasAccess(item, user?.role, user?.permissions)).map((item) => {
           const Icon = item.icon;
-          const isActive = isNavItemActive(pathname, item.href, configSelectedManual);
+          const isActive = isNavItemActive(pathname, item.href);
 
           return (
             <Link
               key={item.name}
               href={item.href}
-              onClick={() => setConfigSelectedManual(false)}
               className={navItemClass(isActive, isOpen)}
               title={!isOpen ? item.name : undefined}
             >
@@ -186,17 +213,76 @@ export default function Sidebar() {
           );
         })}
 
-        {hasAccess(CONFIG_GROUP.roles, user?.role) && (
+        {hasAccess(DOCUMENTS_GROUP, user?.role, user?.permissions) && (
+          <div className="space-y-2">
+            <div 
+              className={`${navItemClass(isDocsActive, isOpen)} ${isOpen ? "cursor-pointer gap-0 pr-2" : "cursor-pointer"}`}
+              onClick={() => {
+                if (!isOpen) toggle();
+                setDocsExpanded((prev) => !prev);
+              }}
+              title={!isOpen ? DOCUMENTS_GROUP.name : undefined}
+            >
+              <div className={`flex min-w-0 items-center gap-3.5 ${isOpen ? "min-w-0 flex-1" : ""}`}>
+                {DOCUMENTS_GROUP.icon && (
+                  <DOCUMENTS_GROUP.icon
+                    className={`${NAV_ICON} ${
+                      isDocsActive ? "text-blue-600" : "text-slate-400"
+                    }`}
+                  />
+                )}
+                {isOpen && <span className="truncate">{DOCUMENTS_GROUP.name}</span>}
+              </div>
+              {isOpen && (
+                <div className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors">
+                  <ChevronRight
+                    className={`size-4 shrink-0 transition-transform duration-200 ${
+                      docsExpanded ? "rotate-90" : ""
+                    }`}
+                  />
+                </div>
+              )}
+            </div>
+
+            {isOpen && docsExpanded && (
+              <div className="space-y-2">
+                {DOCUMENTS_GROUP.children.filter(child => hasAccess(child, user?.role, user?.permissions)).map((child) => {
+                  let isChildActive = isChildNavActive(pathname, child.href);
+                  if (pathname === "/documents" && folderId) {
+                    if (child.href === "/folders") isChildActive = true;
+                    if (child.href === "/documents") isChildActive = false;
+                  }
+                  const ChildIcon = child.icon;
+
+                  return (
+                    <Link
+                      key={child.name}
+                      href={child.href}
+                      className={navItemClass(isChildActive, isOpen, true)}
+                    >
+                      {ChildIcon && (
+                        <ChildIcon
+                          className={`${NAV_ICON} ${
+                            isChildActive ? "text-blue-600" : "text-slate-400"
+                          }`}
+                        />
+                      )}
+                      <span className="truncate">{child.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {hasAccess(CONFIG_GROUP, user?.role, user?.permissions) && (
           <div className="space-y-2">
             <div 
               className={`${navItemClass(isConfigActive, isOpen)} ${isOpen ? "cursor-pointer gap-0 pr-2" : "cursor-pointer"}`}
               onClick={() => {
                 if (!isOpen) toggle();
-                setConfigExpanded((prev) => {
-                  const next = !prev;
-                  setConfigSelectedManual(next);
-                  return next;
-                });
+                setConfigExpanded((prev) => !prev);
               }}
               title={!isOpen ? CONFIG_GROUP.name : undefined}
             >
@@ -221,14 +307,13 @@ export default function Sidebar() {
 
             {isOpen && configExpanded && (
               <div className="space-y-2">
-                {CONFIG_GROUP.children.filter(child => hasAccess(child.roles, user?.role)).map((child) => {
-                  const isChildActive = isChildNavActive(pathname, child.href, configSelectedManual);
+                {CONFIG_GROUP.children.filter(child => hasAccess(child, user?.role, user?.permissions)).map((child) => {
+                  const isChildActive = isChildNavActive(pathname, child.href);
 
                   return (
                     <Link
                       key={child.name}
                       href={child.href}
-                      onClick={() => setConfigSelectedManual(false)}
                       className={navItemClass(isChildActive, isOpen, true)}
                     >
                       {child.tablerIcon && (
@@ -247,15 +332,14 @@ export default function Sidebar() {
           </div>
         )}
 
-        {FLAT_NAV_ITEMS.slice(4).filter(item => hasAccess(item.roles, user?.role)).map((item) => {
+        {FLAT_NAV_ITEMS.slice(3).filter(item => hasAccess(item, user?.role, user?.permissions)).map((item) => {
           const Icon = item.icon;
-          const isActive = isNavItemActive(pathname, item.href, configSelectedManual);
+          const isActive = isNavItemActive(pathname, item.href);
 
           return (
             <Link
               key={item.name}
               href={item.href}
-              onClick={() => setConfigSelectedManual(false)}
               className={navItemClass(isActive, isOpen)}
               title={!isOpen ? item.name : undefined}
             >
@@ -277,7 +361,6 @@ export default function Sidebar() {
           <div className="flex w-full items-center gap-3 rounded-xl px-2 py-1">
             <Link
               href="/profile"
-              onClick={() => setConfigSelectedManual(false)}
               className="flex min-w-0 flex-1 items-center gap-3 rounded-lg transition-colors hover:bg-slate-50"
             >
               <Avatar className="h-9 w-9 flex-shrink-0">

@@ -329,8 +329,6 @@ function UsersListView({
       />
 
       <div className={`${ADMIN_CONTENT} mt-6 space-y-6`}>
-        <StatCards total={stats.total} active={stats.active} inactive={stats.inactive} icon={Users} />
-
         <div className={MD_TABLE_CARD}>
           <div className="space-y-3 border-b border-slate-100 bg-slate-50/40 p-4">
             <div className="relative">

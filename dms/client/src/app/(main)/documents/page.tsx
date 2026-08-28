@@ -13,10 +13,12 @@ import {
   SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Plus,
   X
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Badge } from '@views/components/ui/badge';
 import { getDocuments, deleteDocument, getDocumentById } from '@views/features/documents/api';
 import { Document } from '@views/features/documents/types';
@@ -26,11 +28,20 @@ import { useToast } from '@views/components/providers/ToastProvider';
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { swalConfirm } from "@/lib/swal";
 import { getStatusVariant } from "@/lib/document-status";
+import { formatThaiDate } from "@/lib/format-date";
 import { DocumentTypeIcon } from "@/lib/document-type-icon";
+import { FolderSidebar } from '@views/components/folders/FolderSidebar';
+import { FolderCard } from '@views/components/folders/FolderCard';
+import { FolderCreateModal } from '@views/components/folders/FolderCreateModal';
+import { MoveToFolderModal } from '@views/components/folders/MoveToFolderModal';
+import { getFolders, createFolder, updateFolder, deleteFolder as deleteFolderApi, moveDocumentToFolder } from '@views/features/folders/api';
+import { Folder as FolderType, CreateFolderPayload } from '@views/features/folders/types';
+import { FolderInput, CheckSquare, Square, FolderPlus } from 'lucide-react';
 import DataTableHeader from '@views/components/ui/DataTableHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
+import { FolderIconRenderer } from '@views/components/folders/FolderIconRenderer';
 
-export default function DocumentsPage() {
+function DocumentsContent() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: initialDocs, error } = useSWR("documents", getDocuments, {
@@ -50,7 +61,7 @@ export default function DocumentsPage() {
   // Filters State
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
+
   
   // Unified View Scope: ALL | MY_DEPT | MY_DOCS | CUSTOM_DEPTS
   type ViewScopeOption = "ALL" | "MY_DEPT" | "MY_DOCS" | "CUSTOM_DEPTS";
@@ -71,16 +82,89 @@ export default function DocumentsPage() {
     "แผนกผลิต"
   ]);
 
+  // Folder System States
+  const [folders, setFolders] = useState<FolderType[]>([]);
+  const [activeFolderId, setActiveFolderId] = useState<string | null | "ALL_DOCS">("ALL_DOCS");
+  const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
+  const [editingFolder, setEditingFolder] = useState<FolderType | null>(null);
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [showAllFolders, setShowAllFolders] = useState(false);
+
+  // Folder Search & Pinning States
+  const searchParams = useSearchParams();
+  const folderParam = searchParams.get("folderId");
+
+
+
   useEffect(() => {
-    fetch("/api/admin/departments")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setDepartments(data.map((d: any) => d.name || d));
-        }
-      })
-      .catch(() => {});
+    if (folderParam) {
+      setActiveFolderId(folderParam);
+    }
+  }, [folderParam]);
+
+
+
+  const refreshFolders = async () => {
+    try {
+      const data = await getFolders();
+      setFolders(data);
+    } catch (err) {
+      console.error("Failed to load folders", err);
+    }
+  };
+
+  useEffect(() => {
+    refreshFolders();
   }, []);
+
+  const handleCreateOrUpdateFolder = async (payload: CreateFolderPayload) => {
+    if (editingFolder) {
+      await updateFolder(editingFolder.id, payload);
+      showToast("อัปเดตโฟลเดอร์เรียบร้อยแล้ว");
+    } else {
+      await createFolder(payload);
+      showToast("สร้างโฟลเดอร์ใหม่เรียบร้อยแล้ว");
+    }
+    setEditingFolder(null);
+    refreshFolders();
+  };
+
+  const handleDeleteFolderAction = async (folder: FolderType) => {
+    const confirmed = await swalConfirm({
+      title: "ยืนยันการลบโฟลเดอร์",
+      text: `คุณต้องการลบโฟลเดอร์ "${folder.name}" หรือไม่? เอกสารในโฟลเดอร์จะถูกย้ายไปยัง "ไม่มีโฟลเดอร์"`,
+      confirmButtonText: "ลบโฟลเดอร์",
+      cancelButtonText: "ยกเลิก",
+      icon: "warning",
+    });
+
+    if (confirmed) {
+      await deleteFolderApi(folder.id);
+      showToast("ลบโฟลเดอร์เรียบร้อยแล้ว");
+      if (activeFolderId === folder.id) setActiveFolderId("ALL_DOCS");
+      refreshFolders();
+    }
+  };
+
+  const handleMoveSelectedDocs = async (targetFolderId: string | null) => {
+    if (selectedDocIds.length === 0) return;
+    for (const docId of selectedDocIds) {
+      await moveDocumentToFolder({ document_id: docId, target_folder_id: targetFolderId });
+    }
+    showToast(`ย้ายเอกสาร ${selectedDocIds.length} รายการ เรียบร้อยแล้ว`);
+    const movedIds = [...selectedDocIds];
+    setSelectedDocIds([]);
+    // Update local state
+    setDocuments((prev) =>
+      prev.map((d) =>
+        movedIds.includes(d.id) || movedIds.includes((d as any).real_id)
+          ? ({ ...d, folder_id: targetFolderId } as any)
+          : d
+      )
+    );
+    refreshFolders();
+  };
 
   // Sorting State — default sort by created_at DESC
   const [sortKey, setSortKey] = useState<string | null>("submittedDate");
@@ -240,8 +324,19 @@ export default function DocumentsPage() {
     }
   };
 
-  // Filter Logic
+  // Filter Logic — Document Archive displays all documents by default now
   const filteredDocs = documents.filter((doc) => {
+    // Removed hardcoded Approved filter so user can see all documents they have access to.
+
+    // Folder Filter
+    let matchesFolder = true;
+    if (activeFolderId === null) {
+      matchesFolder = !(doc as any).folder_id;
+    } else if (activeFolderId !== "ALL_DOCS") {
+      matchesFolder = (doc as any).folder_id === activeFolderId;
+    }
+    if (!matchesFolder) return false;
+
     const matchesSearch =
       doc.name.toLowerCase().includes(search.toLowerCase()) ||
       doc.id.toLowerCase().includes(search.toLowerCase()) ||
@@ -249,7 +344,7 @@ export default function DocumentsPage() {
       (doc.department && doc.department.toLowerCase().includes(search.toLowerCase()));
     
     const matchesType = typeFilter === "All" || doc.type === typeFilter;
-    const matchesStatus = statusFilter === "All" || doc.status === statusFilter;
+    const matchesStatus = doc.status === "Approved";
     
     // Scope Visibility Filter Logic (Unified)
     let matchesScope = true;
@@ -361,21 +456,85 @@ export default function DocumentsPage() {
   // Auto-reset page if filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, typeFilter, statusFilter]);
+  }, [search, typeFilter]);
+
+  const activeFolder = folders.find((f) => f.id === activeFolderId);
+  const approvedDocs = documents.filter((d) => d.status === "Approved");
+  const approvedUnorganizedCount = approvedDocs.filter((d) => !(d as any).folder_id).length;
 
   return (
     <div className={APP_PAGE_SHELL}>
       <div className={APP_PAGE_CONTENT}>
-      
-      <PageHeader
-        size="compact"
-        title="ศูนย์เอกสาร"
-        subtitle="จัดเก็บ จัดระเบียบ และจัดการเอกสารขององค์กร"
-      />
+        <PageHeader
+          size="compact"
+          title="เอกสารทั้งหมด (All Documents)"
+          subtitle="ดูและค้นหาเอกสารที่ผ่านการอนุมัติแล้วทั้งหมดในระบบ"
+        />
 
-      {/* WORKSPACE CARD */}
-      <div className={`${APP_TABLE_CARD} flex flex-col p-6 space-y-6`}>
+
+
+          {/* BULK ACTION BAR */}
+          {selectedDocIds.length > 0 && (
+            <div className="bg-blue-600 text-white rounded-2xl p-3.5 flex items-center justify-between shadow-md animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold bg-white/20 px-2.5 py-1 rounded-lg">
+                  {selectedDocIds.length} รายการที่เลือก
+                </span>
+                <span className="text-xs text-blue-100 font-medium">จัดการเอกสารพร้อมกัน</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsMoveModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-blue-700 hover:bg-blue-50 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                >
+                  <FolderInput className="w-4 h-4" />
+                  <span>ย้ายเข้าโฟลเดอร์</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDocIds([])}
+                  className="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  ยกเลิก
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* WORKSPACE CARD */}
+          <div className={`${APP_TABLE_CARD} flex flex-col p-6 space-y-6`}>
         
+        {/* ACTIVE FOLDER BANNER INDICATOR */}
+        {activeFolder && (
+          <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-50/90 border border-blue-200/90 p-4 rounded-2xl flex items-center justify-between shadow-2xs animate-in fade-in slide-in-from-top-1">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                <FolderIconRenderer iconName={activeFolder.icon} className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-black text-blue-600 uppercase tracking-wider">กำลังแสดงเอกสารในโฟลเดอร์</span>
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-600 text-white shadow-2xs">
+                    {filteredDocs.length} รายการ
+                  </span>
+                </div>
+                <h4 className="text-base font-black text-slate-800 leading-snug mt-0.5">
+                  {activeFolder.name}
+                </h4>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push("/folders")}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0"
+            >
+              <span>ดูโฟลเดอร์ทั้งหมด</span>
+              <X className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+          </div>
+        )}
+
         {/* TOOLBAR */}
         <div className="flex flex-col space-y-4">
           
@@ -532,8 +691,8 @@ export default function DocumentsPage() {
           </div>
 
           {/* Search + Filter controls group */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row flex-1 gap-3 max-w-3xl">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex flex-1 items-center gap-3 w-full">
               
               {/* Search */}
               <div className="relative flex-1">
@@ -542,10 +701,10 @@ export default function DocumentsPage() {
                 </span>
                 <input
                   type="text"
-                  placeholder="Search by name, ID, submitter, department..."
+                  placeholder="ค้นหาตามชื่อเอกสาร, รหัส, ผู้ส่ง..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-slate-50/50 border border-slate-100/80 rounded-xl py-2.5 pl-10 pr-4 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                  className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all shadow-2xs"
                 />
               </div>
 
@@ -554,7 +713,7 @@ export default function DocumentsPage() {
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className="appearance-none bg-slate-50/50 border border-slate-100/80 rounded-xl py-2.5 pl-4 pr-10 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/10 cursor-pointer min-w-[140px]"
+                  className="appearance-none bg-white border border-slate-200 rounded-xl py-2.5 pl-3.5 pr-9 text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs min-w-[140px]"
                 >
                   <option value="All">ทุกประเภท (All Types)</option>
                   <option value="PR">PR (ใบขอซื้อ)</option>
@@ -567,68 +726,81 @@ export default function DocumentsPage() {
                 </span>
               </div>
 
-              {/* Status Filter — 5 Unified Statuses */}
-              <div className="relative">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="appearance-none bg-slate-50/50 border border-slate-100/80 rounded-xl py-2.5 pl-4 pr-10 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/10 cursor-pointer min-w-[150px]"
-                >
-                  <option value="All">ทุกสถานะ (All Statuses)</option>
-                  <option value="Draft">Draft (ร่าง)</option>
-                  <option value="Pending">Pending (รออนุมัติ)</option>
-                  <option value="Approved">Approved (อนุมัติแล้ว)</option>
-                  <option value="Returned">Returned (ส่งกลับไปแก้ไข)</option>
-                  <option value="Cancelled">Cancelled (ยกเลิก)</option>
-                </select>
-                <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                  <SlidersHorizontal className="w-3.5 h-3.5" />
-                </span>
-              </div>
-
             </div>
-
-            {/* Add New Button */}
-            <Link
-              href="/documents/upload"
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full text-sm transition-all shadow-sm shadow-blue-100 cursor-pointer shrink-0 active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              Add New
-            </Link>
           </div>
         </div>
 
         {/* TABLE */}
-        <div className="overflow-x-auto border border-slate-100/50 rounded-2xl">
-          <table className="w-full table-fixed text-left border-collapse min-w-[900px]">
+        <div className="overflow-x-auto border border-slate-200/80 rounded-2xl bg-white shadow-2xs">
+          <table className="w-full text-left border-collapse min-w-[950px]">
+            <colgroup>
+              <col className="w-12" />
+              <col className="w-36" />
+              <col className="w-72" />
+              <col className="w-28" />
+              <col className="w-44" />
+              <col className="w-32" />
+              <col className="w-28" />
+              <col className="w-32" />
+            </colgroup>
             <thead>
-              <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                <DataTableHeader title="ID / Number" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-4 py-4 w-32" />
-                <th className="py-4 font-bold">Document Title</th>
-                <DataTableHeader title="Document Type" sortKey="type" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
-                <th className="py-4 font-bold w-32">Department</th>
-                <DataTableHeader title="Created Date" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-36" />
-                <DataTableHeader title="Status" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 text-center w-40" />
-                <th className="py-4 pr-4 text-center font-bold w-28">Actions</th>
+              <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3.5 pl-4 text-center">
+                  <input
+                    type="checkbox"
+                    checked={paginatedDocs.length > 0 && paginatedDocs.every((d) => selectedDocIds.includes(d.id))}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        const newIds = Array.from(new Set([...selectedDocIds, ...paginatedDocs.map((d) => d.id)]));
+                        setSelectedDocIds(newIds);
+                      } else {
+                        const pageDocIds = paginatedDocs.map((d) => d.id);
+                        setSelectedDocIds(selectedDocIds.filter((id) => !pageDocIds.includes(id)));
+                      }
+                    }}
+                    className="rounded border-slate-300 text-blue-600 w-3.5 h-3.5 cursor-pointer"
+                  />
+                </th>
+                <DataTableHeader title="รหัสเอกสาร" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5" />
+                <th className="py-3.5 font-bold">ชื่อเอกสาร / รายละเอียด</th>
+                <DataTableHeader title="ประเภท" sortKey="type" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5" />
+                <th className="py-3.5 font-bold">แผนก</th>
+                <DataTableHeader title="วันที่สร้าง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5" />
+                <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 text-center" />
+                <th className="py-3.5 pr-4 text-center font-bold">การกระทำ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50/80">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center">
+                  <td colSpan={8} className="py-16 text-center">
                     <div className="inline-block w-6 h-6 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-2" />
                     <p className="text-xs text-slate-400 font-semibold">Loading document database...</p>
                   </td>
                 </tr>
               ) : paginatedDocs.length > 0 ? (
-                paginatedDocs.map((doc, index) => (
-                  <tr 
-                    key={(doc as any).real_id || `${doc.id}-${index}`} 
-                    onClick={() => router.push(`/documents/${doc.id}`)}
-                    className="hover:bg-blue-50/50 transition-colors group cursor-pointer"
-                  >
-                    <td className="py-4 pl-4 text-sm font-bold text-slate-500">{doc.id}</td>
+                paginatedDocs.map((doc, index) => {
+                  const isChecked = selectedDocIds.includes(doc.id);
+                  return (
+                    <tr 
+                      key={(doc as any).real_id || `${doc.id}-${index}`} 
+                      onClick={() => router.push(`/documents/${doc.id}`)}
+                      className={`hover:bg-blue-50/50 transition-colors group cursor-pointer ${
+                        isChecked ? "bg-blue-50/30" : ""
+                      }`}
+                    >
+                      <td className="py-4 pl-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedDocIds([...selectedDocIds, doc.id]);
+                            else setSelectedDocIds(selectedDocIds.filter((id) => id !== doc.id));
+                          }}
+                          className="rounded border-slate-300 text-blue-600 w-3.5 h-3.5"
+                        />
+                      </td>
+                      <td className="py-4 text-sm font-bold text-slate-500">{doc.id}</td>
                     <td className="py-4">
                       <div>
                         <p className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-snug">
@@ -649,7 +821,7 @@ export default function DocumentsPage() {
                         {doc.department || (doc as any).creator?.department?.name || "ทั่วไป"}
                       </span>
                     </td>
-                    <td className="py-4 text-sm text-slate-400 font-medium">{doc.submittedDate}</td>
+                    <td className="py-4 text-sm text-slate-400 font-medium">{formatThaiDate(doc.submittedDate || (doc as any).created_at)}</td>
                     <td className="py-4 text-center">
                       <Badge variant={getStatusVariant(doc.status)}>
                         {doc.status}
@@ -659,7 +831,7 @@ export default function DocumentsPage() {
                       <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
                         <button
                           type="button"
-                          title="View Preview"
+                          title="ดูตัวอย่าง (View Preview)"
                           onClick={(e) => {
                             e.stopPropagation();
                             handlePreviewDoc(doc);
@@ -667,6 +839,18 @@ export default function DocumentsPage() {
                           className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition-colors cursor-pointer inline-block"
                         >
                           <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          title="ย้ายเข้าโฟลเดอร์ (Move to Folder)"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDocIds([(doc as any).real_id || doc.id]);
+                            setIsMoveModalOpen(true);
+                          }}
+                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-indigo-600 transition-colors cursor-pointer inline-block"
+                        >
+                          <FolderInput className="w-4 h-4" />
                         </button>
                         {(doc.status === "Draft" || doc.status === "Returned" || doc.status === "Pending") && (
                           <button
@@ -683,7 +867,7 @@ export default function DocumentsPage() {
                         )}
                         <button
                           type="button"
-                          title="Download"
+                          title="ดาวน์โหลด (Download)"
                           onClick={(e) => { e.stopPropagation(); triggerDownload(doc); }}
                           className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-emerald-600 transition-colors cursor-pointer"
                         >
@@ -691,7 +875,7 @@ export default function DocumentsPage() {
                         </button>
                         <button
                           type="button"
-                          title="Delete"
+                          title="ลบเอกสาร (Delete)"
                           onClick={(e) => { e.stopPropagation(); handleDeleteDoc(doc); }}
                           className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-rose-600 transition-colors cursor-pointer"
                         >
@@ -700,7 +884,8 @@ export default function DocumentsPage() {
                       </div>
                     </td>
                   </tr>
-                ))
+                );
+              })
               ) : (
                 <tr>
                   <td colSpan={7} className="py-16 text-center text-sm font-medium text-slate-400">
@@ -807,7 +992,34 @@ export default function DocumentsPage() {
         </div>
       )}
 
+      {/* FOLDER MODALS */}
+      <FolderCreateModal
+        isOpen={isCreateFolderOpen}
+        onClose={() => {
+          setIsCreateFolderOpen(false);
+          setEditingFolder(null);
+        }}
+        onSubmit={handleCreateOrUpdateFolder}
+        editingFolder={editingFolder}
+        departments={departments.map((d, i) => ({ id: `dept-${i}`, name: d }))}
+      />
+
+      <MoveToFolderModal
+        isOpen={isMoveModalOpen}
+        onClose={() => setIsMoveModalOpen(false)}
+        onConfirm={handleMoveSelectedDocs}
+        folders={folders}
+        documentCount={selectedDocIds.length}
+      />
       </div>
     </div>
+  );
+}
+
+export default function DocumentsPage() {
+  return (
+    <React.Suspense fallback={<div className="p-8 text-center text-xs font-semibold text-slate-400">กำลังโหลดคลังเอกสาร...</div>}>
+      <DocumentsContent />
+    </React.Suspense>
   );
 }

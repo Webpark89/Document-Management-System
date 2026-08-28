@@ -14,12 +14,15 @@ import { WorkflowTracker } from '@views/components/workflow/WorkflowTracker';
 import { ApprovalActions } from '@views/components/workflow/ApprovalActions';
 import { DocumentSignerViewer } from '@views/components/workflow/DocumentSignerViewer';
 
+import { useAuth } from "@views/components/providers/AuthProvider";
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default function ApprovalDetailPage({ params }: PageProps) {
   const { id } = use(params);
+  const { user } = useAuth();
   const [doc, setDoc] = useState<Document | null>(null);
   const [workflow, setWorkflow] = useState<WorkflowData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,6 +65,38 @@ export default function ApprovalDetailPage({ params }: PageProps) {
   }
 
   const isMonetaryDoc = doc.amount && doc.amount !== "-";
+
+  // Find active step in workflow
+  const currentStepObj = workflow?.steps.find(
+    (s) => s.stepOrder === workflow.currentStep && s.status === "Pending"
+  );
+  const activeApproverName = currentStepObj?.approverName || currentStepObj?.roleName || "ผู้อนุมัติประจำขั้นตอน";
+
+  // Check if current user has permission to approve this step
+  const canApprove = (() => {
+    if (!doc || doc.status !== "Pending" || !workflow || workflow.status !== "Pending" || !currentStepObj) {
+      return false;
+    }
+    if (!user) return false;
+
+    // Direct ID match
+    if (currentStepObj.approverId && currentStepObj.approverId === user.id) return true;
+
+    // Role match
+    if (currentStepObj.roleName && user.role && currentStepObj.roleName.toLowerCase() === user.role.toLowerCase()) {
+      return true;
+    }
+
+    // Name match fallback
+    if (user.full_name && currentStepObj.approverName && currentStepObj.approverName.toLowerCase().includes(user.full_name.toLowerCase())) {
+      return true;
+    }
+    if (user.username && currentStepObj.approverName && currentStepObj.approverName.toLowerCase().includes(user.username.toLowerCase())) {
+      return true;
+    }
+
+    return false;
+  })();
 
   return (
     <div className={APP_PAGE_SHELL}>
@@ -157,7 +192,7 @@ export default function ApprovalDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* E-SIGNATURE PDF VIEWER (MOCK) */}
+          {/* E-SIGNATURE PDF VIEWER */}
           <DocumentSignerViewer
             documentId={doc.id}
             documentName={doc.name}
@@ -166,6 +201,8 @@ export default function ApprovalDetailPage({ params }: PageProps) {
             signaturePlaced={signaturePlaced}
             onSignatureChange={setSignaturePlaced}
             doc={doc}
+            canSign={canApprove}
+            activeApproverName={activeApproverName}
           />
         </div>
 
@@ -182,6 +219,9 @@ export default function ApprovalDetailPage({ params }: PageProps) {
           <ApprovalActions
             documentId={doc.id}
             signaturePlaced={signaturePlaced}
+            canApprove={canApprove}
+            activeApproverName={activeApproverName}
+            currentStep={workflow?.currentStep || 1}
           />
         </div>
       </div>

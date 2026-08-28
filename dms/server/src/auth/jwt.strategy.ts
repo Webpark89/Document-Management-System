@@ -42,7 +42,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       include: {
         department: true,
         position: true,
-        role: true,
+        role: {
+          include: {
+            permissions: {
+              include: { permission: true },
+            },
+          },
+        },
       },
     });
 
@@ -68,6 +74,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: user.email,
       position: user.position?.name || null,
       signature_url: user.signature_encrypted ? `/api/users/${user.id}/signature` : null,
+      permissions: user.role?.permissions.map(p => `${p.permission.module}:${p.permission.action}`) || [],
     };
   }
 }
