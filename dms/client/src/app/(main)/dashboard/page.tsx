@@ -98,7 +98,8 @@ export default function DashboardPage() {
         department: d.department || d.creator?.department?.name || "ทั่วไป",
         status: d.status,
         submittedBy: d.sender || d.creator_name || d.creator?.first_name || "ระบบ",
-        creator_id: d.creator_id,
+        creator_id: d.creator_id || d.creator?.id,
+        creator: d.creator,
         date: d.submittedDate || d.created_at,
         value: typeof d.amount === "string" ? parseFloat(d.amount.replace(/[^0-9.-]+/g,"")) : (d.amount || 0)
       }));
@@ -203,9 +204,15 @@ export default function DashboardPage() {
   const cancelled = filteredData.filter(d => d.status === "Cancelled").length;
   
   // My created docs awaiting approval
-  const myPendingDocsCount = filteredData.filter(
-    d => d.status === "Pending" && (user?.id ? d.creator_id === user.id : true)
-  ).length;
+  const myPendingDocsCount = documents.filter(d => {
+    if (d.status !== "Pending") return false;
+    const isMyId = d.creator_id && user?.id && d.creator_id === user.id;
+    const isMyName = d.submittedBy && user && (
+      (user.full_name && d.submittedBy.toLowerCase().includes(user.full_name.toLowerCase())) ||
+      (user.username && d.submittedBy.toLowerCase().includes(user.username.toLowerCase()))
+    );
+    return isMyId || isMyName;
+  }).length;
   const actionRequiredCount = stats?.actionRequired ?? pending;
 
   // Chart 1: Type Distribution
@@ -375,7 +382,7 @@ export default function DashboardPage() {
                 <h3 className="text-lg font-black mt-0.5">เอกสารที่ฉันจัดทำ (กำลังรออนุมัติ)</h3>
                 <div className="text-3xl font-black mt-2">{myPendingDocsCount} <span className="text-xs font-normal opacity-80">รายการ</span></div>
               </div>
-              <Link href="/documents?status=Pending" className="relative z-10 bg-white/20 hover:bg-white/30 text-white p-3 rounded-2xl transition-colors shrink-0">
+              <Link href="/submissions" className="relative z-10 bg-white/20 hover:bg-white/30 text-white p-3 rounded-2xl transition-colors shrink-0">
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>

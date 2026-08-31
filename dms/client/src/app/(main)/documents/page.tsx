@@ -166,8 +166,8 @@ function DocumentsContent() {
     refreshFolders();
   };
 
-  // Sorting State — default sort by created_at DESC
-  const [sortKey, setSortKey] = useState<string | null>("submittedDate");
+  // Sorting State — default sort by approved_at DESC
+  const [sortKey, setSortKey] = useState<string | null>("approvedDate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>("desc");
 
   const handleSort = (key: string) => {
@@ -429,6 +429,8 @@ function DocumentsContent() {
         comparison = a.type.localeCompare(b.type);
       } else if (sortKey === "submittedDate") {
         comparison = parseThaiDate(a.submittedDate) - parseThaiDate(b.submittedDate);
+      } else if (sortKey === "approvedDate") {
+        comparison = parseThaiDate(a.approved_at) - parseThaiDate(b.approved_at);
       } else if (sortKey === "amount") {
         comparison = parseAmount(a.amount) - parseAmount(b.amount);
       } else if (sortKey === "status") {
@@ -444,7 +446,7 @@ function DocumentsContent() {
       if (priorityA !== priorityB) {
         return priorityB - priorityA; // desc
       }
-      return parseThaiDate(b.submittedDate) - parseThaiDate(a.submittedDate); // desc
+      return parseThaiDate(b.approved_at || b.submittedDate) - parseThaiDate(a.approved_at || a.submittedDate); // desc
     }
   });
 
@@ -735,13 +737,14 @@ function DocumentsContent() {
           <table className="w-full text-left border-collapse min-w-[950px]">
             <colgroup>
               <col className="w-12" />
-              <col className="w-36" />
-              <col className="w-72" />
-              <col className="w-28" />
-              <col className="w-44" />
               <col className="w-32" />
+              <col className="w-64" />
+              <col className="w-24" />
+              <col className="w-40" />
               <col className="w-28" />
-              <col className="w-32" />
+              <col className="w-28" />
+              <col className="w-28" />
+              <col className="w-28" />
             </colgroup>
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -766,6 +769,7 @@ function DocumentsContent() {
                 <DataTableHeader title="ประเภท" sortKey="type" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5" />
                 <th className="py-3.5 font-bold">แผนก</th>
                 <DataTableHeader title="วันที่สร้าง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5" />
+                <DataTableHeader title="วันที่อนุมัติสำเร็จ" sortKey="approvedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5" />
                 <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 text-center" />
                 <th className="py-3.5 pr-4 text-center font-bold">การกระทำ</th>
               </tr>
@@ -822,6 +826,7 @@ function DocumentsContent() {
                       </span>
                     </td>
                     <td className="py-4 text-sm text-slate-400 font-medium">{formatThaiDate(doc.submittedDate || (doc as any).created_at)}</td>
+                    <td className="py-4 text-sm text-slate-400 font-medium">{(doc.status === "Approved" || doc.status === "อนุมัติแล้ว") && doc.approved_at ? formatThaiDate(doc.approved_at) : "-"}</td>
                     <td className="py-4 text-center">
                       <Badge variant={getStatusVariant(doc.status)}>
                         {doc.status}

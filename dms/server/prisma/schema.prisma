@@ -162,6 +162,7 @@ model Document {
   tags        String[]
   folder_id   String?
   is_deleted  Boolean        @default(false)
+  approved_at DateTime?
   
   created_at  DateTime       @default(now())
   updated_at  DateTime       @updatedAt

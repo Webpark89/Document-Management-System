@@ -450,9 +450,11 @@ export class DocumentsService {
       sender: creatorName,
       approvers,
       created_at: doc.created_at,
+      approved_at: doc.approved_at,
       status: doc.status,
       amount,
       department: doc.creator?.department?.name || 'ไม่ระบุ',
+      creator_id: doc.creator_id,
       creator: doc.creator
         ? {
             id: doc.creator.id,

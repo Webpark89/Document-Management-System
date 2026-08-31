@@ -26,6 +26,10 @@ function SignatureDisplay({
 }) {
   const [hasError, setHasError] = React.useState(false);
 
+  React.useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
   if (!src || hasError) {
     return (
       <span className="font-['Brush_Script_MT',cursive,italic] text-xl text-slate-800 text-center leading-tight px-1 truncate max-w-[90%]">
@@ -34,7 +38,12 @@ function SignatureDisplay({
     );
   }
 
-  const finalSrc = src.startsWith('/api/') ? `${API_BASE_URL}${src}` : src;
+  let finalSrc = src;
+  if (src.startsWith('/api/')) {
+    finalSrc = API_BASE_URL.replace(/\/api\/?$/, '') + src;
+  }
+  
+  const isDataUri = finalSrc.startsWith('data:');
 
   return (
     <div className="relative inline-flex items-center justify-center overflow-hidden select-none">
@@ -42,8 +51,11 @@ function SignatureDisplay({
         src={finalSrc}
         alt="signature"
         className={className || "max-h-12 max-w-[90%] object-contain pointer-events-none"}
-        crossOrigin="use-credentials"
-        onError={() => setHasError(true)}
+        {...(!isDataUri ? { crossOrigin: "use-credentials" } : {})}
+        onError={(e) => {
+          console.error('Signature load error', finalSrc, e);
+          setHasError(true);
+        }}
       />
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center rotate-[-12deg] opacity-15 text-[8px] font-bold text-rose-500 tracking-tighter uppercase select-none whitespace-nowrap">
         DOCUMENT E-SIGN

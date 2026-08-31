@@ -140,14 +140,14 @@ export default function FoldersPage() {
     return (
       <div 
         onClick={() => navigateToFolder(folder.id)}
-        className="relative bg-[#F4F7FE] hover:bg-[#EDF2FA] rounded-2xl p-4 transition-all cursor-pointer border border-transparent hover:border-blue-100 flex flex-col group"
+        className="relative bg-white hover:bg-blue-50/50 rounded-2xl p-4 transition-all cursor-pointer border border-slate-200 hover:border-blue-200 shadow-sm hover:shadow-md flex flex-col group"
       >
         {/* Top bar: Checkbox */}
         <div className="flex justify-end mb-2">
           <div 
             onClick={(e) => handleToggleSelect(e, folder.id)}
             className={`w-5 h-5 rounded flex items-center justify-center cursor-pointer transition-colors ${
-              isSelected ? 'bg-blue-600' : 'bg-white border border-slate-200'
+              isSelected ? 'bg-blue-600' : 'bg-[#F4F7FE] hover:bg-[#EDF2FA]'
             }`}
           >
             {isSelected && <CheckSquare className="w-3.5 h-3.5 text-white" />}
@@ -156,7 +156,7 @@ export default function FoldersPage() {
 
         {/* Center: Big Icon */}
         <div className="flex-1 flex items-center justify-center py-6">
-          <div className="w-20 h-20 rounded-full bg-white shadow-sm flex items-center justify-center text-4xl">
+          <div className="w-20 h-20 rounded-full bg-[#F4F7FE] group-hover:bg-[#EDF2FA] flex items-center justify-center text-4xl transition-colors">
             {folder.icon && folder.icon !== "📁" && folder.icon !== "📂" ? (
               <span className="leading-none">{folder.icon}</span>
             ) : (
@@ -203,13 +203,13 @@ export default function FoldersPage() {
           {/* Avatars */}
           <div className="flex items-center gap-1 mt-3">
             <div className="flex -space-x-2">
-              <div className="w-6 h-6 rounded-full bg-blue-100 border-2 border-[#F4F7FE] flex items-center justify-center text-[8px] font-bold text-blue-700 uppercase">
+              <div className="w-6 h-6 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-blue-700 uppercase">
                 {folder.creator?.full_name?.substring(0, 2) || 'AD'}
               </div>
-              <div className="w-6 h-6 rounded-full bg-indigo-100 border-2 border-[#F4F7FE] flex items-center justify-center text-[8px] font-bold text-indigo-700 uppercase">
+              <div className="w-6 h-6 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-indigo-700 uppercase">
                 U
               </div>
-              <div className="w-6 h-6 rounded-full bg-slate-200 border-2 border-[#F4F7FE] flex items-center justify-center text-[8px] font-bold text-slate-500">
+              <div className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-[8px] font-bold text-slate-500">
                 +2
               </div>
             </div>

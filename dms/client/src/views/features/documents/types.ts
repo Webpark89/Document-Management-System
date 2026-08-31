@@ -26,6 +26,7 @@ export interface Document {
   approvers?: string[];
   submittedDate: string;   // formatted date string
   created_at?: string;
+  approved_at?: string;
   status: DocumentStatus | string;
   amount: string;          // formatted amount or "-"
   version: string;         // e.g. "v1.0"

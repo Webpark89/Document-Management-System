@@ -526,11 +526,13 @@ function AuditLogsContent() {
   );
 }
 
-// Wrap in Suspense since it uses useSearchParams
+// No need for Suspense wrapper if we use dynamic import, but we can keep it simple.
+import dynamic from 'next/dynamic';
+
+const AuditLogsContentDynamic = dynamic(() => Promise.resolve(AuditLogsContent), { ssr: false });
+
 export default function AuditLogsPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading Audit Logs...</div>}>
-      <AuditLogsContent />
-    </Suspense>
+    <AuditLogsContentDynamic />
   );
 }

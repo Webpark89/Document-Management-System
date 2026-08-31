@@ -47,18 +47,19 @@ export default function ApprovalDetailPage({ params }: PageProps) {
   if (!doc) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 max-w-lg mx-auto text-center h-[60vh]">
-        <div className="p-3 bg-red-50 text-red-600 rounded-2xl mb-4">
-          <AlertCircle className="w-8 h-8" />
+        <div className="p-4 bg-red-50 text-red-600 rounded-full mb-5 ring-8 ring-red-50/50">
+          <AlertCircle className="w-10 h-10" />
         </div>
-        <h3 className="text-lg font-bold text-slate-800">Document Not Found</h3>
-        <p className="text-sm text-slate-400 font-semibold mt-1">
-          The document ID "{id}" could not be located in the database.
+        <h3 className="text-xl font-bold text-slate-800 mb-2">ไม่พบเอกสาร หรือไม่มีสิทธิ์เข้าถึง</h3>
+        <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-sm mx-auto">
+          ไม่สามารถแสดงรายละเอียดของเอกสาร <span className="font-bold text-slate-700">{id}</span> ได้
+          อาจเป็นไปได้ว่าเอกสารถูกลบไปแล้ว หรือคุณไม่มีสิทธิ์ในการเข้าถึงเอกสารฉบับนี้
         </p>
         <Link
           href="/approvals"
-          className="mt-6 px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-full text-xs transition-colors"
+          className="mt-8 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm transition-all shadow-sm"
         >
-          Back to Approvals
+          กลับไปยังหน้ารายการอนุมัติ
         </Link>
       </div>
     );

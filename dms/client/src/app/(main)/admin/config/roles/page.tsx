@@ -280,7 +280,7 @@ function RolesListView({
                         </td>
                         <td className={`${tdCls} min-w-0`}>
                           <PermissionActionGrid
-                            summary={role.permissionSummary || role.summary}
+                            summary={role.permissionSummary || ""}
                             roleName={role.name}
                           />
                         </td>

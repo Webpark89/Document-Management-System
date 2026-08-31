@@ -478,7 +478,7 @@ export class WorkflowsService {
 
         await tx.document.update({
           where: { id: doc.id },
-          data: { status: 'Approved', folder_id: autoFolderId },
+          data: { status: 'Approved', folder_id: autoFolderId, approved_at: new Date() },
         });
       } else {
         await tx.workflow.update({
@@ -487,7 +487,7 @@ export class WorkflowsService {
         });
       }
 
-      // 4. Notification
+      // 4. Notification for creator
       await tx.notification.create({
         data: {
           user_id: doc.creator_id,
@@ -497,6 +497,20 @@ export class WorkflowsService {
             : `เอกสาร ${doc.doc_number} ผ่านการอนุมัติขั้นตอนที่ ${workflow.current_step}`,
         },
       });
+
+      // 5. Notification for next approver (if not last step)
+      if (!isLastStep) {
+        const nextStep = workflow.steps.find((s) => s.step_order === workflow.current_step + 1);
+        if (nextStep && nextStep.approver_id) {
+          await tx.notification.create({
+            data: {
+              user_id: nextStep.approver_id,
+              document_id: doc.id,
+              message: `เอกสาร ${doc.doc_number} รอการอนุมัติจากคุณ (ขั้นตอนที่ ${workflow.current_step + 1})`,
+            },
+          });
+        }
+      }
 
       // 5. AuditLog
       await tx.auditLog.create({
