@@ -49,11 +49,8 @@ const tdCls = MD_TD;
 
 const SENIOR_MANAGER_PRESETS: Record<string, Record<string, Partial<Record<string, boolean>>>> = {
   dashboard: {
-    overview: { view: true, approve: true },
-    registrations: { view: true, edit: true, approve: true },
-    closed_sales: { view: true, approve: true },
-    my_tasks: { view: true, edit: true, approve: true },
-    reports: { view: true, approve: true },
+    view_employee: { view: true },
+    view_executive: { view: true },
   },
   document_management: {
     documents: { view: true, create: true, edit: true, approve: true },

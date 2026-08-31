@@ -103,12 +103,8 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     key: "dashboard",
     label: "หน้า Dashboard",
     items: [
-      { key: "charts",                label: "ดูแผนภูมิ",                                                          actions: ["view"] },
-      { key: "date_filter",           label: "Filter วันที่",                                                      actions: ["view"] },
-      { key: "pending_approvals_view",label: "เอกสารที่รอฉันอนุมัติ",                                             actions: ["view"] },
-      { key: "my_pending_view",       label: "เอกสารที่ฉันรออนุมัติ (เอกสารที่ฉันจัดทำ)",                          actions: ["view"] },
-      { key: "recent_docs",           label: "เอกสารล่าสุดในระบบ",                                                actions: ["view"] },
-      { key: "scope_dropdown",        label: "ดรอปดาวน์เลือกการมองเห็น (Department Documents / All Documents / My Documents)", actions: ["view"] },
+      { key: "view_employee",         label: "Dashboard Mode: มุมมองพนักงาน (Employee)",                          actions: ["view"] },
+      { key: "view_executive",        label: "Dashboard Mode: มุมมองผู้บริหาร (Executive)",                       actions: ["view"] },
     ],
   },
 

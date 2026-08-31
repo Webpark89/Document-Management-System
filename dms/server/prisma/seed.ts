@@ -53,10 +53,7 @@ async function main() {
 
   // --- Employee permissions (basic) ---
   const employeePerms: [string, string][] = [
-    ['dashboard.charts', 'view'],
-    ['dashboard.date_filter', 'view'],
-    ['dashboard.my_pending_view', 'view'],
-    ['dashboard.recent_docs', 'view'],
+    ['dashboard', 'view_employee'],
     // ส่งเรื่องขออนุมัติ - ดูเอกสารที่ฉันส่ง + สร้างเอกสาร
     ['submissions.view_list', 'view'],
     ['submissions.search_sort', 'view'],
@@ -101,8 +98,7 @@ async function main() {
   // --- Manager permissions (employee + approval in inbox + more) ---
   const managerPerms: [string, string][] = [
     ...employeePerms,
-    ['dashboard.pending_approvals_view', 'view'],
-    ['dashboard.scope_dropdown', 'view'],
+    ['dashboard', 'view_executive'],
     // รายการรออนุมัติ - อนุมัติได้
     ['approvals.view_list', 'view'],
     ['approvals.search_sort', 'view'],

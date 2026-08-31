@@ -40,15 +40,17 @@ export function AppStatCard({
 
 type StatCardGridProps = {
   children: ReactNode;
-  columns?: 3 | 4 | 5;
+  columns?: 3 | 4 | 5 | 6;
 };
 
 export function StatCardGrid({ children, columns = 3 }: StatCardGridProps) {
   const gridCls =
-    columns === 5
-      ? APP_STAT_GRID_5
-      : columns === 4
-        ? APP_STAT_GRID_4
-        : APP_STAT_GRID_3;
+    columns === 6
+      ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"
+      : columns === 5
+        ? APP_STAT_GRID_5
+        : columns === 4
+          ? APP_STAT_GRID_4
+          : APP_STAT_GRID_3;
   return <div className={gridCls}>{children}</div>;
 }
