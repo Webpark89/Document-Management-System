@@ -13,6 +13,7 @@ import { Badge } from '@views/components/ui/badge';
 import { getStatusVariant } from "@/lib/document-status";
 import { CancelDocumentButton } from '@views/components/documents/CancelDocumentButton';
 import { ResubmitButton } from '@views/components/documents/ResubmitButton';
+import { useAuth } from '@views/components/providers/AuthProvider';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -20,6 +21,9 @@ interface PageProps {
 
 export default function DocumentDetailPage({ params }: PageProps) {
   const { id } = use(params);
+  const { user } = useAuth();
+  const hasPerm = (itemKey: string, action: string = 'view') =>
+    !!user?.permissions?.includes(`document.${itemKey}:${action}`);
   const [doc, setDoc] = useState<any>(null);
   const [workflow, setWorkflow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -74,7 +78,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
         </Link>
 
         <div className="flex items-center gap-3">
-          {(doc.status === "Pending" || doc.status === "Returned" || doc.status === "Draft") && (
+          {hasPerm('edit_document', 'edit') && (doc.status === "Pending" || doc.status === "Returned" || doc.status === "Draft") && (
             <Link
               href={`/submissions/create?edit=${doc.id}`}
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition-all shadow-xs cursor-pointer"
@@ -83,22 +87,28 @@ export default function DocumentDetailPage({ params }: PageProps) {
             </Link>
           )}
 
-          <ResubmitButton
-            documentId={doc.id}
-            docStatus={doc.status}
-            onSuccess={() => {
-              setDoc((prev: any) => ({ ...prev, status: "Pending" }));
-            }}
-          />
-          <CancelDocumentButton document={doc} />
+          {hasPerm('submit_document', 'create') && (
+            <ResubmitButton
+              documentId={doc.id}
+              docStatus={doc.status}
+              onSuccess={() => {
+                setDoc((prev: any) => ({ ...prev, status: "Pending" }));
+              }}
+            />
+          )}
+          {hasPerm('recall_document', 'edit') && (
+            <CancelDocumentButton document={doc} />
+          )}
           
-          <Link
-            href={`/documents/${doc.id}/versions`}
-            className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
-          >
-            <History className="w-4 h-4" />
-            Version History
-          </Link>
+          {hasPerm('view_version_history') && (
+            <Link
+              href={`/documents/${doc.id}/versions`}
+              className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+            >
+              <History className="w-4 h-4" />
+              Version History
+            </Link>
+          )}
         </div>
       </div>
 
@@ -112,6 +122,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
         
         {/* LEFT COLUMN: Main Info */}
         <div className="lg:col-span-2 space-y-6">
+          {hasPerm('view_detail') && (
           <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm space-y-6">
             
             <div className="flex items-start gap-4 pb-6 border-b border-slate-100">
@@ -147,6 +158,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Version</p>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-sm font-bold text-slate-800">{doc.version}</p>
+                  {hasPerm('view_version_history') && (
                   <Link
                     href={`/documents/${doc.id}/versions`}
                     title="View Version History"
@@ -154,25 +166,31 @@ export default function DocumentDetailPage({ params }: PageProps) {
                   >
                     <History className="w-3.5 h-3.5" />
                   </Link>
+                  )}
                 </div>
               </div>
             </div>
 
           </div>
+          )}
 
           {/* DOCUMENT PREVIEW */}
-          <DocumentPreview doc={doc} />
+          {hasPerm('preview_document') && (
+            <DocumentPreview doc={doc} />
+          )}
         </div>
 
         {/* RIGHT COLUMN: Activity/Workflow */}
         <div className="space-y-6">
-          {workflow ? (
-            <WorkflowTracker workflow={workflow} />
-          ) : (
-            <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm text-center text-slate-500 text-sm">
-              ไม่พบข้อมูลสายอนุมัติ
-            </div>
-          )}
+          {hasPerm('view_timeline') ? (
+            workflow ? (
+              <WorkflowTracker workflow={workflow} />
+            ) : (
+              <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm text-center text-slate-500 text-sm">
+                ไม่พบข้อมูลสายอนุมัติ
+              </div>
+            )
+          ) : null}
         </div>
 
       </div>

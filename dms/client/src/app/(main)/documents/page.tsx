@@ -44,6 +44,8 @@ import { FolderIconRenderer } from '@views/components/folders/FolderIconRenderer
 function DocumentsContent() {
   const router = useRouter();
   const { user } = useAuth();
+  const hasPerm = (itemKey: string, action: string = 'view') =>
+    !!user?.permissions?.includes(`document.${itemKey}:${action}`);
   const { data: initialDocs, error } = useSWR("documents", getDocuments, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
@@ -467,48 +469,53 @@ function DocumentsContent() {
   return (
     <div className={APP_PAGE_SHELL}>
       <div className={APP_PAGE_CONTENT}>
-        <PageHeader
-          size="compact"
-          title="เอกสารทั้งหมด (All Documents)"
-          subtitle="ดูและค้นหาเอกสารที่ผ่านการอนุมัติแล้วทั้งหมดในระบบ"
-        />
+        {hasPerm('view_list', 'view') ? (
+          <>
+            <PageHeader
+              size="compact"
+              title="เอกสารทั้งหมด (All Documents)"
+              subtitle="ดูและค้นหาเอกสารที่ผ่านการอนุมัติแล้วทั้งหมดในระบบ"
+            />
 
 
 
-          {/* BULK ACTION BAR */}
-          {selectedDocIds.length > 0 && (
-            <div className="bg-blue-600 text-white rounded-2xl p-3.5 flex items-center justify-between shadow-md animate-in fade-in slide-in-from-top-2">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-bold bg-white/20 px-2.5 py-1 rounded-lg">
-                  {selectedDocIds.length} รายการที่เลือก
-                </span>
-                <span className="text-xs text-blue-100 font-medium">จัดการเอกสารพร้อมกัน</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsMoveModalOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-blue-700 hover:bg-blue-50 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
-                >
-                  <FolderInput className="w-4 h-4" />
-                  <span>ย้ายเข้าโฟลเดอร์</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedDocIds([])}
-                  className="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                >
-                  ยกเลิก
-                </button>
-              </div>
-            </div>
-          )}
+              {/* BULK ACTION BAR */}
+              {hasPerm('bulk_select', 'edit') && selectedDocIds.length > 0 && (
+                <div className="bg-blue-600 text-white rounded-2xl p-3.5 flex items-center justify-between shadow-md animate-in fade-in slide-in-from-top-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold bg-white/20 px-2.5 py-1 rounded-lg">
+                      {selectedDocIds.length} รายการที่เลือก
+                    </span>
+                    <span className="text-xs text-blue-100 font-medium">จัดการเอกสารพร้อมกัน</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {hasPerm('move_to_folder', 'edit') && (
+                      <button
+                        type="button"
+                        onClick={() => setIsMoveModalOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-blue-700 hover:bg-blue-50 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                      >
+                        <FolderInput className="w-4 h-4" />
+                        <span>ย้ายเข้าโฟลเดอร์</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDocIds([])}
+                      className="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      ยกเลิก
+                    </button>
+                  </div>
+                </div>
+              )}
+
 
           {/* WORKSPACE CARD */}
           <div className={`${APP_TABLE_CARD} flex flex-col p-6 space-y-6`}>
         
         {/* ACTIVE FOLDER BANNER INDICATOR */}
-        {activeFolder && (
+        {hasPerm('view_folders') && activeFolder && (
           <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-50/90 border border-blue-200/90 p-4 rounded-2xl flex items-center justify-between shadow-2xs animate-in fade-in slide-in-from-top-1">
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-xs shrink-0">
@@ -545,6 +552,7 @@ function DocumentsContent() {
             <div className="flex flex-wrap items-center gap-3">
               
               {/* Unified View Scope Select */}
+              {hasPerm('scope_dropdown') && (
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-600">ขอบเขตการมองเห็น:</span>
                 <select
@@ -564,6 +572,7 @@ function DocumentsContent() {
                   <option value="CUSTOM_DEPTS">📑 เลือกระบุตามแผนก... (Custom Departments)</option>
                 </select>
               </div>
+              )}
 
               {/* Multi-Department Selector Button (Appears when CUSTOM_DEPTS is chosen) */}
               {viewScope === "CUSTOM_DEPTS" && (
@@ -697,6 +706,7 @@ function DocumentsContent() {
             <div className="flex flex-1 items-center gap-3 w-full">
               
               {/* Search */}
+              {hasPerm('search_filter') && (
               <div className="relative flex-1">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                   <Search className="w-4 h-4" />
@@ -709,8 +719,10 @@ function DocumentsContent() {
                   className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all shadow-2xs"
                 />
               </div>
+              )}
 
               {/* Type Filter — 4 Real Types */}
+              {hasPerm('search_filter') && (
               <div className="relative">
                 <select
                   value={typeFilter}
@@ -727,6 +739,7 @@ function DocumentsContent() {
                   <SlidersHorizontal className="w-3.5 h-3.5" />
                 </span>
               </div>
+              )}
 
             </div>
           </div>
@@ -749,6 +762,7 @@ function DocumentsContent() {
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 <th className="py-3.5 pl-4 text-center">
+                  {hasPerm('bulk_select', 'edit') && (
                   <input
                     type="checkbox"
                     checked={paginatedDocs.length > 0 && paginatedDocs.every((d) => selectedDocIds.includes(d.id))}
@@ -763,6 +777,7 @@ function DocumentsContent() {
                     }}
                     className="rounded border-slate-300 text-blue-600 w-3.5 h-3.5 cursor-pointer"
                   />
+                  )}
                 </th>
                 <DataTableHeader title="รหัสเอกสาร" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5" />
                 <th className="py-3.5 font-bold">ชื่อเอกสาร / รายละเอียด</th>
@@ -794,6 +809,7 @@ function DocumentsContent() {
                       }`}
                     >
                       <td className="py-4 pl-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        {hasPerm('bulk_select', 'edit') && (
                         <input
                           type="checkbox"
                           checked={isChecked}
@@ -803,6 +819,7 @@ function DocumentsContent() {
                           }}
                           className="rounded border-slate-300 text-blue-600 w-3.5 h-3.5"
                         />
+                        )}
                       </td>
                       <td className="py-4 text-sm font-bold text-slate-500">{doc.id}</td>
                     <td className="py-4">
@@ -834,6 +851,7 @@ function DocumentsContent() {
                     </td>
                     <td className="py-4 pr-4 text-center">
                       <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {hasPerm('preview_document') && (
                         <button
                           type="button"
                           title="ดูตัวอย่าง (View Preview)"
@@ -845,6 +863,8 @@ function DocumentsContent() {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
+                        )}
+                        {hasPerm('move_to_folder', 'edit') && (
                         <button
                           type="button"
                           title="ย้ายเข้าโฟลเดอร์ (Move to Folder)"
@@ -857,7 +877,8 @@ function DocumentsContent() {
                         >
                           <FolderInput className="w-4 h-4" />
                         </button>
-                        {(doc.status === "Draft" || doc.status === "Returned" || doc.status === "Pending") && (
+                        )}
+                        {hasPerm('edit_document', 'edit') && (doc.status === "Draft" || doc.status === "Returned" || doc.status === "Pending") && (
                           <button
                             type="button"
                             title="Edit & Resubmit"
@@ -870,6 +891,7 @@ function DocumentsContent() {
                             <Edit2 className="w-4 h-4" />
                           </button>
                         )}
+                        {hasPerm('download_document') && (
                         <button
                           type="button"
                           title="ดาวน์โหลด (Download)"
@@ -878,6 +900,8 @@ function DocumentsContent() {
                         >
                           <Download className="w-4 h-4" />
                         </button>
+                        )}
+                        {hasPerm('delete_document', 'delete') && (
                         <button
                           type="button"
                           title="ลบเอกสาร (Delete)"
@@ -886,6 +910,7 @@ function DocumentsContent() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -1016,6 +1041,12 @@ function DocumentsContent() {
         folders={folders}
         documentCount={selectedDocIds.length}
       />
+          </>
+        ) : (
+          <div className="mt-12 flex flex-col items-center justify-center p-12 text-slate-400">
+            <p className="text-sm font-bold">ไม่มีสิทธิ์เข้าถึงหน้าเอกสาร</p>
+          </div>
+        )}
       </div>
     </div>
   );

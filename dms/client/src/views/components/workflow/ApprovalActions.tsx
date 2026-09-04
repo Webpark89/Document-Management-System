@@ -11,6 +11,9 @@ interface ApprovalActionsProps {
   documentId: string;
   signaturePlaced: boolean;
   canApprove?: boolean;
+  canReject?: boolean;
+  canReturn?: boolean;
+  canComment?: boolean;
   activeApproverName?: string;
   currentStep?: number;
 }
@@ -18,7 +21,10 @@ interface ApprovalActionsProps {
 export function ApprovalActions({ 
   documentId, 
   signaturePlaced, 
-  canApprove = true, 
+  canApprove = true,
+  canReject = true,
+  canReturn = true,
+  canComment = true,
   activeApproverName,
   currentStep = 1
 }: ApprovalActionsProps) {
@@ -115,48 +121,61 @@ export function ApprovalActions({
         </div>
 
         <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-              ความคิดเห็น / หมายเหตุประกอบการพิจารณา (Comment)
-            </label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none text-xs font-semibold text-slate-700 placeholder-slate-400"
-              rows={3}
-              placeholder="ระบุความคิดเห็น... (จำเป็นต้องระบุหากไม่อนุมัติ)"
-              disabled={isSubmitting}
-            />
-          </div>
+          {/* Comment field — requires add_comment:edit */}
+          {canComment ? (
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                ความคิดเห็น / หมายเหตุประกอบการพิจารณา (Comment)
+              </label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none text-xs font-semibold text-slate-700 placeholder-slate-400"
+                rows={3}
+                placeholder="ระบุความคิดเห็น... (จำเป็นต้องระบุหากไม่อนุมัติ)"
+                disabled={isSubmitting}
+              />
+            </div>
+          ) : (
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-400 font-medium">
+              🔒 ไม่มีสิทธิ์เพิ่มความคิดเห็น
+            </div>
+          )}
 
           <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setShowRejectModal(true)}
-              disabled={isSubmitting}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold rounded-xl text-xs transition-all disabled:opacity-50 cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-              ปฏิเสธ / ตีกลับ (Reject)
-            </button>
+            {/* Reject button — requires reject_document:approve OR return_document:approve */}
+            {(canReject || canReturn) ? (
+              <button
+                type="button"
+                onClick={() => setShowRejectModal(true)}
+                disabled={isSubmitting}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold rounded-xl text-xs transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+                ปฏิเสธ / ตีกลับ (Reject)
+              </button>
+            ) : null}
 
-            <button
-              type="button"
-              onClick={handleApprove}
-              disabled={isSubmitting}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-white font-bold rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 cursor-pointer ${
-                signaturePlaced
-                  ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100"
-                  : "bg-slate-400 hover:bg-slate-500 cursor-not-allowed"
-              }`}
-            >
-              {isSubmitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Check className="w-4 h-4" />
-              )}
-              อนุมัติ (Approve)
-            </button>
+            {/* Approve button — requires approve_document:approve */}
+            {canApprove ? (
+              <button
+                type="button"
+                onClick={handleApprove}
+                disabled={isSubmitting}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-white font-bold rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 cursor-pointer ${
+                  signaturePlaced
+                    ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100"
+                    : "bg-slate-400 hover:bg-slate-500 cursor-not-allowed"
+                }`}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                อนุมัติ (Approve)
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -180,57 +199,63 @@ export function ApprovalActions({
             </div>
 
             <div className="space-y-3">
-              <label
-                onClick={() => setRejectType("return")}
-                className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
-                  rejectType === "return"
-                    ? "border-amber-500 bg-amber-50/50 shadow-xs"
-                    : "border-slate-200 bg-white hover:bg-slate-50"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="reject_type"
-                  checked={rejectType === "return"}
-                  onChange={() => setRejectType("return")}
-                  className="mt-0.5 text-amber-600 focus:ring-amber-500"
-                />
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                    <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
-                    ตีกลับให้ผู้สร้างแก้ไข (Reject & Return)
+              {/* Return option — requires return_document:approve */}
+              {canReturn && (
+                <label
+                  onClick={() => setRejectType("return")}
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    rejectType === "return"
+                      ? "border-amber-500 bg-amber-50/50 shadow-xs"
+                      : "border-slate-200 bg-white hover:bg-slate-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="reject_type"
+                    checked={rejectType === "return"}
+                    onChange={() => setRejectType("return")}
+                    className="mt-0.5 text-amber-600 focus:ring-amber-500"
+                  />
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+                      ตีกลับให้ผู้สร้างแก้ไข (Reject & Return)
+                    </div>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      สถานะเอกสารจะเปลี่ยนเป็น Returned (ส่งกลับแก้ไข) เพื่อให้ผู้สร้างแก้ไขและส่งขออนุมัติใหม่ได้
+                    </p>
                   </div>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    สถานะเอกสารจะเปลี่ยนเป็น Returned (ส่งกลับแก้ไข) เพื่อให้ผู้สร้างแก้ไขและส่งขออนุมัติใหม่ได้
-                  </p>
-                </div>
-              </label>
+                </label>
+              )}
 
-              <label
-                onClick={() => setRejectType("cancel")}
-                className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
-                  rejectType === "cancel"
-                    ? "border-rose-500 bg-rose-50/50 shadow-xs"
-                    : "border-slate-200 bg-white hover:bg-slate-50"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="reject_type"
-                  checked={rejectType === "cancel"}
-                  onChange={() => setRejectType("cancel")}
-                  className="mt-0.5 text-rose-600 focus:ring-rose-500"
-                />
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                    <Ban className="w-3.5 h-3.5 text-rose-600" />
-                    ปฏิเสธถาวร (Reject & Cancel)
+              {/* Reject-cancel option — requires reject_document:approve */}
+              {canReject && (
+                <label
+                  onClick={() => setRejectType("cancel")}
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    rejectType === "cancel"
+                      ? "border-rose-500 bg-rose-50/50 shadow-xs"
+                      : "border-slate-200 bg-white hover:bg-slate-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="reject_type"
+                    checked={rejectType === "cancel"}
+                    onChange={() => setRejectType("cancel")}
+                    className="mt-0.5 text-rose-600 focus:ring-rose-500"
+                  />
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                      <Ban className="w-3.5 h-3.5 text-rose-600" />
+                      ปฏิเสธถาวร (Reject & Cancel)
+                    </div>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      ปิดขั้นตอนอนุมัติถาวร เอกสารจะอยู่ในสถานะ Rejected ไม่สามารถแก้ไขหรือส่งใหม่ได้
+                    </p>
                   </div>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    ปิดขั้นตอนอนุมัติถาวร เอกสารจะอยู่ในสถานะ Rejected ไม่สามารถแก้ไขหรือส่งใหม่ได้
-                  </p>
-                </div>
-              </label>
+                </label>
+              )}
             </div>
 
             {rejectType === "return" && (

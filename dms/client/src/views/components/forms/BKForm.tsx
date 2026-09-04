@@ -147,9 +147,7 @@ export default function BKForm({
         <div className="bg-white w-[210mm] min-h-[297mm] shadow-xl flex flex-col p-[20mm] text-[14px] text-slate-900 leading-relaxed font-sans relative origin-top">
           
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-16 h-16 border-2 border-slate-800 flex items-center justify-center font-black text-xl text-slate-900 rounded-full">
-              ตรา
-            </div>
+            
             <h1 className="text-3xl font-bold text-center flex-1 mr-16">บันทึกข้อความ</h1>
           </div>
 

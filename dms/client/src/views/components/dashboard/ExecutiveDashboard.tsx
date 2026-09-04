@@ -200,9 +200,24 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
     return data.slice(0, 8);
   }, [filteredData, sortKey, sortDirection]);
 
+  const hasPerm = (key: string) => {
+    return user?.permissions?.includes(`dashboard.${key}:view`) || 
+           user?.permissions?.includes(`dashboard:${key}`) ||
+           user?.permissions?.includes(`dashboard_executive.${key}:view`);
+  };
+
+  const showStatCards = hasPerm("executive_stat_cards");
+  const showDocsTypeChart = hasPerm("executive_docs_type_chart");
+  const showDocsStatusChart = hasPerm("executive_docs_status_chart");
+  const showPendingDeptChart = hasPerm("executive_pending_dept_chart");
+  const showRecentActivity = hasPerm("executive_recent_activity");
+  const showBottlenecks = hasPerm("executive_bottlenecks");
+  const showViewScope = hasPerm("executive_view_scope");
+
   return (
     <>
-      <div className="flex flex-wrap items-center gap-3 bg-white p-2.5 rounded-2xl border border-slate-100 shadow-xs mb-6">
+      {showViewScope && (
+        <div className="flex flex-wrap items-center gap-3 bg-white p-2.5 rounded-2xl border border-slate-100 shadow-xs mb-6">
         <div className="flex items-center gap-1.5">
           <span className="text-xs font-bold text-slate-500">ขอบเขต:</span>
           <select
@@ -285,88 +300,94 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
           />
         </div>
       </div>
+      )}
 
-
-
-      <StatCardGrid columns={6}>
-        <AppStatCard label="เอกสารทั้งระบบ" value={total} icon={FileText} iconBg="bg-blue-50" iconColor="text-blue-600" />
-        <AppStatCard label="รออนุมัติทั้งระบบ" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" />
-        <AppStatCard label="อนุมัติ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
-        <AppStatCard label="ส่งกลับแก้ไข" value={returned} icon={AlertCircle} iconBg="bg-orange-50" iconColor="text-orange-600" />
-        <AppStatCard label="ยอด PR/PO (บ.)" value={totalBudget.toLocaleString()} icon={TrendingUp} iconBg="bg-purple-50" iconColor="text-purple-600" />
-        <AppStatCard label="รออนุมัติจากฉัน" value={actionRequiredCount} icon={CheckCircle2} iconBg="bg-rose-50" iconColor="text-rose-600" />
-      </StatCardGrid>
+      {showStatCards && (
+        <StatCardGrid columns={6}>
+          <AppStatCard label="เอกสารทั้งระบบ" value={total} icon={FileText} iconBg="bg-blue-50" iconColor="text-blue-600" />
+          <AppStatCard label="รออนุมัติทั้งระบบ" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" />
+          <AppStatCard label="อนุมัติ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
+          <AppStatCard label="ส่งกลับแก้ไข" value={returned} icon={AlertCircle} iconBg="bg-orange-50" iconColor="text-orange-600" />
+          <AppStatCard label="ยอด PR/PO (บ.)" value={totalBudget.toLocaleString()} icon={TrendingUp} iconBg="bg-purple-50" iconColor="text-purple-600" />
+          <AppStatCard label="รออนุมัติจากฉัน" value={actionRequiredCount} icon={CheckCircle2} iconBg="bg-rose-50" iconColor="text-rose-600" />
+        </StatCardGrid>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
-        <div className={`lg:col-span-2 ${APP_CARD_LG} flex flex-col`}>
-          <h3 className="text-sm font-bold text-slate-800 mb-6">เอกสารตามประเภท (จำนวนจริง)</h3>
-          <div className="flex-1 min-h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={typeData} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
-                <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600, fill: '#64748b' }} width={60} />
-                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
-                  {typeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                  <LabelList dataKey="value" position="right" style={{ fontSize: 12, fill: '#334155', fontWeight: 700 }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+        {showDocsTypeChart && (
+          <div className={`lg:col-span-2 ${APP_CARD_LG} flex flex-col`}>
+            <h3 className="text-sm font-bold text-slate-800 mb-6">เอกสารตามประเภท (จำนวนจริง)</h3>
+            <div className="flex-1 min-h-[220px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={typeData} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600, fill: '#64748b' }} width={60} />
+                  <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
+                    {typeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                    <LabelList dataKey="value" position="right" style={{ fontSize: 12, fill: '#334155', fontWeight: 700 }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className={`${APP_CARD_LG} flex flex-col lg:col-span-1`}>
-          <h3 className="text-sm font-bold text-slate-800 mb-2">สัดส่วนสถานะรวมทั้งระบบ</h3>
-          <div className="flex-1 min-h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  innerRadius={50}
-                  outerRadius={70}
-                  paddingAngle={5}
-                  dataKey="value"
-                  stroke="none"
-                  label={({ name, value }) => `${value}`}
-                  labelLine={false}
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }} />
-              </PieChart>
-            </ResponsiveContainer>
+        {showDocsStatusChart && (
+          <div className={`${APP_CARD_LG} flex flex-col lg:col-span-1`}>
+            <h3 className="text-sm font-bold text-slate-800 mb-2">สัดส่วนสถานะรวมทั้งระบบ</h3>
+            <div className="flex-1 min-h-[220px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statusData}
+                    innerRadius={50}
+                    outerRadius={70}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                    label={({ name, value }) => `${value}`}
+                    labelLine={false}
+                  >
+                    {statusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className={`lg:col-span-1 ${APP_CARD_LG} flex flex-col`}>
-          <h3 className="text-sm font-bold text-slate-800 mb-6">เอกสารรออนุมัติแยกตามแผนก (Top 5)</h3>
-          <div className="flex-1 min-h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={deptPendingData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32} fill="#f59e0b">
-                  <LabelList dataKey="value" position="top" style={{ fontSize: 12, fill: '#334155', fontWeight: 700 }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+        {showPendingDeptChart && (
+          <div className={`lg:col-span-1 ${APP_CARD_LG} flex flex-col`}>
+            <h3 className="text-sm font-bold text-slate-800 mb-6">เอกสารรออนุมัติแยกตามแผนก (Top 5)</h3>
+            <div className="flex-1 min-h-[220px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={deptPendingData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+                  <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32} fill="#f59e0b">
+                    <LabelList dataKey="value" position="top" style={{ fontSize: 12, fill: '#334155', fontWeight: 700 }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className={`lg:col-span-2 ${APP_TABLE_CARD} flex flex-col`}>
+        {showRecentActivity && (
+          <div className={`lg:col-span-2 ${APP_TABLE_CARD} flex flex-col`}>
           <div className="flex items-center justify-between border-b border-slate-100 p-6">
             <h3 className="text-base font-bold text-slate-900">กิจกรรมล่าสุดในระบบ</h3>
-            <Link href="/documents" className="flex items-center gap-1 text-xs font-bold text-blue-600 transition-colors hover:text-blue-800">
-              ดูทั้งหมด <ChevronRight className="w-4 h-4" />
-            </Link>
+
           </div>
           <div className="overflow-x-auto w-full">
             <table className="w-full table-fixed min-w-[850px] text-left border-collapse whitespace-nowrap">
@@ -420,10 +441,11 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
               </tbody>
             </table>
           </div>
-        </div>
+          </div>
+        )}
       </div>
       
-      {bottlenecks.length > 0 && (
+      {showBottlenecks && bottlenecks.length > 0 && (
         <div className={`mb-6 ${APP_TABLE_CARD} flex flex-col border-rose-100 overflow-hidden`}>
           <div className="bg-rose-50 border-b border-rose-100 text-rose-700 p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">

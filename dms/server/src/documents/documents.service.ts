@@ -7,6 +7,8 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 
+import { AuditAction } from '@prisma/client';
+
 export interface FindAllOptions {
   status?: string;
   type?: string;
@@ -20,6 +22,22 @@ export interface FindAllOptions {
 @Injectable()
 export class DocumentsService {
   constructor(private prisma: PrismaService) {}
+
+  async logAction(userId: string, action: AuditAction, targetId: string, ipAddress: string, docNumber?: string) {
+    // Fire and forget audit log
+    this.prisma.auditLog.create({
+      data: {
+        user_id: userId,
+        action,
+        module: 'Document',
+        target_id: targetId,
+        ip_address: ipAddress,
+        details: {
+          extra: { comment: `User ${action.toLowerCase()}ed document`, doc_number: docNumber }
+        }
+      }
+    }).catch(e => console.error('AuditLog error:', e));
+  }
 
   async findAll(options: FindAllOptions) {
     const {

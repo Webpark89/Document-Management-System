@@ -46,8 +46,8 @@ type NavGroup = {
 // no permission = visible to all authenticated users
 const FLAT_NAV_ITEMS: NavItem[] = [
   { name: "แดชบอร์ด", href: "/dashboard", icon: LayoutDashboard },
-  { name: "ส่งเรื่องขออนุมัติ", href: "/submissions", icon: Send, roles: [] },
-  { name: "รายการรออนุมัติ", href: "/approvals", icon: CheckSquare, roles: [] },
+  { name: "ส่งเรื่องขออนุมัติ", href: "/submissions", icon: Send, roles: [], permission: "submissions.view_list:view" },
+  { name: "รายการรออนุมัติ", href: "/approvals", icon: CheckSquare, roles: [], permission: "approvals.view_list:view" },
   { name: "Master Data", href: "/admin/master-data", icon: Database, roles: [], permission: "masterdata.access:view" },
   { name: "Reports", href: "/admin/reports", icon: BarChart3, roles: [], permission: "reports.access:view" },
   { name: "Audit Logs", href: "/admin/audit-logs", icon: Activity, roles: [], permission: "auditlog.access:view" },
@@ -70,6 +70,7 @@ const CONFIG_GROUP: NavGroup = {
   tablerIcon: "settings-2",
   permission: "config.access:view",
   children: [
+    { name: "General", href: "/admin/config/general", tablerIcon: "adjustments", roles: [], permission: "config.access:view" },
     { name: "Roles", href: "/admin/config/roles", tablerIcon: "shield-lock", roles: [], permission: "config.role_management:view" },
     { name: "Users", href: "/admin/config/users", tablerIcon: "users", roles: [], permission: "config.user_management:view" },
   ],

@@ -14,8 +14,17 @@ import { formatThaiDate } from "@/lib/format-date";
 import DataTableHeader from '@views/components/ui/DataTableHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
 
+import { useAuth } from '@views/components/providers/AuthProvider';
+
 export default function SubmissionsPage() {
   const router = useRouter();
+  const { user } = useAuth();
+
+  const hasPerm = (itemKey: string, action: string = "view") => {
+    return !!user?.permissions?.includes(`submissions.${itemKey}:${action}`);
+  };
+
+  // Check view_list permission. If no permission, render a block or just let them see an empty list? Let's just wrap features.
   
   // Data States
   const [myDocsList, setMyDocsList] = useState<Document[]>([]);
@@ -31,12 +40,16 @@ export default function SubmissionsPage() {
   const itemsPerPage = 7;
 
   useEffect(() => {
+    if (user && !hasPerm("view_list")) {
+      router.replace("/dashboard");
+      return;
+    }
     // Fetch my created documents
     getDocuments().then((data) => {
       // Keep non-approved items created by me
       setMyDocsList(data.filter((doc) => doc.status !== "Approved"));
     });
-  }, []);
+  }, [user]);
 
   const handleSort = (key: string) => {
     if (sortKey !== key) {
@@ -201,20 +214,24 @@ export default function SubmissionsPage() {
           subtitle="จัดการเอกสารแบบร่าง หรือติดตามเอกสารที่คุณสร้างเพื่อขออนุมัติ"
           actions={
             <div className="flex items-center gap-2">
-              <Link
-                href="/submissions/create"
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all shadow-xs cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                สร้างเอกสารใหม่
-              </Link>
-              <Link
-                href="/approvals/history"
-                className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
-              >
-                <CheckSquare className="w-4 h-4" />
-                ประวัติการอนุมัติ
-              </Link>
+              {hasPerm("create_document", "create") && (
+                <Link
+                  href="/submissions/create"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  สร้างเอกสารใหม่
+                </Link>
+              )}
+              {hasPerm("view_approval_history", "view") && (
+                <Link
+                  href="/approvals/history"
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                >
+                  <CheckSquare className="w-4 h-4" />
+                  ประวัติการอนุมัติ
+                </Link>
+              )}
             </div>
           }
         />
@@ -225,118 +242,122 @@ export default function SubmissionsPage() {
           {/* SUB-FILTER TOOLBAR & SEARCH */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             {/* Document Type Pills (Multi-select) */}
-            <div className="flex flex-wrap gap-1.5 items-center">
-              <span className="text-xs font-bold text-slate-400 mr-1">ตัวกรอง:</span>
-              <button
-                type="button"
-                onClick={() => setSelectedTypes([])}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  selectedTypes.length === 0
-                    ? "bg-slate-800 text-white border-slate-800 shadow-xs"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                ทั้งหมด ({rawList.length})
-              </button>
+            {hasPerm("filter_type", "view") ? (
+              <div className="flex flex-wrap gap-1.5 items-center">
+                <span className="text-xs font-bold text-slate-400 mr-1">ตัวกรอง:</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTypes([])}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                    selectedTypes.length === 0
+                      ? "bg-slate-800 text-white border-slate-800 shadow-xs"
+                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  ทั้งหมด ({rawList.length})
+                </button>
 
-              <button
-                type="button"
-                onClick={() => handleToggleType("PR")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  selectedTypes.includes("PR")
-                    ? "bg-blue-600 text-white border-blue-600 shadow-xs"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                📄 ใบขอซื้อ (PR)
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                <button
+                  type="button"
+                  onClick={() => handleToggleType("PR")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                     selectedTypes.includes("PR")
-                      ? "bg-white/20 text-white"
-                      : "bg-blue-100 text-blue-700"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                   }`}
                 >
-                  {prCount}
-                </span>
-              </button>
+                  📄 ใบขอซื้อ (PR)
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                      selectedTypes.includes("PR")
+                        ? "bg-white/20 text-white"
+                        : "bg-blue-100 text-blue-700"
+                    }`}
+                  >
+                    {prCount}
+                  </span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => handleToggleType("PO")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  selectedTypes.includes("PO")
-                    ? "bg-purple-600 text-white border-purple-600 shadow-xs"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                📦 ใบสั่งซื้อ (PO)
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                <button
+                  type="button"
+                  onClick={() => handleToggleType("PO")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                     selectedTypes.includes("PO")
-                      ? "bg-white/20 text-white"
-                      : "bg-purple-100 text-purple-700"
+                      ? "bg-purple-600 text-white border-purple-600 shadow-xs"
+                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                   }`}
                 >
-                  {poCount}
-                </span>
-              </button>
+                  📦 ใบสั่งซื้อ (PO)
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                      selectedTypes.includes("PO")
+                        ? "bg-white/20 text-white"
+                        : "bg-purple-100 text-purple-700"
+                    }`}
+                  >
+                    {poCount}
+                  </span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => handleToggleType("BK")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  selectedTypes.includes("BK")
-                    ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                📝 บันทึกข้อความ (BK)
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                <button
+                  type="button"
+                  onClick={() => handleToggleType("BK")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                     selectedTypes.includes("BK")
-                      ? "bg-white/20 text-white"
-                      : "bg-emerald-100 text-emerald-700"
+                      ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                   }`}
                 >
-                  {bkCount}
-                </span>
-              </button>
+                  📝 บันทึกข้อความ (BK)
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                      selectedTypes.includes("BK")
+                        ? "bg-white/20 text-white"
+                        : "bg-emerald-100 text-emerald-700"
+                    }`}
+                  >
+                    {bkCount}
+                  </span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => handleToggleType("OTHER")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  selectedTypes.includes("OTHER")
-                    ? "bg-slate-700 text-white border-slate-700 shadow-xs"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                📁 เอกสารอื่นๆ
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                <button
+                  type="button"
+                  onClick={() => handleToggleType("OTHER")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                     selectedTypes.includes("OTHER")
-                      ? "bg-white/20 text-white"
-                      : "bg-slate-100 text-slate-700"
+                      ? "bg-slate-700 text-white border-slate-700 shadow-xs"
+                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                   }`}
                 >
-                  {otherCount}
-                </span>
-              </button>
-            </div>
+                  📁 เอกสารอื่นๆ
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                      selectedTypes.includes("OTHER")
+                        ? "bg-white/20 text-white"
+                        : "bg-slate-100 text-slate-700"
+                    }`}
+                  >
+                    {otherCount}
+                  </span>
+                </button>
+              </div>
+            ) : <div />}
 
             {/* SEARCH BAR */}
-            <div className="relative flex-1 md:w-64 w-full">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                <Search className="w-4 h-4" />
-              </span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="ค้นหาชื่อ, เลขที่เอกสาร, ผู้ขอ..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-9 pr-3 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all"
-              />
-            </div>
+            {hasPerm("search_sort", "view") && (
+              <div className="relative flex-1 md:w-64 w-full">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                  <Search className="w-4 h-4" />
+                </span>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="ค้นหาชื่อ, เลขที่เอกสาร, ผู้ขอ..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-9 pr-3 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all"
+                />
+              </div>
+            )}
           </div>
 
           {/* TABLE */}
@@ -411,7 +432,7 @@ export default function SubmissionsPage() {
                       </td>
                       <td className="py-4 text-center">
                         <span className="text-xs font-semibold px-2 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
-                          L{item.currentLevel} / L{item.maxLevels}
+                          {item.currentLevel} / {item.maxLevels}
                         </span>
                       </td>
                       <td className="py-4 text-center">

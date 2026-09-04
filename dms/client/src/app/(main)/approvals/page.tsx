@@ -13,9 +13,13 @@ import { getStatusVariant } from "@/lib/document-status";
 import { formatThaiDate } from "@/lib/format-date";
 import DataTableHeader from '@views/components/ui/DataTableHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
+import { useAuth } from '@views/components/providers/AuthProvider';
 
 export default function ApprovalsInboxPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const hasPerm = (itemKey: string, action: string = 'view') =>
+    !!user?.permissions?.includes(`approvals.${itemKey}:${action}`);
   
   // Data States
   const [toApproveList, setToApproveList] = useState<Approval[]>([]);
@@ -31,11 +35,15 @@ export default function ApprovalsInboxPage() {
   const itemsPerPage = 7;
 
   useEffect(() => {
+    if (user && !hasPerm("view_list")) {
+      router.replace("/dashboard");
+      return;
+    }
     // Fetch approvals (items waiting for MY approval)
     getApprovals().then((data) => {
       setToApproveList(data.filter((item) => item.status !== "Approved"));
     });
-  }, []);
+  }, [user]);
 
   const handleSort = (key: string) => {
     if (sortKey !== key) {
@@ -313,19 +321,21 @@ export default function ApprovalsInboxPage() {
               </button>
             </div>
 
-            {/* SEARCH BAR */}
-            <div className="relative flex-1 md:w-64 w-full">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                <Search className="w-4 h-4" />
-              </span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="ค้นหาชื่อ, เลขที่เอกสาร, ผู้ขอ..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-9 pr-3 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all"
-              />
-            </div>
+            {/* SEARCH BAR — requires search_sort:view */}
+            {hasPerm('search_sort') && (
+              <div className="relative flex-1 md:w-64 w-full">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                  <Search className="w-4 h-4" />
+                </span>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="ค้นหาชื่อ, เลขที่เอกสาร, ผู้ขอ..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-9 pr-3 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all"
+                />
+              </div>
+            )}
           </div>
 
           {/* TABLE */}
@@ -334,12 +344,28 @@ export default function ApprovalsInboxPage() {
               <thead>
                 <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                   <th className="py-4 pl-4 font-bold">ข้อมูลเอกสาร</th>
-                  <DataTableHeader title="รหัส (ID)" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
-                  <DataTableHeader title="ผู้ส่งขอ" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-36" />
+                  {hasPerm('search_sort') ? (
+                    <DataTableHeader title="รหัส (ID)" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
+                  ) : (
+                    <th className="py-4 w-32 font-bold">รหัส (ID)</th>
+                  )}
+                  {hasPerm('search_sort') ? (
+                    <DataTableHeader title="ผู้ส่งขอ" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-36" />
+                  ) : (
+                    <th className="py-4 w-36 font-bold">ผู้ส่งขอ</th>
+                  )}
                   <th className="py-4 font-bold w-44">รายชื่อผู้อนุมัติ</th>
-                  <DataTableHeader title="วันที่ส่ง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
+                  {hasPerm('search_sort') ? (
+                    <DataTableHeader title="วันที่ส่ง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
+                  ) : (
+                    <th className="py-4 w-32 font-bold">วันที่ส่ง</th>
+                  )}
                   <th className="py-4 text-center font-bold w-20">ขั้นที่</th>
-                  <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 text-center w-36" />
+                  {hasPerm('search_sort') ? (
+                    <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 text-center w-36" />
+                  ) : (
+                    <th className="py-4 text-center w-36 font-bold">สถานะ</th>
+                  )}
                   <th className="py-4 pr-4 text-center font-bold w-32">ดำเนินการ</th>
                 </tr>
               </thead>
@@ -349,13 +375,14 @@ export default function ApprovalsInboxPage() {
                     <tr
                       key={item.id}
                       onClick={() => {
+                        if (!hasPerm('open_doc_detail')) return;
                         if (item.status === "Draft") {
                           router.push(`/submissions/create?draftId=${item.real_id}`);
                         } else {
                           router.push(`/approvals/${item.id}`);
                         }
                       }}
-                      className="hover:bg-blue-50/50 transition-colors group cursor-pointer"
+                      className={`transition-colors group ${hasPerm('open_doc_detail') ? 'hover:bg-blue-50/50 cursor-pointer' : 'cursor-default'}`}
                     >
                       <td className="py-4 pl-4">
                         <div className="flex items-center gap-3">
@@ -400,7 +427,7 @@ export default function ApprovalsInboxPage() {
                       </td>
                       <td className="py-4 text-center">
                         <span className="text-xs font-semibold px-2 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
-                          L{item.currentLevel} / L{item.maxLevels}
+                          {item.currentLevel} / {item.maxLevels}
                         </span>
                       </td>
                       <td className="py-4 text-center">
@@ -409,39 +436,44 @@ export default function ApprovalsInboxPage() {
                         </Badge>
                       </td>
                       <td className="py-4 pr-4 text-center" onClick={(e) => e.stopPropagation()}>
-                        {item.isToApprove ? (
-                          <Link
-                            href={`/approvals/${item.id}`}
-                            className="px-2.5 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 shadow-xs cursor-pointer leading-tight"
-                          >
-                            <CheckSquare className="w-4 h-4 shrink-0" />
-                            <div className="flex flex-col text-left text-[11px] leading-tight font-extrabold">
-                              <span>อนุมัติ</span>
-                              <span>ตรวจสอบ</span>
-                            </div>
-                          </Link>
-                        ) : item.status === "Draft" ? (
-                          <Link
-                            href={`/submissions/create?draftId=${item.real_id}`}
-                            className="px-2.5 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer leading-tight border border-slate-200"
-                          >
-                            <FileEdit className="w-4 h-4 shrink-0 text-slate-500" />
-                            <div className="flex flex-col text-left text-[11px] leading-tight font-extrabold">
-                              <span>แก้ไข</span>
-                              <span>แบบร่าง</span>
-                            </div>
-                          </Link>
+                        {/* Action buttons — requires open_doc_detail:view */}
+                        {hasPerm('open_doc_detail') ? (
+                          item.isToApprove ? (
+                            <Link
+                              href={`/approvals/${item.id}`}
+                              className="px-2.5 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 shadow-xs cursor-pointer leading-tight"
+                            >
+                              <CheckSquare className="w-4 h-4 shrink-0" />
+                              <div className="flex flex-col text-left text-[11px] leading-tight font-extrabold">
+                                <span>อนุมัติ</span>
+                                <span>ตรวจสอบ</span>
+                              </div>
+                            </Link>
+                          ) : item.status === "Draft" ? (
+                            <Link
+                              href={`/submissions/create?draftId=${item.real_id}`}
+                              className="px-2.5 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer leading-tight border border-slate-200"
+                            >
+                              <FileEdit className="w-4 h-4 shrink-0 text-slate-500" />
+                              <div className="flex flex-col text-left text-[11px] leading-tight font-extrabold">
+                                <span>แก้ไข</span>
+                                <span>แบบร่าง</span>
+                              </div>
+                            </Link>
+                          ) : (
+                            <Link
+                              href={`/approvals/${item.id}`}
+                              className="px-2.5 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer leading-tight border border-slate-200"
+                            >
+                              <Eye className="w-4 h-4 shrink-0 text-slate-500" />
+                              <div className="flex flex-col text-left text-[11px] leading-tight font-extrabold">
+                                <span>ติดตาม</span>
+                                <span>สถานะ</span>
+                              </div>
+                            </Link>
+                          )
                         ) : (
-                          <Link
-                            href={`/approvals/${item.id}`}
-                            className="px-2.5 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer leading-tight border border-slate-200"
-                          >
-                            <Eye className="w-4 h-4 shrink-0 text-slate-500" />
-                            <div className="flex flex-col text-left text-[11px] leading-tight font-extrabold">
-                              <span>ติดตาม</span>
-                              <span>สถานะ</span>
-                            </div>
-                          </Link>
+                          <span className="text-[11px] text-slate-400 font-medium">—</span>
                         )}
                       </td>
                     </tr>

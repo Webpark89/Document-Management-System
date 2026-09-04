@@ -44,6 +44,12 @@ async function request<T>(
     });
 
     if (!res.ok) {
+      if (res.status === 401) {
+        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+          window.location.href = "/login";
+          return new Promise(() => {}); // Halt execution during redirect to avoid error overlay
+        }
+      }
       let serverMessage = `API Error: ${res.status} ${res.statusText}`;
       try {
         const errorData = await res.json();

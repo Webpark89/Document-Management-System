@@ -19,8 +19,8 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
 import { useToast } from '@views/components/providers/ToastProvider';
+import { useAuth } from '@views/components/providers/AuthProvider';
 import { adminService } from "@/controllers/services/admin.service";
-// Removed mock imports
 import {
   USER_ROLE_OPTIONS,
   type ConfigUser,
@@ -155,10 +155,10 @@ function CreateUserPreview({ form }: { form: UserForm }) {
     return name ? name.charAt(0).toUpperCase() : "?";
   }, [displayName]);
 
-  const joinedLabel = form.joinedAt
+    const joinedLabel = form.joinedAt
     ? new Date(form.joinedAt).toLocaleDateString("th-TH", {
         year: "numeric",
-        month: "long",
+        month: "numeric",
         day: "numeric",
       })
     : "—";
@@ -252,6 +252,7 @@ function UsersListView({
   roles,
   onRefresh,
   onCreate,
+  hasPerm,
 }: {
   users: ConfigUser[];
   depts: any[];
@@ -259,6 +260,7 @@ function UsersListView({
   roles: any[];
   onRefresh: () => void;
   onCreate: () => void;
+  hasPerm: (itemKey: string, action?: string) => boolean;
 }) {
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
@@ -321,10 +323,12 @@ function UsersListView({
         title="Users"
         subtitle="จัดการข้อมูลผู้ใช้งานและสิทธิ์การเข้าใช้งานระบบ"
         actions={
-          <button type="button" onClick={onCreate} className={MD_ADD_BTN}>
-            <Plus className="size-4" />
-            สร้างผู้ใช้งาน
-          </button>
+          hasPerm('user_management', 'create') && (
+            <button type="button" onClick={onCreate} className={MD_ADD_BTN}>
+              <Plus className="size-4" />
+              สร้างผู้ใช้งาน
+            </button>
+          )
         }
       />
 
@@ -414,37 +418,43 @@ function UsersListView({
                       </td>
                       <td className={MD_TD_ACTION} onDoubleClick={(e) => e.stopPropagation()}>
                         <div className="inline-flex items-center divide-x divide-gray-200 rounded-md border border-transparent">
-                          <button
-                            type="button"
-                            title="แก้ไข"
-                            onClick={() => setEditUser(user)}
-                            className={btnIcon}
-                          >
-                            <Pencil className="size-4" />
-                          </button>
-                          <button
-                            type="button"
-                            title="รีเซ็ตรหัสผ่าน"
-                            onClick={() => setResetUser(user)}
-                            className={btnIcon}
-                          >
-                            <KeyRound className="size-4" />
-                          </button>
-                          <button
-                            type="button"
-                            title={user.isActive ? "ปิดใช้งาน" : "เปิดใช้งาน"}
-                            onClick={() => handleToggleStatus(user)}
-                            disabled={togglingId === user.id}
-                            className={btnIconDanger}
-                          >
-                            {togglingId === user.id ? (
-                              <Loader2 className="size-4 animate-spin" />
-                            ) : user.isActive ? (
-                              <UserX className="size-4" />
-                            ) : (
-                              <UserCheck className="size-4" />
-                            )}
-                          </button>
+                          {hasPerm('user_management', 'edit') && (
+                            <>
+                              <button
+                                type="button"
+                                title="แก้ไข"
+                                onClick={() => setEditUser(user)}
+                                className={btnIcon}
+                              >
+                                <Pencil className="size-4" />
+                              </button>
+                              <button
+                                type="button"
+                                title="รีเซ็ตรหัสผ่าน"
+                                onClick={() => setResetUser(user)}
+                                className={btnIcon}
+                              >
+                                <KeyRound className="size-4" />
+                              </button>
+                            </>
+                          )}
+                          {hasPerm('user_management', 'edit') && (
+                            <button
+                              type="button"
+                              title={user.isActive ? "ปิดใช้งาน" : "เปิดใช้งาน"}
+                              onClick={() => handleToggleStatus(user)}
+                              disabled={togglingId === user.id}
+                              className={btnIconDanger}
+                            >
+                              {togglingId === user.id ? (
+                                <Loader2 className="size-4 animate-spin" />
+                              ) : user.isActive ? (
+                                <UserX className="size-4" />
+                              ) : (
+                                <UserCheck className="size-4" />
+                              )}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -1068,6 +1078,9 @@ function CreateUserForm({
               setErrors={setErrors}
               includePassword={true}
               layout="create"
+              depts={depts}
+              positions={positions}
+              roles={roles}
             />
           </section>
 
@@ -1146,6 +1159,10 @@ function UsersPageContent() {
     }
   };
 
+  const { user } = useAuth();
+  const hasPerm = (itemKey: string, action: string = 'view') =>
+    !!user?.permissions?.includes(`config.${itemKey}:${action}`);
+
   React.useEffect(() => {
     fetchAll();
   }, []);
@@ -1158,7 +1175,15 @@ function UsersPageContent() {
     );
   }
 
-  if (isCreateMode) {
+  if (!hasPerm('user_management', 'view')) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-slate-400 mt-12">
+        <p className="text-sm font-bold">ไม่มีสิทธิ์เข้าถึงหน้าจัดการผู้ใช้งาน</p>
+      </div>
+    );
+  }
+
+  if (isCreateMode && hasPerm('user_management', 'create')) {
     return (
       <CreateUserForm
         depts={depts}
@@ -1199,6 +1224,7 @@ function UsersPageContent() {
       roles={roles}
       onRefresh={fetchAll}
       onCreate={() => router.push("/admin/config/users?mode=new")}
+      hasPerm={hasPerm}
     />
   );
 }

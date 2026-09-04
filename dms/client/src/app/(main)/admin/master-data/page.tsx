@@ -18,6 +18,7 @@ import {
 import { useToast } from '@views/components/providers/ToastProvider';
 import { swalConfirm } from "@/lib/swal";
 import { useSidebar } from '@views/components/providers/SidebarProvider';
+import { useAuth } from '@views/components/providers/AuthProvider';
 import { adminService } from '@/controllers/services/admin.service';
 import {
 
@@ -271,7 +272,6 @@ function validatePositionForm(form: FormState, rows: PositionRow[], editingId: s
   const errors: FormErrors = {};
   const nameError = validatePositionName(form.name, rows, editingId);
   if (nameError) errors.name = nameError;
-  if (!form.level) errors.level = "กรุณาเลือกระดับ";
   return errors;
 }
 
@@ -380,6 +380,10 @@ function MasterDataPageContent() {
   const searchParams = useSearchParams();
   const { showToast } = useToast();
   const { isOpen } = useSidebar();
+  const { user } = useAuth();
+  const hasPerm = (itemKey: string, action: string = 'view') =>
+    !!user?.permissions?.includes(`masterdata.${itemKey}:${action}`);
+
   const { signatures, saveSignatureRecord, toggleSignatureActive } = useSignatures();
   const [activeTab, setActiveTab] = useState<TabKey>("department");
   const [data, setData] = useState<TabData>(EMPTY_TAB_DATA);
@@ -857,12 +861,28 @@ function MasterDataPageContent() {
     if (activeTab === "running" || activeTab === "workflow") return [];
 
     return rows.map((row) => {
+      let canEdit = false;
+      let canDelete = false;
+      if (activeTab === 'department') {
+        canEdit = hasPerm('departments', 'edit');
+        canDelete = hasPerm('departments', 'delete');
+      } else if (activeTab === 'position') {
+        canEdit = hasPerm('positions', 'edit');
+        canDelete = hasPerm('positions', 'delete');
+      } else if (activeTab === 'doctype') {
+        canEdit = hasPerm('doc_types', 'edit');
+        canDelete = hasPerm('doc_types', 'delete');
+      } else if (activeTab === 'signature') {
+        canEdit = hasPerm('signatures', 'edit');
+        canDelete = hasPerm('signatures', 'delete');
+      }
+      
       const guard = getDeleteGuard(activeTab as DataTabKey, row, signatureGuardData);
       const actions =
         activeTab === "signature" ? undefined : row.isActive ? (
         <RowActions
-          onEdit={() => openEdit(row.id)}
-          onDelete={activeTab === "position" ? undefined : () => softDelete(row.id)}
+          onEdit={canEdit ? () => openEdit(row.id) : undefined}
+          onDelete={canDelete && activeTab !== "position" ? () => softDelete(row.id) : undefined}
           deleteBlocked={guard.blocked}
           deleteTooltip={guard.tooltip}
         />
@@ -962,21 +982,9 @@ function MasterDataPageContent() {
       }
       case "position": {
         const r = row as PositionRow;
-        const lvl = r.level || "L1";
-        const levelBadgeClass = 
-          lvl === 'L4' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-          lvl === 'L3' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-          lvl === 'L2' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-          'bg-slate-50 text-slate-600 border-slate-200';
-
         return (
           <>
             <td className={tdSticky}>{r.name}</td>
-            <td className={tdCls}>
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border ${levelBadgeClass}`}>
-                {lvl}
-              </span>
-            </td>
           </>
         );
       }
@@ -1064,7 +1072,6 @@ function MasterDataPageContent() {
         return (
           <>
             <th className={thSticky}>ชื่อตำแหน่ง</th>
-            <th className={thCls}>ระดับ</th>
           </>
         );
       case "workflow":
@@ -1281,27 +1288,7 @@ function MasterDataPageContent() {
             inputClassName={formErrors.name ? inputErrorCls : inputCls}
             error={formErrors.name}
           />
-          <div className="mb-3">
-            <label className="mb-1.5 block text-xs text-slate-500">ระดับ</label>
-            <select
-              className={formErrors.level ? inputErrorCls : inputCls}
-              value={form.level}
-              onChange={(e) => {
-                setForm((f) => ({ ...f, level: e.target.value }));
-                clearError("level");
-              }}
-              onBlur={() => {
-                if (!form.level) setFieldError("level", "กรุณาเลือกระดับ");
-              }}
-            >
-              {LEVEL_OPTIONS.map((lvl) => (
-                <option key={lvl} value={lvl}>
-                  {lvl}
-                </option>
-              ))}
-            </select>
-            {formErrors.level && <p className="mt-1 text-xs text-red-500">{formErrors.level}</p>}
-          </div>
+
           {renderStatusToggle()}
         </>
       );
@@ -1522,6 +1509,14 @@ function MasterDataPageContent() {
 
   const TabIcon = TABS.find((t) => t.key === activeTab)?.icon ?? Building2;
 
+  if (!hasPerm('access', 'view')) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-slate-400 mt-12">
+        <p className="text-sm font-bold">ไม่มีสิทธิ์เข้าถึงหน้า Master Data</p>
+      </div>
+    );
+  }
+
   return (
     <>
     <MasterDataLayout
@@ -1536,19 +1531,26 @@ function MasterDataPageContent() {
       }
       title="Master Data"
       actions={
-        activeTab === "running" || activeTab === "workflow" || activeTab === "position" ? undefined : (
-          <button type="button" onClick={openAdd} className={MD_MASTER_ADD_BTN}>
-            <Plus className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
-            เพิ่ม
-          </button>
-        )
+        (() => {
+          let canAdd = false;
+          if (activeTab === 'department') canAdd = hasPerm('departments', 'create');
+          else if (activeTab === 'position') canAdd = hasPerm('positions', 'create');
+          else if (activeTab === 'doctype') canAdd = hasPerm('doc_types', 'create');
+          else if (activeTab === 'workflow') canAdd = hasPerm('workflow', 'create');
+          else if (activeTab === 'signature') canAdd = hasPerm('signatures', 'create');
+          
+          if (!canAdd || activeTab === "running" || activeTab === "workflow" || activeTab === "position") return undefined;
+          return (
+            <button type="button" onClick={openAdd} className={MD_MASTER_ADD_BTN}>
+              <Plus className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
+              เพิ่ม
+            </button>
+          );
+        })()
       }
       sidebar={
         <nav className={MD_SIDEBAR_NAV}>
-          <Link href="/admin/master-data/doc-forms" className={MD_SIDEBAR_ITEM}>
-            <LayoutTemplate className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
-            จัดการฟอร์มเอกสาร
-          </Link>
+
           {TABS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -1622,6 +1624,8 @@ function MasterDataPageContent() {
             onEdit={openEdit}
             onDelete={softDelete}
             onRestore={restore}
+            canEdit={hasPerm('workflow', 'edit')}
+            canDelete={hasPerm('workflow', 'delete')}
           />
         ) : (
           <>
@@ -1670,6 +1674,22 @@ function MasterDataPageContent() {
                       <td className={MD_TD_ACTION}>
                         {row.isActive ? (
                           (() => {
+                            let canEdit = false;
+                            let canDelete = false;
+                            if (activeTab === 'department') {
+                              canEdit = hasPerm('departments', 'edit');
+                              canDelete = hasPerm('departments', 'delete');
+                            } else if (activeTab === 'position') {
+                              canEdit = hasPerm('positions', 'edit');
+                              canDelete = hasPerm('positions', 'delete');
+                            } else if (activeTab === 'doctype') {
+                              canEdit = hasPerm('doc_types', 'edit');
+                              canDelete = hasPerm('doc_types', 'delete');
+                            } else if (activeTab === 'signature') {
+                              canEdit = hasPerm('signatures', 'edit');
+                              canDelete = hasPerm('signatures', 'delete');
+                            }
+                            
                             const guard = getDeleteGuard(
                               activeTab as DataTabKey,
                               row,
@@ -1677,8 +1697,8 @@ function MasterDataPageContent() {
                             );
                             return (
                               <RowActions
-                                onEdit={() => openEdit(row.id)}
-                                onDelete={activeTab === "position" ? undefined : () => softDelete(row.id)}
+                                onEdit={canEdit ? () => openEdit(row.id) : undefined}
+                                onDelete={canDelete && activeTab !== "position" ? () => softDelete(row.id) : undefined}
                                 deleteBlocked={guard.blocked}
                                 deleteTooltip={guard.tooltip}
                               />

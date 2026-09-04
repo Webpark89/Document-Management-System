@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useToast } from '@views/components/providers/ToastProvider';
 import { swalConfirm } from "@/lib/swal";
+import { useAuth } from '@views/components/providers/AuthProvider';
 import {
   RolePermissionPanel,
   PermissionActionGrid,
@@ -154,10 +155,12 @@ function RolesListView({
   roles,
   onRolesChange,
   onCreate,
+  hasPerm,
 }: {
   roles: RoleRecord[];
   onRolesChange: (next: RoleRecord[]) => void;
   onCreate: () => void;
+  hasPerm: (itemKey: string, action?: string) => boolean;
 }) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -229,10 +232,12 @@ function RolesListView({
         title="Roles"
         subtitle="จัดการบทบาท กำหนดสิทธิ์ และควบคุมการเข้าถึงระบบ"
         actions={
-          <button type="button" onClick={onCreate} className={MD_ADD_BTN}>
-            <Plus className="size-4" />
-            สร้าง Role
-          </button>
+          hasPerm('role_management', 'create') && (
+            <button type="button" onClick={onCreate} className={MD_ADD_BTN}>
+              <Plus className="size-4" />
+              สร้าง Role
+            </button>
+          )
         }
       />
 
@@ -265,7 +270,8 @@ function RolesListView({
                       <tr
                         key={role.id}
                         className={`${MD_TR} cursor-pointer hover:bg-slate-50/80 transition-colors`}
-                        onDoubleClick={() =>
+                        onDoubleClick={() => {}}
+                        onClick={() =>
                           router.push(`/admin/config/roles?mode=edit&id=${role.id}`)
                         }
                       >
@@ -286,21 +292,25 @@ function RolesListView({
                         </td>
                         <td
                           className={`${MD_TD_STATUS} w-[8rem] min-w-[8rem] whitespace-nowrap`}
-                          onDoubleClick={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <div className="flex shrink-0 justify-center items-center gap-2">
-                            <Link
-                              href={`/admin/config/roles?mode=edit&id=${role.id}`}
-                              title="แก้ไข Role"
-                              className="inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
-                            >
-                              <Pencil className="size-4" />
-                            </Link>
-                            <DeleteRoleButton
-                              blocked={deleteBlocked}
-                              tooltip={deleteTooltip}
-                              onDelete={() => handleDelete(role)}
-                            />
+                            {hasPerm('role_management', 'edit') && (
+                              <Link
+                                href={`/admin/config/roles?mode=edit&id=${role.id}`}
+                                title="แก้ไข Role"
+                                className="inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                              >
+                                <Pencil className="size-4" />
+                              </Link>
+                            )}
+                            {hasPerm('role_management', 'delete') && (
+                              <DeleteRoleButton
+                                blocked={deleteBlocked}
+                                tooltip={deleteTooltip}
+                                onDelete={() => handleDelete(role)}
+                              />
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -587,7 +597,19 @@ function RolesPageContent() {
     }).catch(() => {});
   }, []);
 
-  if (mode === "new") {
+  const { user } = useAuth();
+  const hasPerm = (itemKey: string, action: string = 'view') =>
+    !!user?.permissions?.includes(`config.${itemKey}:${action}`);
+
+  if (!hasPerm('role_management', 'view')) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-slate-400 mt-12">
+        <p className="text-sm font-bold">ไม่มีสิทธิ์เข้าถึงหน้าจัดการ Role</p>
+      </div>
+    );
+  }
+
+  if (mode === "new" && hasPerm('role_management', 'create')) {
     return (
       <CreateRoleForm
         onBack={() => router.push("/admin/config/roles")}
@@ -598,7 +620,7 @@ function RolesPageContent() {
     );
   }
 
-  if (mode === "edit") {
+  if (mode === "edit" && hasPerm('role_management', 'edit')) {
     return <EditRoleForm roleId={searchParams.get("id") || ""} />;
   }
 
@@ -607,6 +629,7 @@ function RolesPageContent() {
       roles={roles}
       onRolesChange={setRoles}
       onCreate={() => router.push("/admin/config/roles?mode=new")}
+      hasPerm={hasPerm}
     />
   );
 }

@@ -13,7 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto, ipAddress: string = '127.0.0.1') {
     const { username, password } = loginDto;
 
     const user = await this.prisma.user.findUnique({
@@ -55,6 +55,20 @@ export class AuthService {
       const hex = (user.id || '').replace(/-/g, '').substring(0, 6);
       return `EMP-${(parseInt(hex || '0', 16) % 90000) + 10000}`;
     })();
+
+    await this.prisma.auditLog.create({
+      data: {
+        user_id: user.id,
+        action: 'Login',
+        module: 'Auth',
+        target_id: user.id,
+        ip_address: ipAddress,
+        details: {
+          newState: { status: 'Success' },
+          extra: { comment: 'เข้าสู่ระบบสำเร็จ' },
+        },
+      },
+    });
 
     return {
       access_token: token,

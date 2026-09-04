@@ -65,6 +65,9 @@ export default function ApprovalDetailPage({ params }: PageProps) {
     );
   }
 
+  const hasPerm = (itemKey: string, action: string = 'view') =>
+    !!user?.permissions?.includes(`approvals.${itemKey}:${action}`);
+
   const isMonetaryDoc = doc.amount && doc.amount !== "-";
 
   // Find active step in workflow
@@ -73,8 +76,8 @@ export default function ApprovalDetailPage({ params }: PageProps) {
   );
   const activeApproverName = currentStepObj?.approverName || currentStepObj?.roleName || "ผู้อนุมัติประจำขั้นตอน";
 
-  // Check if current user has permission to approve this step
-  const canApprove = (() => {
+  // Check if current user has permission to approve this step (business logic)
+  const isAssignedApprover = (() => {
     if (!doc || doc.status !== "Pending" || !workflow || workflow.status !== "Pending" || !currentStepObj) {
       return false;
     }
@@ -98,6 +101,13 @@ export default function ApprovalDetailPage({ params }: PageProps) {
 
     return false;
   })();
+
+  // Final permission gates (permission key AND business logic combined)
+  const canApprove = isAssignedApprover && hasPerm('approve_document', 'approve');
+  const canReject  = isAssignedApprover && hasPerm('reject_document', 'approve');
+  const canReturn  = isAssignedApprover && hasPerm('return_document', 'approve');
+  const canSign    = isAssignedApprover && hasPerm('place_signature', 'approve');
+  const canComment = hasPerm('add_comment', 'edit');
 
   return (
     <div className={APP_PAGE_SHELL}>
@@ -202,7 +212,7 @@ export default function ApprovalDetailPage({ params }: PageProps) {
             signaturePlaced={signaturePlaced}
             onSignatureChange={setSignaturePlaced}
             doc={doc}
-            canSign={canApprove}
+            canSign={canSign}
             activeApproverName={activeApproverName}
           />
         </div>
@@ -221,6 +231,9 @@ export default function ApprovalDetailPage({ params }: PageProps) {
             documentId={doc.id}
             signaturePlaced={signaturePlaced}
             canApprove={canApprove}
+            canReject={canReject}
+            canReturn={canReturn}
+            canComment={canComment}
             activeApproverName={activeApproverName}
             currentStep={workflow?.currentStep || 1}
           />

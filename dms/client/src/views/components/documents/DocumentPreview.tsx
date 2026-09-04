@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { api } from "@/lib";
 import { Download, FileText } from "lucide-react";
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { useSignatures } from '@views/components/providers/SignatureProvider';
@@ -67,6 +68,15 @@ function SignatureDisplay({
 export function DocumentPreview({ doc, hideHeader, isViewer, tempSignature, onSignClick }: DocumentPreviewProps) {
   const { user } = useAuth();
   const { signatures, findByApproverName } = useSignatures();
+
+  const [companySettings, setCompanySettings] = useState({
+    companyName: "",
+    companyAddress: ""
+  });
+
+  useEffect(() => {
+    api.get<any>("/api/admin/settings").then(res => { if (res.data?.companyName) setCompanySettings(res.data); }).catch(() => {});
+  }, []);
   
   const type = doc.type || "OTHER";
   const isApproved = doc.status === "Approved";
@@ -120,9 +130,9 @@ export function DocumentPreview({ doc, hideHeader, isViewer, tempSignature, onSi
       {
          vendorName: "-",
          vendorContact: "-",
-         buyerName: "บริษัท นิสซุย (ประเทศไทย) จำกัด",
-         buyerAddress: "เลขที่ 123 อาคารนิสซุย ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110",
-         buyerTaxId: "0105559000123",
+         buyerName: companySettings.companyName,
+         buyerAddress: companySettings.companyAddress,
+         buyerTaxId: "",
       },
       form.items || [],
       form.total_amount,
@@ -164,9 +174,9 @@ export function DocumentPreview({ doc, hideHeader, isViewer, tempSignature, onSi
       {
          vendorName: form.vendor_name || "บริษัท คู่ค้า จำกัด",
          vendorContact: "-",
-         buyerName: "บริษัท นิสซุย (ประเทศไทย) จำกัด",
-         buyerAddress: "เลขที่ 123 อาคารนิสซุย ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110",
-         buyerTaxId: "0105559000123",
+         buyerName: companySettings.companyName,
+         buyerAddress: companySettings.companyAddress,
+         buyerTaxId: "",
       },
       form.items || [],
       grandTotal,
@@ -375,13 +385,10 @@ export function DocumentPreview({ doc, hideHeader, isViewer, tempSignature, onSi
           {/* Header Block (Industrial Style) */}
           <div className={`flex justify-between items-start border-b-2 ${primaryBorder} pb-4 mb-4`}>
             <div className="flex items-start gap-4">
-              <div className={`w-16 h-16 border-2 ${primaryBorder} flex items-center justify-center font-black text-xl ${primaryText}`}>
-                LOGO
-              </div>
               <div>
                 <h1 className={`font-bold text-lg ${primaryText}`}>{meta.buyerName}</h1>
-                <p className="text-slate-700 mt-1 max-w-[200px] leading-tight">{meta.buyerAddress}</p>
-                <p className="text-slate-700 mt-1 font-semibold">เลขประจำตัวผู้เสียภาษี: {meta.buyerTaxId}</p>
+                <p className="text-slate-700 mt-1 max-w-[200px] leading-tight whitespace-pre-wrap">{meta.buyerAddress}</p>
+                {meta.buyerTaxId && <p className="text-slate-700 mt-1 font-semibold">เลขประจำตัวผู้เสียภาษี: {meta.buyerTaxId}</p>}
               </div>
             </div>
             

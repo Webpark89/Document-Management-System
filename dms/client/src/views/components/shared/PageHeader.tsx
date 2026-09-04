@@ -102,8 +102,7 @@ export default function PageHeader({
                     <p className="text-sm text-slate-700 leading-snug font-medium">{n.message}</p>
                     <p className="mt-1 text-[11px] font-semibold text-slate-400">
                       {new Date(n.created_at).toLocaleString("th-TH", {
-                        dateStyle: "short",
-                        timeStyle: "short",
+                        year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
                       })}
                     </p>
                   </Link>

@@ -25,9 +25,16 @@ import { FolderCreateModal } from '@views/components/folders/FolderCreateModal';
 import PageHeader from '@views/components/shared/PageHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from '@views/components/ui/design-system';
 
+import { useAuth } from '@views/components/providers/AuthProvider';
+
 export default function FoldersPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { user } = useAuth();
+  
+  const hasPerm = (itemKey: string, action: string = 'view') =>
+    !!user?.permissions?.includes(`document.${itemKey}:${action}`);
+
   
   const { data: initialFolders, error, mutate } = useSWR("folders", getFolders, {
     revalidateOnFocus: false,
@@ -186,17 +193,19 @@ export default function FoldersPage() {
               >
                 <Pin className="w-3.5 h-3.5" fill={pinnedFolderIds.includes(folder.id) ? 'currentColor' : 'none'} />
               </button>
-              <button 
-                title="แก้ไข"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditingFolder(folder);
-                  setIsCreateModalOpen(true);
-                }}
-                className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors"
-              >
-                <Edit2 className="w-3.5 h-3.5" />
-              </button>
+              {hasPerm('manage_folders', 'edit') && (
+                <button 
+                  title="แก้ไข"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingFolder(folder);
+                    setIsCreateModalOpen(true);
+                  }}
+                  className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
           
@@ -222,123 +231,134 @@ export default function FoldersPage() {
   return (
     <div className={APP_PAGE_SHELL}>
       <div className={APP_PAGE_CONTENT}>
-        
-        {/* HEADER BAR */}
-        <PageHeader
-          title="รายการโฟลเดอร์ (Folder Lists)"
-          subtitle="จัดหมวดหมู่และจัดการโฟลเดอร์สำหรับจัดเก็บเอกสารในระบบ"
-          actions={
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input 
-                  type="text" 
-                  placeholder="ค้นหาโฟลเดอร์..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs w-full md:w-[260px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium"
-                />
+        {hasPerm('view_folders') ? (
+          <>
+            {/* HEADER BAR */}
+            <PageHeader
+              title="รายการโฟลเดอร์ (Folder Lists)"
+              subtitle="จัดหมวดหมู่และจัดการโฟลเดอร์สำหรับจัดเก็บเอกสารในระบบ"
+              actions={
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input 
+                      type="text" 
+                      placeholder="ค้นหาโฟลเดอร์..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs w-full md:w-[260px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium"
+                    />
+                  </div>
+                  {hasPerm('manage_folders', 'create') && (
+                    <button 
+                      onClick={() => { setEditingFolder(null); setIsCreateModalOpen(true); }}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center gap-2 transition-colors shadow-xs shrink-0 text-xs font-bold cursor-pointer"
+                    >
+                      <FolderIcon className="w-4 h-4 fill-white/20" />
+                      New Folder
+                    </button>
+                  )}
+                </div>
+              }
+            />
+
+            {/* BULK ACTION BAR */}
+            {selectedFolderIds.length > 0 && hasPerm('manage_folders', 'delete') && (
+              <div className="bg-blue-600 text-white rounded-2xl p-3.5 flex items-center justify-between shadow-md animate-in fade-in slide-in-from-top-2 mb-6">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold bg-white/20 px-2.5 py-1 rounded-lg">
+                    เลือกอยู่ {selectedFolderIds.length} โฟลเดอร์
+                  </span>
+                  <button 
+                    onClick={handleSelectAll} 
+                    className="text-xs font-semibold hover:underline opacity-90 cursor-pointer"
+                  >
+                    {selectedFolderIds.length === filteredFolders.length ? "ยกเลิกเลือกทั้งหมด" : "เลือกทั้งหมด"}
+                  </button>
+                </div>
+                <button
+                  onClick={handleDeleteAll}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  ลบโฟลเดอร์ที่เลือก
+                </button>
               </div>
-              <button 
-                onClick={() => { setEditingFolder(null); setIsCreateModalOpen(true); }}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center gap-2 transition-colors shadow-xs shrink-0 text-xs font-bold cursor-pointer"
-              >
-                <FolderIcon className="w-4 h-4 fill-white/20" />
-                New Folder
-              </button>
-            </div>
-          }
-        />
+            )}
 
-        {/* BULK ACTION BAR */}
-        {selectedFolderIds.length > 0 && (
-          <div className="bg-blue-600 text-white rounded-2xl p-3.5 flex items-center justify-between shadow-md animate-in fade-in slide-in-from-top-2 mb-6">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold bg-white/20 px-2.5 py-1 rounded-lg">
-                เลือกอยู่ {selectedFolderIds.length} โฟลเดอร์
-              </span>
-              <button 
-                onClick={handleSelectAll} 
-                className="text-xs font-semibold hover:underline opacity-90 cursor-pointer"
-              >
-                {selectedFolderIds.length === filteredFolders.length ? "ยกเลิกเลือกทั้งหมด" : "เลือกทั้งหมด"}
-              </button>
+            {/* RECENT FOLDERS */}
+            {recentFolders.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                    <span>🕒</span>
+                    <span>เปิดล่าสุด (Recent)</span>
+                  </h2>
+                </div>
+                <div className={viewMode === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4" : "flex flex-col gap-3"}>
+                  {recentFolders.map(folder => (
+                    <FolderCardItem key={`recent-${folder.id}`} folder={folder} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ALL FOLDERS */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                  <span>📂</span>
+                  <span>โฟลเดอร์ทั้งหมด (All Folders)</span>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">
+                    {filteredFolders.length}
+                  </span>
+                </h2>
+              </div>
+
+              <div className={viewMode === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4" : "flex flex-col gap-3"}>
+                {filteredFolders.map(folder => (
+                  <FolderCardItem key={`all-${folder.id}`} folder={folder} />
+                ))}
+              </div>
+              
+              {filteredFolders.length === 0 && (
+                <div className="py-16 text-center bg-white rounded-2xl border border-slate-100 shadow-xs">
+                  <FolderIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500 text-sm font-medium">ไม่พบโฟลเดอร์</p>
+                </div>
+              )}
             </div>
-            <button
-              onClick={handleDeleteAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              ลบโฟลเดอร์ที่เลือก
-            </button>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center p-12 text-slate-400 mt-12">
+            <p className="text-sm font-bold">ไม่มีสิทธิ์เข้าถึงหน้าโฟลเดอร์</p>
           </div>
         )}
-
-        {/* RECENT FOLDERS */}
-        {recentFolders.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
-                <span>🕒</span>
-                <span>เปิดล่าสุด (Recent)</span>
-              </h2>
-            </div>
-            <div className={viewMode === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4" : "flex flex-col gap-3"}>
-              {recentFolders.map(folder => (
-                <FolderCardItem key={`recent-${folder.id}`} folder={folder} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ALL FOLDERS */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
-              <span>📂</span>
-              <span>โฟลเดอร์ทั้งหมด (All Folders)</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">
-                {filteredFolders.length}
-              </span>
-            </h2>
-          </div>
-
-          <div className={viewMode === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4" : "flex flex-col gap-3"}>
-            {filteredFolders.map(folder => (
-              <FolderCardItem key={`all-${folder.id}`} folder={folder} />
-            ))}
-          </div>
-          
-          {filteredFolders.length === 0 && (
-            <div className="py-16 text-center bg-white rounded-2xl border border-slate-100 shadow-xs">
-              <FolderIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 text-sm font-medium">ไม่พบโฟลเดอร์</p>
-            </div>
-          )}
-        </div>
 
       </div>
 
-      <FolderCreateModal 
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={async (data) => {
-          try {
-            if (editingFolder) {
-              await updateFolder(editingFolder.id, data);
-              showToast('อัปเดตโฟลเดอร์สำเร็จ', 'success');
-            } else {
-              await createFolder(data);
-              showToast('สร้างโฟลเดอร์สำเร็จ', 'success');
+      {hasPerm('manage_folders', 'create') && (
+        <FolderCreateModal 
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={async (data) => {
+            try {
+              if (editingFolder) {
+                await updateFolder(editingFolder.id, data);
+                showToast('อัปเดตโฟลเดอร์สำเร็จ', 'success');
+              } else {
+                await createFolder(data);
+                showToast('สร้างโฟลเดอร์สำเร็จ', 'success');
+              }
+              mutate();
+            } catch (err: any) {
+              showToast(err.response?.data?.message || 'เกิดข้อผิดพลาด', 'error');
+              throw err;
             }
-            mutate();
-          } catch (err: any) {
-            showToast(err.response?.data?.message || 'เกิดข้อผิดพลาด', 'error');
-            throw err;
-          }
-        }}
-        editingFolder={editingFolder}
-      />
+          }}
+          editingFolder={editingFolder}
+        />
+      )}
     </div>
   );
 }

@@ -66,8 +66,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [departments, setDepartments] = useState<string[]>([]);
 
-  const canViewEmployee = user?.permissions?.includes('dashboard:view_employee') || user?.permissions?.includes('dashboard.view_employee:view') || false;
-  const canViewExecutive = user?.permissions?.includes('dashboard:view_executive') || user?.permissions?.includes('dashboard.view_executive:view') || false;
+  const canViewEmployee = user?.permissions?.includes('dashboard:view_employee') || user?.permissions?.includes('dashboard.view_employee:view') || user?.permissions?.includes('dashboard_employee.view_employee:view') || false;
+  const canViewExecutive = user?.permissions?.includes('dashboard:view_executive') || user?.permissions?.includes('dashboard.view_executive:view') || user?.permissions?.includes('dashboard_executive.view_executive:view') || false;
 
   const [activeView, setActiveView] = useState<"employee" | "executive">("employee");
 

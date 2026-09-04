@@ -14,7 +14,10 @@ import {
   Clock4,
   XCircle,
   RefreshCcw,
-  Search
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  FileCheck
 } from "lucide-react";
 import PageHeader from '@views/components/shared/PageHeader';
 import DataTableHeader from '@views/components/ui/DataTableHeader';
@@ -45,7 +48,33 @@ const REPORT_TYPES = [
   { id: "status", title: "Document Status", icon: FileText, desc: "รายงานสถานะเอกสาร" },
   { id: "turnaround", title: "Approval Turnaround", icon: Clock, desc: "สถิติระยะเวลาการอนุมัติ" },
   { id: "spend", title: "Purchase Spend", icon: DollarSign, desc: "รายงานมูลค่าจัดซื้อ (PR/PO)" },
+  { id: "approvals", title: "Approval Tracking", icon: FileCheck, desc: "รายการการอนุมัติในระบบ" },
 ];
+
+const formatDateOnly = (dateStr: string) => {
+  if (!dateStr) return "-";
+  try {
+    return new Date(dateStr).toLocaleDateString("th-TH", { 
+      year: 'numeric', 
+      month: 'numeric', 
+      day: 'numeric'
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
+const formatTimeOnly = (dateStr: string) => {
+  if (!dateStr) return "-";
+  try {
+    return new Date(dateStr).toLocaleTimeString("th-TH", { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  } catch {
+    return "-";
+  }
+};
 
 export default function ReportsPage() {
   const [activeReport, setActiveReport] = useState("status");
@@ -68,6 +97,8 @@ export default function ReportsPage() {
 
   const [documents, setDocuments] = useState<any[]>([]);
 
+  const [datePreset, setDatePreset] = useState("all");
+
   React.useEffect(() => {
     fetch("/api/admin/departments")
       .then((res) => res.json())
@@ -80,21 +111,85 @@ export default function ReportsPage() {
   }, []);
 
   React.useEffect(() => {
+    if (datePreset === "all" || datePreset === "custom") {
+      if (datePreset === "all") {
+        setDateFrom("");
+        setDateTo("");
+      }
+      return;
+    }
+
+    const today = new Date();
+    let from = new Date();
+    let to = new Date();
+
+    if (datePreset === "today") {
+      from = today;
+      to = today;
+    } else if (datePreset === "this_month") {
+      from = new Date(today.getFullYear(), today.getMonth(), 1);
+      to = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    } else if (datePreset === "last_month") {
+      from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      to = new Date(today.getFullYear(), today.getMonth(), 0);
+    } else if (datePreset === "this_quarter") {
+      const q = Math.floor(today.getMonth() / 3);
+      from = new Date(today.getFullYear(), q * 3, 1);
+      to = new Date(today.getFullYear(), q * 3 + 3, 0);
+    } else if (datePreset === "last_quarter") {
+      const q = Math.floor(today.getMonth() / 3) - 1;
+      from = new Date(today.getFullYear(), q * 3, 1);
+      to = new Date(today.getFullYear(), q * 3 + 3, 0);
+    } else if (datePreset === "last_6_months") {
+      from = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+      to = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    } else if (datePreset === "this_year") {
+      from = new Date(today.getFullYear(), 0, 1);
+      to = new Date(today.getFullYear(), 11, 31);
+    }
+
+    const formatDateObj = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    setDateFrom(formatDateObj(from));
+    setDateTo(formatDateObj(to));
+  }, [datePreset]);
+
+  React.useEffect(() => {
     getDocuments().then(docs => {
-      const mapped = docs.map(d => ({
-        id: d.id,
-        type: d.type,
-        department: d.department || "ทั่วไป",
-        status: d.status,
-        date: d.submittedDate || d.created_at,
-        approvalDays: (() => {
-          const doc: any = d;
-          if (!doc.created_at || !doc.updated_at) return 1;
-          const diff = new Date(doc.updated_at).getTime() - new Date(doc.created_at).getTime();
-          const days = Math.ceil(diff / (1000 * 3600 * 24));
-          return days > 0 ? days : 1;
-        })()
-      }));
+      const mapped = docs.map(d => {
+        const doc: any = d;
+        const typeCode = doc.type?.code || doc.type;
+        const departmentName = doc.creator?.department?.name || doc.department || "ทั่วไป";
+
+        let value = 0;
+        if (typeCode === 'PR' && doc.pr_form?.total_amount) {
+          value = Number(doc.pr_form.total_amount) || 0;
+        } else if (typeCode === 'PO' && doc.po_form?.total_amount) {
+          value = Number(doc.po_form.total_amount) || 0;
+        }
+
+        return {
+          id: d.id,
+          type: typeCode,
+          department: departmentName,
+          requester: doc.creator_name || doc.sender || (doc.creator ? `${doc.creator.first_name || ""} ${doc.creator.last_name || ""}`.trim() : "") || "ไม่ระบุ",
+          status: d.status,
+          date: d.submittedDate || d.created_at,
+          value,
+          workflow: doc.workflow,
+          approvalDays: (() => {
+            if (!doc.created_at || !doc.updated_at) return 1;
+            const diff = new Date(doc.updated_at).getTime() - new Date(doc.created_at).getTime();
+            const days = Math.ceil(diff / (1000 * 3600 * 24));
+            return days > 0 ? days : 1;
+          })()
+        };
+      });
       setDocuments(mapped);
     });
   }, []);
@@ -210,12 +305,22 @@ export default function ReportsPage() {
     document.body.removeChild(link);
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredData]);
+
   // Render Report Bodies
   const renderStatusReport = () => {
     const approved = filteredData.filter(d => d.status === "Approved").length;
     const pending = filteredData.filter(d => d.status === "Pending").length;
     const returned = filteredData.filter(d => d.status === "Returned").length;
     const rejected = filteredData.filter(d => d.status === "Rejected").length;
+
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
       <div className="space-y-6">
@@ -251,18 +356,20 @@ export default function ReportsPage() {
         </div>
 
         <div className="overflow-x-auto border border-slate-100/50 rounded-2xl w-full">
-          <table className="w-full min-w-[600px] text-left border-collapse whitespace-nowrap">
+          <table className="w-full min-w-[700px] text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                <DataTableHeader title="Document ID" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-4 py-4 w-[15%]" />
-                <DataTableHeader title="Type" sortKey="type" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-[12%]" />
-                <DataTableHeader title="Department" sortKey="department" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-[43%]" />
+                <DataTableHeader title="Document ID" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-4 py-4 w-[12%]" />
+                <DataTableHeader title="Type" sortKey="type" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-[10%]" />
+                <DataTableHeader title="Department" sortKey="department" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-[25%]" />
+                <th className="py-4 font-bold text-slate-400 w-[15%]">Requester</th>
                 <DataTableHeader title="Status" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-[15%]" />
-                <DataTableHeader title="Date" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 pr-4 w-[15%]" />
+                <DataTableHeader title="Date" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-[12%]" />
+                <th className="py-4 pr-4 font-bold text-slate-400 w-[11%]">Time</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50/80">
-              {filteredData.map((doc, idx) => (
+              {paginatedData.map((doc, idx) => (
                 <tr key={(doc as any).real_id || `${doc.id}-${idx}`} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-4 pl-4 text-sm font-bold text-slate-500">{doc.id}</td>
                   <td className="py-4 text-xs font-semibold px-2">
@@ -271,6 +378,7 @@ export default function ReportsPage() {
                     </span>
                   </td>
                   <td className="py-4 text-sm font-semibold text-slate-700">{doc.department}</td>
+                  <td className="py-4 text-sm text-slate-700 font-medium">{(doc as any).requester}</td>
                   <td className="py-4">
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${
                       doc.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
@@ -281,11 +389,171 @@ export default function ReportsPage() {
                       {doc.status}
                     </span>
                   </td>
-                  <td className="py-4 pr-4 text-sm text-slate-400 font-medium">{doc.date}</td>
+                  <td className="py-4 text-sm text-slate-500 font-medium">{formatDateOnly(doc.date)}</td>
+                  <td className="py-4 pr-4 text-sm text-slate-400">{formatTimeOnly(doc.date)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="bg-slate-50/50 border-t border-slate-100 p-4 flex items-center justify-end">
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-slate-500 shadow-xs"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all shadow-xs ${
+                      currentPage === page 
+                        ? "bg-blue-600 text-white border-transparent" 
+                        : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-slate-500 shadow-xs"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderApprovalReport = () => {
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    return (
+      <div className="space-y-6">
+        <div className="overflow-x-auto border border-slate-100/50 rounded-2xl w-full">
+          <table className="w-full min-w-[800px] text-left border-collapse whitespace-nowrap">
+            <thead>
+              <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                <DataTableHeader title="Document ID" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-4 py-4 w-[12%]" />
+                <DataTableHeader title="Type" sortKey="type" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-[8%]" />
+                <th className="py-4 font-bold text-slate-400 w-[15%]">Requester</th>
+                <th className="py-4 font-bold text-slate-400 w-[15%]">Current Approver</th>
+                <th className="py-4 font-bold text-slate-400 w-[15%]">Progress</th>
+                <DataTableHeader title="Status" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-[12%]" />
+                <DataTableHeader title="Date" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-[12%]" />
+                <th className="py-4 pr-4 font-bold text-slate-400 w-[11%]">Time</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50/80">
+              {paginatedData.map((doc, idx) => {
+                const wf = (doc as any).workflow;
+                let currentApprover = "-";
+                let progress = "-";
+                let progressPercentage = 0;
+                
+                if (wf && wf.steps) {
+                  progress = `Step ${wf.current_step} of ${wf.total_steps}`;
+                  progressPercentage = ((wf.current_step - 1) / wf.total_steps) * 100;
+                  
+                  const currentStepObj = wf.steps.find((s: any) => s.step_order === wf.current_step);
+                  if (currentStepObj?.approver) {
+                    currentApprover = `${currentStepObj.approver.first_name || ""} ${currentStepObj.approver.last_name || ""}`.trim() || currentStepObj.approver.username;
+                  }
+                  
+                  if (doc.status === "Approved") {
+                    currentApprover = "Completed";
+                    progress = "Done";
+                    progressPercentage = 100;
+                  } else if (doc.status === "Rejected" || doc.status === "Returned") {
+                    currentApprover = "-";
+                  }
+                }
+
+                return (
+                  <tr key={(doc as any).real_id || `${doc.id}-${idx}`} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="py-4 pl-4 text-sm font-bold text-slate-500">{doc.id}</td>
+                    <td className="py-4 text-xs font-semibold px-2">
+                      <span className="bg-slate-50 border border-slate-100 text-slate-600 px-2.5 py-1 rounded-md">
+                        {doc.type}
+                      </span>
+                    </td>
+                    <td className="py-4 text-sm text-slate-700 font-medium">{(doc as any).requester}</td>
+                    <td className="py-4 text-sm text-slate-700">{currentApprover}</td>
+                    <td className="py-4 text-sm text-slate-600 font-medium">
+                      <div className="flex items-center gap-2">
+                        <span>{progress}</span>
+                        {wf && wf.total_steps > 0 && doc.status !== 'Rejected' && doc.status !== 'Returned' && (
+                          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full ${doc.status === 'Approved' ? 'bg-emerald-500' : 'bg-blue-500'}`} 
+                              style={{ width: `${Math.min(100, Math.max(0, progressPercentage))}%` }} 
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-4">
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${
+                        doc.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
+                        doc.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
+                        doc.status === 'Returned' ? 'bg-blue-100 text-blue-700' :
+                        'bg-rose-100 text-rose-700'
+                      }`}>
+                        {doc.status}
+                      </span>
+                    </td>
+                    <td className="py-4 text-sm text-slate-500 font-medium">{formatDateOnly(doc.date)}</td>
+                    <td className="py-4 pr-4 text-sm text-slate-400">{formatTimeOnly(doc.date)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="bg-slate-50/50 border-t border-slate-100 p-4 flex items-center justify-end">
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-slate-500 shadow-xs"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all shadow-xs ${
+                      currentPage === page 
+                        ? "bg-blue-600 text-white border-transparent" 
+                        : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-slate-500 shadow-xs"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -461,27 +729,51 @@ export default function ReportsPage() {
         <div className="flex-1 bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs min-w-0 flex flex-col">
           
           {/* Global Filters */}
-          <div className="bg-slate-50/50 p-5 border-b border-slate-200 flex flex-col xl:flex-row xl:items-end gap-4">
-            <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date From</label>
-                <input 
-                  type="date" 
-                  value={dateFrom}
-                  onChange={handleDateFromChange}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" 
-                />
+          <div className="bg-slate-50/50 p-5 border-b border-slate-200 flex flex-col xl:flex-row xl:items-start gap-4">
+            <div className="flex-1 w-full flex flex-col sm:flex-row flex-wrap gap-4">
+              
+              {/* Date Preset Filter */}
+              <div className="flex flex-col gap-2 min-w-[220px]">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Time Period</label>
+                  <select 
+                    value={datePreset}
+                    onChange={(e) => setDatePreset(e.target.value)}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                  >
+                    <option value="all">ทั้งหมด (ไม่กรอง)</option>
+                    <option value="today">วันนี้</option>
+                    <option value="this_month">เดือนนี้</option>
+                    <option value="last_month">เดือนที่แล้ว</option>
+                    <option value="this_quarter">ไตรมาสนี้</option>
+                    <option value="last_quarter">ไตรมาสที่แล้ว</option>
+                    <option value="last_6_months">6 เดือนล่าสุด</option>
+                    <option value="this_year">ปีนี้</option>
+                    <option value="custom">กำหนดช่วงเวลาแทน</option>
+                  </select>
+                </div>
+                
+                {datePreset === "custom" && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <input 
+                      type="date" 
+                      value={dateFrom}
+                      onChange={handleDateFromChange}
+                      className="w-full border border-slate-200 rounded-xl px-2 py-1.5 text-xs bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" 
+                    />
+                    <span className="text-slate-400 font-bold">-</span>
+                    <input 
+                      type="date" 
+                      value={dateTo}
+                      onChange={handleDateToChange}
+                      className="w-full border border-slate-200 rounded-xl px-2 py-1.5 text-xs bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" 
+                    />
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date To</label>
-                <input 
-                  type="date" 
-                  value={dateTo}
-                  onChange={handleDateToChange}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" 
-                />
-              </div>
-              <div>
+
+              {/* Type Filter */}
+              <div className="flex-1 min-w-[150px]">
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Type</label>
                 <select 
                   value={filterType}
@@ -491,7 +783,9 @@ export default function ReportsPage() {
                   {DOCUMENT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
-              <div>
+
+              {/* Department Filter */}
+              <div className="flex-1 min-w-[200px]">
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Department</label>
                 <select 
                   value={filterDept}
@@ -537,6 +831,7 @@ export default function ReportsPage() {
                 {activeReport === "status" && renderStatusReport()}
                 {activeReport === "turnaround" && renderTurnaroundReport()}
                 {activeReport === "spend" && renderSpendReport()}
+                {activeReport === "approvals" && renderApprovalReport()}
               </>
             )}
           </div>

@@ -467,10 +467,22 @@ export class AdminService {
   }
 
   // ---- Audit Logs ----
-  async getAuditLogs(search?: string, action?: string) {
+  async getAuditLogs(search?: string, action?: string, dateFrom?: string, dateTo?: string) {
     const where: any = {};
     if (action && action !== 'All') {
       where.action = action;
+    }
+
+    if (dateFrom || dateTo) {
+      where.created_at = {};
+      if (dateFrom) {
+        where.created_at.gte = new Date(dateFrom);
+      }
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setHours(23, 59, 59, 999);
+        where.created_at.lte = end;
+      }
     }
 
     if (search) {
@@ -486,23 +498,44 @@ export class AdminService {
 
     const logs = await this.prisma.auditLog.findMany({
       where,
+      orderBy: {
+        created_at: 'desc',
+      },
       include: {
         user: true,
       },
-      orderBy: { created_at: 'desc' },
       take: 100,
     });
 
-    return logs.map((l) => ({
-      id: l.id,
-      user_id: l.user_id,
-      username: l.user?.username || 'System',
-      user_fullname: l.user ? `${l.user.first_name} ${l.user.last_name}` : 'ระบบ',
-      action: l.action,
-      module: l.module,
-      target_id: l.target_id,
-      ip_address: l.ip_address || '127.0.0.1',
-      created_at: l.created_at,
-    }));
+    return logs.map((l) => {
+      let comment = '';
+      let targetLabel = l.target_id;
+      
+      const details = l.details as any;
+      if (details) {
+        if (details.extra?.comment) {
+          comment = details.extra.comment;
+        }
+        if (details.extra?.doc_number) {
+          targetLabel = details.extra.doc_number;
+        } else if (l.module === 'Auth') {
+          targetLabel = l.user?.username || 'System';
+        }
+      }
+
+      return {
+        id: l.id,
+        user_id: l.user_id,
+        username: l.user?.username || 'System',
+        user_fullname: l.user ? `${l.user.first_name} ${l.user.last_name}` : 'ระบบ',
+        action: l.action,
+        module: l.module,
+        target_id: l.target_id,
+        target_label: targetLabel,
+        comment: comment,
+        ip_address: l.ip_address || '127.0.0.1',
+        created_at: l.created_at,
+      };
+    });
   }
 }

@@ -24,6 +24,7 @@ import {
 } from '@views/components/ui/design-system';
 import { AdminPageHeader } from "@/app/(main)/admin/master-data/master-data-ui";
 import { adminService, AuditLogDto } from "@/controllers/services/admin.service";
+import { useAuth } from '@views/components/providers/AuthProvider';
 
 // ─── TYPES & MOCK DATA ────────────────────────────────────────────────────────
 type ActionType = "Login" | "Upload" | "Download" | "View" | "Edit" | "Delete" | "Approve" | "Reject" | "Signature";
@@ -47,8 +48,24 @@ interface AuditLogExtended {
 const ALL_ACTIONS: ActionType[] = ["Login", "Upload", "Download", "View", "Edit", "Delete", "Approve", "Reject", "Signature"];
 const ALL_MODULES: ModuleType[] = ["Documents", "Users", "Roles", "Approvals", "Master Data", "Auth"];
 
+function normalizeModuleName(m?: string): ModuleType {
+  if (!m) return "Documents";
+  const s = m.trim().toLowerCase();
+  if (s === "document" || s === "documents") return "Documents";
+  if (s === "user" || s === "users") return "Users";
+  if (s === "role" || s === "roles") return "Roles";
+  if (s === "approval" || s === "approvals" || s === "workflow") return "Approvals";
+  if (s === "masterdata" || s === "master data" || s === "master_data") return "Master Data";
+  if (s === "auth") return "Auth";
+  return (m as ModuleType) || "Documents";
+}
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────
 function AuditLogsContent() {
+  const { user } = useAuth();
+  const hasPerm = (itemKey: string, action: string = 'view') =>
+    !user?.permissions ? true : !!user.permissions.includes(`auditlog.${itemKey}:${action}`);
+
   const searchParams = useSearchParams();
   
   // States
@@ -59,8 +76,8 @@ function AuditLogsContent() {
   const [realLogs, setRealLogs] = useState<AuditLogExtended[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [sortKey, setSortKey] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+  const [sortKey, setSortKey] = useState<string | null>("timestamp");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>("desc");
 
   const handleSort = (key: string) => {
     if (sortKey !== key) {
@@ -88,39 +105,73 @@ function AuditLogsContent() {
 
   // Pre-apply filters from URL if coming from e.g. /approvals
   useEffect(() => {
-    const pModule = searchParams.get("module") as ModuleType;
+    const pModule = searchParams.get("module");
     const pActions = searchParams.get("action");
     
-    if (pModule && ALL_MODULES.includes(pModule)) {
-      setSelectedModule(pModule);
+    if (pModule) {
+      const norm = normalizeModuleName(pModule);
+      if (ALL_MODULES.includes(norm)) {
+        setSelectedModule(norm);
+      }
     }
     if (pActions) {
-      const actionsArr = pActions.split(",").filter(a => ALL_ACTIONS.includes(a as ActionType)) as ActionType[];
+      const actionsArr = pActions.split(",").map(a => a.trim()).filter(a => ALL_ACTIONS.includes(a as ActionType)) as ActionType[];
       if (actionsArr.length > 0) {
         setSelectedActions(new Set(actionsArr));
       }
     }
   }, [searchParams]);
 
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   useEffect(() => {
-    adminService.getAuditLogs(searchTerm).then((logs) => {
-      const mapped: AuditLogExtended[] = logs.map((l) => ({
-        id: l.id,
-        timestamp: l.created_at,
-        userId: l.user_id || "-",
-        userName: l.user_fullname || l.username,
-        action: (l.action as ActionType) || "View",
-        module: (l.module as ModuleType) || "Documents",
-        targetId: l.target_id || "",
-        targetLabel: l.target_id || "-",
-        targetType: "document",
-        ipAddress: l.ip_address || "127.0.0.1",
-      }));
-      setRealLogs(mapped);
-    }).catch(() => {
-      setRealLogs([]);
-    }).finally(() => setLoading(false));
-  }, [searchTerm]);
+    let isMounted = true;
+    setLoading(true);
+    setFetchError(null);
+
+    adminService
+      .getAuditLogs(searchTerm, undefined, dateFrom || undefined, dateTo || undefined)
+      .then((logs) => {
+        if (!isMounted) return;
+        const list = Array.isArray(logs) ? logs : [];
+        const mapped: AuditLogExtended[] = list.map((l) => {
+          const mod = normalizeModuleName(l.module);
+          let targetType: "document" | "user" | "role" | "none" = "none";
+          if (mod === "Documents" || mod === "Approvals") targetType = "document";
+          else if (mod === "Users" || mod === "Auth") targetType = "user";
+          else if (mod === "Roles") targetType = "role";
+          
+          return {
+            id: l.id,
+            timestamp: l.created_at || new Date().toISOString(),
+            userId: l.user_id || "-",
+            userName: l.user_fullname || l.username || "ระบบ",
+            action: (l.action as ActionType) || "View",
+            module: mod,
+            targetId: l.target_id || "",
+            targetLabel: l.target_label || l.target_id || "-",
+            targetType,
+            ipAddress: l.ip_address || "127.0.0.1",
+            comment: l.comment
+          };
+        });
+        setRealLogs(mapped);
+      })
+      .catch((err) => {
+        console.error("Failed to load audit logs:", err);
+        if (isMounted) {
+          setRealLogs([]);
+          setFetchError(err.message || String(err));
+        }
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [searchTerm, dateFrom, dateTo]);
 
   const toggleActionFilter = (action: ActionType) => {
     const newSet = new Set(selectedActions);
@@ -139,8 +190,8 @@ function AuditLogsContent() {
     setDateTo("");
     setSelectedModule("All");
     setSelectedActions(new Set());
-    setSortKey(null);
-    setSortDirection(null);
+    setSortKey("timestamp");
+    setSortDirection("desc");
     setCurrentPage(1);
   };
 
@@ -172,7 +223,7 @@ function AuditLogsContent() {
       data.sort((a, b) => {
         let comparison = 0;
         if (sortKey === "timestamp") {
-          comparison = a.timestamp.localeCompare(b.timestamp);
+          comparison = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
         } else if (sortKey === "userName") {
           comparison = a.userName.localeCompare(b.userName);
         } else if (sortKey === "action") {
@@ -186,7 +237,7 @@ function AuditLogsContent() {
       });
     } else {
       // Default: Newest first
-      data.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+      data.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     }
 
     return data;
@@ -263,264 +314,282 @@ function AuditLogsContent() {
     <div className={APP_PAGE_SHELL}>
       <div className={APP_PAGE_CONTENT}>
       
-      {/* ⚠️ NOTE FOR DEVELOPERS: This page must be guarded by AdminRoleGuard on backend ⚠️ */}
+      {hasPerm('access', 'view') ? (
+        <>
+          {/* ⚠️ NOTE FOR DEVELOPERS: This page must be guarded by AdminRoleGuard on backend ⚠️ */}
 
-      <AdminPageHeader
-        breadcrumb={
-          <nav className="flex items-center gap-1.5 text-xs text-slate-400">
-            <span>Admin</span>
-            <span>/</span>
-            <span className="font-medium text-slate-600">Audit Logs</span>
-          </nav>
-        }
-        title="บันทึกการตรวจสอบระบบ"
-        subtitle="บันทึกประวัติการใช้งานและตรวจสอบความปลอดภัยของระบบ (Security & Compliance)"
-        actions={
-          <button
-            type="button"
-            onClick={handleExportCSV}
-            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700"
-          >
-            <Download className="size-4" />
-            ส่งออก CSV
-          </button>
-        }
-      />
+          <AdminPageHeader
+            breadcrumb={
+              <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+                <span>Admin</span>
+                <span>/</span>
+                <span className="font-medium text-slate-600">Audit Logs</span>
+              </nav>
+            }
+            title="บันทึกการตรวจสอบระบบ"
+            subtitle="บันทึกประวัติการใช้งานและตรวจสอบความปลอดภัยของระบบ (Security & Compliance)"
+            actions={
+              hasPerm('export_logs', 'view') ? (
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700"
+                >
+                  <Download className="size-4" />
+                  ส่งออก CSV
+                </button>
+              ) : undefined
+            }
+          />
 
-      <div className={`${APP_TABLE_CARD} flex flex-col overflow-hidden`}>
-        
-        {/* FILTER BAR */}
-        <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col gap-4">
-          <div className="flex flex-col xl:flex-row gap-4">
+          <div className={`${APP_TABLE_CARD} flex flex-col overflow-hidden`}>
             
-            {/* Left: Standard Filters */}
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date From</label>
-                <input 
-                  type="date" 
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none" 
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date To</label>
-                <input 
-                  type="date" 
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none" 
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Search User</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-slate-400" />
+            {/* FILTER BAR */}
+            <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col gap-4">
+              <div className="flex flex-col xl:flex-row gap-4">
+                
+                {/* Left: Standard Filters */}
+                {hasPerm('search_filter', 'view') && (
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date From</label>
+                      <input 
+                        type="date" 
+                        value={dateFrom}
+                        onChange={(e) => setDateFrom(e.target.value)}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date To</label>
+                      <input 
+                        type="date" 
+                        value={dateTo}
+                        onChange={(e) => setDateTo(e.target.value)}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Search User</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Search className="h-4 w-4 text-slate-400" />
+                        </div>
+                        <input
+                          type="text"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          placeholder="Search name or ID"
+                          className="w-full border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search name or ID"
-                    className="w-full border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                  />
+                )}
+
+                {/* Right: Actions */}
+                <div className="flex xl:flex-col gap-2 justify-end xl:w-32 shrink-0">
+                  {hasPerm('search_filter', 'view') && (
+                    <button 
+                      onClick={clearFilters}
+                      className="flex-1 xl:flex-none flex items-center justify-center gap-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" /> Clear Filters
+                    </button>
+                  )}
+                  {hasPerm('export_logs', 'view') && (
+                    <button 
+                      onClick={handleExportCSV}
+                      disabled={filteredLogs.length === 0}
+                      className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs transition-colors shadow-sm disabled:opacity-50"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Export CSV
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Multi-select Action Badges */}
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Action Types (Multi-select)</label>
+                <div className="flex flex-wrap gap-2">
+                  {ALL_ACTIONS.map(action => {
+                    const isSelected = selectedActions.has(action);
+                    return (
+                      <button
+                        key={action}
+                        onClick={() => toggleActionFilter(action)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                          isSelected 
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' 
+                            : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'
+                        }`}
+                      >
+                        {action}
+                      </button>
+                    );
+                  })}
+                  {selectedActions.size > 0 && (
+                    <button 
+                      onClick={() => setSelectedActions(new Set())}
+                      className="px-3 py-1.5 text-[10px] font-bold text-slate-400 hover:text-slate-600 underline"
+                    >
+                      Clear Selection
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Right: Actions */}
-            <div className="flex xl:flex-col gap-2 justify-end xl:w-32 shrink-0">
-              <button 
-                onClick={clearFilters}
-                className="flex-1 xl:flex-none flex items-center justify-center gap-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition-colors"
-              >
-                <X className="w-3.5 h-3.5" /> Clear Filters
-              </button>
-              <button 
-                onClick={handleExportCSV}
-                disabled={filteredLogs.length === 0}
-                className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs transition-colors shadow-sm disabled:opacity-50"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Export CSV
-              </button>
-            </div>
-          </div>
-
-          {/* Multi-select Action Badges */}
-          <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Action Types (Multi-select)</label>
-            <div className="flex flex-wrap gap-2">
-              {ALL_ACTIONS.map(action => {
-                const isSelected = selectedActions.has(action);
-                return (
-                  <button
-                    key={action}
-                    onClick={() => toggleActionFilter(action)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                      isSelected 
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' 
-                        : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'
-                    }`}
-                  >
-                    {action}
-                  </button>
-                );
-              })}
-              {selectedActions.size > 0 && (
-                <button 
-                  onClick={() => setSelectedActions(new Set())}
-                  className="px-3 py-1.5 text-[10px] font-bold text-slate-400 hover:text-slate-600 underline"
-                >
-                  Clear Selection
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* TABLE */}
-        <div className="overflow-x-auto w-full">
-          <table className="w-full table-fixed min-w-[900px] text-left border-collapse whitespace-nowrap">
-            <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                <DataTableHeader title="Timestamp" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-44" />
-                <DataTableHeader title="User" sortKey="userName" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-40" />
-                <DataTableHeader title="Action" sortKey="action" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
-                <DataTableHeader title="Module" sortKey="module" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
-                <th className="py-3 px-4 w-48 font-bold">Target</th>
-                <DataTableHeader title="IP Address" sortKey="ipAddress" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-32" />
-                <th className="py-3 px-4 w-16 text-center font-bold">Details</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {paginatedLogs.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-16 text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3">
-                        <Search className="w-6 h-6" />
-                      </div>
-                      <p className="text-slate-600 font-bold text-sm">ไม่พบข้อมูล Audit Log</p>
-                      <p className="text-slate-400 text-xs mt-1">ลองปรับเงื่อนไขการค้นหาหรือช่วงเวลาใหม่อีกครั้ง</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                paginatedLogs.map((log) => (
-                  <React.Fragment key={log.id}>
-                    <tr className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="py-3 px-4">
-                        <div className="text-sm font-semibold text-slate-700">{formatDateTimeTH(log.timestamp)}</div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="text-sm font-bold text-slate-800">{log.userName}</div>
-                        <div className="text-[10px] text-slate-500 font-medium">ID: {log.userId}</div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold border ${getActionBadge(log.action)}`}>
-                          {log.action}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-sm font-bold text-slate-600">
-                        {log.module}
-                      </td>
-                      <td className="py-3 px-4">
-                        {log.targetType !== "none" ? (
-                          <div className="flex flex-col">
-                            <Link href={getTargetLink(log.targetType, log.targetId)} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors truncate block">
-                              {log.targetLabel}
-                            </Link>
-                            <span className="text-[10px] text-slate-400 font-mono">{log.targetId}</span>
+            {/* TABLE */}
+            <div className="overflow-x-auto w-full">
+              <table className="w-full table-fixed min-w-[900px] text-left border-collapse whitespace-nowrap">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <DataTableHeader title="Timestamp" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-44" />
+                    <DataTableHeader title="User" sortKey="userName" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-40" />
+                    <DataTableHeader title="Action" sortKey="action" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
+                    <DataTableHeader title="Module" sortKey="module" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
+                    <th className="py-3 px-4 w-48 font-bold">Target</th>
+                    <DataTableHeader title="IP Address" sortKey="ipAddress" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-32" />
+                    <th className="py-3 px-4 w-16 text-center font-bold">Details</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-16 text-center">
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3">
+                            <Search className="w-6 h-6" />
                           </div>
-                        ) : (
-                          <span className="text-sm text-slate-400">-</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-xs text-slate-500 font-mono">
-                        {log.ipAddress}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        {log.comment ? (
-                          <button 
-                            onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
-                            className={`p-1.5 rounded-lg transition-colors ${expandedRow === log.id ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                            title="ดูหมายเหตุ/เหตุผล"
-                          >
-                            {expandedRow === log.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                          </button>
-                        ) : (
-                          <span className="text-slate-300 font-medium select-none">-</span>
-                        )}
+                          <p className="text-slate-600 font-bold text-sm">ไม่พบข้อมูล Audit Log</p>
+                          <p className="text-slate-400 text-xs mt-1">ลองปรับเงื่อนไขการค้นหาหรือช่วงเวลาใหม่อีกครั้ง</p>
+                          <p className="text-red-400 text-xs mt-4">Debug: realLogs={realLogs.length}, filteredLogs={filteredLogs.length}</p>
+                          {fetchError && <p className="text-red-500 font-mono text-xs mt-2 border border-red-200 bg-red-50 p-2 rounded w-full max-w-lg text-left overflow-auto">Error: {fetchError}</p>}
+                        </div>
                       </td>
                     </tr>
-                    
-                    {/* EXPANDED DETAILS ROW */}
-                    {expandedRow === log.id && log.comment && (
-                      <tr className="bg-slate-50/80 border-b border-slate-100">
-                        <td colSpan={7} className="p-0">
-                          <div className="px-6 py-3.5 border-l-4 border-indigo-400 ml-4 my-2 rounded-r-xl bg-white shadow-xs">
-                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Reason / Comment</h4>
-                            <p className="text-sm font-semibold text-slate-800 break-words">{log.comment}</p>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* PAGINATION */}
-        {filteredLogs.length > 0 && (
-          <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between flex-wrap gap-4">
-            <p className="text-sm text-slate-500 font-medium">
-              Showing <span className="font-bold text-slate-700">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-slate-700">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="font-bold text-slate-700">{totalItems}</span> entries
-            </p>
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              
-              <div className="flex gap-1">
-                {Array.from({ length: totalPages }).map((_, i) => {
-                  const page = i + 1;
-                  const isActive = currentPage === page;
-                  return (
-                    <button 
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors shadow-sm ${
-                        isActive 
-                          ? 'bg-indigo-600 text-white border-transparent' 
-                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-              </div>
-              
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+                  ) : (
+                    paginatedLogs.map((log) => (
+                      <React.Fragment key={log.id}>
+                        <tr className="hover:bg-slate-50/50 transition-colors group">
+                          <td className="py-3 px-4">
+                            <div className="text-sm font-semibold text-slate-700">{formatDateTimeTH(log.timestamp)}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm font-bold text-slate-800">{log.userName}</div>
+                            <div className="text-[10px] text-slate-500 font-medium">ID: {log.userId}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold border ${getActionBadge(log.action)}`}>
+                              {log.action}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-sm font-bold text-slate-600">
+                            {log.module}
+                          </td>
+                          <td className="py-3 px-4">
+                            {log.targetType !== "none" ? (
+                              <div className="flex flex-col">
+                                <Link href={getTargetLink(log.targetType, log.targetId)} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors truncate block">
+                                  {log.targetLabel}
+                                </Link>
+                                <span className="text-[10px] text-slate-400 font-mono">{log.targetId}</span>
+                              </div>
+                            ) : (
+                              <span className="text-sm text-slate-400">-</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-slate-500 font-mono">
+                            {log.ipAddress}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            {log.comment ? (
+                              <button 
+                                onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
+                                className={`p-1.5 rounded-lg transition-colors ${expandedRow === log.id ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                                title="ดูหมายเหตุ/เหตุผล"
+                              >
+                                {expandedRow === log.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                              </button>
+                            ) : (
+                              <span className="text-slate-300 font-medium select-none">-</span>
+                            )}
+                          </td>
+                        </tr>
+                        
+                        {/* EXPANDED DETAILS ROW */}
+                        {expandedRow === log.id && log.comment && (
+                          <tr className="bg-slate-50/80 border-b border-slate-100">
+                            <td colSpan={7} className="p-0">
+                              <div className="px-6 py-3.5 border-l-4 border-indigo-400 ml-4 my-2 rounded-r-xl bg-white shadow-xs">
+                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Reason / Comment</h4>
+                                <p className="text-sm font-semibold text-slate-800 break-words">{log.comment}</p>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
+
+            {/* PAGINATION */}
+            {filteredLogs.length > 0 && (
+              <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between flex-wrap gap-4">
+                <p className="text-sm text-slate-500 font-medium">
+                  Showing <span className="font-bold text-slate-700">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-slate-700">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="font-bold text-slate-700">{totalItems}</span> entries
+                </p>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalPages }).map((_, i) => {
+                      const page = i + 1;
+                      const isActive = currentPage === page;
+                      return (
+                        <button 
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors shadow-sm ${
+                            isActive 
+                              ? 'bg-indigo-600 text-white border-transparent' 
+                              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        <div className="mt-12 flex flex-col items-center justify-center p-12 text-slate-400">
+          <p className="text-sm font-bold">ไม่มีสิทธิ์เข้าถึงหน้า Audit Log</p>
+        </div>
+      )}
       </div>
     </div>
   );

@@ -14,8 +14,10 @@ import {
   FileTypeValidator,
   BadRequestException,
   Res,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Request } from 'express';
 import { Response } from 'express';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
@@ -48,8 +50,13 @@ export class DocumentsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.documentsService.findOne(id);
+  async findOne(@Param('id') id: string, @CurrentUser() user?: any, @Req() req?: Request) {
+    const doc = await this.documentsService.findOne(id);
+    if (user && req) {
+      const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
+      this.documentsService.logAction(user.id, 'View', doc.real_id, Array.isArray(ip) ? ip[0] : ip, doc.id);
+    }
+    return doc;
   }
 
   @Get(':id/versions')
@@ -68,8 +75,15 @@ export class DocumentsController {
     @Param('id') id: string,
     @Res() res: any,
     @Query('v') version?: number,
+    @CurrentUser() user?: any,
+    @Req() req?: Request,
   ) {
     const buffer = await this.documentsService.getFileBuffer(id, version);
+    if (user && req) {
+      const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
+      // Find doc real_id from getFileBuffer (it doesn't return id, so let's use the param id)
+      this.documentsService.logAction(user.id, 'Download', id, Array.isArray(ip) ? ip[0] : ip, id);
+    }
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="document-${id}.pdf"`);
     res.send(buffer);

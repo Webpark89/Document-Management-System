@@ -60,8 +60,9 @@ export default function ApprovalWorkflowSection({
         const validUsers = users.filter((u) => {
           if (!step.roleName) return true;
           const userPosition = u.position?.name || u.position || "";
-          if (!userPosition) return true;
-          return userPosition === step.roleName;
+          const userRole = u.role?.name || u.role || "";
+          if (!userPosition && !userRole) return true;
+          return userPosition === step.roleName || userRole === step.roleName;
         });
 
         const pool = validUsers.length > 0 ? validUsers : users;
@@ -170,16 +171,19 @@ export default function ApprovalWorkflowSection({
                       }
                       className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500 appearance-none pr-8 cursor-pointer"
                     >
-                      {users.length === 0 && (
+                      {users.length === 0 ? (
                         <option value="">กำลังโหลดรายชื่อ...</option>
+                      ) : (
+                        <option value="" disabled>-- โปรดเลือกผู้อนุมัติ --</option>
                       )}
                       {users
                         .filter((u) => {
                           // Filter users by position matching step.roleName
                           if (!step.roleName) return true;
                           const userPosition = u.position?.name || u.position || "";
-                          if (!userPosition) return true; // Show users with no position just in case
-                          return userPosition === step.roleName;
+                          const userRole = u.role?.name || u.role || "";
+                          if (!userPosition && !userRole) return true;
+                          return userPosition === step.roleName || userRole === step.roleName;
                         })
                         .map((u) => {
                           const fullName = `${u.first_name} ${u.last_name}`;

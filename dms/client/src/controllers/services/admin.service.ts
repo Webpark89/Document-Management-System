@@ -30,6 +30,8 @@ export interface AuditLogDto {
   action: string;
   module: string;
   target_id?: string;
+  target_label?: string;
+  comment?: string;
   ip_address: string;
   created_at: string;
 }
@@ -208,11 +210,15 @@ export const adminService = {
   },
 
   // ---- Audit Logs ----
-  async getAuditLogs(search?: string, action?: string): Promise<AuditLogDto[]> {
+  async getAuditLogs(search?: string, action?: string, dateFrom?: string, dateTo?: string): Promise<AuditLogDto[]> {
     const params = new URLSearchParams();
-    if (search) params.append("search", search);
-    if (action) params.append("action", action);
-    const res = await api.get<AuditLogDto[]>(`/api/admin/audit-logs?${params.toString()}`);
+    if (search && search.trim()) params.append("search", search.trim());
+    if (action && action.trim() && action !== "All") params.append("action", action.trim());
+    if (dateFrom) params.append("dateFrom", dateFrom);
+    if (dateTo) params.append("dateTo", dateTo);
+    const query = params.toString();
+    const url = query ? `/api/admin/audit-logs?${query}` : `/api/admin/audit-logs`;
+    const res = await api.get<AuditLogDto[]>(url);
     return res.data;
   },
 };

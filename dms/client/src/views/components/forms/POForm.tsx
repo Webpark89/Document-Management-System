@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Save, Send, UploadCloud, Briefcase, FileSignature, HelpCircle } from "lucide-react";
+import { api } from "@/lib";
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { formatThaiDate } from "@/lib/format-date";
 import Step2Visibility, { VisibilityData } from "./Step2Visibility";
@@ -67,6 +68,15 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
   const { user } = useAuth();
   const defaultRequester = user?.full_name || user?.username || "Administrator";
   const defaultDept = user?.department || DEPARTMENTS[0];
+
+  const [companySettings, setCompanySettings] = useState({
+    companyName: "",
+    companyAddress: ""
+  });
+
+  useEffect(() => {
+    api.get<any>("/api/admin/settings").then(res => { if (res.data?.companyName) setCompanySettings(res.data); }).catch(() => {});
+  }, []);
 
   const nextMonthStr = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     .toISOString()
@@ -224,13 +234,9 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
           {/* Header Block (Industrial Style) */}
           <div className="flex justify-between items-start border-b-2 border-purple-800 pb-4 mb-4">
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 border-2 border-purple-800 flex items-center justify-center font-black text-xl text-purple-900">
-                LOGO
-              </div>
               <div>
-                <h1 className="font-bold text-lg text-purple-900">บริษัท นิสซุย (ประเทศไทย) จำกัด</h1>
-                <p className="text-slate-700 mt-1 max-w-[200px] leading-tight">เลขที่ 123 อาคารนิสซุย ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110</p>
-                <p className="text-slate-700 mt-1 font-semibold">เลขประจำตัวผู้เสียภาษี: 0105559000123</p>
+                <h1 className="font-bold text-lg text-purple-900">{companySettings.companyName}</h1>
+                <p className="text-slate-700 mt-1 max-w-[200px] leading-tight whitespace-pre-wrap">{companySettings.companyAddress}</p>
               </div>
             </div>
             

@@ -12,6 +12,12 @@ export async function fetcher<T>(endpoint: string, options?: RequestInit): Promi
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
+        return new Promise(() => {});
+      }
+    }
     throw new Error(`API Error: ${res.statusText}`);
   }
 

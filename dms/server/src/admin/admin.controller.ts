@@ -8,7 +8,14 @@ import {
   Body,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  Res,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as fs from 'fs';
+import * as path from 'path';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
@@ -20,6 +27,29 @@ import { CreateUserDto } from './dto/create-user.dto';
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
+
+  @Post('settings')
+  @Permissions('config.access:view')
+  saveSettings(@Body() body: any) {
+    const uploadDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    fs.writeFileSync(path.join(uploadDir, 'settings.json'), JSON.stringify(body, null, 2));
+    return { message: 'Settings saved' };
+  }
+
+  @Get('settings')
+  getSettings() {
+    const settingsPath = path.join(process.cwd(), 'uploads', 'settings.json');
+    if (fs.existsSync(settingsPath)) {
+      return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    }
+    return {
+      companyName: 'บริษัท นิสซุย (ประเทศไทย) จำกัด',
+      companyAddress: 'เลขที่ 123 อาคารนิสซุย ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110\nเลขประจำตัวผู้เสียภาษี: 0105559000123'
+    };
+  }
 
   @Get('users')
   @Permissions('config.user_management:view', 'config.access:view')
@@ -166,12 +196,13 @@ export class AdminController {
   }
 
   @Get('audit-logs')
-  @Permissions('auditlog.access:view')
   async getAuditLogs(
     @Query('search') search?: string,
     @Query('action') action?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
   ) {
-    return this.adminService.getAuditLogs(search, action);
+    return this.adminService.getAuditLogs(search, action, dateFrom, dateTo);
   }
 
   @Get('approval-matrix')

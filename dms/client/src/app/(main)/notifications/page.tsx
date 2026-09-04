@@ -18,10 +18,15 @@ import {
   markAllNotificationsAsRead,
   NotificationItem 
 } from '@views/features/notifications/api';
+import { useAuth } from '@views/components/providers/AuthProvider';
 
 type EventType = "new" | "pending" | "approved" | "returned" | "cancelled";
 
 export default function NotificationsPage() {
+  const { user } = useAuth();
+  const hasPerm = (itemKey: string, action: string = 'view') =>
+    !!user?.permissions?.includes(`notifications.${itemKey}:${action}`);
+
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [activeTab, setActiveTab] = useState<"All" | "Unread" | "Read">("All");
 
@@ -78,81 +83,91 @@ export default function NotificationsPage() {
         title="ศูนย์การแจ้งเตือน (Notification Center)"
         subtitle="ติดตามความเคลื่อนไหวของเอกสารและงานที่ต้องพิจารณา"
         actions={
-          <button 
-            onClick={handleMarkAllAsRead}
-            disabled={unreadCount === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer disabled:opacity-50"
-          >
-            <Check className="w-4 h-4" />
-            Mark all as read
-          </button>
+          hasPerm('mark_read', 'edit') ? (
+            <button 
+              onClick={handleMarkAllAsRead}
+              disabled={unreadCount === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <Check className="w-4 h-4" />
+              Mark all as read
+            </button>
+          ) : undefined
         }
       />
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[60vh]">
-        {/* TABS */}
-        <div className="flex items-center gap-6 px-6 border-b border-slate-100 bg-slate-50/50">
-          {(["All", "Unread", "Read"] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`py-4 text-sm font-bold border-b-2 transition-colors ${
-                activeTab === tab 
-                  ? "border-blue-600 text-blue-600" 
-                  : "border-transparent text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              {tab === "All" && "ทั้งหมด"}
-              {tab === "Unread" && `ยังไม่อ่าน (${unreadCount})`}
-              {tab === "Read" && "อ่านแล้ว"}
-            </button>
-          ))}
-        </div>
-
-        {/* LIST */}
-        <div className="flex flex-col divide-y divide-slate-100">
-          {filteredNotifs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-              <Bell className="w-12 h-12 mb-4 opacity-20" />
-              <p className="font-bold text-sm">ไม่มีรายการแจ้งเตือน</p>
-            </div>
-          ) : (
-            filteredNotifs.map(n => {
-              const notifType: EventType = n.message.includes("รออนุมัติ") 
-                ? "pending" 
-                : n.message.includes("ได้รับการอนุมัติ") 
-                ? "approved" 
-                : n.message.includes("ถูกส่งกลับ") 
-                ? "returned" 
-                : "new";
-              return (
-                <Link 
-                  key={n.id}
-                  href={n.document_id ? (notifType === "pending" ? `/approvals/${n.document_id}` : `/documents/${n.document_id}`) : "#"}
-                  onClick={() => handleMarkAsRead(n.id)}
-                  className={`flex items-start gap-4 p-5 hover:bg-slate-50 transition-colors cursor-pointer relative ${
-                    !n.is_read ? "bg-blue-50/20" : ""
+        {hasPerm('view_notifications', 'view') ? (
+          <>
+            {/* TABS */}
+            <div className="flex items-center gap-6 px-6 border-b border-slate-100 bg-slate-50/50">
+              {(["All", "Unread", "Read"] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`py-4 text-sm font-bold border-b-2 transition-colors ${
+                    activeTab === tab 
+                      ? "border-blue-600 text-blue-600" 
+                      : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
-                  {!n.is_read && (
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-500" />
-                  )}
-                  
-                  {getIcon(notifType)}
-                  
-                  <div className="flex-1 min-w-0 pt-1">
-                    <p className={`text-sm ${!n.is_read ? "font-bold text-slate-800" : "font-medium text-slate-600"}`}>
-                      {n.message}
-                    </p>
-                    <p className="text-xs font-semibold text-slate-400 mt-1">
-                      {getRelativeTime(n.created_at)} • {new Date(n.created_at).toLocaleString("th-TH")}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })
-          )}
-        </div>
+                  {tab === "All" && "ทั้งหมด"}
+                  {tab === "Unread" && `ยังไม่อ่าน (${unreadCount})`}
+                  {tab === "Read" && "อ่านแล้ว"}
+                </button>
+              ))}
+            </div>
+
+            {/* LIST */}
+            <div className="flex flex-col divide-y divide-slate-100">
+              {filteredNotifs.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                  <Bell className="w-12 h-12 mb-4 opacity-20" />
+                  <p className="font-bold text-sm">ไม่มีรายการแจ้งเตือน</p>
+                </div>
+              ) : (
+                filteredNotifs.map(n => {
+                  const notifType: EventType = n.message.includes("รออนุมัติ") 
+                    ? "pending" 
+                    : n.message.includes("ได้รับการอนุมัติ") 
+                    ? "approved" 
+                    : n.message.includes("ถูกส่งกลับ") 
+                    ? "returned" 
+                    : "new";
+                  return (
+                    <Link 
+                      key={n.id}
+                      href={n.document_id ? (notifType === "pending" ? `/approvals/${n.document_id}` : `/documents/${n.document_id}`) : "#"}
+                      onClick={() => handleMarkAsRead(n.id)}
+                      className={`flex items-start gap-4 p-5 hover:bg-slate-50 transition-colors cursor-pointer relative ${
+                        !n.is_read ? "bg-blue-50/20" : ""
+                      }`}
+                    >
+                      {!n.is_read && (
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-500" />
+                      )}
+                      
+                      {getIcon(notifType)}
+                      
+                      <div className="flex-1 min-w-0 pt-1">
+                        <p className={`text-sm ${!n.is_read ? "font-bold text-slate-800" : "font-medium text-slate-600"}`}>
+                          {n.message}
+                        </p>
+                        <p className="text-xs font-semibold text-slate-400 mt-1">
+                          {getRelativeTime(n.created_at)} • {new Date(n.created_at).toLocaleString("th-TH")}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+            <p className="font-bold text-sm">ไม่มีสิทธิ์ดูการแจ้งเตือน</p>
+          </div>
+        )}
       </div>
     </div>
   );

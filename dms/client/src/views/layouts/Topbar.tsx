@@ -67,8 +67,7 @@ export function Topbar({ title }: TopbarProps) {
                     <p className="text-sm text-slate-700 leading-snug">{n.message}</p>
                     <p className="mt-1 text-[11px] font-medium text-slate-400">
                       {new Date(n.created_at).toLocaleString("th-TH", {
-                        dateStyle: "short",
-                        timeStyle: "short",
+                        year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
                       })}
                     </p>
                   </Link>

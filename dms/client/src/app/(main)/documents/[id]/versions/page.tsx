@@ -12,7 +12,7 @@ import { useToast } from '@views/components/providers/ToastProvider';
 import { useSidebar } from '@views/components/providers/SidebarProvider';
 
 function formatVersionDate(iso: string) {
-  return new Date(iso).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" });
+  return new Date(iso).toLocaleString("th-TH", { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function getModifierName(uploaded_by: any): string {
@@ -274,10 +274,7 @@ export default function DocumentVersionsPage() {
                       </div>
                     </td>
                     <td className="py-4 text-xs font-semibold text-slate-500">
-                      {new Date(ver.created_at).toLocaleString("th-TH", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
+                      {formatVersionDate(ver.created_at)}
                     </td>
                     <td className="py-4 text-xs font-semibold text-slate-800">{getModifierName(ver.uploaded_by)}</td>
                     <td className="py-4 pr-6 text-xs font-medium leading-relaxed text-slate-500">
@@ -501,7 +498,7 @@ export default function DocumentVersionsPage() {
                       </div>
                       <div>
                         <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> วันที่แก้ไข</span>
-                        <span className="text-sm font-bold text-slate-700">{new Date(selectedData[0].created_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                        <span className="text-sm font-bold text-slate-700">{formatVersionDate(selectedData[0].created_at)}</span>
                       </div>
                       <div>
                         <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><FileUp className="w-3.5 h-3.5"/> ขนาดไฟล์</span>
@@ -531,7 +528,7 @@ export default function DocumentVersionsPage() {
                       </div>
                       <div>
                         <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> วันที่แก้ไข</span>
-                        <span className="text-sm font-bold text-slate-700">{new Date(selectedData[1].created_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                        <span className="text-sm font-bold text-slate-700">{formatVersionDate(selectedData[1].created_at)}</span>
                       </div>
                       <div>
                         <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><FileUp className="w-3.5 h-3.5"/> ขนาดไฟล์</span>

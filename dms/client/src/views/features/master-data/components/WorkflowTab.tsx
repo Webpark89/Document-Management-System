@@ -31,6 +31,8 @@ export default function WorkflowTab({
   onEdit,
   onDelete,
   onRestore,
+  canEdit = false,
+  canDelete = false,
 }: {
   rows: WorkflowRecord[];
   docTypes?: DocumentTypeRecord[];
@@ -40,6 +42,8 @@ export default function WorkflowTab({
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onRestore: (id: string) => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }) {
   const emptyContent = (
     <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
@@ -74,7 +78,10 @@ export default function WorkflowTab({
       },
     ],
     actions: row.isActive ? (
-      <RowActions onEdit={() => onEdit(row.id)} onDelete={() => onDelete(row.id)} />
+      <RowActions 
+        onEdit={canEdit ? () => onEdit(row.id) : undefined} 
+        onDelete={canDelete ? () => onDelete(row.id) : undefined} 
+      />
     ) : (
       <RowActions onRestore={() => onRestore(row.id)} />
     ),
@@ -132,7 +139,10 @@ export default function WorkflowTab({
                 </td>
                 <td className={MD_TD_ACTION}>
                   {row.isActive ? (
-                    <RowActions onEdit={() => onEdit(row.id)} onDelete={() => onDelete(row.id)} />
+                    <RowActions 
+                      onEdit={canEdit ? () => onEdit(row.id) : undefined} 
+                      onDelete={canDelete ? () => onDelete(row.id) : undefined} 
+                    />
                   ) : (
                     <RowActions onRestore={() => onRestore(row.id)} />
                   )}

@@ -1,4 +1,5 @@
-import { Controller, Post, Body, Get, UseGuards, Res, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Res, Req, HttpCode, HttpStatus } from '@nestjs/common';
+import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -13,8 +14,10 @@ export class AuthController {
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: any,
+    @Req() request: Request,
   ) {
-    const result = await this.authService.login(loginDto);
+    const ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress || '127.0.0.1';
+    const result = await this.authService.login(loginDto, Array.isArray(ip) ? ip[0] : ip);
     
     // Set httpOnly cookie
     response.cookie('access_token', result.access_token, {
