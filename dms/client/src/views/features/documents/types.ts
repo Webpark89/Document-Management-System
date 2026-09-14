@@ -30,9 +30,9 @@ export interface Document {
   status: DocumentStatus | string;
   amount: string;          // formatted amount or "-"
   version: string;         // e.g. "v1.0"
-  pr_form?: any;
-  po_form?: any;
-  workflow?: any;
+  pr_form?: unknown;
+  po_form?: unknown;
+  workflow?: unknown;
   versions?: DocumentVersion[];
 }
 

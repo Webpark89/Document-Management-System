@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, IsOptional, IsArray, IsNumber } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsArray,
+  IsNumber,
+} from 'class-validator';
 
 export class PRItemDto {
   @IsNotEmpty()
@@ -20,6 +26,10 @@ export class PRItemDto {
   @IsOptional()
   @IsString()
   remark?: string;
+  
+  @IsOptional()
+  @IsNumber()
+  vat?: number;
 }
 
 export class CreateDocumentDto {
@@ -38,6 +48,26 @@ export class CreateDocumentDto {
   @IsOptional()
   @IsArray()
   items?: PRItemDto[];
+  
+  @IsOptional()
+  @IsString()
+  vendor_name?: string;
+
+  @IsOptional()
+  @IsString()
+  vendor_contact?: string;
+
+  @IsOptional()
+  @IsString()
+  delivery_date?: string;
+
+  @IsOptional()
+  @IsString()
+  payment_terms?: string;
+
+  @IsOptional()
+  @IsString()
+  remark?: string;
 
   @IsOptional()
   @IsArray()

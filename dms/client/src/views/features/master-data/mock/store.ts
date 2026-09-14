@@ -38,7 +38,9 @@ export function countWorkflowsUsingApprover(
   return workflows.filter((w) => w.isActive && w.approvers.includes(approverName)).length;
 }
 
-export let WORKFLOW_RECORDS: WorkflowRecord[] = WORKFLOWS.map((r) => ({ ...r, approvers: [...r.approvers] }));
+   
+   
+export const WORKFLOW_RECORDS: WorkflowRecord[] = WORKFLOWS.map((r) => ({ ...r, approvers: [...r.approvers] }));
 
 export function getWorkflowRecords(): WorkflowRecord[] {
   return WORKFLOW_RECORDS.map((w) => ({ ...w }));
@@ -166,8 +168,10 @@ export function createInitialRunningConfigs(
 ): DocumentRunningConfig[] {
   return Object.entries(matrix).map(([key, entry]) => createDefaultRunningConfig(key, entry));
 }
+   
 
-export let RUNNING_CONFIGS: DocumentRunningConfig[] = createInitialRunningConfigs();
+   
+export const RUNNING_CONFIGS: DocumentRunningConfig[] = createInitialRunningConfigs();
 
 export function getRunningConfigs(): DocumentRunningConfig[] {
   return RUNNING_CONFIGS.map((c) => ({ ...c }));

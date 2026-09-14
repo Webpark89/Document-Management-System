@@ -29,6 +29,12 @@ export default function ApprovalsInboxPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+  const [lastViewed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return parseInt(localStorage.getItem("lastViewedApprovals") || "0", 10);
+    }
+    return 0;
+  });
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -356,9 +362,14 @@ export default function ApprovalsInboxPage() {
                   )}
                   <th className="py-4 font-bold w-44">รายชื่อผู้อนุมัติ</th>
                   {hasPerm('search_sort') ? (
-                    <DataTableHeader title="วันที่ส่ง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
+                    <DataTableHeader title="วันที่ส่ง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-28" />
                   ) : (
-                    <th className="py-4 w-32 font-bold">วันที่ส่ง</th>
+                    <th className="py-4 w-28 font-bold">วันที่ส่ง</th>
+                  )}
+                  {hasPerm('search_sort') ? (
+                    <DataTableHeader title="เวลา" sortKey="submittedTime" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-24" />
+                  ) : (
+                    <th className="py-4 w-24 font-bold">เวลา</th>
                   )}
                   <th className="py-4 text-center font-bold w-20">ขั้นที่</th>
                   {hasPerm('search_sort') ? (
@@ -382,7 +393,7 @@ export default function ApprovalsInboxPage() {
                           router.push(`/approvals/${item.id}`);
                         }
                       }}
-                      className={`transition-colors group ${hasPerm('open_doc_detail') ? 'hover:bg-blue-50/50 cursor-pointer' : 'cursor-default'}`}
+                      className={`transition-colors group ${hasPerm('open_doc_detail') ? 'hover:bg-blue-50/50 cursor-pointer' : 'cursor-default'} ${item.status === "Pending" && (item.rawSubmittedDate || 0) > lastViewed ? 'bg-amber-50/40 border-l-4 border-l-amber-500 shadow-sm' : ''}`}
                     >
                       <td className="py-4 pl-4">
                         <div className="flex items-center gap-3">
@@ -424,6 +435,9 @@ export default function ApprovalsInboxPage() {
                       </td>
                       <td className="py-4 text-sm text-slate-400 font-medium">
                         {item.submittedDate}
+                      </td>
+                      <td className="py-4 text-sm text-slate-400 font-medium">
+                        {item.submittedTime}
                       </td>
                       <td className="py-4 text-center">
                         <span className="text-xs font-semibold px-2 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
@@ -481,7 +495,7 @@ export default function ApprovalsInboxPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="py-16 text-center text-sm font-medium text-slate-400"
                     >
                       ไม่พบรายการเอกสารในหมวดหมู่นี้

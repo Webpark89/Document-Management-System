@@ -1,7 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditAction } from '@prisma/client';
 import { EncryptionService } from '../common/encryption/encryption.service';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class AdminService {
@@ -23,15 +29,27 @@ export class AdminService {
 
     const cleanPosition = (name?: string): string => {
       if (!name || name === '-') return '-';
-      let clean = name.trim()
-        .replace(/ฝ่ายจัดซื้อ|ฝ่ายผลิต|ฝ่ายบัญชี|ฝ่ายส่งมอบ|ฝ่ายคลังสินค้า|ฝ่ายทรัพยากรบุคคล|คลังสินค้า/g, '')
+      const clean = name
+        .trim()
+        .replace(
+          /ฝ่ายจัดซื้อ|ฝ่ายผลิต|ฝ่ายบัญชี|ฝ่ายส่งมอบ|ฝ่ายคลังสินค้า|ฝ่ายทรัพยากรบุคคล|คลังสินค้า/g,
+          '',
+        )
         .replace(/\s+(HR|IT|QA|QC|ACC|PUR|WH|LOG)\b/gi, '')
         .trim();
 
-      if (clean === 'เจ้าหน้าที่' || clean === 'เจ้าหน้าที่ HR' || clean === 'เจ้าหน้าที่บัญชี') return 'เจ้าหน้าที่';
-      if (clean === 'ผู้จัดการ' || clean === 'ผู้จัดการฝ่าย') return 'ผู้จัดการฝ่าย';
-      if (clean === 'ผู้อำนวยการ' || clean === 'ผู้อำนวยการฝ่าย') return 'ผู้อำนวยการ';
-      if (clean === 'หัวหน้า' || clean === 'หัวหน้างาน') return 'หัวหน้างาน / หัวหน้าแผนก';
+      if (
+        clean === 'เจ้าหน้าที่' ||
+        clean === 'เจ้าหน้าที่ HR' ||
+        clean === 'เจ้าหน้าที่บัญชี'
+      )
+        return 'เจ้าหน้าที่';
+      if (clean === 'ผู้จัดการ' || clean === 'ผู้จัดการฝ่าย')
+        return 'ผู้จัดการฝ่าย';
+      if (clean === 'ผู้อำนวยการ' || clean === 'ผู้อำนวยการฝ่าย')
+        return 'ผู้อำนวยการ';
+      if (clean === 'หัวหน้า' || clean === 'หัวหน้างาน')
+        return 'หัวหน้างาน / หัวหน้าแผนก';
       if (clean.includes('ผู้ดูแลระบบ')) return 'ผู้ดูแลระบบ';
 
       return clean || name;
@@ -51,7 +69,7 @@ export class AdminService {
     }));
   }
 
-  async createUser(dto: any) {
+  async createUser(dto: CreateUserDto) {
     const existing = await this.prisma.user.findFirst({
       where: { OR: [{ username: dto.username }, { email: dto.email }] },
     });
@@ -105,7 +123,10 @@ export class AdminService {
     });
   }
 
-  async updateUser(id: string, dto: any) {
+  async updateUser(
+    id: string,
+    dto: Partial<CreateUserDto> & { is_active?: boolean },
+  ) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('ไม่พบผู้ใช้งาน');
 
@@ -202,12 +223,18 @@ export class AdminService {
     };
   }
 
-  async updateRole(id: string, dto: { name?: string; permissions?: { module: string; action: string }[] }) {
+  async updateRole(
+    id: string,
+    dto: { name?: string; permissions?: { module: string; action: string }[] },
+  ) {
     const role = await this.prisma.role.findUnique({ where: { id } });
     if (!role) throw new NotFoundException('Role not found');
-    
+
     if (dto.name) {
-      await this.prisma.role.update({ where: { id }, data: { name: dto.name } });
+      await this.prisma.role.update({
+        where: { id },
+        data: { name: dto.name },
+      });
     }
 
     if (dto.permissions) {
@@ -264,16 +291,24 @@ export class AdminService {
     return this.prisma.department.create({ data: { name } });
   }
 
-  async updateDepartment(id: string, dto: { name?: string; is_active?: boolean }) {
+  async updateDepartment(
+    id: string,
+    dto: { name?: string; is_active?: boolean },
+  ) {
     return this.prisma.department.update({ where: { id }, data: dto });
   }
 
   async deleteDepartment(id: string) {
     const dept = await this.prisma.department.findUnique({ where: { id } });
     if (!dept) throw new NotFoundException('ไม่พบข้อมูลแผนก');
-    const userCount = await this.prisma.user.count({ where: { department_id: id, is_deleted: false } });
+    const userCount = await this.prisma.user.count({
+      where: { department_id: id, is_deleted: false },
+    });
     if (userCount > 0) {
-      return this.prisma.department.update({ where: { id }, data: { is_active: false } });
+      return this.prisma.department.update({
+        where: { id },
+        data: { is_active: false },
+      });
     }
     return this.prisma.department.delete({ where: { id } });
   }
@@ -283,24 +318,32 @@ export class AdminService {
   }
 
   async createPosition(dto: { name: string; level?: string }) {
-    return this.prisma.position.create({ 
-      data: { 
+    return this.prisma.position.create({
+      data: {
         name: dto.name,
-        level: dto.level || 'L1'
-      } 
+        level: dto.level || 'L1',
+      },
     });
   }
 
-  async updatePosition(id: string, dto: { name?: string; level?: string; is_active?: boolean }) {
+  async updatePosition(
+    id: string,
+    dto: { name?: string; level?: string; is_active?: boolean },
+  ) {
     return this.prisma.position.update({ where: { id }, data: dto });
   }
 
   async deletePosition(id: string) {
     const pos = await this.prisma.position.findUnique({ where: { id } });
     if (!pos) throw new NotFoundException('ไม่พบข้อมูลตำแหน่ง');
-    const userCount = await this.prisma.user.count({ where: { position_id: id, is_deleted: false } });
+    const userCount = await this.prisma.user.count({
+      where: { position_id: id, is_deleted: false },
+    });
     if (userCount > 0) {
-      return this.prisma.position.update({ where: { id }, data: { is_active: false } });
+      return this.prisma.position.update({
+        where: { id },
+        data: { is_active: false },
+      });
     }
     return this.prisma.position.delete({ where: { id } });
   }
@@ -333,7 +376,10 @@ export class AdminService {
     });
   }
 
-  async updateDocumentType(id: string, dto: { type_name?: string; prefix?: string; is_active?: boolean }) {
+  async updateDocumentType(
+    id: string,
+    dto: { type_name?: string; prefix?: string; is_active?: boolean },
+  ) {
     return this.prisma.documentType.update({ where: { id }, data: dto });
   }
 
@@ -344,10 +390,7 @@ export class AdminService {
         document_type: true,
         required_role: true,
       },
-      orderBy: [
-        { document_type_id: 'asc' },
-        { step_order: 'asc' },
-      ],
+      orderBy: [{ document_type_id: 'asc' }, { step_order: 'asc' }],
     });
   }
 
@@ -362,59 +405,62 @@ export class AdminService {
       orderBy: { prefix: 'asc' },
     });
 
-    return docTypes.map(dt => ({
+    return docTypes.map((dt) => ({
       id: dt.id,
       documentTypeId: dt.id,
       name: dt.type_name,
       prefix: dt.prefix,
       levels: dt.approval_matrix.length || 3,
       approverCount: dt.approval_matrix.length || 3,
-      approvers: dt.approval_matrix.map(am => am.required_role?.name || ''),
-      steps: dt.approval_matrix.map(am => am.required_role?.name || ''),
+      approvers: dt.approval_matrix.map((am) => am.required_role?.name || ''),
+      steps: dt.approval_matrix.map((am) => am.required_role?.name || ''),
       isActive: dt.is_active,
     }));
   }
 
-  async updateApprovalWorkflow(documentTypeId: string, dto: { levels: number; steps: string[] }) {
-    // Note: To truly map steps to roles, we need the Role records. 
+  async updateApprovalWorkflow(
+    documentTypeId: string,
+    dto: { levels: number; steps: string[] },
+  ) {
+    // Note: To truly map steps to roles, we need the Role records.
     // We match by Role name because the frontend passes string array of role names.
     const allRoles = await this.prisma.role.findMany();
-    
+
     // Clear existing matrix for this document type
     await this.prisma.approvalMatrix.deleteMany({
-      where: { document_type_id: documentTypeId }
+      where: { document_type_id: documentTypeId },
     });
-    
+
     // Create new steps
     for (let i = 0; i < dto.levels; i++) {
       const stepName = dto.steps[i];
-      let role = allRoles.find(r => r.name === stepName);
+      let role = allRoles.find((r) => r.name === stepName);
       if (!role && stepName) {
-         // Create the role if it doesn't exist (edge case protection)
-         role = await this.prisma.role.create({ data: { name: stepName } });
-         allRoles.push(role);
+        // Create the role if it doesn't exist (edge case protection)
+        role = await this.prisma.role.create({ data: { name: stepName } });
+        allRoles.push(role);
       }
-      
+
       if (role) {
         await this.prisma.approvalMatrix.create({
           data: {
             document_type_id: documentTypeId,
             step_order: i + 1,
-            required_role_id: role.id
-          }
+            required_role_id: role.id,
+          },
         });
       }
     }
-    
+
     return { success: true };
   }
 
   async getSignatures() {
     const users = await this.prisma.user.findMany({
       where: { is_deleted: false },
-      include: { position: true }
+      include: { position: true },
     });
-    
+
     return users.map((user) => {
       let imageUrl: string | null = null;
       if (user.signature_encrypted) {
@@ -435,7 +481,19 @@ export class AdminService {
     });
   }
 
-  async createApprovalMatrixStep(dto: any) {
+  async createApprovalMatrixStep(dto: {
+    document_type_id: string;
+    step_order: number;
+    approver_role_id: string;
+  }) {
+    return this.adminService_createApprovalMatrixStepHelper(dto);
+  }
+
+  private adminService_createApprovalMatrixStepHelper(dto: {
+    document_type_id: string;
+    step_order: number;
+    approver_role_id: string;
+  }) {
     return this.prisma.approvalMatrix.create({
       data: {
         document_type_id: dto.document_type_id,
@@ -445,7 +503,10 @@ export class AdminService {
     });
   }
 
-  async updateApprovalMatrixStep(id: string, dto: any) {
+  async updateApprovalMatrixStep(
+    id: string,
+    dto: { step_order?: number; approver_role_id?: string },
+  ) {
     return this.prisma.approvalMatrix.update({
       where: { id },
       data: {
@@ -455,11 +516,18 @@ export class AdminService {
     });
   }
 
-  async updateRunningNumber(id: string, dto: any) {
+  async updateRunningNumber(
+    id: string,
+    dto: {
+      last_reset_year?: string;
+      current_number?: number;
+      padding_length?: number;
+    },
+  ) {
     return this.prisma.runningNumber.update({
       where: { id },
       data: {
-        last_reset_year: dto.last_reset_year,
+        last_reset_year: Number(dto.last_reset_year),
         current_number: dto.current_number,
         padding_length: dto.padding_length,
       },
@@ -467,37 +535,74 @@ export class AdminService {
   }
 
   // ---- Audit Logs ----
-  async getAuditLogs(search?: string, action?: string, dateFrom?: string, dateTo?: string) {
-    const where: any = {};
-    if (action && action !== 'All') {
-      where.action = action;
-    }
-
-    if (dateFrom || dateTo) {
-      where.created_at = {};
-      if (dateFrom) {
-        where.created_at.gte = new Date(dateFrom);
-      }
-      if (dateTo) {
-        const end = new Date(dateTo);
-        end.setHours(23, 59, 59, 999);
-        where.created_at.lte = end;
-      }
-    }
-
-    if (search) {
-      where.OR = [
-        { action: { contains: search, mode: 'insensitive' } },
-        { module: { contains: search, mode: 'insensitive' } },
-        { target_id: { contains: search, mode: 'insensitive' } },
-        { user: { first_name: { contains: search, mode: 'insensitive' } } },
-        { user: { last_name: { contains: search, mode: 'insensitive' } } },
-        { user: { username: { contains: search, mode: 'insensitive' } } },
-      ];
-    }
-
+  async getAuditLogs(
+    search?: string,
+    action?: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ) {
     const logs = await this.prisma.auditLog.findMany({
-      where,
+      where: {
+        ...(action && action !== 'All'
+          ? { action: action as AuditAction }
+          : {}),
+        ...(dateFrom || dateTo
+          ? {
+              created_at: {
+                ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+                ...(dateTo
+                  ? {
+                      lte: (() => {
+                        const d = new Date(dateTo);
+                        d.setHours(23, 59, 59, 999);
+                        return d;
+                      })(),
+                    }
+                  : {}),
+              },
+            }
+          : {}),
+        ...(search
+          ? {
+              OR: [
+                { module: { contains: search, mode: 'insensitive' as const } },
+                {
+                  target_id: { contains: search, mode: 'insensitive' as const },
+                },
+                {
+                  user: {
+                    is: {
+                      first_name: {
+                        contains: search,
+                        mode: 'insensitive' as const,
+                      },
+                    },
+                  },
+                },
+                {
+                  user: {
+                    is: {
+                      last_name: {
+                        contains: search,
+                        mode: 'insensitive' as const,
+                      },
+                    },
+                  },
+                },
+                {
+                  user: {
+                    is: {
+                      username: {
+                        contains: search,
+                        mode: 'insensitive' as const,
+                      },
+                    },
+                  },
+                },
+              ],
+            }
+          : {}),
+      },
       orderBy: {
         created_at: 'desc',
       },
@@ -510,14 +615,15 @@ export class AdminService {
     return logs.map((l) => {
       let comment = '';
       let targetLabel = l.target_id;
-      
-      const details = l.details as any;
+
+      const details = l.details as Record<string, unknown> | null;
       if (details) {
-        if (details.extra?.comment) {
-          comment = details.extra.comment;
+        const extra = details.extra as Record<string, unknown> | undefined;
+        if (extra?.comment) {
+          comment = extra.comment as string;
         }
-        if (details.extra?.doc_number) {
-          targetLabel = details.extra.doc_number;
+        if (extra?.doc_number) {
+          targetLabel = extra.doc_number as string;
         } else if (l.module === 'Auth') {
           targetLabel = l.user?.username || 'System';
         }
@@ -527,7 +633,9 @@ export class AdminService {
         id: l.id,
         user_id: l.user_id,
         username: l.user?.username || 'System',
-        user_fullname: l.user ? `${l.user.first_name} ${l.user.last_name}` : 'ระบบ',
+        user_fullname: l.user
+          ? `${l.user.first_name} ${l.user.last_name}`
+          : 'ระบบ',
         action: l.action,
         module: l.module,
         target_id: l.target_id,

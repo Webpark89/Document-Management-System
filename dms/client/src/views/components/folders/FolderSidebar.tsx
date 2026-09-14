@@ -6,9 +6,11 @@ import {
   Folder as FolderIcon,
   FolderPlus,
   FileText,
-  ChevronRight,
-  ChevronDown,
+   
+   
+   
   MoreVertical,
+   
   Edit2,
   Trash2,
   Lock,

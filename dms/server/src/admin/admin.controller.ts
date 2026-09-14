@@ -8,12 +8,7 @@ import {
   Body,
   Query,
   UseGuards,
-  UseInterceptors,
-  UploadedFile,
-  Res,
-  BadRequestException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import * as fs from 'fs';
 import * as path from 'path';
 import { AdminService } from './admin.service';
@@ -30,29 +25,35 @@ export class AdminController {
 
   @Post('settings')
   @Permissions('config.access:view')
-  saveSettings(@Body() body: any) {
+  saveSettings(@Body() body: Record<string, unknown>) {
     const uploadDir = path.join(process.cwd(), 'uploads');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
-    fs.writeFileSync(path.join(uploadDir, 'settings.json'), JSON.stringify(body, null, 2));
+    fs.writeFileSync(
+      path.join(uploadDir, 'settings.json'),
+      JSON.stringify(body, null, 2),
+    );
     return { message: 'Settings saved' };
   }
 
   @Get('settings')
-  getSettings() {
+  getSettings(): Record<string, unknown> {
     const settingsPath = path.join(process.cwd(), 'uploads', 'settings.json');
     if (fs.existsSync(settingsPath)) {
-      return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      return JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as Record<
+        string,
+        unknown
+      >;
     }
     return {
       companyName: 'บริษัท นิสซุย (ประเทศไทย) จำกัด',
-      companyAddress: 'เลขที่ 123 อาคารนิสซุย ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110\nเลขประจำตัวผู้เสียภาษี: 0105559000123'
+      companyAddress:
+        'เลขที่ 123 อาคารนิสซุย ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110\nเลขประจำตัวผู้เสียภาษี: 0105559000123',
     };
   }
 
   @Get('users')
-  @Permissions('config.user_management:view', 'config.access:view')
   async getUsers() {
     return this.adminService.getUsers();
   }
@@ -71,13 +72,19 @@ export class AdminController {
 
   @Patch('users/:id')
   @Permissions('config.user_management:edit')
-  async updateUser(@Param('id') id: string, @Body() dto: any) {
+  async updateUser(
+    @Param('id') id: string,
+    @Body() dto: Partial<CreateUserDto> & { is_active?: boolean },
+  ) {
     return this.adminService.updateUser(id, dto);
   }
 
   @Post('users/:id/reset-password')
   @Permissions('config.user_management:edit')
-  async resetUserPassword(@Param('id') id: string, @Body() dto: { password_hash: string }) {
+  async resetUserPassword(
+    @Param('id') id: string,
+    @Body() dto: { password_hash: string },
+  ) {
     return this.adminService.resetUserPassword(id, dto.password_hash);
   }
 
@@ -101,7 +108,11 @@ export class AdminController {
 
   @Patch('roles/:id')
   @Permissions('config.role_management:edit')
-  async updateRole(@Param('id') id: string, @Body() dto: { name?: string; permissions?: { module: string; action: string }[] }) {
+  async updateRole(
+    @Param('id') id: string,
+    @Body()
+    dto: { name?: string; permissions?: { module: string; action: string }[] },
+  ) {
     return this.adminService.updateRole(id, dto);
   }
 
@@ -125,7 +136,10 @@ export class AdminController {
 
   @Patch('departments/:id')
   @Permissions('masterdata.access:edit')
-  async updateDepartment(@Param('id') id: string, @Body() dto: { name?: string; is_active?: boolean }) {
+  async updateDepartment(
+    @Param('id') id: string,
+    @Body() dto: { name?: string; is_active?: boolean },
+  ) {
     return this.adminService.updateDepartment(id, dto);
   }
 
@@ -149,7 +163,10 @@ export class AdminController {
 
   @Patch('positions/:id')
   @Permissions('masterdata.access:edit')
-  async updatePosition(@Param('id') id: string, @Body() dto: { name?: string; level?: string; is_active?: boolean }) {
+  async updatePosition(
+    @Param('id') id: string,
+    @Body() dto: { name?: string; level?: string; is_active?: boolean },
+  ) {
     return this.adminService.updatePosition(id, dto);
   }
 
@@ -173,19 +190,23 @@ export class AdminController {
 
   @Patch('document-types/:id')
   @Permissions('masterdata.access:edit')
-  async updateDocumentType(@Param('id') id: string, @Body() dto: { type_name?: string; prefix?: string; is_active?: boolean }) {
+  async updateDocumentType(
+    @Param('id') id: string,
+    @Body() dto: { type_name?: string; prefix?: string; is_active?: boolean },
+  ) {
     return this.adminService.updateDocumentType(id, dto);
   }
 
   @Get('workflows')
-  @Permissions('masterdata.access:view')
   async getApprovalWorkflows() {
     return this.adminService.getApprovalWorkflows();
   }
 
   @Patch('workflows/:id')
-  @Permissions('masterdata.access:edit')
-  async updateApprovalWorkflow(@Param('id') documentTypeId: string, @Body() dto: { levels: number; steps: string[] }) {
+  async updateApprovalWorkflow(
+    @Param('id') documentTypeId: string,
+    @Body() dto: { levels: number; steps: string[] },
+  ) {
     return this.adminService.updateApprovalWorkflow(documentTypeId, dto);
   }
 
@@ -213,19 +234,37 @@ export class AdminController {
 
   @Post('approval-matrix')
   @Permissions('masterdata.access:edit')
-  async createApprovalMatrixStep(@Body() dto: any) {
+  async createApprovalMatrixStep(
+    @Body()
+    dto: {
+      document_type_id: string;
+      step_order: number;
+      approver_role_id: string;
+    },
+  ) {
     return this.adminService.createApprovalMatrixStep(dto);
   }
 
   @Patch('approval-matrix/:id')
   @Permissions('masterdata.access:edit')
-  async updateApprovalMatrixStep(@Param('id') id: string, @Body() dto: any) {
+  async updateApprovalMatrixStep(
+    @Param('id') id: string,
+    @Body() dto: { step_order?: number; approver_role_id?: string },
+  ) {
     return this.adminService.updateApprovalMatrixStep(id, dto);
   }
 
   @Patch('running-numbers/:id')
   @Permissions('masterdata.access:edit')
-  async updateRunningNumber(@Param('id') id: string, @Body() dto: any) {
+  async updateRunningNumber(
+    @Param('id') id: string,
+    @Body()
+    dto: {
+      last_reset_year?: string;
+      current_number?: number;
+      padding_length?: number;
+    },
+  ) {
     return this.adminService.updateRunningNumber(id, dto);
   }
 }

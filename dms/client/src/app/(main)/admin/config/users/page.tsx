@@ -1125,20 +1125,7 @@ function UsersPageContent() {
       function cleanPositionName(name: string): string {
         if (!name) return "—";
         const exactMatch = pList.find((p: any) => p.name === name || p.id === name);
-        if (exactMatch) return exactMatch.name;
-        let clean = name.trim();
-        clean = clean
-          .replace(/ฝ่ายจัดซื้อ|ฝ่ายผลิต|ฝ่ายบัญชี|ฝ่ายส่งมอบ|ฝ่ายคลังสินค้า|ฝ่ายทรัพยากรบุคคล|คลังสินค้า/g, "")
-          .replace(/\s+(HR|IT|QA|QC|ACC|PUR|WH|LOG)\b/gi, "")
-          .trim();
-
-        if (clean === "เจ้าหน้าที่" || clean === "เจ้าหน้าที่ HR" || clean === "เจ้าหน้าที่บัญชี" || clean === "เจ้าหน้าที่ปฏิบัติการ" || clean === "พนักงาน") return "พนักงาน";
-        if (clean === "หัวหน้า" || clean === "หัวหน้างาน" || clean === "หัวหน้าแผนก" || clean.includes("หัวหน้า")) return "หัวหน้าแผนก";
-        if (clean === "ผู้จัดการ" || clean === "ผู้จัดการฝ่าย" || clean.includes("ผู้จัดการ")) return "ผู้จัดการฝ่าย";
-        if (clean === "ผู้อำนวยการ" || clean === "ผู้อำนวยการฝ่าย") return "ผู้อำนวยการ";
-        if (clean.includes("ผู้บริหาร") || clean.includes("Executive") || clean.includes("กรรมการ")) return "ผู้บริหาร";
-
-        return clean || name;
+        return exactMatch ? exactMatch.name : name;
       }
 
       const mapped = uList.map((u: any) => ({

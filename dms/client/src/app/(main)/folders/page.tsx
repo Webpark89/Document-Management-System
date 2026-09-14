@@ -2,23 +2,29 @@
 
 import React, { useState, useEffect } from "react";
 import useSWR from "swr";
-import Link from "next/link";
+   
+   
 import { useRouter } from "next/navigation";
 import {
   Search,
   Folder as FolderIcon,
-  MoreVertical,
+   
   Trash2,
+   
   CheckSquare,
-  LayoutGrid,
-  List,
-  SortAsc,
-  Plus,
+   
   Pin,
+   
   Edit2
+   
+   
+   
 } from "lucide-react";
+   
 import { getFolders, deleteFolder as deleteFolderApi, createFolder, updateFolder } from '@views/features/folders/api';
+   
 import { Folder as FolderType } from '@views/features/folders/types';
+   
 import { useToast } from '@views/components/providers/ToastProvider';
 import { swalConfirm } from "@/lib/swal";
 import { FolderCreateModal } from '@views/components/folders/FolderCreateModal';
@@ -42,6 +48,7 @@ export default function FoldersPage() {
 
   const [folders, setFolders] = useState<FolderType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+   
   const [selectedFolderIds, setSelectedFolderIds] = useState<string[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingFolder, setEditingFolder] = useState<FolderType | null>(null);
@@ -51,6 +58,8 @@ export default function FoldersPage() {
   const [recentFolderIds, setRecentFolderIds] = useState<string[]>([]);
 
   useEffect(() => {
+   
+   
     try {
       const savedPins = localStorage.getItem('dms_pinned_folder_ids');
       if (savedPins) setPinnedFolderIds(JSON.parse(savedPins));
@@ -59,6 +68,7 @@ export default function FoldersPage() {
       if (savedRecent) setRecentFolderIds(JSON.parse(savedRecent));
     } catch {}
   }, []);
+     
 
   const handleTogglePinFolder = (e: React.MouseEvent, folderId: string) => {
     e.stopPropagation();
@@ -70,6 +80,7 @@ export default function FoldersPage() {
       localStorage.setItem('dms_pinned_folder_ids', JSON.stringify(next));
     } catch {}
   };
+   
 
   useEffect(() => {
     if (initialFolders) {
@@ -79,6 +90,7 @@ export default function FoldersPage() {
 
   const filteredFolders = folders.filter(f => 
     f.name.toLowerCase().includes(searchQuery.toLowerCase())
+     
   ).sort((a, b) => {
     const aPinned = pinnedFolderIds.includes(a.id);
     const bPinned = pinnedFolderIds.includes(b.id);
@@ -125,7 +137,7 @@ export default function FoldersPage() {
       showToast(`ลบสำเร็จ ${selectedFolderIds.length} โฟลเดอร์`, "success");
       setSelectedFolderIds([]);
       mutate();
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.response?.data?.message || "เกิดข้อผิดพลาดในการลบโฟลเดอร์", "error");
     }
   };
@@ -351,7 +363,7 @@ export default function FoldersPage() {
                 showToast('สร้างโฟลเดอร์สำเร็จ', 'success');
               }
               mutate();
-            } catch (err: any) {
+            } catch (err: unknown) {
               showToast(err.response?.data?.message || 'เกิดข้อผิดพลาด', 'error');
               throw err;
             }
@@ -378,9 +390,12 @@ const Download = ({ className }: { className?: string }) => (
     <polyline points="7 10 12 15 17 10" />
     <line x1="12" x2="12" y1="15" y2="3" />
   </svg>
+   
 );
 const ChevronDown = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="m6 9 6 6 6-6"/>
   </svg>
 );
+
+   

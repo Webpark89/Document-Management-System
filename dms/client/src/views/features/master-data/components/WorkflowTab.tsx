@@ -139,10 +139,13 @@ export default function WorkflowTab({
                 </td>
                 <td className={MD_TD_ACTION}>
                   {row.isActive ? (
-                    <RowActions 
-                      onEdit={canEdit ? () => onEdit(row.id) : undefined} 
-                      onDelete={canDelete ? () => onDelete(row.id) : undefined} 
-                    />
+                    <button
+                      type="button"
+                      onClick={() => onEdit(row.id)}
+                      className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-2xs transition-all cursor-pointer inline-flex items-center gap-1"
+                    >
+                      ✏️ Edit
+                    </button>
                   ) : (
                     <RowActions onRestore={() => onRestore(row.id)} />
                   )}

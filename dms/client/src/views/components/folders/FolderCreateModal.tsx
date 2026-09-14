@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { Folder, FolderVisibility, CreateFolderPayload } from "@views/features/folders/types";
-import { X, FolderPlus, Palette, Smile } from "lucide-react";
+   
+   
+   
+   
+import { X, FolderPlus } from "lucide-react";
 
 interface FolderCreateModalProps {
   isOpen: boolean;
@@ -32,6 +36,7 @@ export function FolderCreateModal({
   const [sharedDepartments, setSharedDepartments] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+   
   useEffect(() => {
     if (editingFolder) {
       setName(editingFolder.name);

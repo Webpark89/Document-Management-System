@@ -24,9 +24,9 @@ export class AuthService {
         role: {
           include: {
             permissions: {
-              include: { permission: true }
-            }
-          }
+              include: { permission: true },
+            },
+          },
         },
       },
     });
@@ -51,7 +51,8 @@ export class AuthService {
     const empId = (() => {
       if (user.username === 'admin') return 'EMP-00001';
       const match = user.username?.match(/\d+/);
-      if (match) return `EMP-${String(100 + parseInt(match[0], 10)).padStart(5, '0')}`;
+      if (match)
+        return `EMP-${String(100 + parseInt(match[0], 10)).padStart(5, '0')}`;
       const hex = (user.id || '').replace(/-/g, '').substring(0, 6);
       return `EMP-${(parseInt(hex || '0', 16) % 90000) + 10000}`;
     })();
@@ -81,8 +82,13 @@ export class AuthService {
         department: user.department?.name || null,
         email: user.email,
         position: user.position?.name || null,
-        signature_url: user.signature_encrypted ? `/api/users/${user.id}/signature` : null,
-        permissions: user.role?.permissions.map(p => `${p.permission.module}:${p.permission.action}`) || [],
+        signature_url: user.signature_encrypted
+          ? `/api/users/${user.id}/signature`
+          : null,
+        permissions:
+          user.role?.permissions.map(
+            (p) => `${p.permission.module}:${p.permission.action}`,
+          ) || [],
       },
     };
   }
@@ -91,7 +97,10 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) {
       // Don't leak whether the email exists or not
-      return { success: true, message: 'หากอีเมลมีในระบบ เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปแล้ว' };
+      return {
+        success: true,
+        message: 'หากอีเมลมีในระบบ เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปแล้ว',
+      };
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex');
@@ -133,7 +142,10 @@ export class AuthService {
       // Optional: handle email error gracefully, still return success for security
     }
 
-    return { success: true, message: 'หากอีเมลมีในระบบ เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปแล้ว' };
+    return {
+      success: true,
+      message: 'หากอีเมลมีในระบบ เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปแล้ว',
+    };
   }
 
   async resetPassword(token: string, newPassword: string) {

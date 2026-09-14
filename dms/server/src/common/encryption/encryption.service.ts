@@ -8,7 +8,9 @@ export class EncryptionService {
   private readonly key: Buffer;
 
   constructor(private readonly config: ConfigService) {
-    const rawKey = this.config.get<string>('ENCRYPTION_KEY') || 'default_secret_key_32bytes_len!!';
+    const rawKey =
+      this.config.get<string>('ENCRYPTION_KEY') ||
+      'default_secret_key_32bytes_len!!';
     // Ensure key is 32 bytes (256 bits)
     this.key = crypto.createHash('sha256').update(rawKey).digest();
   }
@@ -20,11 +22,11 @@ export class EncryptionService {
     if (!plaintext) return '';
     const iv = crypto.randomBytes(12); // 96-bit IV for GCM
     const cipher = crypto.createCipheriv('aes-256-gcm', this.key, iv);
-    
+
     let encrypted = cipher.update(plaintext, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     const authTag = cipher.getAuthTag().toString('hex');
-    
+
     return `${iv.toString('hex')}:${authTag}:${encrypted}`;
   }
 
@@ -47,8 +49,8 @@ export class EncryptionService {
       let decrypted = decipher.update(ciphertextHex, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
       return decrypted;
-    } catch (err: any) {
-      this.logger.error(`Decryption failed: ${err.message}`);
+    } catch (err: unknown) {
+      this.logger.error(`Decryption failed: ${(err as Error).message}`);
       throw new Error('Failed to decrypt data');
     }
   }

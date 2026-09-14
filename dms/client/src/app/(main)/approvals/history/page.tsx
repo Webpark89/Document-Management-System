@@ -10,21 +10,29 @@ import {
   Eye, 
   CheckCircle2, 
   XCircle, 
-  RotateCcw,
-  Calendar,
-  Filter,
-  X
+  RotateCcw
+   
+   
+   
 } from "lucide-react";
+   
+   
 import PageHeader from '@views/components/shared/PageHeader';
-import { Badge } from '@views/components/ui/badge';
-import { getApprovals, Approval } from '@views/features/workflow/api';
+   
+   
 import { getDocuments } from '@views/features/documents/api';
-import { getStatusVariant } from "@/lib/document-status";
+   
+   
 import { formatThaiDate } from "@/lib/format-date";
 import DataTableHeader from '@views/components/ui/DataTableHeader';
+   
+   
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
+   
+   
 
 export interface ApprovalHistoryItem {
+   
   id: string;
   docId: string;
   docName: string;
@@ -43,6 +51,7 @@ const MOCK_APPROVAL_HISTORY: ApprovalHistoryItem[] = [
     docId: "PO-2026-0001",
     docName: "สั่งซื้อคอมพิวเตอร์ Dell Latitude 5440",
     amount: "฿64,000",
+   
     requester: "วิภา รักดี",
     approverName: "ประเสริฐ มีสุข",
     action: "Approved",
@@ -138,7 +147,7 @@ export default function ApprovalHistoryPage() {
       const realHistory: ApprovalHistoryItem[] = [];
       docs.forEach(doc => {
         if (doc.workflow && doc.workflow.steps) {
-          doc.workflow.steps.forEach((step: any) => {
+          doc.workflow.steps.forEach((step: unknown) => {
             if (step.status === "Approved" || step.status === "Rejected") {
               const approverName = step.approver
                 ? `${step.approver.first_name || ''} ${step.approver.last_name || ''}`.trim()
@@ -148,14 +157,16 @@ export default function ApprovalHistoryPage() {
                 docId: doc.id,
                 docName: doc.title || doc.name,
                 amount: doc.amount || "-",
+   
                 requester: doc.creator_name || doc.sender || "ไม่ระบุ",
                 approverName,
                 action: step.status as any,
-                actionDate: step.action_date ? new Date(step.action_date).toLocaleDateString("th-TH") : "—",
+                actionDate: step.action_date || "—",
                 comment: step.comment || "อนุมัติตามขั้นตอน",
                 level: `L${step.step_order}/${doc.workflow.total_steps || step.step_order}`,
               });
             }
+   
           });
         }
       });
@@ -205,6 +216,7 @@ export default function ApprovalHistoryPage() {
         else if (sortKey === "action") comp = a.action.localeCompare(b.action);
         return sortDirection === "asc" ? comp : -comp;
       });
+   
   }, [historyItems, searchQuery, selectedAction, sortKey, sortDirection]);
 
   useEffect(() => {
@@ -214,6 +226,7 @@ export default function ApprovalHistoryPage() {
   const totalPages = Math.ceil(filteredHistory.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedItems = filteredHistory.slice(startIndex, startIndex + itemsPerPage);
+     
 
   const getActionBadge = (action: ApprovalHistoryItem["action"]) => {
     switch (action) {

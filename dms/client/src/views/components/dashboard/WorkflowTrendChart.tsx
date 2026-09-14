@@ -50,6 +50,7 @@ export function WorkflowTrendChart({ data }: WorkflowTrendChartProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+   
     setMounted(true);
   }, []);
 

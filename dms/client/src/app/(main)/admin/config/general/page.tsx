@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Loader2, Settings, Building2, MapPin, Save, FileText } from "lucide-react";
+   
+   
+import { Loader2, Building2, MapPin, Save, FileText } from "lucide-react";
 import {
   ADMIN_CONTENT,
   ADMIN_PAGE_SHELL,
@@ -20,13 +22,13 @@ export default function GeneralConfigPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await api.get<any>("/api/admin/settings");
+        const res = await api.get<unknown>("/api/admin/settings");
         const data = res.data;
         if (data) {
           setCompanyName(data.companyName || "");
           setCompanyAddress(data.companyAddress || "");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to load settings", err);
       } finally {
         setIsLoading(false);
@@ -40,7 +42,7 @@ export default function GeneralConfigPage() {
     try {
       await api.post("/api/admin/settings", { companyName, companyAddress });
       showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.message || "เกิดข้อผิดพลาดในการบันทึก", "error");
     } finally {
       setIsSaving(false);

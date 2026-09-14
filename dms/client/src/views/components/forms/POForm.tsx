@@ -88,6 +88,7 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
   const [vendorContact, setVendorContact] = useState("");
   const [deliveryDate, setDeliveryDate] = useState(nextMonthStr);
   const [paymentTerms, setPaymentTerms] = useState(PAYMENT_TERMS_OPTIONS[0]);
+  const [remark, setRemark] = useState("เอกสารใบสั่งซื้อฉบับนี้จะสมบูรณ์เมื่อมีลายเซ็นผู้มีอำนาจอนุมัติครบถ้วน");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const [items, setItems] = useState<POItemInput[]>([
@@ -135,6 +136,32 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
     }
     loadWorkflow();
   }, []);
+
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.title) setTitle(initialData.title);
+      if (initialData.department?.name) setDepartment(initialData.department.name);
+      if (initialData.po_form) {
+        if (initialData.po_form.vendor_name) setVendorName(initialData.po_form.vendor_name);
+        if (initialData.po_form.vendor_contact) setVendorContact(initialData.po_form.vendor_contact);
+        if (initialData.po_form.delivery_date) setDeliveryDate(new Date(initialData.po_form.delivery_date).toISOString().split('T')[0]);
+        if (initialData.po_form.payment_terms) setPaymentTerms(initialData.po_form.payment_terms);
+        if (initialData.po_form.remark) setRemark(initialData.po_form.remark);
+        
+        if (initialData.po_form.items && Array.isArray(initialData.po_form.items) && initialData.po_form.items.length > 0) {
+          setItems(initialData.po_form.items.map((item: any, idx: number) => ({
+            id: String(idx + 1),
+            description: item.item_name || "",
+            quantity: Number(item.quantity) || 1,
+            unit: item.unit || "ชิ้น",
+            unitPrice: Number(item.unit_price) || 0,
+            vatPercent: Number(item.vat) || 7,
+            remark: item.remark || "",
+          })));
+        }
+      }
+    }
+  }, [initialData]);
 
   const handleAddItem = () => {
     const newId = String(items.length + 1);
@@ -190,18 +217,19 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
       alert("กรุณากรอกหัวข้อเอกสารและชื่อผู้ขาย (Vendor Name)");
       return;
     }
-    onSubmit({
-      title,
-      sender: defaultRequester,
-      department,
-      vendorName,
-      vendorContact,
-      deliveryDate,
-      paymentTerms,
-      amount: `฿${netTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      items,
-      attachmentFileName: uploadedFile ? uploadedFile.name : undefined,
-      workflowSteps,
+      onSubmit({
+        title,
+        sender: defaultRequester,
+        department,
+        vendorName,
+        vendorContact,
+        deliveryDate,
+        paymentTerms,
+        amount: `฿${netTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        items,
+        remark,
+        attachmentFileName: uploadedFile ? uploadedFile.name : undefined,
+        workflowSteps,
       isDraft,
     });
   };
@@ -469,8 +497,18 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
           <div className="mt-4 grid grid-cols-[1fr_auto] border-2 border-slate-800 items-stretch">
              <div className="p-3 border-r-2 border-slate-800 flex flex-col justify-between">
                 <div>
-                  <span className="font-bold text-slate-900">หมายเหตุ / Remarks:</span>
-                  <p className="mt-1 text-slate-700 text-[11px]">เอกสารใบสั่งซื้อฉบับนี้จะสมบูรณ์เมื่อมีลายเซ็นต์ผู้อนุมัติครบถ้วน</p>
+                  <span className="font-bold text-slate-900 flex items-center gap-2">หมายเหตุ / Remarks:</span>
+                  <textarea
+                    rows={2}
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                    onInput={(e) => {
+                      e.currentTarget.style.height = 'auto';
+                      e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                    }}
+                    placeholder="เพิ่มหมายเหตุ..."
+                    className="w-full mt-1 bg-transparent focus:outline-none focus:bg-purple-50 p-1 text-[11px] text-slate-700 resize-none overflow-hidden"
+                  />
                 </div>
              </div>
              <div className="w-[200px] flex flex-col">

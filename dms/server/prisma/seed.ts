@@ -212,6 +212,7 @@ async function main() {
   const dtPR = await prisma.documentType.upsert({ where: { prefix: 'PR' }, update: {}, create: { type_name: 'ใบขอซื้อ (PR)', prefix: 'PR' } });
   const dtPO = await prisma.documentType.upsert({ where: { prefix: 'PO' }, update: {}, create: { type_name: 'ใบสั่งซื้อ (PO)', prefix: 'PO' } });
   const dtBK = await prisma.documentType.upsert({ where: { prefix: 'BK' }, update: {}, create: { type_name: 'บันทึกข้อความ (BK)', prefix: 'BK' } });
+  const dtDOC = await prisma.documentType.upsert({ where: { prefix: 'DOC' }, update: {}, create: { type_name: 'เอกสารทั่วไป (DOC)', prefix: 'DOC' } });
 
   await prisma.runningNumber.updateMany({ data: { current_number: 1 } });
 
@@ -222,6 +223,7 @@ async function main() {
       { document_type_id: dtPO.id, step_order: 1, required_role_id: managerRole.id },
       { document_type_id: dtPO.id, step_order: 2, required_role_id: execRole.id },
       { document_type_id: dtBK.id, step_order: 1, required_role_id: managerRole.id },
+      { document_type_id: dtDOC.id, step_order: 1, required_role_id: managerRole.id },
     ],
   });
 

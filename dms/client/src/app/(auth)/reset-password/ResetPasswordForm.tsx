@@ -36,7 +36,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
       setTimeout(() => {
         router.push("/login");
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err?.response?.data?.message || "เกิดข้อผิดพลาด หรือ Token หมดอายุแล้ว");
     } finally {
       setLoading(false);

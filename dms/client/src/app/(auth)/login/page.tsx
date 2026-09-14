@@ -23,7 +23,7 @@ export default function LoginPage() {
     try {
       await login(username, password);
       router.push("/dashboard");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err?.message || "ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง");
     } finally {
       setLoading(false);

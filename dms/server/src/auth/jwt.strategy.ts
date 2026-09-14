@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../prisma/prisma.service';
+import type { Request } from 'express';
 
 export interface JwtPayload {
   sub: string;
@@ -16,10 +17,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!secret) throw new Error('JWT_SECRET env variable is not set');
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request) => {
-          let token = null;
+        (request: Request) => {
+          let token: string | null = null;
           if (request && request.cookies) {
-            token = request.cookies['access_token'];
+            token = request.cookies['access_token'] as string;
           }
           if (!token && request && request.headers) {
             // fallback to bearer header
@@ -59,7 +60,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const empId = (() => {
       if (user.username === 'admin') return 'EMP-00001';
       const match = user.username?.match(/\d+/);
-      if (match) return `EMP-${String(100 + parseInt(match[0], 10)).padStart(5, '0')}`;
+      if (match)
+        return `EMP-${String(100 + parseInt(match[0], 10)).padStart(5, '0')}`;
       const hex = (user.id || '').replace(/-/g, '').substring(0, 6);
       return `EMP-${(parseInt(hex || '0', 16) % 90000) + 10000}`;
     })();
@@ -73,8 +75,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       department: user.department?.name || null,
       email: user.email,
       position: user.position?.name || null,
-      signature_url: user.signature_encrypted ? `/api/users/${user.id}/signature` : null,
-      permissions: user.role?.permissions.map(p => `${p.permission.module}:${p.permission.action}`) || [],
+      signature_url: user.signature_encrypted
+        ? `/api/users/${user.id}/signature`
+        : null,
+      permissions:
+        user.role?.permissions.map(
+          (p) => `${p.permission.module}:${p.permission.action}`,
+        ) || [],
     };
   }
 }

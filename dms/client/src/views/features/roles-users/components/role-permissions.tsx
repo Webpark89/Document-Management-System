@@ -396,6 +396,7 @@ export function RolePermissionPanel({
 
   useEffect(() => {
     if (!normalizedSearch) return;
+   
     setExpanded((prev) => {
       const next = { ...prev };
       for (const section of PERMISSION_SCHEMA) {

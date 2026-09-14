@@ -13,6 +13,7 @@ export function DocumentTypesChart({ data }: DocumentTypesChartProps) {
   const total = useMemo(() => data.reduce((sum, item) => sum + item.value, 0), [data]);
 
   useEffect(() => {
+   
     setMounted(true);
   }, []);
 

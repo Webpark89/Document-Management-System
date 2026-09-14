@@ -8,9 +8,11 @@ import {
   Calendar,
   ZoomIn,
   ZoomOut,
-  RotateCw,
-  CheckCircle2,
+   
+   
+   
 } from "lucide-react";
+   
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { useSignatures } from '@views/components/providers/SignatureProvider';
 import { documentsService } from '@/controllers/services/documents.service';
@@ -24,7 +26,7 @@ interface DocumentSignerViewerProps {
   initialStatus: string;
   signaturePlaced: boolean;
   onSignatureChange?: (placed: boolean) => void;
-  doc?: any;
+  doc?: unknown;
   canSign?: boolean;
   activeApproverName?: string;
 }
@@ -35,7 +37,9 @@ export function DocumentSignerViewer({
   documentId,
   documentName,
   version,
+   
   initialStatus,
+   
   signaturePlaced,
   onSignatureChange,
   doc,
@@ -47,6 +51,7 @@ export function DocumentSignerViewer({
   const approverName = user?.full_name || user?.username || "Administrator";
   const mySignature = findByApproverName(approverName) || signatures.find(s => s.imageUrl);
   const [activeTool, setActiveTool] = useState<ToolMode>("signature");
+   
   const [zoomLevel, setZoomLevel] = useState(100);
   const [placedElements, setPlacedElements] = useState<{
     signature: boolean;

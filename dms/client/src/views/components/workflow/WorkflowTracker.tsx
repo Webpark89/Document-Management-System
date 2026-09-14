@@ -86,6 +86,7 @@ export function WorkflowTracker({ workflow }: WorkflowTrackerProps) {
                 {step.comment && (
                   <div className="mt-4 p-3.5 bg-white rounded-lg border border-gray-100 relative shadow-sm">
                     <div className="absolute -top-1.5 left-4 w-3 h-3 bg-white border-t border-l border-gray-100 rotate-45"></div>
+  { }
                     <p className="text-sm text-gray-700 relative z-10 font-medium">"{step.comment}"</p>
                   </div>
                 )}

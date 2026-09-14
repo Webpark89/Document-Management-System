@@ -1,16 +1,10 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Param,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
 import { WorkflowsService } from './workflows.service';
 import { ApproveStepDto } from './dto/approve-step.dto';
 import { RejectStepDto } from './dto/reject-step.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
+import type { User } from '@prisma/client';
 
 @Controller()
 export class WorkflowsController {
@@ -20,15 +14,22 @@ export class WorkflowsController {
   @Post('workflows/:documentId/submit')
   async submitWorkflow(
     @Param('documentId') documentId: string,
-    @Body() body: { workflow_steps?: Array<{ step_order: number; approver_id?: string }> },
-    @CurrentUser() user: any,
+    @Body()
+    body: {
+      workflow_steps?: Array<{ step_order: number; approver_id?: string }>;
+    },
+    @CurrentUser() user: User,
   ) {
-    return this.workflowsService.submitWorkflow(documentId, user.id, body.workflow_steps);
+    return this.workflowsService.submitWorkflow(
+      documentId,
+      user.id,
+      body.workflow_steps,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('approvals')
-  async getApprovals(@CurrentUser() user: any) {
+  async getApprovals(@CurrentUser() user: User) {
     return this.workflowsService.getApprovalsForUser(user.id);
   }
 
@@ -42,7 +43,7 @@ export class WorkflowsController {
   async approve(
     @Param('documentId') documentId: string,
     @Body() dto: ApproveStepDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     return this.workflowsService.approveStep(documentId, user.id, dto);
   }
@@ -52,7 +53,7 @@ export class WorkflowsController {
   async reject(
     @Param('documentId') documentId: string,
     @Body() dto: RejectStepDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     return this.workflowsService.rejectStep(documentId, user.id, dto);
   }

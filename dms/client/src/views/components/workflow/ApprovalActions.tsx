@@ -6,6 +6,7 @@ import { submitApprove, submitReject } from '@views/features/workflow/api';
 import { useRouter } from "next/navigation";
 import { useToast } from '@views/components/providers/ToastProvider';
 import { swalConfirm, swalError } from "@/lib/swal";
+import { mutate } from "swr";
 
 interface ApprovalActionsProps {
   documentId: string;
@@ -18,9 +19,9 @@ interface ApprovalActionsProps {
   currentStep?: number;
 }
 
-export function ApprovalActions({ 
-  documentId, 
-  signaturePlaced, 
+export function ApprovalActions({
+  documentId,
+  signaturePlaced,
   canApprove = true,
   canReject = true,
   canReturn = true,
@@ -54,14 +55,16 @@ export function ApprovalActions({
 
     setIsSubmitting(true);
     try {
-      const signatureParams = signaturePlaced 
-        ? { signature_x: 400, signature_y: 100, signature_page: 1, signature_width: 120, signature_height: 60 } 
+      const signatureParams = signaturePlaced
+        ? { signature_x: 400, signature_y: 100, signature_page: 1, signature_width: 120, signature_height: 60 }
         : undefined;
       await submitApprove(documentId, comment, signatureParams);
       showToast("อนุมัติเอกสารเรียบร้อยแล้ว", "success");
+      mutate("documents");
+      mutate("dashboard");
       router.push("/approvals");
       router.refresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast(error.message || "เกิดข้อผิดพลาดในการดำเนินการ", "error");
     } finally {
       setIsSubmitting(false);
@@ -79,9 +82,11 @@ export function ApprovalActions({
       await submitReject(documentId, comment, rejectType, rejectType === "return" ? returnToStep : undefined);
       showToast(rejectType === "return" ? "ตีกลับเอกสารเพื่อแก้ไขเรียบร้อยแล้ว" : "ปฏิเสธเอกสารถาวรเรียบร้อยแล้ว", "success");
       setShowRejectModal(false);
+      mutate("documents");
+      mutate("dashboard");
       router.push("/approvals");
       router.refresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast(error.message || "เกิดข้อผิดพลาดในการดำเนินการ", "error");
     } finally {
       setIsSubmitting(false);
@@ -162,11 +167,10 @@ export function ApprovalActions({
                 type="button"
                 onClick={handleApprove}
                 disabled={isSubmitting}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-white font-bold rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 cursor-pointer ${
-                  signaturePlaced
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-white font-bold rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 cursor-pointer ${signaturePlaced
                     ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100"
                     : "bg-slate-400 hover:bg-slate-500 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 {isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -203,11 +207,10 @@ export function ApprovalActions({
               {canReturn && (
                 <label
                   onClick={() => setRejectType("return")}
-                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    rejectType === "return"
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${rejectType === "return"
                       ? "border-amber-500 bg-amber-50/50 shadow-xs"
                       : "border-slate-200 bg-white hover:bg-slate-50"
-                  }`}
+                    }`}
                 >
                   <input
                     type="radio"
@@ -232,11 +235,10 @@ export function ApprovalActions({
               {canReject && (
                 <label
                   onClick={() => setRejectType("cancel")}
-                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    rejectType === "cancel"
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${rejectType === "cancel"
                       ? "border-rose-500 bg-rose-50/50 shadow-xs"
                       : "border-slate-200 bg-white hover:bg-slate-50"
-                  }`}
+                    }`}
                 >
                   <input
                     type="radio"
@@ -258,20 +260,7 @@ export function ApprovalActions({
               )}
             </div>
 
-            {rejectType === "return" && (
-              <div className="space-y-1.5 pt-1">
-                <label className="block text-xs font-semibold text-slate-600">
-                  ส่งกลับไปยังขั้นตอนลำดับที่ (Return to Step)
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  value={returnToStep}
-                  onChange={(e) => setReturnToStep(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-amber-500"
-                />
-              </div>
-            )}
+
 
             <div className="flex gap-3 pt-2 border-t border-slate-100">
               <button

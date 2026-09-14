@@ -42,6 +42,6 @@ export function updateRunningConfig(
 }
 
 export const APPROVAL_MATRIX = {};
-export const SIGNATURES: any[] = [];
-export function matrixToDocumentTypes(matrix: any): any[] { return []; }
+export const SIGNATURES: unknown[] = [];
+export function matrixToDocumentTypes(matrix: unknown): unknown[] { return []; }
 

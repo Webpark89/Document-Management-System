@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FileType2, HelpCircle, Inbox, Loader2, Plus, X, Lock, Trash2 } from "lucide-react";
+   
+   
+import { FileType2, HelpCircle, Inbox, Loader2, Plus, X, Lock } from "lucide-react";
 import { swalConfirm } from "@/lib/swal";
 import { useSidebar } from '@views/components/providers/SidebarProvider';
 import {
@@ -203,7 +205,8 @@ export default function DocumentTypesTab({
       fields: JSON.parse(JSON.stringify(DEFAULT_FORM_FIELDS["PR-style"])),
     });
     setFormErrors({});
-    setModalOpen(true);
+    setTimeout(() => setModalOpen(true), 0);
+   
   };
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import type { Document } from '@models';
 
 export const documentsService = {
   async getDocuments(): Promise<Document[]> {
-    const res = await api.get<{ data: Document[]; meta: any }>("/api/documents");
+    const res = await api.get<{ data: Document[]; meta: unknown }>("/api/documents");
     return res.data?.data || [];
   },
 

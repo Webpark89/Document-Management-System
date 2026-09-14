@@ -22,6 +22,8 @@ import {
 import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { useSidebar } from '@views/components/providers/SidebarProvider';
+import useSWR from 'swr';
+import { getApprovals } from '@views/features/workflow/api';
 
 type NavItem = {
   name: string;
@@ -131,19 +133,37 @@ export default function Sidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const folderId = searchParams?.get("folderId");
+  const source = searchParams?.get("source");
+
+  const { data: approvals } = useSWR("approvals-sidebar", getApprovals, { refreshInterval: 15000 });
+  const [lastViewed, setLastViewed] = useState(0);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setLastViewed(parseInt(localStorage.getItem("lastViewedApprovals") || "0", 10));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (pathname === "/approvals") {
+      const now = Date.now();
+      localStorage.setItem("lastViewedApprovals", now.toString());
+      setLastViewed(now);
+    }
+  }, [pathname]);
   const { user, logout } = useAuth();
   
   const [configExpanded, setConfigExpanded] = useState(() => isConfigRoute(pathname));
-  const [docsExpanded, setDocsExpanded] = useState(() => isDocsRoute(pathname));
+  const [docsExpanded, setDocsExpanded] = useState(() => isDocsRoute(pathname) && source !== "submissions");
 
   useEffect(() => {
     if (isConfigRoute(pathname)) {
       setConfigExpanded(true);
     }
-    if (isDocsRoute(pathname)) {
+    if (isDocsRoute(pathname) && source !== "submissions") {
       setDocsExpanded(true);
     }
-  }, [pathname]);
+  }, [pathname, source]);
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -158,13 +178,18 @@ export default function Sidebar() {
   const displayName = user?.full_name || user?.username || "User";
   const displaySub = user?.username || "user@dms.local";
   const initials = useMemo(() => {
-    const source = (displayName || displaySub).trim();
-    return source ? source.charAt(0).toUpperCase() : "U";
+    const sourceStr = (displayName || displaySub).trim();
+    return sourceStr ? sourceStr.charAt(0).toUpperCase() : "U";
   }, [displayName, displaySub]);
+
+  const unseenCount = useMemo(() => {
+    if (!approvals) return 0;
+    return approvals.filter(a => a.status === "Pending" && (a.rawSubmittedDate || 0) > lastViewed).length;
+  }, [approvals, lastViewed]);
 
   // Highlight parent IF route matches AND (sidebar closed OR menu collapsed)
   const isConfigActive = isConfigRoute(pathname) && (!isOpen || !configExpanded);
-  const isDocsActive = isDocsRoute(pathname) && (!isOpen || !docsExpanded);
+  const isDocsActive = isDocsRoute(pathname) && source !== "submissions" && (!isOpen || !docsExpanded);
 
   return (
     <aside
@@ -193,7 +218,9 @@ export default function Sidebar() {
       <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-2">
         {FLAT_NAV_ITEMS.slice(0, 3).filter(item => hasAccess(item, user?.role, user?.permissions)).map((item) => {
           const Icon = item.icon;
-          const isActive = isNavItemActive(pathname, item.href);
+          let isActive = isNavItemActive(pathname, item.href);
+          if (item.href === "/submissions" && source === "submissions") isActive = true;
+          if (item.href === "/approvals" && source === "submissions") isActive = false;
 
           return (
             <Link
@@ -203,13 +230,27 @@ export default function Sidebar() {
               title={!isOpen ? item.name : undefined}
             >
               {Icon && (
-                <Icon
-                  className={`${NAV_ICON} ${
-                    isActive ? "text-blue-600" : "text-slate-400"
-                  }`}
-                />
+                <div className="relative">
+                  <Icon
+                    className={`${NAV_ICON} ${
+                      isActive ? "text-blue-600" : "text-slate-400"
+                    }`}
+                  />
+                  {!isOpen && item.href === "/approvals" && unseenCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white ring-2 ring-white" />
+                  )}
+                </div>
               )}
-              {isOpen && <span className="truncate">{item.name}</span>}
+              {isOpen && (
+                <div className="flex flex-1 items-center justify-between truncate">
+                  <span className="truncate">{item.name}</span>
+                  {item.href === "/approvals" && unseenCount > 0 && (
+                    <span className="ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                      {unseenCount}
+                    </span>
+                  )}
+                </div>
+              )}
             </Link>
           );
         })}
@@ -345,13 +386,27 @@ export default function Sidebar() {
               title={!isOpen ? item.name : undefined}
             >
               {Icon && (
-                <Icon
-                  className={`${NAV_ICON} ${
-                    isActive ? "text-blue-600" : "text-slate-400"
-                  }`}
-                />
+                <div className="relative">
+                  <Icon
+                    className={`${NAV_ICON} ${
+                      isActive ? "text-blue-600" : "text-slate-400"
+                    }`}
+                  />
+                  {!isOpen && item.href === "/approvals" && unseenCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white ring-2 ring-white" />
+                  )}
+                </div>
               )}
-              {isOpen && <span className="truncate">{item.name}</span>}
+              {isOpen && (
+                <div className="flex flex-1 items-center justify-between truncate">
+                  <span className="truncate">{item.name}</span>
+                  {item.href === "/approvals" && unseenCount > 0 && (
+                    <span className="ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                      {unseenCount}
+                    </span>
+                  )}
+                </div>
+              )}
             </Link>
           );
         })}

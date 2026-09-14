@@ -2,25 +2,32 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+   
+   
+import { useRouter } from "next/navigation";
 import {
   Folder as FolderIcon,
   Search,
   FolderPlus,
+   
   ArrowLeft,
-  Filter,
-  Pin,
-  SlidersHorizontal,
+   
+   
+   
 } from "lucide-react";
+   
 import { Folder } from "@views/features/folders/types";
+   
 import { getFolders, createFolder, updateFolder, deleteFolder } from "@views/features/folders/api";
 import { FolderCard } from "@views/components/folders/FolderCard";
 import { FolderCreateModal } from "@views/components/folders/FolderCreateModal";
 import PageHeader from "@views/components/shared/PageHeader";
+   
 import { useToast } from "@views/components/providers/ToastProvider";
-import { APP_PAGE_SHELL, APP_PAGE_CONTENT, APP_CARD } from "@views/components/ui/design-system";
+import { APP_PAGE_SHELL, APP_PAGE_CONTENT } from "@views/components/ui/design-system";
 
 function AllFoldersContent() {
+   
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -36,11 +43,13 @@ function AllFoldersContent() {
   const [pinnedFolderIds, setPinnedFolderIds] = useState<string[]>([]);
 
   useEffect(() => {
+   
     try {
       const saved = localStorage.getItem("dms_pinned_folder_ids");
       if (saved) setPinnedFolderIds(JSON.parse(saved));
     } catch {}
   }, []);
+     
 
   const handleTogglePin = (folderId: string) => {
     const next = pinnedFolderIds.includes(folderId)
@@ -56,19 +65,21 @@ function AllFoldersContent() {
     setLoading(true);
     try {
       const data = await getFolders();
-      setFolders(data);
+      setTimeout(() => setFolders(data), 0);
     } catch (err) {
       console.error("Failed to load folders", err);
     } finally {
       setLoading(false);
     }
+   
   };
 
   useEffect(() => {
     fetchAllFolders();
   }, []);
 
-  const handleCreateOrUpdateFolder = async (payload: any) => {
+     
+  const handleCreateOrUpdateFolder = async (payload: unknown) => {
     if (editingFolder) {
       await updateFolder(editingFolder.id, payload);
       showToast("อัปเดตโฟลเดอร์เรียบร้อยแล้ว");

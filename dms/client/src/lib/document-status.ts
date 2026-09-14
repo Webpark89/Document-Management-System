@@ -3,7 +3,8 @@
 // Maps document status strings to badge variant names
 // ============================================================
 
-import type { DocumentStatus } from '@views/features/documents/types';
+   
+   
 
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline" | "ghost" | "green" | "amber";
 

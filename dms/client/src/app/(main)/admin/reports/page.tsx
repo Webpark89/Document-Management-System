@@ -3,7 +3,8 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { 
-  BarChart3, 
+   
+   
   FileText, 
   Clock, 
   DollarSign, 
@@ -21,10 +22,13 @@ import {
 } from "lucide-react";
 import PageHeader from '@views/components/shared/PageHeader';
 import DataTableHeader from '@views/components/ui/DataTableHeader';
-import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
+   
+import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from '@views/components/ui/design-system';
+   
 
 // ─── MOCK DATA ─────────────────────────────────────────────────────────────────
 const DEPARTMENTS = [
+   
   "All",
   "ฝ่ายจัดซื้อและพัสดุ",
   "ฝ่ายเทคโนโลยีสารสนเทศ (IT)",
@@ -95,7 +99,7 @@ export default function ReportsPage() {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
 
-  const [documents, setDocuments] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<unknown[]>([]);
 
   const [datePreset, setDatePreset] = useState("all");
 
@@ -104,16 +108,18 @@ export default function ReportsPage() {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          setDepartments(["All", ...data.map((d: any) => d.name || d)]);
+          setDepartments(["All", ...data.map((d: unknown) => d.name || d)]);
         }
       })
       .catch(() => {});
   }, []);
 
   React.useEffect(() => {
+   
     if (datePreset === "all" || datePreset === "custom") {
       if (datePreset === "all") {
         setDateFrom("");
+     
         setDateTo("");
       }
       return;
@@ -162,7 +168,7 @@ export default function ReportsPage() {
   React.useEffect(() => {
     getDocuments().then(docs => {
       const mapped = docs.map(d => {
-        const doc: any = d;
+        const doc: unknown = d;
         const typeCode = doc.type?.code || doc.type;
         const departmentName = doc.creator?.department?.name || doc.department || "ทั่วไป";
 
@@ -306,10 +312,12 @@ export default function ReportsPage() {
   };
 
   const [currentPage, setCurrentPage] = useState(1);
+   
   const itemsPerPage = 10;
 
   React.useEffect(() => {
     setCurrentPage(1);
+     
   }, [filteredData]);
 
   // Render Report Bodies
@@ -457,6 +465,7 @@ export default function ReportsPage() {
             <tbody className="divide-y divide-slate-50/80">
               {paginatedData.map((doc, idx) => {
                 const wf = (doc as any).workflow;
+   
                 let currentApprover = "-";
                 let progress = "-";
                 let progressPercentage = 0;
@@ -465,7 +474,7 @@ export default function ReportsPage() {
                   progress = `Step ${wf.current_step} of ${wf.total_steps}`;
                   progressPercentage = ((wf.current_step - 1) / wf.total_steps) * 100;
                   
-                  const currentStepObj = wf.steps.find((s: any) => s.step_order === wf.current_step);
+                  const currentStepObj = wf.steps.find((s: unknown) => s.step_order === wf.current_step);
                   if (currentStepObj?.approver) {
                     currentApprover = `${currentStepObj.approver.first_name || ""} ${currentStepObj.approver.last_name || ""}`.trim() || currentStepObj.approver.username;
                   }
@@ -473,6 +482,7 @@ export default function ReportsPage() {
                   if (doc.status === "Approved") {
                     currentApprover = "Completed";
                     progress = "Done";
+   
                     progressPercentage = 100;
                   } else if (doc.status === "Rejected" || doc.status === "Returned") {
                     currentApprover = "-";

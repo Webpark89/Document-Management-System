@@ -1,16 +1,20 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, Suspense } from "react";
+   
+   
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { 
   Search, 
+   
   Download, 
-  Filter, 
+   
   ChevronLeft, 
-  ChevronRight, 
-  Activity,
+   
+  ChevronRight,
   ChevronDown,
+   
   ChevronUp,
   X
 } from "lucide-react";
@@ -18,15 +22,19 @@ import DataTableHeader from '@views/components/ui/DataTableHeader';
 import {
   APP_PAGE_CONTENT,
   APP_PAGE_SHELL,
+   
   APP_TABLE_CARD,
-  MD_THEAD,
-  MD_TR,
+   
 } from '@views/components/ui/design-system';
 import { AdminPageHeader } from "@/app/(main)/admin/master-data/master-data-ui";
-import { adminService, AuditLogDto } from "@/controllers/services/admin.service";
+   
+   
+import { adminService } from "@/controllers/services/admin.service";
+   
 import { useAuth } from '@views/components/providers/AuthProvider';
 
 // ─── TYPES & MOCK DATA ────────────────────────────────────────────────────────
+   
 type ActionType = "Login" | "Upload" | "Download" | "View" | "Edit" | "Delete" | "Approve" | "Reject" | "Signature";
 type ModuleType = "Documents" | "Users" | "Roles" | "Approvals" | "Master Data" | "Auth" | "All";
 
@@ -78,6 +86,7 @@ function AuditLogsContent() {
 
   const [sortKey, setSortKey] = useState<string | null>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>("desc");
+   
 
   const handleSort = (key: string) => {
     if (sortKey !== key) {
@@ -108,6 +117,7 @@ function AuditLogsContent() {
     const pModule = searchParams.get("module");
     const pActions = searchParams.get("action");
     
+   
     if (pModule) {
       const norm = normalizeModuleName(pModule);
       if (ALL_MODULES.includes(norm)) {
@@ -115,6 +125,7 @@ function AuditLogsContent() {
       }
     }
     if (pActions) {
+     
       const actionsArr = pActions.split(",").map(a => a.trim()).filter(a => ALL_ACTIONS.includes(a as ActionType)) as ActionType[];
       if (actionsArr.length > 0) {
         setSelectedActions(new Set(actionsArr));
@@ -122,6 +133,7 @@ function AuditLogsContent() {
     }
   }, [searchParams]);
 
+   
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -130,6 +142,7 @@ function AuditLogsContent() {
     setFetchError(null);
 
     adminService
+     
       .getAuditLogs(searchTerm, undefined, dateFrom || undefined, dateTo || undefined)
       .then((logs) => {
         if (!isMounted) return;
@@ -245,6 +258,7 @@ function AuditLogsContent() {
 
   // 2. Pagination
   const totalItems = filteredLogs.length;
+     
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -447,7 +461,8 @@ function AuditLogsContent() {
               <table className="w-full table-fixed min-w-[900px] text-left border-collapse whitespace-nowrap">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    <DataTableHeader title="Timestamp" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-44" />
+                    <DataTableHeader title="Date" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-32" />
+                    <DataTableHeader title="Time" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-28" />
                     <DataTableHeader title="User" sortKey="userName" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-40" />
                     <DataTableHeader title="Action" sortKey="action" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
                     <DataTableHeader title="Module" sortKey="module" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
@@ -459,7 +474,7 @@ function AuditLogsContent() {
                 <tbody className="divide-y divide-slate-100">
                   {paginatedLogs.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-16 text-center">
+                      <td colSpan={8} className="py-16 text-center">
                         <div className="flex flex-col items-center justify-center">
                           <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3">
                             <Search className="w-6 h-6" />
@@ -523,7 +538,7 @@ function AuditLogsContent() {
                         {/* EXPANDED DETAILS ROW */}
                         {expandedRow === log.id && log.comment && (
                           <tr className="bg-slate-50/80 border-b border-slate-100">
-                            <td colSpan={7} className="p-0">
+                            <td colSpan={8} className="p-0">
                               <div className="px-6 py-3.5 border-l-4 border-indigo-400 ml-4 my-2 rounded-r-xl bg-white shadow-xs">
                                 <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Reason / Comment</h4>
                                 <p className="text-sm font-semibold text-slate-800 break-words">{log.comment}</p>

@@ -65,7 +65,17 @@ function SignatureDisplay({
   );
 }
 
-export function DocumentPreview({ doc, hideHeader, isViewer, tempSignature, onSignClick }: DocumentPreviewProps) {
+export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isViewer, tempSignature, onSignClick }: DocumentPreviewProps) {
+  let doc = initialDoc as any;
+  if (versionId && doc.versions) {
+    const version = doc.versions.find((v: any) => v.id === versionId || v.version_number?.toString() === versionId.toString());
+    if (version && version.form_data) {
+      doc = { ...doc };
+      if (doc.type === 'PR') doc.pr_form = version.form_data;
+      else if (doc.type === 'PO') doc.po_form = version.form_data;
+      else if (doc.type === 'BK' || doc.type === 'MEMO') doc.bk_form = version.form_data;
+    }
+  }
   const { user } = useAuth();
   const { signatures, findByApproverName } = useSignatures();
 
@@ -135,9 +145,9 @@ export function DocumentPreview({ doc, hideHeader, isViewer, tempSignature, onSi
          buyerTaxId: "",
       },
       form.items || [],
-      form.total_amount,
+      Number(form.total_amount),
       0, // PR usually has no VAT in the request stage
-      form.purpose
+      form.remark || form.purpose || ""
     );
   };
 
@@ -158,30 +168,27 @@ export function DocumentPreview({ doc, hideHeader, isViewer, tempSignature, onSi
        totalVat += itemPreTax * (vatRate / 100);
      });
 
-    // If backend already calculated total_amount including VAT, we use it.
-    const grandTotal = Number(form.total_amount);
-    
-    // Adjust if preTaxAmount + totalVat doesn't match grandTotal perfectly
-    if (Math.abs((preTaxAmount + totalVat) - grandTotal) > 1) {
-       preTaxAmount = grandTotal / 1.07;
-       totalVat = grandTotal - preTaxAmount;
-    }
+      // If backend already calculated total_amount including VAT, we use it.
+      const grandTotal = preTaxAmount + totalVat;
 
     return renderA4Template(
-      "ใบสั่งซื้อ",
+      "ใบสั่งซื้อ/สั่งจ้าง",
       "PURCHASE ORDER",
       "PO",
       {
          vendorName: form.vendor_name || "บริษัท คู่ค้า จำกัด",
-         vendorContact: "-",
+         vendorContact: form.vendor_contact || "-",
+         deliveryDate: form.delivery_date,
+         paymentTerms: form.payment_terms,
          buyerName: companySettings.companyName,
          buyerAddress: companySettings.companyAddress,
          buyerTaxId: "",
+         purpose: doc.po_form?.purpose,
       },
       form.items || [],
       grandTotal,
       totalVat,
-      doc.department ? `แผนกที่สั่งซื้อ: ${doc.department}` : "-"
+      form.remark || ""
     );
   };
 
@@ -423,6 +430,8 @@ export function DocumentPreview({ doc, hideHeader, isViewer, tempSignature, onSi
                     <span className="font-bold text-slate-900">{doc.sender}</span>
                     <span className="text-slate-600 font-bold">แผนก / Dept:</span>
                     <span className="font-bold text-slate-900">{doc.department || "-"}</span>
+                    <span className="text-slate-600 font-bold">เรื่อง / โครงการ:</span>
+                    <span className="font-bold text-slate-900">{doc.title || "-"}</span>
                   </div>
                </div>
                <div className="border border-slate-800 p-2">
@@ -443,20 +452,26 @@ export function DocumentPreview({ doc, hideHeader, isViewer, tempSignature, onSi
             <div className="grid grid-cols-2 gap-4 mb-4">
                <div className="border border-slate-800 p-2">
                   <p className={`font-bold border-b border-slate-800 pb-1 mb-2 ${primaryText}`}>ผู้ขาย / Vendor</p>
-                  <div className="grid grid-cols-[80px_1fr] gap-x-2 gap-y-1 text-[11px]">
-                    <span className="text-slate-600 font-bold">ชื่อบริษัท:</span>
-                    <span className="font-bold text-slate-900">{meta.vendorName}</span>
-                    <span className="text-slate-600 font-bold">ที่อยู่:</span>
-                    <span className="leading-tight">{meta.vendorContact === "-" ? "ไม่ระบุ" : meta.vendorContact}</span>
+                  <div className="grid grid-cols-[90px_1fr] gap-x-2 gap-y-1 text-[11px]">
+                    <span className="text-slate-600 font-bold">ชื่อร้าน/บริษัท:</span>
+                    <span className="font-bold text-slate-900">{meta.vendorName || "ไม่ระบุ"}</span>
+                    <span className="text-slate-600 font-bold">ข้อมูลติดต่อ:</span>
+                    <span className="leading-tight">{meta.vendorContact || "ไม่ระบุ"}</span>
+                    <span className="text-slate-600 font-bold">วันที่ส่งมอบ:</span>
+                    <span className="font-bold text-slate-900">{meta.deliveryDate ? new Date(meta.deliveryDate).toLocaleDateString('th-TH') : "ไม่ระบุ"}</span>
+                    <span className="text-slate-600 font-bold">เงื่อนไขชำระเงิน:</span>
+                    <span className="font-bold text-slate-900">{meta.paymentTerms || "ไม่ระบุ"}</span>
                   </div>
                </div>
                <div className="border border-slate-800 p-2">
-                  <p className={`font-bold border-b border-slate-800 pb-1 mb-2 ${primaryText}`}>จัดส่งถึง / Ship To</p>
+                  <p className={`font-bold border-b border-slate-800 pb-1 mb-2 ${primaryText}`}>ผู้ซื้อ / Buyer</p>
                   <div className="grid grid-cols-[80px_1fr] gap-x-2 gap-y-1 text-[11px]">
-                    <span className="text-slate-600 font-bold">ชื่อบริษัท:</span>
-                    <span className="font-bold text-slate-900">{meta.buyerName}</span>
-                    <span className="text-slate-600 font-bold">ที่อยู่:</span>
-                    <span className="leading-tight">{meta.buyerAddress}</span>
+                    <span className="text-slate-600 font-bold">ชื่อ / Name:</span>
+                    <span className="font-bold text-slate-900">{doc.sender}</span>
+                    <span className="text-slate-600 font-bold">แผนก / Dept:</span>
+                    <span className="font-bold text-slate-900">{doc.department || "ไม่ระบุ"}</span>
+                    <span className="text-slate-600 font-bold">เรื่อง:</span>
+                    <span className="font-bold text-slate-900">{doc.title || "ไม่ระบุ"}</span>
                   </div>
                </div>
             </div>

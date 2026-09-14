@@ -219,6 +219,27 @@ export default function ApprovalDetailPage({ params }: PageProps) {
 
         {/* RIGHT COLUMN: Workflow Tracker & Action Controls */}
         <div className="space-y-6">
+          {/* EDIT DOCUMENT BUTTON CARD FOR RETURNED / REJECTED / DRAFT */}
+          {["Returned", "Rejected", "Draft", "Returned for Revision"].includes(doc.status) && (
+            <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 shadow-xs space-y-3">
+              <div className="flex items-center gap-2 text-amber-800">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                <div>
+                  <h4 className="text-xs font-bold">เอกสารต้องการการแก้ไขส่งใหม่</h4>
+                  <p className="text-[11px] text-amber-700 font-medium mt-0.5">
+                    เอกสารนี้อยู่ในสถานะ {doc.status} คุณสามารถกดแก้ไขเพื่อปรับปรุงข้อมูลและส่งอนุมัติใหม่ได้
+                  </p>
+                </div>
+              </div>
+              <Link
+                href={`/submissions/create?edit=${(doc as any).real_id || doc.id}`}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl transition-all shadow-xs cursor-pointer"
+              >
+                ✏️ แก้ไขเอกสารเพื่อส่งใหม่ (Edit & Resubmit)
+              </Link>
+            </div>
+          )}
+
           {workflow ? (
             <WorkflowTracker workflow={workflow} />
           ) : (

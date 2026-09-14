@@ -6,6 +6,6 @@ import { EncryptionModule } from '../common/encryption/encryption.module';
 @Module({
   imports: [EncryptionModule],
   controllers: [AdminController],
-  providers: [AdminService]
+  providers: [AdminService],
 })
 export class AdminModule {}

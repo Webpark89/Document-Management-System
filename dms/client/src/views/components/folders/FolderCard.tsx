@@ -2,7 +2,9 @@
 
 import React from "react";
 import { Folder, VISIBILITY_LABEL, VISIBILITY_COLOR } from "@views/features/folders/types";
-import { Folder as FolderIcon, MoreVertical, Edit2, Trash2, Pin } from "lucide-react";
+   
+   
+import { MoreVertical, Edit2, Trash2, Pin } from "lucide-react";
 import { FolderIconRenderer } from "./FolderIconRenderer";
 
 interface FolderCardProps {

@@ -672,9 +672,10 @@ function MasterDataPageContent() {
         while (steps.length < levels) steps.push(ROLE_OPTIONS[0]); 
         
         const prefix = form.prefix || "PR";
-        const docType = data.doctype.find((d: any) => d.prefix === prefix);
-        if (docType) {
-          await adminService.updateApprovalWorkflow(docType.id, { levels, steps });
+        const docType = data.doctype.find((d: any) => d.id === editingId || d.prefix === prefix || d.typeName === form.name);
+        const targetDocTypeId = editingId || docType?.id;
+        if (targetDocTypeId) {
+          await adminService.updateApprovalWorkflow(targetDocTypeId, { levels, steps });
         }
       } else if (activeTab === "signature") {
         // Signatures are normally updated via user profile, but this mocks the admin edit
@@ -1344,8 +1345,8 @@ function MasterDataPageContent() {
             >
               <option value="PR">ใบขอซื้อ (PR)</option>
               <option value="PO">ใบสั่งซื้อ (PO)</option>
-              <option value="บันทึก">บันทึกข้อความ (BK)</option>
-              <option value="OTHER">เอกสารอื่นๆ (OTHER)</option>
+              <option value="BK">บันทึกข้อความ (BK)</option>
+              <option value="DOC">เอกสารทั่วไป (DOC)</option>
             </select>
           </div>
 
@@ -1389,10 +1390,10 @@ function MasterDataPageContent() {
                   <div className="flex-1">
                     <select
                       className={inputCls}
-                      value={steps[idx] || ROLE_OPTIONS[0]}
+                      value={steps[idx] || (data.position.length > 0 ? data.position[0].name : ROLE_OPTIONS[0])}
                       onChange={(e) => updateStepRole(idx, e.target.value as RoleOption)}
                     >
-                      {ROLE_OPTIONS.map((role) => (
+                      {(data.position.length > 0 ? data.position.map((p) => p.name) : ROLE_OPTIONS).map((role) => (
                         <option key={role} value={role}>
                           {role}
                         </option>

@@ -2,6 +2,7 @@ import { Controller, Get, Patch, Param, UseGuards } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
+import type { User } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard)
 @Controller('notifications')
@@ -9,22 +10,22 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get()
-  async getNotifications(@CurrentUser() user: any) {
+  async getNotifications(@CurrentUser() user: User) {
     return this.notificationsService.getUserNotifications(user.id);
   }
 
   @Get('unread-count')
-  async getUnreadCount(@CurrentUser() user: any) {
+  async getUnreadCount(@CurrentUser() user: User) {
     return this.notificationsService.getUnreadCount(user.id);
   }
 
   @Patch('read-all')
-  async markAllAsRead(@CurrentUser() user: any) {
+  async markAllAsRead(@CurrentUser() user: User) {
     return this.notificationsService.markAllAsRead(user.id);
   }
 
   @Patch(':id/read')
-  async markAsRead(@Param('id') id: string, @CurrentUser() user: any) {
+  async markAsRead(@Param('id') id: string, @CurrentUser() user: User) {
     return this.notificationsService.markAsRead(id, user.id);
   }
 }

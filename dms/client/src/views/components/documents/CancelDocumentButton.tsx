@@ -68,6 +68,7 @@ export function CancelDocumentButton({ document }: CancelDocumentButtonProps) {
             
             <div className="p-6 space-y-4">
               <div className="flex items-start gap-4 p-4 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-sm font-semibold">
+  { }
                 การกระทำนี้ไม่สามารถย้อนกลับได้! เอกสารจะถูกเปลี่ยนสถานะเป็น "ยกเลิก" และยุติสายการอนุมัติทั้งหมด
               </div>
 

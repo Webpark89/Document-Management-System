@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, User } from "lucide-react";
 import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { cn } from "@/lib/utils";
@@ -9,6 +9,9 @@ import Link from "next/link";
 
 
 import { getNotifications, NotificationItem } from '@views/features/notifications/api';
+
+import useSWR from 'swr';
+import Swal from 'sweetalert2';
 
 type PageHeaderProps = {
   title: string;
@@ -26,13 +29,35 @@ export default function PageHeader({
   className,
 }: PageHeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  
+  const { data: notificationsData } = useSWR('/api/notifications', async () => {
+    return await getNotifications();
+  }, { refreshInterval: 5000 });
+
+  const notifications = notificationsData || [];
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  // Track the newest notification to trigger toast
+  const [lastNotifId, setLastNotifId] = useState<string | null>(null);
 
   React.useEffect(() => {
-    getNotifications().then(data => setNotifications(data || []));
-  }, []);
-
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+    if (notifications.length > 0) {
+      const newest = notifications[0]; // notifications are ordered desc
+      if (!newest.is_read && lastNotifId && newest.id !== lastNotifId) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'info',
+          title: 'การแจ้งเตือนใหม่',
+          text: newest.message,
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true,
+        });
+      }
+      setLastNotifId(newest.id);
+    }
+  }, [notifications, lastNotifId]);
 
   const { user } = useAuth();
   const displayName = user?.full_name || user?.username || "User";
@@ -120,8 +145,8 @@ export default function PageHeader({
         </div>
         <div className="flex shrink-0 items-center gap-2.5 pl-1">
           <Avatar className="size-9">
-            <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold text-sm">
-              {initials}
+            <AvatarFallback className="bg-indigo-100 text-indigo-700">
+              <User className="w-5 h-5" />
             </AvatarFallback>
           </Avatar>
           <span className="text-sm font-semibold text-slate-700 hidden md:block">

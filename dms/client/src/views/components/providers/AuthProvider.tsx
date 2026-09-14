@@ -4,11 +4,14 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import { usePathname, useRouter } from "next/navigation";
 import {
   api,
-  clearAccessToken,
-  getStoredAccessToken,
-  persistAccessToken,
+   
+   
+   
 } from "@/lib";
+   
+   
 
+   
 type AuthUser = {
   id: string;
   full_name: string;
@@ -106,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [user, loading]
   );
 
+     
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

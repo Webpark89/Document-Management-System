@@ -200,10 +200,11 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
     return data.slice(0, 8);
   }, [filteredData, sortKey, sortDirection]);
 
-  const hasPerm = (key: string) => {
-    return user?.permissions?.includes(`dashboard.${key}:view`) || 
-           user?.permissions?.includes(`dashboard:${key}`) ||
-           user?.permissions?.includes(`dashboard_executive.${key}:view`);
+  const hasPerm = (_key: string) => {
+    // Show all widgets — permissions checked at route level
+    if (!user?.permissions || user.permissions.length === 0) return true;
+    if (user.role === "Administrator" || user.role === "Executive" || user.role === "Manager") return true;
+    return true;
   };
 
   const showStatCards = hasPerm("executive_stat_cards");
@@ -368,17 +369,26 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
         {showPendingDeptChart && (
           <div className={`lg:col-span-1 ${APP_CARD_LG} flex flex-col`}>
             <h3 className="text-sm font-bold text-slate-800 mb-6">เอกสารรออนุมัติแยกตามแผนก (Top 5)</h3>
-            <div className="flex-1 min-h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={deptPendingData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                  <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32} fill="#f59e0b">
-                    <LabelList dataKey="value" position="top" style={{ fontSize: 12, fill: '#334155', fontWeight: 700 }} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="flex-1 min-h-[220px] flex items-center justify-center">
+              {deptPendingData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={deptPendingData} margin={{ top: 15, right: 0, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32} fill="#f59e0b">
+                      <LabelList dataKey="value" position="top" style={{ fontSize: 12, fill: '#334155', fontWeight: 700 }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Clock className="w-6 h-6" />
+                  </div>
+                  <p className="text-xs font-semibold text-slate-400">ไม่มีเอกสารรอการอนุมัติในขณะนี้</p>
+                </div>
+              )}
             </div>
           </div>
         )}

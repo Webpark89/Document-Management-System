@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EncryptionService } from '../common/encryption/encryption.service';
 import { ApproveStepDto } from './dto/approve-step.dto';
-import { RejectStepDto } from './dto/reject-step.dto';
+import { RejectStepDto, RejectType } from './dto/reject-step.dto';
 import { PDFDocument } from 'pdf-lib';
 
 @Injectable()
@@ -14,7 +19,11 @@ export class WorkflowsService {
     private encryption: EncryptionService,
   ) {}
 
-  async submitWorkflow(documentId: string, userId: string, customSteps?: Array<{ step_order: number; approver_id?: string }>) {
+  async submitWorkflow(
+    documentId: string,
+    userId: string,
+    customSteps?: Array<{ step_order: number; approver_id?: string }>,
+  ) {
     const doc = await this.prisma.document.findFirst({
       where: {
         OR: [{ id: documentId }, { doc_number: documentId }],
@@ -30,12 +39,18 @@ export class WorkflowsService {
       throw new NotFoundException('ไม่พบเอกสาร');
     }
 
-    if (doc.status !== 'Draft' && doc.status !== 'Returned') {
-      throw new BadRequestException('เอกสารไม่ได้อยู่ในสถานะร่างหรือส่งกลับแก้ไข ไม่สามารถส่งอนุมัติได้');
+    if (!['Draft', 'Returned', 'Rejected'].includes(doc.status)) {
+      throw new BadRequestException(
+        'เอกสารไม่ได้อยู่ในสถานะร่าง หรือส่งกลับ/ปฏิเสธ ไม่สามารถส่งอนุมัติได้',
+      );
     }
 
     // 1. Resolve steps (from ApprovalMatrix or Custom/System default)
-    let stepsToCreate: Array<{ step_order: number; approver_id: string | null; status: 'Pending' }> = [];
+    let stepsToCreate: Array<{
+      step_order: number;
+      approver_id: string | null;
+      status: 'Pending';
+    }> = [];
 
     if (customSteps && customSteps.length > 0) {
       // Map custom steps with robust user resolution (support UUID, username, or full name)
@@ -54,7 +69,11 @@ export class WorkflowsService {
             } else {
               // 2. Try finding user by username
               const userByUsername = await this.prisma.user.findFirst({
-                where: { username: targetId, is_active: true, is_deleted: false },
+                where: {
+                  username: targetId,
+                  is_active: true,
+                  is_deleted: false,
+                },
               });
               if (userByUsername) {
                 resolvedApproverId = userByUsername.id;
@@ -66,8 +85,9 @@ export class WorkflowsService {
                 const lowerTarget = targetId.toLowerCase();
                 const match = allUsers.find(
                   (u) =>
-                    `${u.first_name} ${u.last_name}`.trim().toLowerCase() === lowerTarget ||
-                    u.first_name.trim().toLowerCase() === lowerTarget
+                    `${u.first_name} ${u.last_name}`.trim().toLowerCase() ===
+                      lowerTarget ||
+                    u.first_name.trim().toLowerCase() === lowerTarget,
                 );
                 if (match) resolvedApproverId = match.id;
               }
@@ -77,7 +97,11 @@ export class WorkflowsService {
           // Fallback if still unassigned
           if (!resolvedApproverId) {
             const adminUser = await this.prisma.user.findFirst({
-              where: { role: { name: 'Administrator' }, is_active: true, is_deleted: false },
+              where: {
+                role: { name: 'Administrator' },
+                is_active: true,
+                is_deleted: false,
+              },
             });
             const fallbackUser =
               adminUser ||
@@ -92,7 +116,7 @@ export class WorkflowsService {
             approver_id: resolvedApproverId,
             status: 'Pending' as const,
           };
-        })
+        }),
       );
     } else {
       const creatorUser = await this.prisma.user.findUnique({
@@ -142,9 +166,19 @@ export class WorkflowsService {
       } else {
         // Default single step: resolve admin user as fallback
         const adminUser = await this.prisma.user.findFirst({
-          where: { role: { name: 'Administrator' }, is_active: true, is_deleted: false },
+          where: {
+            role: { name: 'Administrator' },
+            is_active: true,
+            is_deleted: false,
+          },
         });
-        stepsToCreate = [{ step_order: 1, approver_id: adminUser?.id || null, status: 'Pending' }];
+        stepsToCreate = [
+          {
+            step_order: 1,
+            approver_id: adminUser?.id || null,
+            status: 'Pending',
+          },
+        ];
       }
     }
 
@@ -152,7 +186,9 @@ export class WorkflowsService {
     const result = await this.prisma.$transaction(async (tx) => {
       // Delete old workflow if exists
       if (doc.workflow) {
-        await tx.workflowStep.deleteMany({ where: { workflow_id: doc.workflow.id } });
+        await tx.workflowStep.deleteMany({
+          where: { workflow_id: doc.workflow.id },
+        });
         await tx.workflow.delete({ where: { id: doc.workflow.id } });
       }
 
@@ -200,10 +236,70 @@ export class WorkflowsService {
           details: {
             oldState: { status: 'Draft' },
             newState: { status: 'Pending' },
-            extra: { doc_number: doc.doc_number, total_steps: stepsToCreate.length },
+            extra: {
+              doc_number: doc.doc_number,
+              total_steps: stepsToCreate.length,
+            },
           },
         },
       });
+
+      // Track version history for Current Set
+      const latestVersion = await tx.documentVersion.findFirst({
+        where: { document_id: doc.id },
+        orderBy: { version_number: 'desc' },
+      });
+
+      const wasRejected =
+        latestVersion?.remarks?.includes('ตีกลับ') ||
+        latestVersion?.remarks?.includes('ไม่อนุมัติ');
+
+      let formDataToKeep: any = undefined;
+      if ((doc as any).pr_form) formDataToKeep = (doc as any).pr_form;
+      else if ((doc as any).po_form) formDataToKeep = (doc as any).po_form;
+      else if ((doc as any).bk_form) formDataToKeep = (doc as any).bk_form;
+
+      if (!latestVersion) {
+        // Create Version 1 for new documents
+        await tx.documentVersion.create({
+          data: {
+            document_id: doc.id,
+            version_number: 1,
+            uploaded_by_id: userId,
+            remarks: 'รออนุมัติ',
+            form_data: formDataToKeep,
+          },
+        });
+      } else if (!wasRejected) {
+        // Update current version
+        await tx.documentVersion.update({
+          where: { id: latestVersion.id },
+          data: { 
+            remarks: 'รออนุมัติ',
+            form_data: formDataToKeep,
+          },
+        });
+      } else {
+        // Was rejected, spawn a NEW version!
+        const newVersionNum = latestVersion.version_number + 1;
+
+        let fileDataToKeep: Buffer | undefined;
+        if (latestVersion.file_data) {
+          fileDataToKeep = Buffer.from(latestVersion.file_data);
+        }
+
+        await tx.documentVersion.create({
+          data: {
+            document_id: doc.id,
+            version_number: newVersionNum,
+            file_data: fileDataToKeep,
+            file_extension: latestVersion.file_extension || undefined,
+            uploaded_by_id: userId,
+            remarks: 'รออนุมัติ',
+            form_data: formDataToKeep,
+          },
+        });
+      }
 
       return {
         document: updatedDoc,
@@ -247,7 +343,11 @@ export class WorkflowsService {
     const activeSteps = steps.filter((s) => {
       // Only show steps that are Pending AND are the current step in the workflow.
       // If the workflow is already Rejected/Returned/Approved, it shouldn't show in the pending list.
-      return s.status === 'Pending' && s.step_order === s.workflow.current_step && s.workflow.status === 'Pending';
+      return (
+        s.status === 'Pending' &&
+        s.step_order === s.workflow.current_step &&
+        s.workflow.status === 'Pending'
+      );
     });
 
     return activeSteps.map((s) => {
@@ -290,9 +390,16 @@ export class WorkflowsService {
   }
 
   async getWorkflowByDoc(documentId: string) {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(documentId);
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        documentId,
+      );
     const doc = await this.prisma.document.findFirst({
-      where: { OR: isUuid ? [{ id: documentId }, { doc_number: documentId }] : [{ doc_number: documentId }] },
+      where: {
+        OR: isUuid
+          ? [{ id: documentId }, { doc_number: documentId }]
+          : [{ doc_number: documentId }],
+      },
     });
 
     if (!doc) throw new NotFoundException('ไม่พบเอกสาร');
@@ -307,7 +414,16 @@ export class WorkflowsService {
       },
     });
 
-    if (!workflow) throw new NotFoundException('ไม่พบขั้นตอนการอนุมัติ');
+    if (!workflow) {
+      return {
+        id: '',
+        document_id: doc.id,
+        total_steps: 0,
+        current_step: 0,
+        status: doc.status,
+        steps: [],
+      };
+    }
 
     return {
       id: workflow.id,
@@ -372,28 +488,39 @@ export class WorkflowsService {
     }
 
     const isLastStep = workflow.current_step >= workflow.total_steps;
-    const hasSignature = dto.signature_x !== undefined && dto.signature_y !== undefined;
+    const hasSignature =
+      dto.signature_x !== undefined && dto.signature_y !== undefined;
 
     // ---- PDF-LIB: ฝังลายเซ็นลงบน PDF (ถ้ามีพิกัด + มีไฟล์) ----
     let signedBuffer: Buffer | null = null;
     let newVersionNumber = 1;
+    const latestVersion = doc.versions?.[0];
 
     if (hasSignature) {
-      const latestVersion = (doc as any).versions?.[0];
 
       if (!latestVersion?.file_data) {
-        this.logger.warn(`No PDF version found for doc ${documentId} — skipping signature embed`);
+        this.logger.warn(
+          `No PDF version found for doc ${documentId} — skipping signature embed`,
+        );
       } else {
-        const approver = await this.prisma.user.findUnique({ where: { id: userId } });
+        const approver = await this.prisma.user.findUnique({
+          where: { id: userId },
+        });
         if (!approver?.signature_encrypted) {
-          this.logger.warn(`Approver ${userId} has no signature — skipping PDF embed`);
+          this.logger.warn(
+            `Approver ${userId} has no signature — skipping PDF embed`,
+          );
         } else {
           try {
-            const decryptedSig = this.encryption.decrypt(approver.signature_encrypted);
+            const decryptedSig = this.encryption.decrypt(
+              approver.signature_encrypted,
+            );
             let signatureBuffer: Buffer;
             let isJpg = false;
 
-            const matches = decryptedSig.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+            const matches = decryptedSig.match(
+              /^data:(image\/[a-zA-Z+]+);base64,(.+)$/,
+            );
             if (matches) {
               const mime = matches[1];
               isJpg = mime.includes('jpeg') || mime.includes('jpg');
@@ -424,8 +551,10 @@ export class WorkflowsService {
             const signedPdfBytes = await pdfDoc.save();
             signedBuffer = Buffer.from(signedPdfBytes);
             newVersionNumber = latestVersion.version_number + 1;
-          } catch (embedErr: any) {
-            this.logger.warn(`PDF signature embed skipped for ${documentId}: ${embedErr.message}`);
+          } catch (embedErr: unknown) {
+            this.logger.warn(
+              `PDF signature embed skipped for ${documentId}: ${(embedErr as Error).message}`,
+            );
             signedBuffer = null;
           }
         }
@@ -447,30 +576,35 @@ export class WorkflowsService {
       });
 
       // 2. สร้าง DocumentVersion ใหม่ (ถ้ามีการฝังลายเซ็น)
-      if (hasSignature && signedBuffer) {
-        await tx.documentVersion.create({
+      if (hasSignature && signedBuffer && latestVersion) {
+        await tx.documentVersion.update({
+          where: { id: latestVersion.id },
           data: {
-            document_id: doc.id,
-            version_number: newVersionNumber,
             file_data: signedBuffer,
-            file_extension: 'pdf',
-            uploaded_by_id: userId,
-            remarks: `ลายเซ็น Step ${workflow.current_step}`,
           },
         });
       }
 
       // 3. อัปเดต Workflow + Document
       if (isLastStep) {
-        await tx.workflow.update({ where: { id: workflow.id }, data: { status: 'Approved' } });
+        await tx.workflow.update({
+          where: { id: workflow.id },
+          data: { status: 'Approved' },
+        });
 
         // Auto-assign department folder if not assigned yet
         let autoFolderId: string | null = doc.folder_id || null;
         if (!autoFolderId) {
-          const creatorUser = await tx.user.findUnique({ where: { id: doc.creator_id } });
+          const creatorUser = await tx.user.findUnique({
+            where: { id: doc.creator_id },
+          });
           if (creatorUser?.department_id) {
             const deptFolder = await tx.folder.findFirst({
-              where: { department_id: creatorUser.department_id, is_deleted: false, visibility: 'Department' },
+              where: {
+                department_id: creatorUser.department_id,
+                is_deleted: false,
+                visibility: 'Department',
+              },
             });
             if (deptFolder) autoFolderId = deptFolder.id;
           }
@@ -478,8 +612,24 @@ export class WorkflowsService {
 
         await tx.document.update({
           where: { id: doc.id },
-          data: { status: 'Approved', folder_id: autoFolderId, approved_at: new Date() },
+          data: {
+            status: 'Approved',
+            folder_id: autoFolderId,
+            approved_at: new Date(),
+          },
         });
+
+        // Add note to latest version
+        const latestApprovedVersion = await tx.documentVersion.findFirst({
+          where: { document_id: doc.id },
+          orderBy: { version_number: 'desc' },
+        });
+        if (latestApprovedVersion) {
+          await tx.documentVersion.update({
+            where: { id: latestApprovedVersion.id },
+            data: { remarks: 'อนุมัติเสร็จสิ้น' },
+          });
+        }
       } else {
         await tx.workflow.update({
           where: { id: workflow.id },
@@ -500,7 +650,9 @@ export class WorkflowsService {
 
       // 5. Notification for next approver (if not last step)
       if (!isLastStep) {
-        const nextStep = workflow.steps.find((s) => s.step_order === workflow.current_step + 1);
+        const nextStep = workflow.steps.find(
+          (s) => s.step_order === workflow.current_step + 1,
+        );
         if (nextStep && nextStep.approver_id) {
           await tx.notification.create({
             data: {
@@ -520,9 +672,14 @@ export class WorkflowsService {
           module: 'Workflow',
           target_id: doc.id,
           details: {
-            oldState: { current_step: workflow.current_step, status: workflow.status },
+            oldState: {
+              current_step: workflow.current_step,
+              status: workflow.status,
+            },
             newState: {
-              current_step: isLastStep ? workflow.current_step : workflow.current_step + 1,
+              current_step: isLastStep
+                ? workflow.current_step
+                : workflow.current_step + 1,
               status: isLastStep ? 'Approved' : 'Pending',
             },
             extra: {
@@ -570,13 +727,14 @@ export class WorkflowsService {
           status: 'Rejected',
           action_date: new Date(),
           comment: dto.comment,
-          return_to_step: dto.reject_type === 'return' ? dto.return_to_step : null,
+          return_to_step:
+            dto.reject_type === RejectType.RETURN ? dto.return_to_step : null,
           approver_id: userId,
         },
       });
     }
 
-    const isReturn = dto.reject_type === 'return';
+    const isReturn = dto.reject_type === RejectType.RETURN;
     const newDocStatus = isReturn ? 'Returned' : 'Rejected';
     const newWfStatus = 'Rejected';
 
@@ -623,6 +781,27 @@ export class WorkflowsService {
       },
     });
 
-    return { success: true, reject_type: dto.reject_type, doc_status: newDocStatus };
+    // Record version history for reject/return
+    const latestVersion = await this.prisma.documentVersion.findFirst({
+      where: { document_id: doc.id },
+      orderBy: { version_number: 'desc' },
+    });
+
+    if (latestVersion) {
+      await this.prisma.documentVersion.update({
+        where: { id: latestVersion.id },
+        data: {
+          remarks: isReturn
+            ? `โดนตีกลับ: ${dto.comment}`
+            : `ไม่อนุมัติ: ${dto.comment}`,
+        },
+      });
+    }
+
+    return {
+      success: true,
+      reject_type: dto.reject_type,
+      doc_status: newDocStatus,
+    };
   }
 }

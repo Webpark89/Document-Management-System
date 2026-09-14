@@ -158,9 +158,9 @@ export interface AuditLog {
   module: string;
   target_id?: string;
   details?: {
-    oldState?: any;
-    newState?: any;
-    extra?: any;
+    oldState?: unknown;
+    newState?: unknown;
+    extra?: unknown;
   };
   ip_address: string;
   created_at: string;

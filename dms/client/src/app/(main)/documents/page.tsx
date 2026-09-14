@@ -46,10 +46,7 @@ function DocumentsContent() {
   const { user } = useAuth();
   const hasPerm = (itemKey: string, action: string = 'view') =>
     !!user?.permissions?.includes(`document.${itemKey}:${action}`);
-  const { data: initialDocs, error } = useSWR("documents", getDocuments, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-  });
+  const { data: initialDocs, error } = useSWR("documents", getDocuments);
   const [documents, setDocuments] = useState<Document[]>([]);
 
   useEffect(() => {
@@ -878,13 +875,13 @@ function DocumentsContent() {
                           <FolderInput className="w-4 h-4" />
                         </button>
                         )}
-                        {hasPerm('edit_document', 'edit') && (doc.status === "Draft" || doc.status === "Returned" || doc.status === "Pending") && (
+                        {hasPerm('edit_document', 'edit') && (doc.status === "Draft" || doc.status === "Returned" || doc.status === "Rejected" || doc.status === "Pending") && (
                           <button
                             type="button"
-                            title="Edit & Resubmit"
+                            title="แก้ไขเอกสารส่งใหม่ (Edit & Resubmit)"
                             onClick={(e) => {
                               e.stopPropagation();
-                              openEditModal(doc);
+                              router.push(`/submissions/create?edit=${(doc as any).real_id || doc.id}`);
                             }}
                             className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-amber-600 transition-colors cursor-pointer inline-block"
                           >

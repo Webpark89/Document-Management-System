@@ -46,6 +46,8 @@ export function RecentDocumentsTable({
             </button>
           ))}
 
+  // eslint-disable-next-line @next/next/no-html-link-for-pages
+  {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/documents"
             className="px-3 py-2 rounded-lg text-sm font-semibold bg-slate-900 text-white border border-slate-900 hover:bg-slate-800 transition-all shadow-xs ml-auto sm:ml-0"
@@ -83,6 +85,8 @@ export function RecentDocumentsTable({
           </thead>
           <tbody className="divide-y divide-slate-50/80">
             {documents.length > 0 ? (
+   
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               documents.map((doc, index) => (
                 <tr key={(doc as any).real_id || `${doc.id}-${index}`} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="py-4 pl-2 flex items-center gap-3">

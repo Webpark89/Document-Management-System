@@ -22,6 +22,7 @@ export interface BKSubmitData {
 }
 
 interface BKFormProps {
+  initialData?: any;
   onSubmit: (data: BKSubmitData) => void;
   onCancel: () => void;
   runningNumberPreview: string;
@@ -50,7 +51,7 @@ export default function BKForm({
   onSubmit,
   onCancel,
   runningNumberPreview,
-  currentStep, onNext, onBack
+  currentStep, onNext, onBack, initialData
 }: BKFormProps) {
   const { user } = useAuth();
   const defaultRequester = user?.full_name || user?.username || "Administrator";
@@ -58,6 +59,14 @@ export default function BKForm({
 
   const [title, setTitle] = useState("");
   const [department, setDepartment] = useState(defaultDept);
+
+  React.useEffect(() => {
+    if (initialData) {
+      if (initialData.title) setTitle(initialData.title);
+      if (initialData.bk_form?.detail) setDetail(initialData.bk_form.detail);
+      if (initialData.department?.name) setDepartment(initialData.department.name);
+    }
+  }, [initialData]);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [detail, setDetail] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -265,7 +274,8 @@ export default function BKForm({
                   Save as Draft (บันทึกร่าง)
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={() => triggerSubmit(false)}
                   className="flex items-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-slate-200 cursor-pointer active:scale-95"
                 >
                   <Send className="w-4 h-4" />

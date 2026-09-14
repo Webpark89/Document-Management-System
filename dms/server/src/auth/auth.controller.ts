@@ -1,5 +1,16 @@
-import { Controller, Post, Body, Get, UseGuards, Res, Req, HttpCode, HttpStatus } from '@nestjs/common';
-import type { Request } from 'express';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Res,
+  Req,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import type { Request, Response } from 'express';
+import type { User } from '@prisma/client';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -13,12 +24,18 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() loginDto: LoginDto,
-    @Res({ passthrough: true }) response: any,
+    @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
   ) {
-    const ip = request.headers['x-forwarded-for'] || request.socket.remoteAddress || '127.0.0.1';
-    const result = await this.authService.login(loginDto, Array.isArray(ip) ? ip[0] : ip);
-    
+    const ip =
+      request.headers['x-forwarded-for'] ||
+      request.socket.remoteAddress ||
+      '127.0.0.1';
+    const result = await this.authService.login(
+      loginDto,
+      Array.isArray(ip) ? ip[0] : ip,
+    );
+
     // Set httpOnly cookie
     response.cookie('access_token', result.access_token, {
       httpOnly: true,
@@ -34,14 +51,14 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Res({ passthrough: true }) response: any) {
+  logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('access_token');
     return { success: true };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getProfile(@CurrentUser() user: any) {
+  getProfile(@CurrentUser() user: User) {
     return user;
   }
 

@@ -10,6 +10,7 @@ import PageHeader from '@views/components/shared/PageHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from '@views/components/ui/design-system';
 import { useToast } from '@views/components/providers/ToastProvider';
 import { useSidebar } from '@views/components/providers/SidebarProvider';
+import { DocumentPreview } from '@views/components/documents/DocumentPreview';
 
 function formatVersionDate(iso: string) {
   return new Date(iso).toLocaleString("th-TH", { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -72,6 +73,20 @@ function buildRemarkDiff(olderRemarks: string, newerRemarks: string) {
       tone: olderSet.has(line) ? ("neutral" as const) : ("added" as const),
     })),
   };
+}
+
+function getRemarkBadge(remark: string) {
+  if (!remark) return null;
+  if (remark.includes('เอกสารชุดปัจจุบัน') || remark.includes('ส่งอนุมัติ') || remark.includes('กำลังรอการอนุมัติ')) {
+    return <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10">รออนุมัติ</span>;
+  }
+  if (remark.includes('โดนตีกลับ') || remark.includes('Reject') || remark.includes('ตีกลับ') || remark.includes('ไม่อนุมัติ')) {
+    return <span className="inline-flex items-center rounded-md bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-700 ring-1 ring-inset ring-rose-700/10">ตีกลับ/ไม่อนุมัติ</span>;
+  }
+  if (remark.includes('approval') || remark.includes('อนุมัติเสร็จสิ้น') || remark.includes('อนุมัติสำเร็จ')) {
+    return <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-700/10">อนุมัติแล้ว</span>;
+  }
+  return <span className="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 ring-1 ring-inset ring-slate-500/10">แก้ไขเอกสาร</span>;
 }
 
 export default function DocumentVersionsPage() {
@@ -180,6 +195,8 @@ export default function DocumentVersionsPage() {
 
   const showCheckboxes = versions.length > 1;
   const canCompare = selectedVersions.length === 2;
+  const docTypeStr = typeof doc?.type === 'object' ? doc?.type?.prefix : (doc?.type || "");
+  const isFormType = ["PR", "PO", "BK", "บันทึก"].includes(docTypeStr);
 
   const iconActionBtn =
     "group relative rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100";
@@ -231,10 +248,10 @@ export default function DocumentVersionsPage() {
           <table className="w-full min-w-[800px] table-fixed border-collapse text-left">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                <th className="w-36 py-4 pl-6 align-middle">Version</th>
-                <th className="w-40 py-4 align-middle">Updated Date</th>
-                <th className="w-44 py-4 align-middle">Modifier</th>
-                <th className="min-w-[200px] py-4 align-middle">Changes / Remarks</th>
+                <th className="w-24 py-4 pl-6 align-middle">Version</th>
+                <th className="w-36 py-4 align-middle">Updated Date</th>
+                <th className="w-40 py-4 align-middle">Modifier</th>
+                <th className="w-auto py-4 align-middle">Changes / Remarks</th>
                 <th className="w-32 py-4 text-center align-middle">Status</th>
                 <th className="w-28 py-4 pr-6 text-center align-middle">Actions</th>
               </tr>
@@ -278,19 +295,22 @@ export default function DocumentVersionsPage() {
                     </td>
                     <td className="py-4 text-xs font-semibold text-slate-800">{getModifierName(ver.uploaded_by)}</td>
                     <td className="py-4 pr-6 text-xs font-medium leading-relaxed text-slate-500">
-                      {ver.remarks}
+                      {ver.remarks && !['เอกสารชุดปัจจุบัน', 'กำลังรอการอนุมัติ', 'อนุมัติเสร็จสิ้น', 'อนุมัติสำเร็จแล้ว (Approved)', 'Initial upload'].includes(ver.remarks) ? (
+                        <span className="text-slate-500">{ver.remarks.replace(/^(โดนตีกลับ|ไม่อนุมัติ)\s*:\s*/, '').trim()}</span>
+                      ) : (
+                        <span className="text-slate-400 italic">ไม่มีหมายเหตุ</span>
+                      )}
                     </td>
                     <td className="py-4 text-center align-middle">
-                      {ver.is_active ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-100">
-                          <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
-                          Current
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-500">
-                          Archived
-                        </span>
-                      )}
+                      <div className="flex flex-col items-center gap-1.5">
+                        {getRemarkBadge(ver.remarks)}
+                        {ver.is_active && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 ring-1 ring-emerald-100">
+                            <span className="size-1 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                            Current
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-4 pr-6 text-center align-middle">
                       <div className="inline-flex items-center justify-center gap-0.5">
@@ -568,17 +588,35 @@ export default function DocumentVersionsPage() {
                 <div className="grid grid-cols-2 gap-6">
                   {/* Preview Left */}
                   <div className="border border-slate-200 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 aspect-[1/1.2] shadow-inner relative overflow-hidden">
-                     <div className="absolute inset-0 bg-white m-4 rounded shadow-sm border border-slate-200 flex flex-col items-center justify-center">
-                        <FileText className="w-12 h-12 text-slate-300 mb-2" />
-                        <span className="text-xs font-bold text-slate-400">{selectedData[0].version_number} Preview</span>
-                     </div>
+                     {isFormType ? (
+                       <div className="absolute inset-0 bg-white m-2 sm:m-4 rounded shadow-sm border border-slate-200 overflow-y-auto">
+                         <div className="scale-[0.5] sm:scale-[0.6] origin-top mx-auto">
+                           <DocumentPreview doc={doc} versionId={selectedData[0].id} hideHeader isViewer />
+                         </div>
+                       </div>
+                     ) : (
+                       <iframe 
+                          src={`/api/documents/${doc?.id}/download?v=${selectedData[0].version_number}#toolbar=0`}
+                          className="absolute inset-0 w-full h-full border-0"
+                          title={`${selectedData[0].version_number} Preview`}
+                       />
+                     )}
                   </div>
                   {/* Preview Right */}
                   <div className="border border-slate-200 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 aspect-[1/1.2] shadow-inner relative overflow-hidden">
-                     <div className="absolute inset-0 bg-white m-4 rounded shadow-sm border border-slate-200 flex flex-col items-center justify-center">
-                        <FileText className="w-12 h-12 text-slate-300 mb-2" />
-                        <span className="text-xs font-bold text-slate-400">{selectedData[1].version_number} Preview</span>
-                     </div>
+                     {isFormType ? (
+                       <div className="absolute inset-0 bg-white m-2 sm:m-4 rounded shadow-sm border border-slate-200 overflow-y-auto">
+                         <div className="scale-[0.5] sm:scale-[0.6] origin-top mx-auto">
+                           <DocumentPreview doc={doc} versionId={selectedData[1].id} hideHeader isViewer />
+                         </div>
+                       </div>
+                     ) : (
+                       <iframe 
+                          src={`/api/documents/${doc?.id}/download?v=${selectedData[1].version_number}#toolbar=0`}
+                          className="absolute inset-0 w-full h-full border-0"
+                          title={`${selectedData[1].version_number} Preview`}
+                       />
+                     )}
                   </div>
                 </div>
               </div>
@@ -639,16 +677,24 @@ export default function DocumentVersionsPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-100/50 flex flex-col">
-              <div className="flex-1 bg-white border border-slate-200 rounded-xl flex flex-col items-center justify-center shadow-inner relative overflow-hidden">
-                <FileText className="w-16 h-16 text-slate-300 mb-4" />
-                <span className="text-sm font-bold text-slate-500">
-                  กำลังแสดงตัวอย่างเนื้อหาของ {versions.find(v => v.id === viewingVersion)?.version_number}
-                </span>
-                <span className="text-xs text-slate-400 mt-2">(พื้นที่จำลองสำหรับแสดงผล PDF/รูปภาพ)</span>
+              <div className="flex-1 overflow-hidden p-6 bg-slate-100/50 flex flex-col relative">
+                {isFormType ? (
+                  <div className="absolute inset-4 bg-white m-4 rounded shadow-sm border border-slate-200 overflow-y-auto">
+                    <div className="scale-[0.8] origin-top mx-auto max-w-5xl">
+                      <DocumentPreview doc={doc} versionId={viewingVersion || undefined} hideHeader isViewer />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 bg-white border border-slate-200 rounded-xl flex flex-col shadow-inner relative overflow-hidden">
+                    <iframe 
+                      src={`/api/documents/${doc?.id}/download?v=${versions.find(v => v.id === viewingVersion)?.version_number}`}
+                      className="w-full h-full border-0"
+                      title="PDF Preview"
+                    />
+                  </div>
+                )}
               </div>
-            </div>
-            <div className="p-4 border-t border-slate-100 bg-white rounded-b-2xl flex justify-between items-center">
+              <div className="p-4 border-t border-slate-100 bg-white rounded-b-2xl flex justify-between items-center">
               <button 
                 onClick={() => {
                   showToast(`กำลังดาวน์โหลดไฟล์ ${versions.find(v => v.id === viewingVersion)?.version_number}...`, "success");

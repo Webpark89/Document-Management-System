@@ -6,9 +6,15 @@ export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
   async getStats(userId: string) {
-    const totalDocs = await this.prisma.document.count({ where: { is_deleted: false } });
-    const approvedDocs = await this.prisma.document.count({ where: { status: 'Approved', is_deleted: false } });
-    const pendingDocs = await this.prisma.document.count({ where: { status: 'Pending', is_deleted: false } });
+    const totalDocs = await this.prisma.document.count({
+      where: { is_deleted: false },
+    });
+    const approvedDocs = await this.prisma.document.count({
+      where: { status: 'Approved', is_deleted: false },
+    });
+    const pendingDocs = await this.prisma.document.count({
+      where: { status: 'Pending', is_deleted: false },
+    });
 
     // Action Required: count workflow steps where this user is the approver and status is Pending
     const actionRequired = await this.prisma.workflowStep.count({
@@ -16,8 +22,8 @@ export class DashboardService {
         approver_id: userId,
         status: 'Pending',
         workflow: {
-          document: { is_deleted: false }
-        }
+          document: { is_deleted: false },
+        },
       },
     });
 
@@ -35,7 +41,7 @@ export class DashboardService {
       approved: approvedDocs,
       pending: pendingDocs,
       actionRequired,
-      activity: recentActivity.map(a => ({
+      activity: recentActivity.map((a) => ({
         id: a.id,
         action: a.action,
         module: a.module,

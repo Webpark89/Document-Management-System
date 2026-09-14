@@ -19,7 +19,7 @@ export interface DocumentTypeDto {
   type_name: string;
   prefix: string;
   is_active: boolean;
-  running_numbers?: any[];
+  running_numbers?: unknown[];
 }
 
 export interface AuditLogDto {
@@ -38,8 +38,8 @@ export interface AuditLogDto {
 
 export const adminService = {
   // ---- Users & Roles ----
-  async getUsersList(): Promise<any[]> {
-    const res = await api.get<any[]>("/api/admin/users");
+  async getUsersList(): Promise<unknown[]> {
+    const res = await api.get<unknown[]>("/api/admin/users");
     return res.data;
   },
 
@@ -52,12 +52,12 @@ export const adminService = {
     position_id?: string;
     role_id?: string;
     password?: string;
-  }): Promise<any> {
+  }): Promise<unknown> {
     const res = await api.post("/api/admin/users", payload);
     return res.data;
   },
 
-  async toggleUserActive(id: string): Promise<any> {
+  async toggleUserActive(id: string): Promise<unknown> {
     const res = await api.patch(`/api/admin/users/${id}/toggle-active`);
     return res.data;
   },
@@ -70,37 +70,37 @@ export const adminService = {
     position_id?: string;
     role_id?: string;
     is_active?: boolean;
-  }): Promise<any> {
+  }): Promise<unknown> {
     const res = await api.patch(`/api/admin/users/${id}`, payload);
     return res.data;
   },
 
-  async resetUserPassword(id: string, rawPassword: string): Promise<any> {
+  async resetUserPassword(id: string, rawPassword: string): Promise<unknown> {
     const res = await api.post(`/api/admin/users/${id}/reset-password`, { password_hash: rawPassword });
     return res.data;
   },
 
-  async getRolesList(): Promise<any[]> {
-    const res = await api.get<any[]>("/api/admin/roles");
+  async getRolesList(): Promise<unknown[]> {
+    const res = await api.get<unknown[]>("/api/admin/roles");
     return res.data;
   },
 
-  async getRoleById(id: string): Promise<any> {
-    const res = await api.get<any>(`/api/admin/roles/${id}`);
+  async getRoleById(id: string): Promise<unknown> {
+    const res = await api.get<unknown>(`/api/admin/roles/${id}`);
     return res.data;
   },
 
-  async createRole(name: string): Promise<any> {
-    const res = await api.post<any>("/api/admin/roles", { name });
+  async createRole(name: string): Promise<unknown> {
+    const res = await api.post<unknown>("/api/admin/roles", { name });
     return res.data;
   },
 
-  async updateRole(id: string, dto: { name?: string; permissions?: { module: string; action: string }[] }): Promise<any> {
-    const res = await api.patch<any>(`/api/admin/roles/${id}`, dto);
+  async updateRole(id: string, dto: { name?: string; permissions?: { module: string; action: string }[] }): Promise<unknown> {
+    const res = await api.patch<unknown>(`/api/admin/roles/${id}`, dto);
     return res.data;
   },
 
-  async deleteRole(id: string): Promise<any> {
+  async deleteRole(id: string): Promise<unknown> {
     const res = await api.delete(`/api/admin/roles/${id}`);
     return res.data;
   },
@@ -126,7 +126,7 @@ export const adminService = {
     return res.data;
   },
 
-  async deleteDepartment(id: string): Promise<any> {
+  async deleteDepartment(id: string): Promise<unknown> {
     const res = await api.delete(`/api/admin/departments/${id}`);
     return res.data;
   },
@@ -152,7 +152,7 @@ export const adminService = {
     return res.data;
   },
 
-  async deletePosition(id: string): Promise<any> {
+  async deletePosition(id: string): Promise<unknown> {
     const res = await api.delete(`/api/admin/positions/${id}`);
     return res.data;
   },

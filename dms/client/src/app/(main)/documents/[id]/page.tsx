@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
-import { ArrowLeft, Clock, History, FileText, Download, Check, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, History, FileText, AlertCircle } from "lucide-react";
 import { getDocumentById } from '@views/features/documents/api';
 import { getWorkflow } from '@views/features/workflow/api';
 import { WorkflowTracker } from '@views/components/workflow/WorkflowTracker';
@@ -21,6 +22,7 @@ interface PageProps {
 
 export default function DocumentDetailPage({ params }: PageProps) {
   const { id } = use(params);
+  const router = useRouter();
   const { user } = useAuth();
   const hasPerm = (itemKey: string, action: string = 'view') =>
     !!user?.permissions?.includes(`document.${itemKey}:${action}`);
@@ -39,24 +41,20 @@ export default function DocumentDetailPage({ params }: PageProps) {
   if (loading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 h-[60vh] text-slate-500">
-        Loading document details...
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3" />
+        <p className="text-xs font-semibold">กำลังโหลดข้อมูลเอกสาร...</p>
       </div>
     );
   }
 
   if (!doc) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 max-w-lg mx-auto text-center h-[60vh]">
-        <div className="p-3 bg-red-50 text-red-600 rounded-2xl mb-4">
-          <AlertCircle className="w-8 h-8" />
-        </div>
-        <h3 className="text-lg font-bold text-slate-800">Document Not Found</h3>
-        <p className="text-sm text-slate-400 font-semibold mt-1">
-          The document ID "{id}" could not be located in the database.
-        </p>
+      <div className="flex-1 flex flex-col items-center justify-center p-8 h-[60vh] text-slate-500">
+        <AlertCircle className="w-10 h-10 text-slate-300 mb-3" />
+        <p className="text-sm font-bold text-slate-700">ไม่พบเอกสารนี้</p>
         <Link
           href="/documents"
-          className="mt-6 px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-full text-xs transition-colors"
+          className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
         >
           Back to Documents
         </Link>
@@ -78,7 +76,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
         </Link>
 
         <div className="flex items-center gap-3">
-          {hasPerm('edit_document', 'edit') && (doc.status === "Pending" || doc.status === "Returned" || doc.status === "Draft") && (
+          {hasPerm('edit_document', 'edit') && (doc.status === "Pending" || doc.status === "Returned" || doc.status === "Draft" || doc.status === "Rejected") && (
             <Link
               href={`/submissions/create?edit=${doc.id}`}
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition-all shadow-xs cursor-pointer"
@@ -113,59 +111,59 @@ export default function DocumentDetailPage({ params }: PageProps) {
       </div>
 
       <PageHeader
-        size="compact"
-        title={`Document: ${doc.id}`}
-        subtitle="Review document properties, transaction metadata, and workflow logs."
+        title={`Document: ${doc.doc_number || doc.id}`}
+        description="Review document properties, transaction metadata, and workflow logs."
       />
 
+      {/* 2 COLUMNS LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* LEFT COLUMN: Main Info */}
+        {/* LEFT COLUMN: Metadata + Viewer */}
         <div className="lg:col-span-2 space-y-6">
-          {hasPerm('view_detail') && (
+          
+          {/* Metadata Card */}
+          {hasPerm('view_metadata') && (
           <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm space-y-6">
-            
-            <div className="flex items-start gap-4 pb-6 border-b border-slate-100">
-              <div className="p-3 bg-slate-50 rounded-xl text-slate-400 shrink-0">
-                <FileText className="w-6 h-6" />
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 bg-slate-50 text-slate-500 rounded-xl">
+                <FileText className="w-5 h-5" />
               </div>
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-slate-900 leading-snug">{doc.name}</h3>
-                <p className="text-xs text-slate-400 font-semibold">
-                  Submitted by {doc.sender} on {doc.submittedDate}
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">{doc.title}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Submitted by {doc.creator?.full_name || doc.creator?.username || doc.creator_id} on{" "}
+                  {doc.created_at ? new Date(doc.created_at).toLocaleDateString() : "-"}
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            <div className="border-t border-slate-100 pt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Type</p>
-                <p className="text-sm font-bold text-slate-800 mt-1">{doc.type}</p>
+                <span className="block text-[10px] font-bold text-slate-400 uppercase">Type</span>
+                <span className="text-xs font-bold text-slate-700">{doc.type?.name || doc.type?.prefix || "-"}</span>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</p>
-                <div className="mt-1">
-                  <Badge variant={getStatusVariant(doc.status)}>{doc.status}</Badge>
-                </div>
+                <span className="block text-[10px] font-bold text-slate-400 uppercase">Status</span>
+                <Badge variant={getStatusVariant(doc.status)}>
+                  {doc.status}
+                </Badge>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Valuation</p>
-                <p className={`text-sm font-bold mt-1 ${doc.amount && doc.amount !== "-" ? "text-blue-600 font-mono" : "text-slate-400"}`}>
-                  {doc.amount && doc.amount !== "-" ? doc.amount : "-"}
-                </p>
+                <span className="block text-[10px] font-bold text-slate-400 uppercase">Valuation</span>
+                <span className="text-xs font-bold text-slate-700">
+                  {doc.pr_form?.total_amount ? `฿${Number(doc.pr_form.total_amount).toLocaleString()}` : doc.po_form?.total_amount ? `฿${Number(doc.po_form.total_amount).toLocaleString()}` : "-"}
+                </span>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Version</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-sm font-bold text-slate-800">{doc.version}</p>
+                <span className="block text-[10px] font-bold text-slate-400 uppercase">Version</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-bold text-slate-700">
+                    {doc.versions && doc.versions.length > 0 ? `v${doc.versions[0].version_number}.0` : "v1.0"}
+                  </span>
                   {hasPerm('view_version_history') && (
-                  <Link
-                    href={`/documents/${doc.id}/versions`}
-                    title="View Version History"
-                    className="p-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                  >
-                    <History className="w-3.5 h-3.5" />
-                  </Link>
+                    <Link href={`/documents/${doc.id}/versions`} className="text-blue-500 hover:text-blue-600">
+                      <History className="w-3.5 h-3.5" />
+                    </Link>
                   )}
                 </div>
               </div>
@@ -176,12 +174,37 @@ export default function DocumentDetailPage({ params }: PageProps) {
 
           {/* DOCUMENT PREVIEW */}
           {hasPerm('preview_document') && (
-            <DocumentPreview doc={doc} />
+            <DocumentPreview
+              doc={doc}
+              onEditClick={() => router.push(`/submissions/create?edit=${doc.id}`)}
+            />
           )}
         </div>
 
         {/* RIGHT COLUMN: Activity/Workflow */}
         <div className="space-y-6">
+          {/* EDIT DOCUMENT BUTTON CARD FOR RETURNED / REJECTED / DRAFT / PENDING */}
+          {["Returned", "Rejected", "Draft", "Returned for Revision", "Pending"].includes(doc.status) && (
+            <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 shadow-xs space-y-3">
+              <div className="flex items-center gap-2 text-amber-800">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                <div>
+                  <h4 className="text-xs font-bold">เอกสารต้องการการแก้ไขส่งใหม่</h4>
+                  <p className="text-[11px] text-amber-700 font-medium mt-0.5">
+                    เอกสารนี้อยู่ในสถานะ {doc.status} คุณสามารถกดแก้ไขเพื่อปรับปรุงข้อมูลและส่งอนุมัติใหม่ได้
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push(`/submissions/create?edit=${doc.id}`)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl transition-all shadow-xs cursor-pointer"
+              >
+                ✏️ แก้ไขเอกสารเพื่อส่งใหม่ (Edit & Resubmit)
+              </button>
+            </div>
+          )}
+
           {hasPerm('view_timeline') ? (
             workflow ? (
               <WorkflowTracker workflow={workflow} />
@@ -194,7 +217,6 @@ export default function DocumentDetailPage({ params }: PageProps) {
         </div>
 
       </div>
-
       </div>
     </div>
   );

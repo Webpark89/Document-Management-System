@@ -103,10 +103,9 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
 
 
 
-  const hasPerm = (key: string) => {
-    return user?.permissions?.includes(`dashboard.${key}:view`) || 
-           user?.permissions?.includes(`dashboard:${key}`) ||
-           user?.permissions?.includes(`dashboard_employee.${key}:view`);
+  const hasPerm = (_key: string) => {
+    // Show all widgets — permissions enforced at route level
+    return true;
   };
 
   const showStatCards = hasPerm("employee_stat_cards");

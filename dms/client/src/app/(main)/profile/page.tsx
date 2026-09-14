@@ -1,7 +1,24 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, KeyRound, Loader2, Pencil, PenLine, Upload, User, Mail, Hash, Calendar, ShieldCheck } from "lucide-react";
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+import { Loader2, Upload, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { useSignatures } from '@views/components/providers/SignatureProvider';
@@ -9,7 +26,7 @@ import { useToast } from '@views/components/providers/ToastProvider';
 import {
   ADMIN_CONTENT,
   ADMIN_PAGE_SHELL,
-  AdminPageHeader,
+   
 } from '@views/components/ui/admin';
 import { usersService } from '@/controllers/services/users.service';
 
@@ -22,10 +39,11 @@ const ROLE_BADGE: Record<string, string> = {
 
 const CARD_CLASS = "bg-white border border-slate-200/80 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)] overflow-hidden flex flex-col";
 const BTN_SECONDARY = "inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-3 text-base font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-[0.98]";
+   
 const BTN_PRIMARY = "inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-slate-800 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed";
 
 
-function formatEmployeeId(u: any): string {
+function formatEmployeeId(u: unknown): string {
   if (!u) return "—";
   if (u.employee_id && typeof u.employee_id === "string" && !u.employee_id.includes("-")) {
     return u.employee_id;
@@ -50,6 +68,7 @@ export default function ProfilePage() {
   const { user } = useAuth();
   const hasPerm = (itemKey: string, action: string = 'view') =>
     !!user?.permissions?.includes(`profile.${itemKey}:${action}`);
+   
   const { signatures, addSignature, updateSignature, findByApproverName } = useSignatures();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +79,7 @@ export default function ProfilePage() {
 
   const mySignature = useMemo(
     () =>
+   
       signatures.find(
         (row) =>
           row.approverName === displayName ||
@@ -71,7 +91,6 @@ export default function ProfilePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
-  const [sendingResetLink, setSendingResetLink] = useState(false);
 
   useEffect(() => {
     usersService.getMySignatureUrl().then((res) => {
@@ -132,18 +151,13 @@ export default function ProfilePage() {
         showToast("บันทึกลายเซ็นสำเร็จ", "success");
       }
     } catch (error) {
+   
       showToast("เกิดข้อผิดพลาดในการอัปโหลดลายเซ็น", "error");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSendResetLink = async () => {
-    setSendingResetLink(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setSendingResetLink(false);
-    showToast("ลิงก์รีเซ็ตรหัสผ่านถูกส่งไปยังอีเมลของคุณ", "success");
-  };
 
   const displayEmail = user?.email ?? (user?.username ? `${user.username}@company.com` : "—");
 
@@ -171,7 +185,7 @@ export default function ProfilePage() {
             
             <h1 className="text-2xl font-bold text-slate-900 mb-2">My Profile</h1>
             
-            <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-8">
+            <div className="max-w-4xl mx-auto">
               
               <div className="space-y-6">
                 
@@ -203,10 +217,14 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="border-t border-slate-100 bg-slate-50/50 px-8 sm:px-10 py-8">
-                    <dl className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                       <div>
                         <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500">Employee ID</dt>
                         <dd className="mt-1 text-sm font-medium text-slate-900 break-words">{profileMeta.employeeId}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500">Email Address</dt>
+                        <dd className="mt-1 text-sm font-medium text-slate-900 break-all">{profileMeta.email}</dd>
                       </div>
                       <div>
                         <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500">Department</dt>
@@ -215,6 +233,10 @@ export default function ProfilePage() {
                       <div>
                         <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500">Position</dt>
                         <dd className="mt-1 text-sm font-medium text-slate-900 break-words">{profileMeta.position}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500">Joined Date</dt>
+                        <dd className="mt-1 text-sm font-medium text-slate-900">{profileMeta.joinedAt}</dd>
                       </div>
                     </dl>
                   </div>
@@ -259,6 +281,7 @@ export default function ProfilePage() {
                         {previewUrl ? (
                           <>
                             <img
+   
                               src={previewUrl}
                               alt="Signature Preview"
                               className="max-h-32 max-w-full object-contain relative z-10"
@@ -301,49 +324,7 @@ export default function ProfilePage() {
                 </section>
               </div>
               
-              {/* Sidebar */}
-              <div className="space-y-6">
-                
-                <section className={CARD_CLASS}>
-                  <div className="px-8 py-6 border-b border-slate-100">
-                    <h3 className="text-base font-semibold text-slate-900">Contact</h3>
-                  </div>
-                  <div className="p-8 space-y-6">
-                    <div>
-                      <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500">Email Address</dt>
-                      <dd className="mt-1 text-sm font-medium text-slate-900 break-all">{profileMeta.email}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500">Joined Date</dt>
-                      <dd className="mt-1 text-sm font-medium text-slate-900">{profileMeta.joinedAt}</dd>
-                    </div>
-                  </div>
-                </section>
-                
-                <section className={CARD_CLASS}>
-                  <div className="px-8 py-6 border-b border-slate-100">
-                    <h3 className="text-base font-semibold text-slate-900">Security</h3>
-                  </div>
-                  <div className="p-8">
-                    <p className="text-sm text-slate-600 leading-relaxed mb-8">
-                      Send a password reset link to your registered email address. This will invalidate your current password.
-                    </p>
-                    {hasPerm('change_password', 'edit') && (
-                      <button
-                        type="button"
-                        onClick={handleSendResetLink}
-                        disabled={sendingResetLink || !user}
-                        className="w-full inline-flex justify-center items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-50 active:scale-[0.98] disabled:opacity-60"
-                      >
-                        {sendingResetLink ? (
-                          <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
-                        ) : "Reset Password"}
-                      </button>
-                    )}
-                  </div>
-                </section>
-
-              </div>
+              {/* Sidebar Removed */}
 
             </div>
           </div>

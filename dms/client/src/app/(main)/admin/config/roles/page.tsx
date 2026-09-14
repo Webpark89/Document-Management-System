@@ -9,9 +9,11 @@ import { Suspense, useMemo, useState } from "react";
 import {
   Loader2,
   Plus,
-  Search,
-  Shield,
+   
+   
+   
   Pencil,
+   
   Trash2,
 } from "lucide-react";
 import { useToast } from '@views/components/providers/ToastProvider';
@@ -21,9 +23,10 @@ import {
   RolePermissionPanel,
   PermissionActionGrid,
   buildPermissions,
-  summarizePermissions,
+   
   type RoleFormState,
 } from '@views/features/roles-users/components';
+   
 import {
   type RoleRecord,
   countUsersByRole,
@@ -41,10 +44,11 @@ import {
   MD_TH_STATUS,
   MD_THEAD,
   MD_TR,
-  StatCards,
+   
   StatusBadge,
 } from '@views/components/ui/admin';
 import { APP_CARD_LG } from '@views/components/ui/design-system';
+   
 
 const tdCls = MD_TD;
 
@@ -102,6 +106,7 @@ const EDIT_ROLE: RoleFormState = {
   title: "Senior manager",
   productTypes: { all: true, dms: true, esign: true, reports: true, archive: true },
   permissions: buildPermissions(SENIOR_MANAGER_PRESETS),
+   
 };
 
 function uid() {
@@ -114,8 +119,10 @@ const btnDanger =
   "whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent";
 const inputCls =
   "w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+   
 const formInputCls =
   "w-full max-w-md rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+   
 const inputErrorCls =
   "w-full max-w-md rounded-md border border-red-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500";
 
@@ -168,7 +175,9 @@ function RolesListView({
   const [showInactive, setShowInactive] = useState(false);
 
   const rows = useMemo(
+   
     () =>
+   
       roles.map((role) => ({
         ...role,
         userCount: role.userCount ?? countUsersByRole(role.name),
@@ -180,6 +189,7 @@ function RolesListView({
     () => ({
       total: roles.length,
       active: roles.filter((r) => r.isActive).length,
+   
       inactive: roles.filter((r) => !r.isActive).length,
     }),
     [roles]
@@ -214,6 +224,7 @@ function RolesListView({
       showToast("เกิดข้อผิดพลาด", "error");
     }
   };
+   
 
   return (
     <div className={`${ADMIN_PAGE_SHELL} min-w-0 max-w-full overflow-x-clip`}>
@@ -355,7 +366,7 @@ function CreateRoleForm({
     try {
       const created = await adminService.createRole(role.title.trim());
       
-      const dtoPermissions: any[] = [];
+      const dtoPermissions: unknown[] = [];
       Object.entries(role.permissions).forEach(([sectionKey, items]) => {
         Object.entries(items).forEach(([itemKey, actions]) => {
           Object.entries(actions as Record<string, boolean>).forEach(([action, value]) => {
@@ -374,6 +385,7 @@ function CreateRoleForm({
       showToast("เกิดข้อผิดพลาดในการสร้าง Role", "error");
     } finally {
       setSaving(false);
+   
     }
   };
 
@@ -453,8 +465,8 @@ function EditRoleForm({ roleId }: { roleId: string }) {
   React.useEffect(() => {
     if (!roleId) return;
     adminService.getRoleById(roleId).then(data => {
-      const presets: any = {};
-      (data.permissions || []).forEach((p: any) => {
+      const presets: unknown = {};
+      (data.permissions || []).forEach((p: unknown) => {
          const parts = p.module.split('.');
          if (parts.length === 2) {
             const [sec, item] = parts;
@@ -474,7 +486,7 @@ function EditRoleForm({ roleId }: { roleId: string }) {
 
   const handleSave = async () => {
     setSaving(true);
-    const dtoPermissions: any[] = [];
+    const dtoPermissions: unknown[] = [];
     Object.entries(role.permissions).forEach(([sectionKey, items]) => {
       Object.entries(items).forEach(([itemKey, actions]) => {
         Object.entries(actions as Record<string, boolean>).forEach(([action, value]) => {
@@ -562,18 +574,18 @@ function RolesPageContent() {
     Promise.all([
       adminService.getRolesList().catch(() => []),
       adminService.getUsersList().catch(() => []),
-    ]).then(([list, usersList]: [any[], any[]]) => {
+    ]).then(([list, usersList]: [unknown[], unknown[]]) => {
       if (Array.isArray(list) && list.length > 0) {
         setRoles(
-          list.map((r: any) => {
+          list.map((r: unknown) => {
             const calculated = Array.isArray(usersList)
               ? usersList.filter(
-                  (u: any) =>
+                  (u: unknown) =>
                     (u.role?.name || u.role_name || u.role) === r.name
                 ).length
               : 0;
             const actions = Array.isArray(r.permissions)
-              ? Array.from(new Set(r.permissions.map((p: any) => p.action)))
+              ? Array.from(new Set(r.permissions.map((p: unknown) => p.action)))
               : [];
             const permSummary =
               r.name === "Administrator"

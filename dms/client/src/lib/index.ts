@@ -39,6 +39,7 @@ async function request<T>(
     const res = await fetch(`${API_BASE}${path}`, {
       method,
       headers,
+   
       credentials: "include", // Crucial for sending/receiving HttpOnly cookies
       body: isFormData ? (body as any) : (body ? JSON.stringify(body) : undefined),
     });
@@ -64,7 +65,7 @@ async function request<T>(
 
     const data = await res.json();
     return { data };
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err?.name === "TypeError" || err?.message?.toLowerCase().includes("fetch")) {
       throw new Error(
         "ไม่สามารถเชื่อมต่อ Backend Server ได้ (กรุณารัน `npm run dev` ที่โฟลเดอร์หลักเพื่อเปิด NestJS พอร์ต 4000)"

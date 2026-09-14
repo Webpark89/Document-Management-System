@@ -4,7 +4,7 @@
 // ============================================================
 
 import { api } from "@/lib";
-import { formatThaiDate } from "@/lib/format-date";
+import { formatThaiDate, formatThaiTime } from "@/lib/format-date";
 
 export interface Approval {
   id: string;
@@ -13,6 +13,8 @@ export interface Approval {
   requester: string;
   approvers?: string[];
   submittedDate: string;
+  submittedTime?: string;
+  rawSubmittedDate?: number;
   currentLevel: number;
   maxLevels: number;
   status: "Draft" | "Pending" | "Approved" | "Returned" | "Returned for Revision" | "Cancelled" | string;
@@ -39,7 +41,7 @@ export interface WorkflowData {
 
 export async function getApprovals(): Promise<Approval[]> {
   try {
-    const res = await api.get<any[]>("/api/approvals");
+    const res = await api.get<unknown[]>("/api/approvals");
     const docs = res.data || [];
     return docs.map((item) => {
       let mappedStatus = item.stepStatus;
@@ -54,6 +56,8 @@ export async function getApprovals(): Promise<Approval[]> {
         requester: item.sender,
         approvers: item.approvers || [],
         submittedDate: formatThaiDate(item.submittedDate || item.created_at || item.createdAt),
+        submittedTime: formatThaiTime(item.submittedDate || item.created_at || item.createdAt),
+        rawSubmittedDate: new Date(item.submittedDate || item.created_at || item.createdAt || Date.now()).getTime(),
         currentLevel: item.stepOrder,
         maxLevels: item.totalSteps,
         status: mappedStatus,
@@ -67,7 +71,7 @@ export async function getApprovals(): Promise<Approval[]> {
 
 export async function getWorkflow(documentId: string): Promise<WorkflowData | null> {
   try {
-    const res = await api.get<any>(`/api/workflows/${documentId}`);
+    const res = await api.get<unknown>(`/api/workflows/${documentId}`);
     const w = res.data;
     if (!w) return null;
     return {
@@ -75,7 +79,7 @@ export async function getWorkflow(documentId: string): Promise<WorkflowData | nu
       status: w.status,
       currentStep: w.current_step,
       totalSteps: w.total_steps,
-      steps: (w.steps || []).map((s: any) => ({
+      steps: (w.steps || []).map((s: unknown) => ({
         id: s.id,
         stepOrder: s.step_order,
         roleName: s.approver_role,

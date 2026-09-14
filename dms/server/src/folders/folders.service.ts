@@ -9,31 +9,44 @@ import { CreateFolderDto } from './dto/create-folder.dto';
 import { UpdateFolderDto } from './dto/update-folder.dto';
 import { MoveDocumentDto } from './dto/move-document.dto';
 import { FolderVisibility } from '@prisma/client';
+import { FolderVisibilityEnum } from './dto/create-folder.dto';
 
 @Injectable()
 export class FoldersService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(currentUserId: string, currentUserRole: string, currentUserDeptId?: string) {
-    const isAdmin = currentUserRole === 'Administrator' || currentUserRole === 'Executive';
+  async findAll(
+    currentUserId: string,
+    currentUserRole: string,
+    currentUserDeptId?: string,
+  ) {
+    const isAdmin =
+      currentUserRole === 'Administrator' || currentUserRole === 'Executive';
 
     const folders = await this.prisma.folder.findMany({
       where: { is_deleted: false },
       include: {
         creator: {
-          select: { id: true, first_name: true, last_name: true, username: true },
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            username: true,
+          },
         },
         department: { select: { id: true, name: true } },
         permissions: true,
         _count: {
-          select: { documents: { where: { is_deleted: false, status: 'Approved' } } },
+          select: {
+            documents: { where: { is_deleted: false, status: 'Approved' } },
+          },
         },
       },
       orderBy: { name: 'asc' },
     });
 
     const visibleFolders = folders.filter((folder) =>
-      this.canAccessFolder(folder, currentUserId, isAdmin, currentUserDeptId)
+      this.canAccessFolder(folder, currentUserId, isAdmin, currentUserDeptId),
     );
 
     return visibleFolders.map((f) => ({
@@ -49,35 +62,59 @@ export class FoldersService {
       document_count: f._count.documents,
       creator: {
         id: f.creator.id,
-        full_name: `${f.creator.first_name || ''} ${f.creator.last_name || ''}`.trim() || f.creator.username,
+        full_name:
+          `${f.creator.first_name || ''} ${f.creator.last_name || ''}`.trim() ||
+          f.creator.username,
       },
       can_edit: isAdmin || f.creator_id === currentUserId,
       created_at: f.created_at,
     }));
   }
 
-  async findOne(id: string, currentUserId: string, currentUserRole: string, currentUserDeptId?: string) {
-    const isAdmin = currentUserRole === 'Administrator' || currentUserRole === 'Executive';
+  async findOne(
+    id: string,
+    currentUserId: string,
+    currentUserRole: string,
+    currentUserDeptId?: string,
+  ) {
+    const isAdmin =
+      currentUserRole === 'Administrator' || currentUserRole === 'Executive';
 
     const folder = await this.prisma.folder.findFirst({
       where: { id, is_deleted: false },
       include: {
         creator: {
-          select: { id: true, first_name: true, last_name: true, username: true },
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            username: true,
+          },
         },
         department: true,
         permissions: true,
         children: {
           where: { is_deleted: false },
           include: {
-            _count: { select: { documents: { where: { is_deleted: false, status: 'Approved' } } } },
+            _count: {
+              select: {
+                documents: { where: { is_deleted: false, status: 'Approved' } },
+              },
+            },
           },
         },
         documents: {
           where: { is_deleted: false, status: 'Approved' },
           include: {
             type: true,
-            creator: { select: { id: true, first_name: true, last_name: true, username: true } },
+            creator: {
+              select: {
+                id: true,
+                first_name: true,
+                last_name: true,
+                username: true,
+              },
+            },
           },
         },
       },
@@ -85,7 +122,9 @@ export class FoldersService {
 
     if (!folder) throw new NotFoundException('Folder not found');
 
-    if (!this.canAccessFolder(folder, currentUserId, isAdmin, currentUserDeptId)) {
+    if (
+      !this.canAccessFolder(folder, currentUserId, isAdmin, currentUserDeptId)
+    ) {
       throw new ForbiddenException('No permission to view this folder');
     }
 
@@ -109,7 +148,7 @@ export class FoldersService {
 
     // Determine default department_id if visibility === Department
     let departmentId = dto.department_id;
-    if (dto.visibility === 'Department' && !departmentId) {
+    if (dto.visibility === FolderVisibilityEnum.Department && !departmentId) {
       const user = await this.prisma.user.findUnique({
         where: { id: creatorId },
         select: { department_id: true },
@@ -123,7 +162,8 @@ export class FoldersService {
         description: dto.description,
         color: dto.color || '#4F81FF',
         icon: dto.icon || '📁',
-        visibility: (dto.visibility as FolderVisibility) || 'CompanyWide',
+        visibility:
+          (dto.visibility as FolderVisibility) || FolderVisibility.CompanyWide,
         parent_id: dto.parent_id || null,
         creator_id: creatorId,
         department_id: departmentId || null,
@@ -131,7 +171,7 @@ export class FoldersService {
     });
 
     // Handle Shared permissions
-    if (dto.visibility === 'Shared') {
+    if (dto.visibility === FolderVisibilityEnum.Shared) {
       if (dto.shared_departments && dto.shared_departments.length > 0) {
         await this.prisma.folderPermission.createMany({
           data: dto.shared_departments.map((deptId) => ({
@@ -159,8 +199,14 @@ export class FoldersService {
     return folder;
   }
 
-  async update(id: string, dto: UpdateFolderDto, currentUserId: string, currentUserRole: string) {
-    const isAdmin = currentUserRole === 'Administrator' || currentUserRole === 'Executive';
+  async update(
+    id: string,
+    dto: UpdateFolderDto,
+    currentUserId: string,
+    currentUserRole: string,
+  ) {
+    const isAdmin =
+      currentUserRole === 'Administrator' || currentUserRole === 'Executive';
     const folder = await this.prisma.folder.findUnique({ where: { id } });
     if (!folder) throw new NotFoundException('Folder not found');
 
@@ -179,8 +225,10 @@ export class FoldersService {
       },
     });
 
-    if (dto.visibility === 'Shared') {
-      await this.prisma.folderPermission.deleteMany({ where: { folder_id: id } });
+    if (dto.visibility === FolderVisibilityEnum.Shared) {
+      await this.prisma.folderPermission.deleteMany({
+        where: { folder_id: id },
+      });
       if (dto.shared_departments && dto.shared_departments.length > 0) {
         await this.prisma.folderPermission.createMany({
           data: dto.shared_departments.map((deptId) => ({
@@ -207,7 +255,8 @@ export class FoldersService {
   }
 
   async remove(id: string, currentUserId: string, currentUserRole: string) {
-    const isAdmin = currentUserRole === 'Administrator' || currentUserRole === 'Executive';
+    const isAdmin =
+      currentUserRole === 'Administrator' || currentUserRole === 'Executive';
     const folder = await this.prisma.folder.findUnique({ where: { id } });
     if (!folder) throw new NotFoundException('Folder not found');
 
@@ -230,14 +279,11 @@ export class FoldersService {
     return { message: 'Folder deleted, documents moved to Unorganized' };
   }
 
-  async moveDocument(dto: MoveDocumentDto, currentUserId: string, currentUserRole: string) {
+  async moveDocument(dto: MoveDocumentDto) {
     const doc = await this.prisma.document.findFirst({
       where: {
         is_deleted: false,
-        OR: [
-          { id: dto.document_id },
-          { doc_number: dto.document_id },
-        ],
+        OR: [{ id: dto.document_id }, { doc_number: dto.document_id }],
       },
     });
     if (!doc) throw new NotFoundException('Document not found');
@@ -257,21 +303,36 @@ export class FoldersService {
     return { message: 'Document moved successfully' };
   }
 
-  private canAccessFolder(folder: any, userId: string, isAdmin: boolean, userDeptId?: string): boolean {
+  private canAccessFolder(
+    folder: {
+      visibility: FolderVisibility;
+      creator_id: string;
+      department_id?: string | null;
+      permissions?: {
+        user_id?: string | null;
+        department_id?: string | null;
+      }[];
+    },
+    userId: string,
+    isAdmin: boolean,
+    userDeptId?: string,
+  ): boolean {
     if (isAdmin) return true;
     switch (folder.visibility) {
-      case 'CompanyWide':
+      case FolderVisibility.CompanyWide:
         return true;
-      case 'AdminOnly':
+      case FolderVisibility.AdminOnly:
         return false;
-      case 'Private':
+      case FolderVisibility.Private:
         return folder.creator_id === userId;
-      case 'Department':
+      case FolderVisibility.Department:
         return !!userDeptId && folder.department_id === userDeptId;
-      case 'Shared':
+      case FolderVisibility.Shared:
         if (folder.creator_id === userId) return true;
         return (folder.permissions || []).some(
-          (p: any) => p.user_id === userId || (userDeptId && p.department_id === userDeptId)
+          (p) =>
+            p.user_id === userId ||
+            (userDeptId && p.department_id === userDeptId),
         );
       default:
         return true;

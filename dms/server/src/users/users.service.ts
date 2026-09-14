@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EncryptionService } from '../common/encryption/encryption.service';
 
@@ -20,7 +24,7 @@ export class UsersService {
 
     // Convert image buffer to base64 with data URI prefix
     const base64Data = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-    
+
     // Encrypt the signature
     const encryptedSignature = this.encryption.encrypt(base64Data);
 
@@ -58,7 +62,9 @@ export class UsersService {
     return { url: decrypted };
   }
 
-  async getSignatureBuffer(userId: string): Promise<{ buffer: Buffer; mimeType: string }> {
+  async getSignatureBuffer(
+    userId: string,
+  ): Promise<{ buffer: Buffer; mimeType: string }> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { signature_encrypted: true },

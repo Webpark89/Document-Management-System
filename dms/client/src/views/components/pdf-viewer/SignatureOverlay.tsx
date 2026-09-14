@@ -8,6 +8,7 @@ export interface SignatureOverlayProps {
 }
 
 export function SignatureOverlay({ onApplySignature }: SignatureOverlayProps) {
+   
   const [placed, setPlaced] = useState(false);
   const [pos, setPos] = useState({ x: 150, y: 200 });
 

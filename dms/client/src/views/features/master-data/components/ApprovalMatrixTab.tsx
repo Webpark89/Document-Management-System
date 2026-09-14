@@ -114,6 +114,7 @@ export default function ApprovalMatrixTab({
 
   useEffect(() => {
     if (selectedKey && matrix[selectedKey]) {
+   
       syncDraft(selectedKey);
     }
   }, [selectedKey, matrix]);

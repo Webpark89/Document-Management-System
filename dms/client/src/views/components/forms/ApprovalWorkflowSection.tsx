@@ -12,6 +12,17 @@ export interface WorkflowStepInput {
   approverName: string;
 }
 
+interface UserItem {
+  id: string;
+  first_name: string;
+  last_name: string;
+  username: string;
+  position: string;
+  role: string;
+  department: string;
+  is_active: boolean;
+}
+
 interface ApprovalWorkflowSectionProps {
   steps: WorkflowStepInput[];
   onChange: (steps: WorkflowStepInput[]) => void;
@@ -21,80 +32,38 @@ export default function ApprovalWorkflowSection({
   steps,
   onChange,
 }: ApprovalWorkflowSectionProps) {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     adminService
       .getUsersList()
       .then((res) => {
-        const activeUsers = (res || []).filter((u: any) => u.is_active);
+        const activeUsers = (res || [])
+          .filter((u) => (u as UserItem).is_active)
+          .map((u) => u as UserItem);
         setUsers(activeUsers);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
   }, []);
 
-  // Auto-fill empty or unassigned steps when users load or steps change
-  useEffect(() => {
-    if (users.length === 0) return;
-
-    let currentSteps = steps;
-    if (!currentSteps || currentSteps.length === 0) {
-      currentSteps = [
-        { id: "1", stepOrder: 1, roleName: "ผู้จัดการแผนก (Department Manager)", approverName: "" },
-        { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
-      ];
-    }
-
-    let changed = currentSteps.length !== steps.length;
-    const updated = currentSteps.map((step, idx) => {
-      const match = users.find(
-        (u) =>
-          u.id === step.approverId ||
-          `${u.first_name} ${u.last_name}`.trim().toLowerCase() === step.approverName.trim().toLowerCase() ||
-          u.username === step.approverName
-      );
-
-      if (!match || !step.approverName || !step.approverId) {
-        changed = true;
-        // Filter valid users for this step
-        const validUsers = users.filter((u) => {
-          if (!step.roleName) return true;
-          const userPosition = u.position?.name || u.position || "";
-          const userRole = u.role?.name || u.role || "";
-          if (!userPosition && !userRole) return true;
-          return userPosition === step.roleName || userRole === step.roleName;
-        });
-
-        const pool = validUsers.length > 0 ? validUsers : users;
-        const userToAssign = pool[idx % pool.length];
-
-        return {
-          ...step,
-          approverId: userToAssign.id,
-          approverName: `${userToAssign.first_name} ${userToAssign.last_name}`,
-        };
-      }
-      return step;
-    });
-
-    if (changed) {
-      onChange(updated);
-    }
-  }, [users, steps, onChange]);
-
-  const handleApproverSelect = (id: string, selectedUserId: string) => {
+  const handleApproverSelect = (stepId: string, selectedUserId: string) => {
     const selectedUser = users.find((u) => u.id === selectedUserId);
     if (!selectedUser) return;
-    const fullName = `${selectedUser.first_name} ${selectedUser.last_name}`;
+    const fullName = `${selectedUser.first_name} ${selectedUser.last_name}`.trim();
 
     onChange(
       steps.map((s) =>
-        s.id === id
+        s.id === stepId
           ? { ...s, approverId: selectedUser.id, approverName: fullName }
           : s
       )
     );
   };
+
+  // Safe guard — steps should always be array
+  const safeSteps = steps || [];
 
   return (
     <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-5 space-y-4">
@@ -109,7 +78,7 @@ export default function ApprovalWorkflowSection({
                 กำหนดสายการอนุมัติ (Approval Workflow Matrix)
               </h4>
               <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
-                {steps.length} Steps
+                {safeSteps.length} Steps
               </span>
             </div>
             <p className="text-xs text-slate-400 font-semibold mt-0.5">
@@ -120,20 +89,21 @@ export default function ApprovalWorkflowSection({
       </div>
 
       <div className="space-y-3">
-        {steps.map((step) => {
-          // Find chosen approver IDs in other steps
+        {safeSteps.map((step) => {
+          // IDs chosen in other steps (for duplicate-guard)
           const otherChosenIds = new Set(
-            steps
+            safeSteps
               .filter((s) => s.id !== step.id && s.approverId)
               .map((s) => s.approverId)
           );
 
+          // Resolve current selected user ID
           const currentSelectedUser = users.find(
             (u) =>
               u.id === step.approverId ||
-              `${u.first_name} ${u.last_name}`.trim().toLowerCase() === step.approverName.trim().toLowerCase()
+              `${u.first_name} ${u.last_name}`.trim().toLowerCase() ===
+                step.approverName.trim().toLowerCase()
           );
-
           const currentVal = currentSelectedUser?.id || step.approverId || "";
 
           return (
@@ -141,6 +111,7 @@ export default function ApprovalWorkflowSection({
               key={step.id}
               className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200/60 shadow-xs"
             >
+              {/* Role label (read-only, from master data) */}
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <span className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-extrabold shrink-0">
                   {step.stepOrder}
@@ -158,6 +129,7 @@ export default function ApprovalWorkflowSection({
                 </div>
               </div>
 
+              {/* Approver dropdown — ALL active users, no position filter */}
               <div className="flex items-center gap-3 w-full sm:w-auto flex-1">
                 <div className="flex-1">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
@@ -171,22 +143,31 @@ export default function ApprovalWorkflowSection({
                       }
                       className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500 appearance-none pr-8 cursor-pointer"
                     >
-                      {users.length === 0 ? (
+                      {isLoading ? (
                         <option value="">กำลังโหลดรายชื่อ...</option>
                       ) : (
-                        <option value="" disabled>-- โปรดเลือกผู้อนุมัติ --</option>
+                        <option value="" disabled>
+                          -- โปรดเลือกผู้อนุมัติ --
+                        </option>
                       )}
                       {users
                         .filter((u) => {
-                          // Filter users by position matching step.roleName
                           if (!step.roleName) return true;
-                          const userPosition = u.position?.name || u.position || "";
-                          const userRole = u.role?.name || u.role || "";
-                          if (!userPosition && !userRole) return true;
-                          return userPosition === step.roleName || userRole === step.roleName;
+                          const userPos = (u.position || "").trim().toLowerCase();
+                          const userRole = (u.role || "").trim().toLowerCase();
+                          const targetRole = step.roleName.trim().toLowerCase();
+
+                          if (!userPos && !userRole) return true;
+                          return (
+                            userPos === targetRole ||
+                            userRole === targetRole ||
+                            targetRole.includes(userPos) ||
+                            userPos.includes(targetRole)
+                          );
                         })
                         .map((u) => {
-                          const fullName = `${u.first_name} ${u.last_name}`;
+                          const fullName = `${u.first_name} ${u.last_name}`.trim();
+                          const posLabel = u.position && u.position !== "-" ? u.position : u.role || "N/A";
                           const isChosenInOtherStep = otherChosenIds.has(u.id);
                           return (
                             <option
@@ -194,7 +175,7 @@ export default function ApprovalWorkflowSection({
                               value={u.id}
                               disabled={isChosenInOtherStep}
                             >
-                              {fullName} ({u.position?.name || u.position || "N/A"})
+                              {fullName} ({posLabel})
                               {isChosenInOtherStep ? " — เลือกแล้วในขั้นอื่น" : ""}
                             </option>
                           );

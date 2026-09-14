@@ -384,7 +384,12 @@ export default function SubmissionsPage() {
                         if (item.status === "Draft") {
                           router.push(`/submissions/create?draftId=${item.real_id}`);
                         } else {
-                          router.push(`/approvals/${item.id}`);
+                          // If they need to approve, send them to approval. Otherwise send to detail view.
+                          if (item.isToApprove) {
+                            router.push(`/approvals/${item.id}`);
+                          } else {
+                            router.push(`/documents/${item.id}?source=submissions`);
+                          }
                         }
                       }}
                       className="hover:bg-blue-50/50 transition-colors group cursor-pointer"
@@ -465,7 +470,7 @@ export default function SubmissionsPage() {
                           </Link>
                         ) : (
                           <Link
-                            href={`/approvals/${item.id}`}
+                            href={`/documents/${item.id}?source=submissions`}
                             className="px-2.5 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer leading-tight border border-slate-200"
                           >
                             <Eye className="w-4 h-4 shrink-0 text-slate-500" />
