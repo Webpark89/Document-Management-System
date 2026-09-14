@@ -90,19 +90,20 @@ export default function SubmissionsPage() {
 
   // Active items
   const rawList = myDocsList.map((doc) => ({
-        id: doc.id,
-        real_id: doc.real_id || doc.id,
-        name: doc.name || doc.title || "",
-        type: doc.type || "PR",
-        amount: doc.amount || "-",
-        sender: doc.sender || doc.creator_name || "ฉัน",
-        approvers: doc.approvers || (doc.workflow?.steps || []).map((s: any) => s.approver ? `${s.approver.first_name} ${s.approver.last_name}` : null).filter(Boolean),
-        submittedDate: formatThaiDate(doc.submittedDate || doc.created_at),
-        currentLevel: doc.workflow?.current_step || 1,
-        maxLevels: doc.workflow?.total_steps || 1,
-        status: doc.status,
-        isToApprove: false,
-      }));
+    id: doc.id,
+    real_id: doc.real_id || doc.id,
+    name: doc.name || doc.title || "",
+    type: doc.type || "PR",
+    amount: doc.amount || "-",
+    sender: doc.sender || doc.creator_name || "ฉัน",
+    approvers: doc.approvers || ((doc as any).workflow?.steps || []).map((s: any) => s.approver ? `${s.approver.first_name} ${s.approver.last_name}` : null).filter(Boolean),
+    submittedDate: formatThaiDate(doc.submittedDate || doc.created_at),
+    createdAtTime: new Date(doc.created_at || doc.submittedDate || 0).getTime(),
+    currentLevel: (doc as any).workflow?.current_step || 1,
+    maxLevels: (doc as any).workflow?.total_steps || 1,
+    status: doc.status,
+    isToApprove: false,
+  }));
 
   // Type Counts
   const prCount = rawList.filter((item) => getDocTypeCategory(item.id, item.type) === "PR").length;
@@ -140,29 +141,12 @@ export default function SubmissionsPage() {
         "Cancelled": 0
       };
 
-      const parseThaiDate = (dateStr?: string) => {
-        if (!dateStr) return 0;
-        const timestamp = Date.parse(dateStr);
-        if (!isNaN(timestamp)) return timestamp;
-
-        const months: Record<string, number> = {
-          "ม.ค.": 0, "ก.พ.": 1, "มี.ค.": 2, "เม.ย.": 3, "พ.ค.": 4, "มิ.ย.": 5,
-          "ก.ค.": 6, "ส.ค.": 7, "ก.ย.": 8, "ต.ค.": 9, "พ.ย.": 10, "ธ.ค.": 11
-        };
-        const parts = dateStr.split(" ");
-        if (parts.length < 3) return 0;
-        const day = parseInt(parts[0]);
-        const month = months[parts[1]] || 0;
-        const year = parseInt(parts[2]) - 543;
-        return new Date(year, month, day).getTime();
-      };
-
       if (sortKey && sortDirection) {
         let comparison = 0;
         if (sortKey === "id") {
           comparison = a.id.localeCompare(b.id);
         } else if (sortKey === "submittedDate") {
-          comparison = parseThaiDate(a.submittedDate) - parseThaiDate(b.submittedDate);
+          comparison = a.createdAtTime - b.createdAtTime;
         } else if (sortKey === "requester") {
           comparison = a.sender.localeCompare(b.sender);
         } else if (sortKey === "status") {
@@ -172,12 +156,8 @@ export default function SubmissionsPage() {
         }
         return sortDirection === "asc" ? comparison : -comparison;
       } else {
-        const priorityA = statusPriority[a.status] ?? 0;
-        const priorityB = statusPriority[b.status] ?? 0;
-        if (priorityA !== priorityB) {
-          return priorityB - priorityA;
-        }
-        return parseThaiDate(b.submittedDate) - parseThaiDate(a.submittedDate);
+        // Default: Sort by creation date descending (newest on top)
+        return b.createdAtTime - a.createdAtTime;
       }
     });
 

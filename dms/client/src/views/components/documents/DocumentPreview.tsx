@@ -10,6 +10,7 @@ import { formatThaiDate } from '@/lib/format-date';
 
 interface DocumentPreviewProps {
   doc: any;
+  versionId?: string;
   hideHeader?: boolean;
   isViewer?: boolean;
   tempSignature?: boolean;
@@ -67,13 +68,23 @@ function SignatureDisplay({
 
 export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isViewer, tempSignature, onSignClick }: DocumentPreviewProps) {
   let doc = initialDoc as any;
-  if (versionId && doc.versions) {
+  if (versionId && doc?.versions) {
     const version = doc.versions.find((v: any) => v.id === versionId || v.version_number?.toString() === versionId.toString());
+    const docTypePrefix = (typeof doc.type === 'object' ? doc.type?.prefix : doc.type) || 'PR';
     if (version && version.form_data) {
       doc = { ...doc };
-      if (doc.type === 'PR') doc.pr_form = version.form_data;
-      else if (doc.type === 'PO') doc.po_form = version.form_data;
-      else if (doc.type === 'BK' || doc.type === 'MEMO') doc.bk_form = version.form_data;
+      const vFormData = version.form_data;
+      if (docTypePrefix === 'PR') {
+        doc.pr_form = (vFormData.items && Array.isArray(vFormData.items) && vFormData.items.length > 0)
+          ? vFormData
+          : { ...vFormData, items: doc.pr_form?.items || [] };
+      } else if (docTypePrefix === 'PO') {
+        doc.po_form = (vFormData.items && Array.isArray(vFormData.items) && vFormData.items.length > 0)
+          ? vFormData
+          : { ...vFormData, items: doc.po_form?.items || [] };
+      } else if (docTypePrefix === 'BK' || docTypePrefix === 'MEMO') {
+        doc.bk_form = vFormData;
+      }
     }
   }
   const { user } = useAuth();
@@ -413,7 +424,9 @@ export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isView
                   </tr>
                   <tr>
                     <th className={`border border-slate-800 px-2 py-1 ${primaryBgFaint} font-bold`}>วันที่ / Date</th>
-                    <td className="border border-slate-800 px-2 py-1 text-center">{doc.submittedDate}</td>
+                    <td className="border border-slate-800 px-2 py-1 text-center font-bold text-slate-900">
+                      {formatThaiDate(doc.submittedDate || doc.created_at || doc.pr_form?.requested_date || doc.po_form?.created_at)}
+                    </td>
                   </tr>
                 </tbody>
               </table>

@@ -356,9 +356,9 @@ export class DocumentsService {
       include: {
         type: true,
         creator: true,
-        pr_form: true,
-        po_form: true,
-        bk_form: true,
+        pr_form: { include: { items: true, department: true } },
+        po_form: { include: { items: true } },
+        bk_form: { include: { department: true } },
         workflow: {
           include: {
             steps: {
@@ -640,6 +640,25 @@ export class DocumentsService {
       });
     }
 
+    const updatedFullDoc = await this.findOne(doc.id);
+    let updatedFormData: any = undefined;
+    if (updatedFullDoc.pr_form) updatedFormData = updatedFullDoc.pr_form;
+    else if (updatedFullDoc.po_form) updatedFormData = updatedFullDoc.po_form;
+    else if (updatedFullDoc.bk_form) updatedFormData = updatedFullDoc.bk_form;
+
+    if (updatedFormData) {
+      const latestVersion = await this.prisma.documentVersion.findFirst({
+        where: { document_id: doc.id },
+        orderBy: { version_number: 'desc' },
+      });
+      if (latestVersion) {
+        await this.prisma.documentVersion.update({
+          where: { id: latestVersion.id },
+          data: { form_data: updatedFormData },
+        });
+      }
+    }
+
     await this.prisma.auditLog.create({
       data: {
         user_id: userId,
@@ -650,7 +669,7 @@ export class DocumentsService {
       },
     });
 
-    return this.findOne(doc.id);
+    return updatedFullDoc;
   }
 
   async updateDocumentFullWithFile(
@@ -795,6 +814,7 @@ export class DocumentsService {
       sender: creatorName,
       approvers,
       created_at: doc.created_at,
+      submittedDate: doc.created_at ? new Date(doc.created_at).toLocaleDateString('th-TH') : undefined,
       approved_at: doc.approved_at,
       status: doc.status,
       amount,

@@ -31,6 +31,7 @@ export interface POSubmitData {
   paymentTerms: string;
   amount: string;
   items: POItemInput[];
+  remark: string;
   attachmentFileName?: string;
   workflowSteps: WorkflowStepInput[];
   isDraft: boolean;
@@ -43,6 +44,7 @@ interface POFormProps {
   currentStep: number;
   onNext: () => void;
   onBack: () => void;
+  initialData?: any;
 }
 
 const DEPARTMENTS = [
@@ -64,7 +66,7 @@ const PAYMENT_TERMS_OPTIONS = [
   "มัดจำ 30% ชำระส่วนที่เหลือวันส่งมอบ",
 ];
 
-export default function POForm({ onSubmit, onCancel, runningNumberPreview , currentStep, onNext, onBack }: POFormProps) {
+export default function POForm({ onSubmit, onCancel, runningNumberPreview , currentStep, onNext, onBack, initialData }: POFormProps) {
   const { user } = useAuth();
   const defaultRequester = user?.full_name || user?.username || "Administrator";
   const defaultDept = user?.department || DEPARTMENTS[0];

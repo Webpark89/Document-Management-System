@@ -10,7 +10,7 @@ import { getApprovals, Approval } from '@views/features/workflow/api';
 import { getDocuments } from '@views/features/documents/api';
 import type { Document } from '@views/features/documents/types';
 import { getStatusVariant } from "@/lib/document-status";
-import { formatThaiDate } from "@/lib/format-date";
+import { formatThaiDate, formatThaiTime } from "@/lib/format-date";
 import DataTableHeader from '@views/components/ui/DataTableHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
 import { useAuth } from '@views/components/providers/AuthProvider';
@@ -87,19 +87,22 @@ export default function ApprovalsInboxPage() {
   
   // Active items
   const rawList = toApproveList.map((item) => ({
-        id: item.id,
-        real_id: (item as any).real_id || item.id,
-        name: item.name,
-        type: (item as any).type || (item as any).docType || "PR",
-        amount: item.amount,
-        sender: item.requester,
-        approvers: item.approvers || [],
-        submittedDate: formatThaiDate(item.submittedDate),
-        currentLevel: item.currentLevel,
-        maxLevels: item.maxLevels,
-        status: item.status,
-        isToApprove: true,
-      }));
+    id: item.id,
+    real_id: (item as any).real_id || item.id,
+    name: item.name,
+    type: (item as any).type || (item as any).docType || "PR",
+    amount: item.amount,
+    sender: item.requester,
+    approvers: item.approvers || [],
+    submittedDate: formatThaiDate(item.submittedDate),
+    rawSubmittedDate: (item as any).rawSubmittedDate || item.submittedDate,
+    submittedTime: formatThaiTime((item as any).rawSubmittedDate || item.submittedDate),
+    createdAtTime: new Date((item as any).rawSubmittedDate || item.submittedDate || 0).getTime(),
+    currentLevel: item.currentLevel,
+    maxLevels: item.maxLevels,
+    status: item.status,
+    isToApprove: true,
+  }));
 
   // Type Counts
   const prCount = rawList.filter((item) => getDocTypeCategory(item.id, item.type) === "PR").length;
@@ -137,29 +140,12 @@ export default function ApprovalsInboxPage() {
         "Cancelled": 0
       };
 
-      const parseThaiDate = (dateStr?: string) => {
-        if (!dateStr) return 0;
-        const timestamp = Date.parse(dateStr);
-        if (!isNaN(timestamp)) return timestamp;
-
-        const months: Record<string, number> = {
-          "ม.ค.": 0, "ก.พ.": 1, "มี.ค.": 2, "เม.ย.": 3, "พ.ค.": 4, "มิ.ย.": 5,
-          "ก.ค.": 6, "ส.ค.": 7, "ก.ย.": 8, "ต.ค.": 9, "พ.ย.": 10, "ธ.ค.": 11
-        };
-        const parts = dateStr.split(" ");
-        if (parts.length < 3) return 0;
-        const day = parseInt(parts[0]);
-        const month = months[parts[1]] || 0;
-        const year = parseInt(parts[2]) - 543;
-        return new Date(year, month, day).getTime();
-      };
-
       if (sortKey && sortDirection) {
         let comparison = 0;
         if (sortKey === "id") {
           comparison = a.id.localeCompare(b.id);
         } else if (sortKey === "submittedDate") {
-          comparison = parseThaiDate(a.submittedDate) - parseThaiDate(b.submittedDate);
+          comparison = a.createdAtTime - b.createdAtTime;
         } else if (sortKey === "requester") {
           comparison = a.sender.localeCompare(b.sender);
         } else if (sortKey === "status") {
@@ -169,12 +155,8 @@ export default function ApprovalsInboxPage() {
         }
         return sortDirection === "asc" ? comparison : -comparison;
       } else {
-        const priorityA = statusPriority[a.status] ?? 0;
-        const priorityB = statusPriority[b.status] ?? 0;
-        if (priorityA !== priorityB) {
-          return priorityB - priorityA;
-        }
-        return parseThaiDate(b.submittedDate) - parseThaiDate(a.submittedDate);
+        // Default: Sort by creation date descending (newest on top)
+        return b.createdAtTime - a.createdAtTime;
       }
     });
 
