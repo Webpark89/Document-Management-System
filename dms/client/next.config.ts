@@ -11,7 +11,7 @@ const nextConfig: any = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:4000/api/:path*",
+        destination: "http://127.0.0.1:4000/api/:path*",
       },
     ];
   },
@@ -19,12 +19,25 @@ const nextConfig: any = {
     root: monorepoRoot,
   },
   outputFileTracingRoot: monorepoRoot,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+
   typescript: {
     ignoreBuildErrors: true,
   },
+  serverExternalPackages: [],
 };
+
+// Add allowed origins for dev server WebSocket
+if (process.env.NODE_ENV !== "production") {
+  (nextConfig as any).experimental = {
+    ...((nextConfig as any).experimental || {}),
+  };
+  (nextConfig as any).devIndicators = {
+    buildActivity: true,
+  };
+}
+
+
+// Allow local network IP for HMR WebSocket
+nextConfig.allowedDevOrigins = ['192.168.1.59', '127.0.0.1', 'localhost'];
 
 export default nextConfig;

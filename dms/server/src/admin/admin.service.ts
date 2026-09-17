@@ -314,7 +314,14 @@ export class AdminService {
   }
 
   async getPositions() {
-    return this.prisma.position.findMany({ orderBy: { name: 'asc' } });
+    return this.prisma.position.findMany({
+      include: {
+        _count: {
+          select: { users: { where: { is_deleted: false } } },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
   }
 
   async createPosition(dto: { name: string; level?: string }) {

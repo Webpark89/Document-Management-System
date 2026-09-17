@@ -12,7 +12,9 @@ import {
   type RoleRecord,
 } from '@views/features/roles-users';
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+export const API_BASE_URL = typeof window !== "undefined"
+  ? `http://${window.location.hostname}:4000/api`
+  : "http://127.0.0.1:4000/api";
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

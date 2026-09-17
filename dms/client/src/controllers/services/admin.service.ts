@@ -12,6 +12,7 @@ export interface PositionDto {
   name: string;
   level: string;
   is_active: boolean;
+  _count?: { users: number };
 }
 
 export interface DocumentTypeDto {

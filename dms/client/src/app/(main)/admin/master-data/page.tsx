@@ -382,7 +382,7 @@ function MasterDataPageContent() {
   const { isOpen } = useSidebar();
   const { user } = useAuth();
   const hasPerm = (itemKey: string, action: string = 'view') =>
-    !!user?.permissions?.includes(`masterdata.${itemKey}:${action}`);
+    user?.role === "Administrator" || !!user?.permissions?.includes(`masterdata.${itemKey}:${action}`);
 
   const { signatures, saveSignatureRecord, toggleSignatureActive } = useSignatures();
   const [activeTab, setActiveTab] = useState<TabKey>("department");
@@ -445,6 +445,7 @@ function MasterDataPageContent() {
             name: p.name,
             level: p.level || "L1",
             isActive: p.is_active,
+            employeeCount: p._count?.users || 0,
           })) : prev.position,
           doctype: docTs.length > 0 ? docTs.map((dt: any) => ({
             id: dt.id,
@@ -926,6 +927,7 @@ function MasterDataPageContent() {
             badge: <StatusBadge active={r.isActive} />,
             fields: [
               { label: "ระดับ", value: r.level },
+              { label: "จำนวนพนักงาน", value: r.employeeCount },
             ],
             actions,
           };
@@ -986,6 +988,7 @@ function MasterDataPageContent() {
         return (
           <>
             <td className={tdSticky}>{r.name}</td>
+            <td className={tdNum}>{r.employeeCount || 0}</td>
           </>
         );
       }
@@ -1073,6 +1076,7 @@ function MasterDataPageContent() {
         return (
           <>
             <th className={thSticky}>ชื่อตำแหน่ง</th>
+            <th className={thRight}>จำนวนพนักงาน</th>
           </>
         );
       case "workflow":
@@ -1540,7 +1544,7 @@ function MasterDataPageContent() {
           else if (activeTab === 'workflow') canAdd = hasPerm('workflow', 'create');
           else if (activeTab === 'signature') canAdd = hasPerm('signatures', 'create');
           
-          if (!canAdd || activeTab === "running" || activeTab === "workflow" || activeTab === "position") return undefined;
+          if (!canAdd || activeTab === "running" || activeTab === "workflow") return undefined;
           return (
             <button type="button" onClick={openAdd} className={MD_MASTER_ADD_BTN}>
               <Plus className={MD_SIDEBAR_ICON} strokeWidth={1.75} />

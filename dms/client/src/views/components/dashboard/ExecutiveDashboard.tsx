@@ -197,7 +197,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
     } else {
       data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
-    return data.slice(0, 8);
+    return data; // Do not slice here, individual tables will slice
   }, [filteredData, sortKey, sortDirection]);
 
   const hasPerm = (_key: string) => {
@@ -394,63 +394,129 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
         )}
 
         {showRecentActivity && (
-          <div className={`lg:col-span-2 ${APP_TABLE_CARD} flex flex-col`}>
-          <div className="flex items-center justify-between border-b border-slate-100 p-6">
-            <h3 className="text-base font-bold text-slate-900">กิจกรรมล่าสุดในระบบ</h3>
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            {/* Table 1: Approvals */}
+            <div className={`${APP_TABLE_CARD} flex flex-col flex-1`}>
+              <div className="flex items-center justify-between border-b border-slate-100 p-5 bg-emerald-50/30">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-800">กิจกรรม: อนุมัติเอกสาร</h3>
+                </div>
+              </div>
+              <div className="overflow-x-auto w-full">
+                <table className="w-full table-fixed min-w-[700px] text-left border-collapse whitespace-nowrap">
+                  <thead>
+                    <tr className={MD_THEAD}>
+                      <DataTableHeader title="รหัสเอกสาร" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-5 py-3 w-[15%]" />
+                      <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-slate-400 w-[30%]">ชื่อเรื่อง / แผนก</th>
+                      <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-slate-400 w-[15%]">กิจกรรม</th>
+                      <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-[10%]" />
+                      <DataTableHeader title="ผู้อนุมัติ" sortKey="submittedBy" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-[15%]" />
+                      <DataTableHeader title="วันที่" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 pr-5 pl-4 w-[15%]" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50/80">
+                    {recentActivity.filter(d => d.status === 'Approved').slice(0, 5).map((doc, index) => (
+                      <tr key={doc.id || index} className={`${MD_TR} group`}>
+                        <td className="py-3 pl-5 text-sm font-bold text-slate-500">
+                          <Link href={`/documents/${doc.id}`} className="hover:text-emerald-600 transition-colors">
+                            {doc.id}
+                          </Link>
+                        </td>
+                        <td className="py-3 px-4">
+                          <Link href={`/documents/${doc.id}`} className="flex flex-col">
+                            <span className="text-sm font-bold text-slate-800 group-hover:text-emerald-600 transition-colors truncate block">{doc.title}</span>
+                            <span className="text-[10px] font-semibold text-slate-400 mt-0.5">{doc.type} • {doc.department}</span>
+                          </Link>
+                        </td>
+                        <td className="py-3 px-4 text-xs font-semibold text-emerald-600">อนุมัติเอกสาร</td>
+                        <td className="py-3 px-4">
+                          <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200">
+                            Approved
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-sm font-semibold text-slate-700">{doc.submittedBy}</td>
+                        <td className="py-3 pr-5 pl-4 text-xs text-slate-400 font-medium">{formatThaiDate(doc.date)}</td>
+                      </tr>
+                    ))}
+                    {recentActivity.filter(d => d.status === 'Approved').length === 0 && (
+                      <tr><td colSpan={6} className="py-8 text-center text-sm text-slate-400">ไม่มีประวัติการอนุมัติล่าสุด</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-          </div>
-          <div className="overflow-x-auto w-full">
-            <table className="w-full table-fixed min-w-[850px] text-left border-collapse whitespace-nowrap">
-              <thead>
-                <tr className={MD_THEAD}>
-                  <DataTableHeader title="รหัสเอกสาร" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-6 py-4 w-[15%]" />
-                  <th className="py-4 px-4 font-bold text-[11px] uppercase tracking-wider text-slate-400 w-[30%]">ชื่อเรื่อง / แผนก</th>
-                  <th className="py-4 px-4 font-bold text-[11px] uppercase tracking-wider text-slate-400 w-[12%]">กิจกรรม</th>
-                  <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-[13%]" />
-                  <DataTableHeader title="ผู้สร้าง" sortKey="submittedBy" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-[15%]" />
-                  <DataTableHeader title="วันที่" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 pr-6 pl-4 w-[15%]" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50/80">
-                {recentActivity.map((doc, index) => {
-                  let activityText = 'อัปเดตเอกสาร';
-                  if (doc.status === 'Approved') activityText = 'อนุมัติเอกสาร';
-                  else if (doc.status === 'Pending') activityText = 'ส่งขออนุมัติ';
-                  else if (doc.status === 'Returned') activityText = 'ส่งกลับแก้ไข';
-                  else if (doc.status === 'Rejected') activityText = 'ไม่อนุมัติ';
-                  else if (doc.status === 'Draft') activityText = 'บันทึกร่าง';
+            {/* Table 2: Submissions & Returns */}
+            <div className={`${APP_TABLE_CARD} flex flex-col flex-1`}>
+              <div className="flex items-center justify-between border-b border-slate-100 p-5 bg-amber-50/30">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-800">กิจกรรม: ส่งเรื่องอนุมัติ & ส่งกลับแก้ไข</h3>
+                </div>
+              </div>
+              <div className="overflow-x-auto w-full">
+                <table className="w-full table-fixed min-w-[750px] text-left border-collapse whitespace-nowrap">
+                  <thead>
+                    <tr className={MD_THEAD}>
+                      <DataTableHeader title="รหัสเอกสาร" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-5 py-3 w-[15%]" />
+                      <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-slate-400 w-[30%]">ชื่อเรื่อง / แผนก</th>
+                      <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-slate-400 w-[15%]">กิจกรรม</th>
+                      <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-[10%]" />
+                      <DataTableHeader title="ผู้ส่ง" sortKey="submittedBy" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-[15%]" />
+                      <DataTableHeader title="วันที่" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 pr-5 pl-4 w-[15%]" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50/80">
+                    {recentActivity.filter(d => d.status !== 'Approved').slice(0, 5).map((doc, index) => {
+                      let activityText = 'อัปเดตเอกสาร';
+                      if (doc.status === 'Pending') activityText = 'ส่งขออนุมัติ';
+                      else if (doc.status === 'Returned') activityText = 'ส่งกลับแก้ไข';
+                      else if (doc.status === 'Rejected') activityText = 'ไม่อนุมัติ';
+                      else if (doc.status === 'Draft') activityText = 'บันทึกร่าง';
 
-                  return (
-                  <tr key={doc.id || index} className={`${MD_TR} group`}>
-                    <td className="py-4 pl-6 text-sm font-bold text-slate-500">
-                      <Link href={`/documents/${doc.id}`} className="hover:text-blue-600 transition-colors">
-                        {doc.id}
-                      </Link>
-                    </td>
-                    <td className="py-4 px-4">
-                      <Link href={`/documents/${doc.id}`} className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate block">{doc.title}</span>
-                        <span className="text-[10px] font-semibold text-slate-400 mt-0.5">{doc.type} • {doc.department}</span>
-                      </Link>
-                    </td>
-                    <td className="py-4 px-4 text-sm font-semibold text-blue-600">{activityText}</td>
-                    <td className="py-4 px-4">
-                      <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold border ${
-                        doc.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                        doc.status === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                        doc.status === 'Returned' || doc.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                        'bg-slate-50 text-slate-700 border-slate-200'
-                      }`}>
-                        {doc.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-sm font-semibold text-slate-700">{doc.submittedBy}</td>
-                    <td className="py-4 pr-6 pl-4 text-sm text-slate-400 font-medium">{formatThaiDate(doc.date)}</td>
-                  </tr>
-                )})}
-              </tbody>
-            </table>
-          </div>
+                      return (
+                      <tr key={doc.id || index} className={`${MD_TR} group`}>
+                        <td className="py-3 pl-5 text-sm font-bold text-slate-500">
+                          <Link href={`/documents/${doc.id}`} className="hover:text-amber-600 transition-colors">
+                            {doc.id}
+                          </Link>
+                        </td>
+                        <td className="py-3 px-4">
+                          <Link href={`/documents/${doc.id}`} className="flex flex-col">
+                            <span className="text-sm font-bold text-slate-800 group-hover:text-amber-600 transition-colors truncate block">{doc.title}</span>
+                            <span className="text-[10px] font-semibold text-slate-400 mt-0.5">{doc.type} • {doc.department}</span>
+                          </Link>
+                        </td>
+                        <td className={`py-3 px-4 text-xs font-semibold ${
+                            doc.status === 'Pending' ? 'text-amber-600' :
+                            doc.status === 'Returned' || doc.status === 'Rejected' ? 'text-rose-600' :
+                            'text-slate-600'
+                          }`}>{activityText}</td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold border ${
+                            doc.status === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                            doc.status === 'Returned' || doc.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                            'bg-slate-50 text-slate-700 border-slate-200'
+                          }`}>
+                            {doc.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-sm font-semibold text-slate-700">{doc.submittedBy}</td>
+                        <td className="py-3 pr-5 pl-4 text-xs text-slate-400 font-medium">{formatThaiDate(doc.date)}</td>
+                      </tr>
+                    )})}
+                    {recentActivity.filter(d => d.status !== 'Approved').length === 0 && (
+                      <tr><td colSpan={6} className="py-8 text-center text-sm text-slate-400">ไม่มีประวัติการส่งเรื่องล่าสุด</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -71,12 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     if (!user && !isPublic) {
-      router.replace("/login");
+      setTimeout(() => router.replace("/login"), 0);
       return;
     }
 
     if (user && (pathname === "/login" || pathname.startsWith("/auth"))) {
-      router.replace("/dashboard");
+      setTimeout(() => router.replace("/dashboard"), 0);
     }
   }, [user, loading, pathname, router]);
 

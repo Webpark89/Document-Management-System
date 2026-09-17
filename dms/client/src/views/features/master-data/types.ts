@@ -4,6 +4,7 @@ export interface DepartmentRecord {
   code: string;
   employeeCount: number;
   isActive: boolean;
+  employeeCount?: number;
 }
 
 export interface PositionRecord {
@@ -12,6 +13,7 @@ export interface PositionRecord {
   level: string;
   department?: string;
   isActive: boolean;
+  employeeCount?: number;
 }
 
 /** Master Data tab document type (legacy master-data page seed). */
@@ -21,6 +23,7 @@ export interface MasterDocumentTypeRecord {
   prefix: string;
   docCount: number;
   isActive: boolean;
+  employeeCount?: number;
 }
 
 export interface FormTypeRecord {
@@ -29,6 +32,7 @@ export interface FormTypeRecord {
   code: string;
   fieldsCount: number;
   isActive: boolean;
+  employeeCount?: number;
 }
 
 export interface WorkflowRecord {
@@ -41,6 +45,7 @@ export interface WorkflowRecord {
   approvers: string[];
   steps: RoleOption[];
   isActive: boolean;
+  employeeCount?: number;
 }
 
 export interface SignatureRecord {
@@ -187,6 +192,7 @@ export interface DocumentRunningConfig {
   resetCycle: ResetCycle;
   currentCounter: number;
   isActive: boolean;
+  employeeCount?: number;
 }
 
 export const RESET_CYCLE_LABELS: Record<ResetCycle, string> = {

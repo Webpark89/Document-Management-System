@@ -20,7 +20,9 @@ export function clearAccessToken(): void {
 }
 
 // ---- Safe API Wrapper ----
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_BASE = typeof window !== "undefined"
+  ? `http://${window.location.hostname}:4000`
+  : "http://127.0.0.1:4000";
 
 type ApiResponse<T> = { data: T };
 
@@ -48,7 +50,7 @@ async function request<T>(
       if (res.status === 401) {
         if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
           window.location.href = "/login";
-          return new Promise(() => {}); // Halt execution during redirect to avoid error overlay
+          // Allow it to throw so that the app doesn't hang indefinitely
         }
       }
       let serverMessage = `API Error: ${res.status} ${res.statusText}`;
