@@ -154,9 +154,7 @@ export function FolderSidebar({
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0">
-                  <span title={VISIBILITY_LABEL[folder.visibility]}>
-                    {getVisibilityIcon(folder.visibility)}
-                  </span>
+                  
                   <span className="text-[10px] font-bold bg-slate-200/80 text-slate-600 px-1.5 py-0.5 rounded-md">
                     {folder.document_count}
                   </span>

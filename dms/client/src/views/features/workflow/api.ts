@@ -41,9 +41,9 @@ export interface WorkflowData {
 
 export async function getApprovals(): Promise<Approval[]> {
   try {
-    const res = await api.get<unknown[]>("/api/approvals");
+    const res = await api.get<any[]>("/api/approvals");
     const docs = res.data || [];
-    return docs.map((item) => {
+    return docs.map((item: any) => {
       let mappedStatus = item.stepStatus;
       if (mappedStatus === "Rejected") {
         mappedStatus = "Returned for Revision";
@@ -71,7 +71,7 @@ export async function getApprovals(): Promise<Approval[]> {
 
 export async function getWorkflow(documentId: string): Promise<WorkflowData | null> {
   try {
-    const res = await api.get<unknown>(`/api/workflows/${documentId}`);
+    const res = await api.get<any>(`/api/workflows/${documentId}`);
     const w = res.data;
     if (!w) return null;
     return {
@@ -79,7 +79,7 @@ export async function getWorkflow(documentId: string): Promise<WorkflowData | nu
       status: w.status,
       currentStep: w.current_step,
       totalSteps: w.total_steps,
-      steps: (w.steps || []).map((s: unknown) => ({
+      steps: (w.steps || []).map((s: any) => ({
         id: s.id,
         stepOrder: s.step_order,
         roleName: s.approver_role,

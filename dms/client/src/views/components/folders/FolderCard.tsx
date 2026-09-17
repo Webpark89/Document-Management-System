@@ -80,13 +80,7 @@ export function FolderCard({ folder, isActive, isPinned, onClick, onEdit, onDele
             <Pin className={`w-3.5 h-3.5 ${isPinned ? "fill-amber-500" : ""}`} />
           </button>
 
-          <span
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-              VISIBILITY_COLOR[folder.visibility]
-            }`}
-          >
-            {VISIBILITY_LABEL[folder.visibility]}
-          </span>
+          
 
           {folder.can_edit && (
             <div className="relative">

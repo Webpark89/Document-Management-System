@@ -71,7 +71,7 @@ export default function UploadOnlyForm({
     async function loadWorkflow() {
       try {
         const { adminService } = await import("@/controllers/services/admin.service");
-        const workflows = (await adminService.getApprovalWorkflowsList()) as unknown[];
+        const workflows = (await adminService.getApprovalWorkflowsList()) as any[];
         const docFlow = Array.isArray(workflows) ? workflows.find((w: any) => w.prefix === "OTHER" || w.prefix === "DOC") : null;
         if (docFlow && docFlow.steps && docFlow.steps.length > 0) {
           setWorkflowSteps(

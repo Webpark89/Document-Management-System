@@ -145,9 +145,9 @@ export default function ApprovalHistoryPage() {
   useEffect(() => {
     getDocuments().then(docs => {
       const realHistory: ApprovalHistoryItem[] = [];
-      docs.forEach(doc => {
+      docs.forEach((doc: any) => {
         if (doc.workflow && doc.workflow.steps) {
-          doc.workflow.steps.forEach((step: unknown) => {
+          doc.workflow.steps.forEach((step: any) => {
             if (step.status === "Approved" || step.status === "Rejected") {
               const approverName = step.approver
                 ? `${step.approver.first_name || ''} ${step.approver.last_name || ''}`.trim()

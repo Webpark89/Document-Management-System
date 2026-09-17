@@ -66,8 +66,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [departments, setDepartments] = useState<string[]>([]);
 
-  const canViewEmployee = !user || user.role === "Administrator" || !user.permissions || user.permissions.length === 0 || user.permissions.includes('dashboard:view_employee') || user.permissions.includes('dashboard.view_employee:view') || true;
-  const canViewExecutive = !user || user.role === "Administrator" || user.role === "Executive" || user.role === "Manager" || !user.permissions || user.permissions.length === 0 || user.permissions.includes('dashboard:view_executive') || user.permissions.includes('dashboard.view_executive:view') || true;
+  const canViewEmployee = user?.role === "Administrator" || !!user?.permissions?.includes('dashboard.view_employee:view');
+  const canViewExecutive = user?.role === "Administrator" || !!user?.permissions?.includes('dashboard.view_executive:view');
 
   const [activeView, setActiveView] = useState<"employee" | "executive">("employee");
 
@@ -93,14 +93,14 @@ export default function DashboardPage() {
         const mapped = rawDocs.map((d: any) => ({
           id: d.id,
           title: d.title || d.name,
-          type: d.type,
+          type: typeof d.type === 'object' ? (d.type?.prefix || d.type?.code || 'OTHER') : (d.type || 'OTHER'),
           department: d.department || d.creator?.department?.name || "ทั่วไป",
           status: d.status,
           submittedBy: d.sender || d.creator_name || d.creator?.first_name || "ระบบ",
           creator_id: d.creator_id || d.creator?.id,
           creator: d.creator,
-          date: d.submittedDate || d.created_at,
-          value: typeof d.amount === "string" ? parseFloat(d.amount.replace(/[^0-9.-]+/g,"")) : (d.amount || 0),
+          date: d.created_at || d.submittedDate,
+          value: d.pr_form?.total_amount ? Number(d.pr_form.total_amount) : d.po_form?.total_amount ? Number(d.po_form.total_amount) : 0,
           approvers: d.approvers || [],
           workflow: d.workflow || null
         }));

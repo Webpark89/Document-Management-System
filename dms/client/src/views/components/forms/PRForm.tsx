@@ -84,7 +84,6 @@ export default function PRForm({
   const [requiredDate, setRequiredDate] = useState(nextWeekStr);
   const [purpose, setPurpose] = useState("");
   const [remark, setRemark] = useState("เอกสารใบขอซื้อฉบับนี้ใช้สำหรับขออนุมัติภายในก่อนดำเนินการจัดซื้อ");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const [items, setItems] = useState<PRItemInput[]>([
     {
@@ -129,7 +128,7 @@ export default function PRForm({
     async function loadWorkflow() {
       try {
         const { adminService } = await import("@/controllers/services/admin.service");
-        const workflows = (await adminService.getApprovalWorkflowsList()) as unknown[];
+        const workflows = (await adminService.getApprovalWorkflowsList()) as any[];
         const prFlow = Array.isArray(workflows) ? workflows.find((w: any) => w.prefix === "PR") : null;
         if (prFlow && prFlow.steps && prFlow.steps.length > 0) {
           setWorkflowSteps(
@@ -203,7 +202,6 @@ export default function PRForm({
       remark,
       amount: grandTotal.toFixed(2),
       items,
-      attachmentFileName: uploadedFile ? uploadedFile.name : undefined,
       workflowSteps,
       isDraft,
     });

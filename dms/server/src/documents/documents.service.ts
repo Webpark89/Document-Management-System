@@ -88,6 +88,40 @@ export interface FindAllOptions {
 
 @Injectable()
 export class DocumentsService {
+
+  private processVisibility(visibility: any, creatorId: string, workflowSteps: any[]) {
+    let visibilityType = 'CompanyWide';
+    let visibilityDepts: string[] = [];
+    let visibilityUsers: string[] = [];
+
+    if (visibility) {
+      if (typeof visibility === 'string') {
+        try { visibility = JSON.parse(visibility); } catch (e) {}
+      }
+      visibilityType = visibility.type || 'CompanyWide';
+      visibilityDepts = visibility.departments || [];
+      visibilityUsers = visibility.users || [];
+    }
+
+    if (visibilityType !== 'CompanyWide') {
+      visibilityUsers.push(creatorId);
+      if (workflowSteps) {
+        for (const step of workflowSteps) {
+          let stepData = step;
+          if (typeof step === 'string') {
+            try { stepData = JSON.parse(step); } catch (e) {}
+          }
+          if (stepData && stepData.approver_id) {
+            visibilityUsers.push(stepData.approver_id);
+          }
+        }
+      }
+      visibilityUsers = [...new Set(visibilityUsers)];
+    }
+
+    return { visibility_type: visibilityType, visibility_departments: visibilityDepts, visibility_users: visibilityUsers };
+  }
+
   constructor(private prisma: PrismaService) {}
 
   logAction(
@@ -134,7 +168,20 @@ export class DocumentsService {
     const where: Prisma.DocumentWhereInput = { is_deleted: false };
 
     if (currentUserRole !== 'Administrator' && currentUserId) {
-      where.OR = [{ creator_id: currentUserId }, { status: 'Approved' }];
+      const userObj = await this.prisma.user.findUnique({ where: { id: currentUserId } });
+      const deptId = userObj?.department_id;
+      
+      const visibilityConditions: any[] = [
+        { visibility_type: 'CompanyWide' },
+        { visibility_users: { has: currentUserId } }
+      ];
+      if (deptId) {
+        visibilityConditions.push({ visibility_departments: { has: deptId } });
+      }
+      
+      where.AND = [
+        { OR: visibilityConditions }
+      ];
     }
 
     if (status && status !== 'All') {
@@ -192,7 +239,7 @@ export class DocumentsService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user?: { id: string; role: string; department_id?: string }) {
     const isUuid =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
         id,
@@ -229,6 +276,16 @@ export class DocumentsService {
       throw new NotFoundException(`ไม่พบเอกสารรหัส ${id}`);
     }
 
+    if (doc && user && user.role !== 'Administrator') {
+      const isCreator = doc.creator_id === user.id;
+      const isVisibleType = doc.visibility_type === 'CompanyWide';
+      const isVisibleDept = doc.visibility_departments && user.department_id && doc.visibility_departments.includes(user.department_id);
+      const isVisibleUser = doc.visibility_users && doc.visibility_users.includes(user.id);
+      
+      if (!isCreator && !isVisibleType && !isVisibleDept && !isVisibleUser) {
+        throw new ForbiddenException('คุณไม่มีสิทธิ์เข้าถึงเอกสารนี้');
+      }
+    }
     return this.mapDocumentToResponse(doc);
   }
 
@@ -814,7 +871,7 @@ export class DocumentsService {
       sender: creatorName,
       approvers,
       created_at: doc.created_at,
-      submittedDate: doc.created_at ? new Date(doc.created_at).toLocaleDateString('th-TH') : undefined,
+      submittedDate: doc.created_at ? new Date(doc.created_at).toISOString() : undefined,
       approved_at: doc.approved_at,
       status: doc.status,
       amount,

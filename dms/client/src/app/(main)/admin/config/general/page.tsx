@@ -22,13 +22,13 @@ export default function GeneralConfigPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await api.get<unknown>("/api/admin/settings");
+        const res = await api.get<any>("/api/admin/settings");
         const data = res.data;
         if (data) {
           setCompanyName(data.companyName || "");
           setCompanyAddress(data.companyAddress || "");
         }
-      } catch (err: unknown) {
+      } catch (err: any) {
         console.error("Failed to load settings", err);
       } finally {
         setIsLoading(false);
@@ -42,7 +42,7 @@ export default function GeneralConfigPage() {
     try {
       await api.post("/api/admin/settings", { companyName, companyAddress });
       showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
-    } catch (err: unknown) {
+    } catch (err: any) {
       showToast(err.message || "เกิดข้อผิดพลาดในการบันทึก", "error");
     } finally {
       setIsSaving(false);

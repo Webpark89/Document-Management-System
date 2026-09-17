@@ -161,45 +161,6 @@ export function FolderCreateModal({
             </div>
           </div>
 
-          {/* Visibility */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">สิทธิ์การมองเห็น (Visibility)</label>
-            <select
-              value={visibility}
-              onChange={(e) => setVisibility(e.target.value as FolderVisibility)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
-            >
-              <option value="CompanyWide">🌐 ทั้งองค์กร (Company Wide) — ทุกคนเห็นได้</option>
-              <option value="Department">🏢 เฉพาะแผนกของฉัน (My Department Only)</option>
-              <option value="Shared">🔗 ระบุแผนกแบบกำหนดเอง (Shared Depts)</option>
-              <option value="Private">🔒 ส่วนตัว (Private) — เห็นเฉพาะผู้สร้าง</option>
-              <option value="AdminOnly">🛡️ เฉพาะ Admin / Executive</option>
-            </select>
-          </div>
-
-          {/* Shared Depts Multi-select */}
-          {visibility === "Shared" && (
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">เลือกแผนกที่มีสิทธิ์</label>
-              <div className="space-y-1 max-h-32 overflow-y-auto border border-slate-200 rounded-xl p-2 bg-slate-50">
-                {departments.map((d) => (
-                  <label key={d.id} className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer hover:bg-slate-100 p-1 rounded-lg">
-                    <input
-                      type="checkbox"
-                      checked={sharedDepartments.includes(d.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) setSharedDepartments([...sharedDepartments, d.id]);
-                        else setSharedDepartments(sharedDepartments.filter((id) => id !== d.id));
-                      }}
-                      className="rounded border-slate-300 text-blue-600 w-3.5 h-3.5"
-                    />
-                    <span>{d.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Submit / Cancel Buttons */}
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
             <button

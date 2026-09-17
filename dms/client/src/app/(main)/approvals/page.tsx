@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckSquare, Eye, Search, ChevronLeft, ChevronRight, Plus, Inbox, Send, FileEdit } from "lucide-react";
+import { Check, CheckSquare, Eye, Search, ChevronLeft, ChevronRight, Plus, Inbox, Send, FileEdit } from "lucide-react";
 import PageHeader from '@views/components/shared/PageHeader';
 import { Badge } from '@views/components/ui/badge';
 import { getApprovals, Approval } from '@views/features/workflow/api';
@@ -25,7 +25,10 @@ export default function ApprovalsInboxPage() {
   const [toApproveList, setToApproveList] = useState<Approval[]>([]);
   
   // Navigation & Filter States
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [typeFilters, setTypeFilters] = useState<string[]>(["All"]);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [deptFilter, setDeptFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
@@ -74,14 +77,6 @@ export default function ApprovalsInboxPage() {
     return "OTHER";
   };
 
-  const handleToggleType = (typeKey: string) => {
-    if (selectedTypes.includes(typeKey)) {
-      setSelectedTypes(selectedTypes.filter((t) => t !== typeKey));
-    } else {
-      setSelectedTypes([...selectedTypes, typeKey]);
-    }
-  };
-
   // Counts
   const toApproveCount = toApproveList.filter((item) => item.status === "Pending").length;
   
@@ -93,6 +88,7 @@ export default function ApprovalsInboxPage() {
     type: (item as any).type || (item as any).docType || "PR",
     amount: item.amount,
     sender: item.requester,
+    department: (item as any).department || "ไม่ระบุ",
     approvers: item.approvers || [],
     submittedDate: formatThaiDate(item.submittedDate),
     rawSubmittedDate: (item as any).rawSubmittedDate || item.submittedDate,
@@ -104,30 +100,49 @@ export default function ApprovalsInboxPage() {
     isToApprove: true,
   }));
 
-  // Type Counts
-  const prCount = rawList.filter((item) => getDocTypeCategory(item.id, item.type) === "PR").length;
-  const poCount = rawList.filter((item) => getDocTypeCategory(item.id, item.type) === "PO").length;
-  const bkCount = rawList.filter((item) => getDocTypeCategory(item.id, item.type) === "BK").length;
-  const otherCount = rawList.filter((item) => getDocTypeCategory(item.id, item.type) === "OTHER").length;
-
   // Filtering
   const filteredItems = rawList
     .filter((item) => {
-      // Document type filter (multi-select)
-      if (selectedTypes.length > 0) {
+      // Document type filter (multi-select with 'All')
+      if (!typeFilters.includes("All")) {
         const itemCategory = getDocTypeCategory(item.id, item.type);
-        if (!selectedTypes.includes(itemCategory)) return false;
+        const mappedCategory = itemCategory === "OTHER" ? "DOC" : itemCategory;
+        if (!typeFilters.includes(mappedCategory)) return false;
       }
+
+      // Department filter
+      if (deptFilter && item.department !== deptFilter) return false;
 
       // Search filter
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        return (
+        if (!(
           item.name.toLowerCase().includes(query) ||
           item.id.toLowerCase().includes(query) ||
-          item.sender.toLowerCase().includes(query)
-        );
+          item.sender.toLowerCase().includes(query) ||
+          item.department.toLowerCase().includes(query)
+        )) {
+          return false;
+        }
       }
+
+      // Date Range Filter
+      if (dateFrom || dateTo) {
+        const docDate = new Date(item.createdAtTime);
+        docDate.setHours(0, 0, 0, 0);
+
+        if (dateFrom) {
+          const from = new Date(dateFrom);
+          from.setHours(0, 0, 0, 0);
+          if (docDate < from) return false;
+        }
+        if (dateTo) {
+          const to = new Date(dateTo);
+          to.setHours(23, 59, 59, 999);
+          if (docDate > to) return false;
+        }
+      }
+
       return true;
     })
     .sort((a, b) => {
@@ -144,10 +159,12 @@ export default function ApprovalsInboxPage() {
         let comparison = 0;
         if (sortKey === "id") {
           comparison = a.id.localeCompare(b.id);
-        } else if (sortKey === "submittedDate") {
-          comparison = a.createdAtTime - b.createdAtTime;
         } else if (sortKey === "requester") {
           comparison = a.sender.localeCompare(b.sender);
+        } else if (sortKey === "department") {
+          comparison = a.department.localeCompare(b.department);
+        } else if (sortKey === "submittedDate") {
+          comparison = a.createdAtTime - b.createdAtTime;
         } else if (sortKey === "status") {
           const priorityA = statusPriority[a.status] ?? 0;
           const priorityB = statusPriority[b.status] ?? 0;
@@ -160,11 +177,9 @@ export default function ApprovalsInboxPage() {
       }
     });
 
-
-
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedTypes, searchQuery]);
+  }, [typeFilters, searchQuery, dateFrom, dateTo, deptFilter]);
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -174,14 +189,37 @@ export default function ApprovalsInboxPage() {
     if (id.startsWith("PR")) return "bg-blue-50 text-blue-700 border-blue-200";
     if (id.startsWith("PO")) return "bg-purple-50 text-purple-700 border-purple-200";
     if (id.startsWith("CERT")) return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    return "bg-slate-100 text-slate-600 border-slate-200";
+    if (id.startsWith("DOC")) return "bg-amber-50 text-amber-700 border-amber-200";
+    return "bg-slate-50 text-slate-700 border-slate-200";
   };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "Approved":
+        return <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 px-2 py-0.5 shadow-none font-bold">Approved</Badge>;
+      case "Pending":
+        return <Badge className="bg-amber-50 text-amber-600 border-amber-200 px-2 py-0.5 shadow-none font-bold">Pending</Badge>;
+      case "Returned":
+      case "Returned for Revision":
+        return <Badge className="bg-rose-50 text-rose-600 border-rose-200 px-2 py-0.5 shadow-none font-bold">Returned</Badge>;
+      case "Draft":
+        return <Badge className="bg-slate-100 text-slate-600 border-slate-200 px-2 py-0.5 shadow-none font-bold">Draft</Badge>;
+      case "Cancelled":
+        return <Badge className="bg-slate-100 text-slate-400 border-slate-200 px-2 py-0.5 shadow-none font-bold">Cancelled</Badge>;
+      default:
+        return <Badge className="bg-slate-100 text-slate-600 border-slate-200 px-2 py-0.5 shadow-none font-bold">{status}</Badge>;
+    }
+  };
+
+  // Unique departments for filter dropdown
+  const uniqueDepartments = Array.from(new Set(rawList.map(item => item.department))).filter(Boolean);
 
   const getDocTypeLabel = (id: string) => {
     if (id.startsWith("PR")) return "PR";
     if (id.startsWith("PO")) return "PO";
     if (id.startsWith("CERT")) return "CERT";
-    return "DOC";
+    if (id.startsWith("DOC")) return "DOC";
+    return "OTHER";
   };
 
   return (
@@ -204,126 +242,119 @@ export default function ApprovalsInboxPage() {
           }
         />
 
-
-
         <div className={`${APP_TABLE_CARD} flex flex-col p-6 space-y-6`}>
           {/* SUB-FILTER TOOLBAR & SEARCH */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            {/* Document Type Pills (Multi-select) */}
-            <div className="flex flex-wrap gap-1.5 items-center">
-              <span className="text-xs font-bold text-slate-400 mr-1">ตัวกรอง:</span>
-              <button
-                type="button"
-                onClick={() => setSelectedTypes([])}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  selectedTypes.length === 0
-                    ? "bg-slate-800 text-white border-slate-800 shadow-xs"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                ทั้งหมด ({rawList.length})
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleToggleType("PR")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  selectedTypes.includes("PR")
-                    ? "bg-blue-600 text-white border-blue-600 shadow-xs"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                📄 ใบขอซื้อ (PR)
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                    selectedTypes.includes("PR")
-                      ? "bg-white/20 text-white"
-                      : "bg-blue-100 text-blue-700"
-                  }`}
-                >
-                  {prCount}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleToggleType("PO")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  selectedTypes.includes("PO")
-                    ? "bg-purple-600 text-white border-purple-600 shadow-xs"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                📦 ใบสั่งซื้อ (PO)
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                    selectedTypes.includes("PO")
-                      ? "bg-white/20 text-white"
-                      : "bg-purple-100 text-purple-700"
-                  }`}
-                >
-                  {poCount}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleToggleType("BK")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  selectedTypes.includes("BK")
-                    ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                📝 บันทึกข้อความ (BK)
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                    selectedTypes.includes("BK")
-                      ? "bg-white/20 text-white"
-                      : "bg-emerald-100 text-emerald-700"
-                  }`}
-                >
-                  {bkCount}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleToggleType("OTHER")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                  selectedTypes.includes("OTHER")
-                    ? "bg-slate-700 text-white border-slate-700 shadow-xs"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                📁 เอกสารอื่นๆ
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                    selectedTypes.includes("OTHER")
-                      ? "bg-white/20 text-white"
-                      : "bg-slate-100 text-slate-700"
-                  }`}
-                >
-                  {otherCount}
-                </span>
-              </button>
-            </div>
-
-            {/* SEARCH BAR — requires search_sort:view */}
-            {hasPerm('search_sort') && (
-              <div className="relative flex-1 md:w-64 w-full">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+          {/* Search + Filter controls group */}
+          <div className="flex items-center justify-between gap-4 bg-white p-3 rounded-2xl border border-slate-200/80 shadow-2xs mb-4 overflow-x-auto w-full">
+            <div className="flex items-center gap-3 w-[250px] shrink-0">
+              
+              {/* Search */}
+              {hasPerm('search_sort') && (
+              <div className="relative w-full shrink-0">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                   <Search className="w-4 h-4" />
                 </span>
                 <input
                   type="text"
+                  placeholder="ค้นหาชื่อ, เลขที่เอกสาร, ผู้ขอ, แผนก..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="ค้นหาชื่อ, เลขที่เอกสาร, ผู้ขอ..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-9 pr-3 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all"
+                  className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all shadow-2xs"
                 />
               </div>
-            )}
+              )}
+
+              {/* Type Filter & Date Range & Dept */}
+              <div className="flex items-center gap-4 shrink-0 flex-nowrap">
+                
+                {/* Type Filter */}
+                {hasPerm('search_sort') && (
+                <div className="flex items-center gap-1.5 py-1 shrink-0">
+                  {[
+                    { value: "All", label: "ทุกประเภท" },
+                    { value: "PR", label: "PR" },
+                    { value: "PO", label: "PO" },
+                    { value: "BK", label: "BK" },
+                    { value: "DOC", label: "DOC" },
+                  ].map((type) => (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => {
+                        if (type.value === "All") {
+                          setTypeFilters(["All"]);
+                        } else {
+                          let newFilters = typeFilters.includes("All") ? [] : [...typeFilters];
+                          if (newFilters.includes(type.value)) {
+                            newFilters = newFilters.filter((t) => t !== type.value);
+                          } else {
+                            newFilters.push(type.value);
+                          }
+                          if (newFilters.length === 0) newFilters = ["All"];
+                          setTypeFilters(newFilters);
+                        }
+                      }}
+                      className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-colors whitespace-nowrap ${
+                        typeFilters.includes(type.value)
+                          ? 'bg-slate-100 border-slate-300 text-slate-800'
+                          : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                      }`}
+                    >
+                      {typeFilters.includes(type.value) && <Check className="w-3.5 h-3.5" />}
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
+                )}
+
+                {/* Date Range & Dept Filter */}
+                <div className="flex items-center gap-3 border-l border-slate-100 pl-4 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-500">แผนก:</span>
+                    <select
+                      value={deptFilter}
+                      onChange={(e) => setDeptFilter(e.target.value)}
+                      className="bg-white border border-slate-200 rounded-xl py-1 px-2.5 text-xs text-slate-700 font-semibold focus:outline-none"
+                    >
+                      <option value="">ทั้งหมด</option>
+                      {uniqueDepartments.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="w-px h-6 bg-slate-100"></div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-500">ช่วงวันที่:</span>
+                    <input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="bg-white border border-slate-200 rounded-xl py-1 px-2.5 text-xs text-slate-700 font-semibold focus:outline-none"
+                    />
+                    <span className="text-xs text-slate-400">-</span>
+                    <input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="bg-white border border-slate-200 rounded-xl py-1 px-2.5 text-xs text-slate-700 font-semibold focus:outline-none"
+                    />
+                  </div>
+                  
+                  {(dateFrom || dateTo || deptFilter) && (
+                    <button
+                      type="button"
+                      onClick={() => { setDateFrom(""); setDateTo(""); setDeptFilter(""); }}
+                      className="text-[11px] font-bold text-rose-500 hover:underline ml-1 shrink-0"
+                    >
+                      ล้าง
+                    </button>
+                  )}
+                </div>
+
+              </div>
+            </div>
           </div>
 
           {/* TABLE */}
@@ -338,28 +369,33 @@ export default function ApprovalsInboxPage() {
                     <th className="py-4 w-32 font-bold">รหัส (ID)</th>
                   )}
                   {hasPerm('search_sort') ? (
-                    <DataTableHeader title="ผู้ส่งขอ" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-36" />
+                    <DataTableHeader title="ผู้ส่งขอ" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
                   ) : (
-                    <th className="py-4 w-36 font-bold">ผู้ส่งขอ</th>
+                    <th className="py-4 w-32 font-bold">ผู้ส่งขอ</th>
                   )}
-                  <th className="py-4 font-bold w-44">รายชื่อผู้อนุมัติ</th>
                   {hasPerm('search_sort') ? (
-                    <DataTableHeader title="วันที่ส่ง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-28" />
+                    <DataTableHeader title="แผนก" sortKey="department" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
                   ) : (
-                    <th className="py-4 w-28 font-bold">วันที่ส่ง</th>
+                    <th className="py-4 w-32 font-bold">แผนก</th>
+                  )}
+                  <th className="py-4 font-bold w-40">รายชื่อผู้อนุมัติ</th>
+                  {hasPerm('search_sort') ? (
+                    <DataTableHeader title="วันที่ส่ง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
+                  ) : (
+                    <th className="py-4 w-32 font-bold">วันที่ส่ง</th>
                   )}
                   {hasPerm('search_sort') ? (
                     <DataTableHeader title="เวลา" sortKey="submittedTime" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-24" />
                   ) : (
                     <th className="py-4 w-24 font-bold">เวลา</th>
                   )}
-                  <th className="py-4 text-center font-bold w-20">ขั้นที่</th>
+                  <th className="py-4 text-center font-bold w-16">ขั้นที่</th>
                   {hasPerm('search_sort') ? (
-                    <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 text-center w-36" />
+                    <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 text-center w-28" />
                   ) : (
-                    <th className="py-4 text-center w-36 font-bold">สถานะ</th>
+                    <th className="py-4 text-center w-28 font-bold">สถานะ</th>
                   )}
-                  <th className="py-4 pr-4 text-center font-bold w-32">ดำเนินการ</th>
+                  <th className="py-4 pr-4 text-center font-bold w-24">ดำเนินการ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50/80">
@@ -401,6 +437,9 @@ export default function ApprovalsInboxPage() {
                       </td>
                       <td className="py-4 text-sm font-semibold text-slate-700">
                         {item.sender}
+                      </td>
+                      <td className="py-4">
+                        <span className="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md">{item.department}</span>
                       </td>
                       <td className="py-4 text-xs font-semibold text-slate-700">
                         {item.approvers && item.approvers.length > 0 ? (

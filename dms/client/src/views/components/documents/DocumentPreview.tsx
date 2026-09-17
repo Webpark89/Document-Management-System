@@ -532,10 +532,10 @@ export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isView
 
           {/* Footer Totals */}
           <div className="mt-4 grid grid-cols-[1fr_auto] border-2 border-slate-800 items-stretch">
-             <div className="p-3 border-r-2 border-slate-800 flex flex-col justify-between">
-                <div>
-                  <span className="font-bold text-slate-900">หมายเหตุ / Remarks:</span>
-                  <p className="mt-1 text-slate-700 whitespace-pre-wrap text-[11px]">{remark || "-"}</p>
+             <div className="p-3 border-r-2 border-slate-800 flex flex-col justify-start min-w-0 text-left">
+                <div className="min-w-0 text-left">
+                  <span className="font-bold text-slate-900 block text-left mb-1">หมายเหตุ / Remarks:</span>
+                  <p className="text-slate-700 whitespace-pre-wrap text-[11px] break-words break-all text-left leading-relaxed">{remark || "-"}</p>
                 </div>
              </div>
              <div className="w-[200px]">

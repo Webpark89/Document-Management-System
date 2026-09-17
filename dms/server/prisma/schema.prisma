@@ -162,7 +162,10 @@ model Document {
   tags        String[]
   folder_id   String?
   is_deleted  Boolean        @default(false)
-  approved_at DateTime?
+    visibility_type String @default("CompanyWide")
+    visibility_departments String[]
+    visibility_users String[]
+          approved_at DateTime?
   
   created_at  DateTime       @default(now())
   updated_at  DateTime       @updatedAt
@@ -451,11 +454,11 @@ model AuditLog {
 // ==========================================
 
 enum FolderVisibility {
-  Private       // เจ้าของเท่านั้น
-  Department    // คนในแผนกเดียวกัน
-  Shared        // กำหนดเอง
-  CompanyWide   // ทุกคนในองค์กร
-  AdminOnly     // เฉพาะ Admin / Executive
+  Private       // เน€เธเนเธฒเธเธญเธเน€เธ—เนเธฒเธเธฑเนเธ
+  Department    // เธเธเนเธเนเธเธเธเน€เธ”เธตเธขเธงเธเธฑเธ
+  Shared        // เธเธณเธซเธเธ”เน€เธญเธ
+  CompanyWide   // เธ—เธธเธเธเธเนเธเธญเธเธเนเธเธฃ
+  AdminOnly     // เน€เธเธเธฒเธฐ Admin / Executive
 }
 
 model Folder {
@@ -510,3 +513,4 @@ model FolderPermission {
   @@unique([folder_id, department_id])
   @@map("folder_permissions")
 }
+

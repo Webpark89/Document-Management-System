@@ -66,7 +66,7 @@ async function request<T>(
     const data = await res.json();
     return { data };
   } catch (err: unknown) {
-    if (err?.name === "TypeError" || err?.message?.toLowerCase().includes("fetch")) {
+    if ((err as any)?.name === "TypeError" || (err as any)?.message?.toLowerCase().includes("fetch")) {
       throw new Error(
         "ไม่สามารถเชื่อมต่อ Backend Server ได้ (กรุณารัน `npm run dev` ที่โฟลเดอร์หลักเพื่อเปิด NestJS พอร์ต 4000)"
       );

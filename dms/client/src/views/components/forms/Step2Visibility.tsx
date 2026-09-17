@@ -10,8 +10,6 @@ export interface VisibilityData {
 }
 
 interface Step2VisibilityProps {
-  uploadedFile?: File | null;
-  onFileChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   visibility?: VisibilityData;
   onVisibilityChange?: (data: VisibilityData) => void;
   value?: VisibilityData;
@@ -29,8 +27,6 @@ const DEPARTMENTS = [
 ];
 
 export default function Step2Visibility({
-  uploadedFile,
-  onFileChange,
   visibility: propVisibility,
   onVisibilityChange: propOnVisibilityChange,
   value,
@@ -68,33 +64,6 @@ export default function Step2Visibility({
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      {onFileChange && (
-        <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
-          <label className="block text-sm font-bold text-slate-700 uppercase tracking-wider mb-2">
-            Attach Reference Document (แนบไฟล์เอกสารอ้างอิง) {isRequired && <span className="text-rose-500">*</span>}
-          </label>
-          <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:bg-slate-50/50 transition-colors cursor-pointer relative bg-white">
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={onFileChange}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <div className="flex flex-col items-center gap-3">
-              <div className="p-4 bg-blue-50 rounded-full text-blue-600">
-                <UploadCloud className="w-8 h-8" />
-              </div>
-              <p className="text-base font-bold text-slate-700">
-                {uploadedFile ? uploadedFile.name : "คลิก หรือ ลากไฟล์เอกสารมาวางที่นี่"}
-              </p>
-              <p className="text-xs text-slate-400 font-medium">
-                รองรับไฟล์ PDF, DOC, DOCX (ขนาดสูงสุดไม่เกิน 25MB)
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
         <label className="block text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">
           กำหนดสิทธิการมองเห็นเอกสาร (Document Visibility)

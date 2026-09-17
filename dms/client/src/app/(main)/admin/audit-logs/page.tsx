@@ -72,7 +72,7 @@ function normalizeModuleName(m?: string): ModuleType {
 function AuditLogsContent() {
   const { user } = useAuth();
   const hasPerm = (itemKey: string, action: string = 'view') =>
-    !user?.permissions ? true : !!user.permissions.includes(`auditlog.${itemKey}:${action}`);
+    user?.role === "Administrator" || !!user?.permissions?.includes(`auditlog.${itemKey}:${action}`);
 
   const searchParams = useSearchParams();
   
@@ -254,15 +254,21 @@ function AuditLogsContent() {
     }
 
     return data;
-  }, [searchTerm, dateFrom, dateTo, selectedModule, selectedActions, sortKey, sortDirection]);
+  }, [realLogs, searchTerm, dateFrom, dateTo, selectedModule, selectedActions, sortKey, sortDirection]);
 
   // 2. Pagination
   const totalItems = filteredLogs.length;
      
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
   // 3. Styling Helpers
+  const formatIP = (ip: string) => ip.replace(/^::ffff:/, '');
+  const formatID = (id: string) => {
+    if (!id || id === "-") return "-";
+    if (id.length > 8 && id.includes("-")) return id.split("-")[0];
+    return id.substring(0, 8);
+  };
+
   const getActionBadge = (action: ActionType) => {
     switch (action) {
       case "Approve":
@@ -291,17 +297,13 @@ function AuditLogsContent() {
     return "#";
   };
 
-  const formatDateTimeTH = (isoString: string) => {
+  const formatDateTH = (isoString: string) => {
     const d = new Date(isoString);
-    // Simple mock formatting for TH layout (e.g. 17 ก.ค. 2026, 16:30)
-    return d.toLocaleString('th-TH', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit',
-      second: '2-digit'
-    });
+    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+  const formatTimeTH = (isoString: string) => {
+    const d = new Date(isoString);
+    return d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   };
 
   // 4. Export CSV
@@ -461,8 +463,8 @@ function AuditLogsContent() {
               <table className="w-full table-fixed min-w-[900px] text-left border-collapse whitespace-nowrap">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    <DataTableHeader title="Date" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-32" />
-                    <DataTableHeader title="Time" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-28" />
+                    <DataTableHeader title="Date" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-28" />
+                    <DataTableHeader title="Time" sortKey="timestamp" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
                     <DataTableHeader title="User" sortKey="userName" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-40" />
                     <DataTableHeader title="Action" sortKey="action" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
                     <DataTableHeader title="Module" sortKey="module" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
@@ -491,11 +493,14 @@ function AuditLogsContent() {
                       <React.Fragment key={log.id}>
                         <tr className="hover:bg-slate-50/50 transition-colors group">
                           <td className="py-3 px-4">
-                            <div className="text-sm font-semibold text-slate-700">{formatDateTimeTH(log.timestamp)}</div>
-                          </td>
+                              <div className="text-sm font-semibold text-slate-700">{formatDateTH(log.timestamp)}</div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="text-sm text-slate-500 font-medium">{formatTimeTH(log.timestamp)}</div>
+                            </td>
                           <td className="py-3 px-4">
                             <div className="text-sm font-bold text-slate-800">{log.userName}</div>
-                            <div className="text-[10px] text-slate-500 font-medium">ID: {log.userId}</div>
+                            <div className="text-[10px] text-slate-500 font-medium" title={log.userId}>ID: #{formatID(log.userId)}</div>
                           </td>
                           <td className="py-3 px-4">
                             <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold border ${getActionBadge(log.action)}`}>
@@ -511,15 +516,15 @@ function AuditLogsContent() {
                                 <Link href={getTargetLink(log.targetType, log.targetId)} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors truncate block">
                                   {log.targetLabel}
                                 </Link>
-                                <span className="text-[10px] text-slate-400 font-mono">{log.targetId}</span>
+                                <span className="text-[10px] text-slate-400 font-mono" title={log.targetId}>#{formatID(log.targetId)}</span>
                               </div>
                             ) : (
                               <span className="text-sm text-slate-400">-</span>
                             )}
                           </td>
                           <td className="py-3 px-4 text-xs text-slate-500 font-mono">
-                            {log.ipAddress}
-                          </td>
+                              {formatIP(log.ipAddress)}
+                            </td>
                           <td className="py-3 px-4 text-center">
                             {log.comment ? (
                               <button 

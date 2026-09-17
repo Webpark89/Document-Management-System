@@ -43,7 +43,7 @@ const BTN_SECONDARY = "inline-flex items-center gap-2 rounded-lg border border-s
 const BTN_PRIMARY = "inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-slate-800 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed";
 
 
-function formatEmployeeId(u: unknown): string {
+function formatEmployeeId(u: any): string {
   if (!u) return "—";
   if (u.employee_id && typeof u.employee_id === "string" && !u.employee_id.includes("-")) {
     return u.employee_id;

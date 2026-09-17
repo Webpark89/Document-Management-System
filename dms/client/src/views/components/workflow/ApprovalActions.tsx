@@ -64,7 +64,7 @@ export function ApprovalActions({
       mutate("dashboard");
       router.push("/approvals");
       router.refresh();
-    } catch (error: unknown) {
+    } catch (error: any) {
       showToast(error.message || "เกิดข้อผิดพลาดในการดำเนินการ", "error");
     } finally {
       setIsSubmitting(false);
@@ -86,7 +86,7 @@ export function ApprovalActions({
       mutate("dashboard");
       router.push("/approvals");
       router.refresh();
-    } catch (error: unknown) {
+    } catch (error: any) {
       showToast(error.message || "เกิดข้อผิดพลาดในการดำเนินการ", "error");
     } finally {
       setIsSubmitting(false);

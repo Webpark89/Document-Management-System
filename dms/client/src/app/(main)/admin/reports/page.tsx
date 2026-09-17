@@ -20,6 +20,7 @@ import {
   ChevronRight,
   FileCheck
 } from "lucide-react";
+import { useAuth } from '@views/components/providers/AuthProvider';
 import PageHeader from '@views/components/shared/PageHeader';
 import DataTableHeader from '@views/components/ui/DataTableHeader';
    
@@ -81,6 +82,20 @@ const formatTimeOnly = (dateStr: string) => {
 };
 
 export default function ReportsPage() {
+  const { user } = useAuth();
+  const hasPerm = (itemKey: string, action: string = 'view') =>
+    user?.role === "Administrator" || !!user?.permissions?.includes(`reports.${itemKey}:${action}`);
+
+  if (!hasPerm("access")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-slate-400 mt-12">
+        <AlertCircle className="w-12 h-12 mb-4 opacity-50" />
+        <p className="text-lg font-bold text-slate-600">ไม่มีสิทธิ์เข้าถึง (Access Denied)</p>
+        <p className="text-sm">คุณไม่มีสิทธิ์เข้าถึงรายงานในระบบ</p>
+      </div>
+    );
+  }
+
   const [activeReport, setActiveReport] = useState("status");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -99,7 +114,7 @@ export default function ReportsPage() {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
 
-  const [documents, setDocuments] = useState<unknown[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
 
   const [datePreset, setDatePreset] = useState("all");
 
@@ -108,7 +123,7 @@ export default function ReportsPage() {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          setDepartments(["All", ...data.map((d: unknown) => d.name || d)]);
+          setDepartments(["All", ...data.map((d: any) => d.name || d)]);
         }
       })
       .catch(() => {});
@@ -168,7 +183,7 @@ export default function ReportsPage() {
   React.useEffect(() => {
     getDocuments().then(docs => {
       const mapped = docs.map(d => {
-        const doc: unknown = d;
+        const doc: any = d;
         const typeCode = doc.type?.code || doc.type;
         const departmentName = doc.creator?.department?.name || doc.department || "ทั่วไป";
 
@@ -185,7 +200,7 @@ export default function ReportsPage() {
           department: departmentName,
           requester: doc.creator_name || doc.sender || (doc.creator ? `${doc.creator.first_name || ""} ${doc.creator.last_name || ""}`.trim() : "") || "ไม่ระบุ",
           status: d.status,
-          date: d.submittedDate || d.created_at,
+          date: d.created_at || d.submittedDate,
           value,
           workflow: doc.workflow,
           approvalDays: (() => {
@@ -474,7 +489,7 @@ export default function ReportsPage() {
                   progress = `Step ${wf.current_step} of ${wf.total_steps}`;
                   progressPercentage = ((wf.current_step - 1) / wf.total_steps) * 100;
                   
-                  const currentStepObj = wf.steps.find((s: unknown) => s.step_order === wf.current_step);
+                  const currentStepObj = wf.steps.find((s: any) => s.step_order === wf.current_step);
                   if (currentStepObj?.approver) {
                     currentApprover = `${currentStepObj.approver.first_name || ""} ${currentStepObj.approver.last_name || ""}`.trim() || currentStepObj.approver.username;
                   }
@@ -570,7 +585,7 @@ export default function ReportsPage() {
   };
 
   const renderTurnaroundReport = () => {
-    const completedDocs = filteredData.filter(d => d.status === "Approved" && d.approvalDays !== null);
+    const completedDocs = filteredData.filter((d: any) => d.status === "Approved" && d.approvalDays !== null);
     
     if (completedDocs.length === 0) {
       return (
@@ -583,9 +598,9 @@ export default function ReportsPage() {
     }
 
     const stats = ["PR", "PO", "BK", "OTHER"].map(prefix => {
-      const docs = completedDocs.filter(d => d.type === prefix);
+      const docs = completedDocs.filter((d: any) => d.type === prefix);
       if (docs.length === 0) return null;
-      const avg = docs.reduce((sum, d) => sum + (d.approvalDays as number), 0) / docs.length;
+      const avg = docs.reduce((sum: any, d: any) => sum + (d.approvalDays as number), 0) / docs.length;
       
       let displayName = prefix;
       if (prefix === "BK") displayName = "บันทึก";
@@ -641,11 +656,11 @@ export default function ReportsPage() {
       );
     }
 
-    const totalSpend = spendDocs.reduce((sum, d) => sum + d.value, 0);
+    const totalSpend = spendDocs.reduce((sum, d: any) => sum + d.value, 0);
     
     // Group by department
     const deptTotals: Record<string, number> = {};
-    spendDocs.forEach(d => {
+    spendDocs.forEach((d: any) => {
       deptTotals[d.department] = (deptTotals[d.department] || 0) + d.value;
     });
 

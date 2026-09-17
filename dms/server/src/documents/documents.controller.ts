@@ -55,7 +55,7 @@ export class DocumentsController {
     @CurrentUser() user?: { id: string; role: string },
     @Req() req?: Request,
   ) {
-    const doc = await this.documentsService.findOne(id);
+    const doc = await this.documentsService.findOne(id, user);
     if (user && req) {
       const ip =
         req.headers['x-forwarded-for'] ||
@@ -73,8 +73,8 @@ export class DocumentsController {
   }
 
   @Get(':id/versions')
-  async findVersions(@Param('id') id: string) {
-    const doc = await this.documentsService.findOne(id);
+  async findVersions(@Param('id') id: string, @CurrentUser() user?: any) {
+    const doc = await this.documentsService.findOne(id, user);
     return doc.versions || [];
   }
 

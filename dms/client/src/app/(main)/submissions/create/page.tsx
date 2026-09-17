@@ -100,6 +100,7 @@ export default function DocumentUploadPage() {
           unit_price: it.unitPrice,
           remark: it.remark,
         })),
+        visibility: (data as any).visibility,
         workflow_steps: data.workflowSteps.map((step) => ({
           step_order: step.stepOrder,
           approver_id: step.approverId || step.approverName || "admin",
@@ -174,6 +175,7 @@ export default function DocumentUploadPage() {
           remark: it.remark,
           vat: it.vatPercent || 7,
         })),
+        visibility: (data as any).visibility,
         workflow_steps: data.workflowSteps.map((step) => ({
           step_order: step.stepOrder,
           approver_id: step.approverId || step.approverName || "admin",
@@ -235,6 +237,7 @@ export default function DocumentUploadPage() {
         title: data.title,
         prefix: "BK",
         purpose: data.detail,
+        visibility: (data as any).visibility,
         workflow_steps: data.workflowSteps.map((step) => ({
           step_order: step.stepOrder,
           approver_id: step.approverId || step.approverName || "admin",
@@ -321,6 +324,7 @@ export default function DocumentUploadPage() {
             title: data.title,
             prefix: docPrefix,
             purpose: data.description || "",
+            visibility: (data as any).visibility,
             workflow_steps: workflowStepsMapped,
           };
           const updated = await updateDocumentFull(editId, apiPayload);
@@ -349,9 +353,7 @@ export default function DocumentUploadPage() {
         .filter(Boolean);
       formData.append("approver_ids", JSON.stringify(approverIds));
 
-      const res = await api.post<{ id?: string; real_id?: string }>("/api/documents/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await api.post<{ id?: string; real_id?: string }>("/api/documents/upload", formData);
       const created = res.data;
       if (!data.isDraft && created && (created.id || created.real_id)) {
         const docIdToSubmit = created.id || created.real_id!;
@@ -394,7 +396,7 @@ export default function DocumentUploadPage() {
         <div className="flex items-center justify-between">
           <PageHeader
             title={editId ? "แก้ไขเอกสาร (Edit Document)" : "สร้างเอกสารใหม่ (New Document Submission)"}
-            description={
+            subtitle={
               editId
                 ? `กำลังแก้ไขเอกสาร ${editDoc?.doc_number || editId} (ล็อคประเภทเอกสารตามเดิม)`
                 : "เลือกประเภทเอกสาร กรอกข้อมูล และกำหนดสายการอนุมัติ"

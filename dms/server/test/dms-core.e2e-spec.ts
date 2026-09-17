@@ -66,11 +66,11 @@ describe('DMS Core Test Cases (e2e)', () => {
         .expect(200);
 
       expect(response.body as Record<string, unknown>).toHaveProperty('user');
-      expect((response.body as Record<string, unknown>).user.username).toBe(
+      expect((response.body as any).user.username).toBe(
         'somchai',
       );
 
-      const cookies = response.headers['set-cookie'] as string[];
+      const cookies = response.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
       const hasAccessToken = cookies.some((cookie: string) =>
         cookie.includes('access_token='),
@@ -86,7 +86,7 @@ describe('DMS Core Test Cases (e2e)', () => {
         cookie.includes('access_token='),
       );
       const match = (rawCookie || '').match(/access_token=[^;]+/);
-      somchaiCookie = match ? match[0] : rawCookie;
+      somchaiCookie = match ? match[0] : rawCookie!;
     });
 
     it('GET /auth/me with Cookie should return 200 and user profile', async () => {
@@ -113,7 +113,7 @@ describe('DMS Core Test Cases (e2e)', () => {
         .post('/api/auth/logout')
         .expect(200);
 
-      const cookies = logoutResponse.headers['set-cookie'] as string[];
+      const cookies = logoutResponse.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
       const cookieCleared = cookies.some((cookie: string) =>
         cookie.includes('access_token=;'),
@@ -134,12 +134,12 @@ describe('DMS Core Test Cases (e2e)', () => {
           password: 'folk2546',
         })
         .expect(200);
-      const loginCookies = loginResponse.headers['set-cookie'] as string[];
+      const loginCookies = loginResponse.headers['set-cookie'] as unknown as string[];
       const rawLoginCookie = loginCookies.find((cookie: string) =>
         cookie.includes('access_token='),
       );
       const matchLogin = (rawLoginCookie || '').match(/access_token=[^;]+/);
-      somchaiCookie = matchLogin ? matchLogin[0] : rawLoginCookie;
+      somchaiCookie = matchLogin ? matchLogin[0] : rawLoginCookie!;
     });
   });
 
@@ -186,8 +186,8 @@ describe('DMS Core Test Cases (e2e)', () => {
           action: 'Upload',
         },
       });
-      expect(auditLog).toBeDefined();
-      expect(auditLog.details).toHaveProperty('newState');
+      expect(auditLog!).toBeDefined();
+      expect(auditLog!.details).toHaveProperty('newState');
     });
 
     it('New Year reset test - should reset current_number when last_reset_year != currentYear', async () => {
@@ -277,16 +277,16 @@ describe('DMS Core Test Cases (e2e)', () => {
         (response.body as Record<string, unknown> as { status: string }).status,
       ).toBe('Pending');
 
-      await prisma.workflow.findUnique({
+      const workflow = await prisma.workflow.findUnique({
         where: { document_id: createdDocId },
         include: { steps: true },
       });
 
       expect(workflow).toBeDefined();
-      expect(workflow.steps.length).toBeGreaterThan(0);
+      expect(workflow!.steps.length).toBeGreaterThan(0);
 
       // The matrix step order 1 for PR requires role Manager
-      const firstStep = workflow.steps.find((s) => s.step_order === 1);
+      const firstStep = workflow!.steps.find((s) => s.step_order === 1);
       expect(firstStep).toBeDefined();
     });
 
@@ -312,14 +312,14 @@ describe('DMS Core Test Cases (e2e)', () => {
         .post(`/api/workflows/${testDocNumber}/submit`)
         .set('Cookie', somchaiCookie)
         .send({
-          workflow_steps: [{ step_order: 1, approver_id: firstUser.id }],
+          workflow_steps: [{ step_order: 1, approver_id: firstUser!.id }],
         });
 
       // Fetch first user to check notification
       const user = await prisma.user.findFirst();
       const notification = await prisma.notification.findFirst({
         where: {
-          user_id: user.id,
+          user_id: user!.id,
           document_id: testDocId,
         },
       });
@@ -377,7 +377,7 @@ describe('DMS Core Test Cases (e2e)', () => {
       const updatedWorkflow = await prisma.workflow.findUnique({
         where: { document_id: createdDocId },
       });
-      expect(updatedWorkflow.current_step).toBe(2);
+      expect(updatedWorkflow!.current_step).toBe(2);
     });
   });
 
@@ -427,18 +427,18 @@ describe('DMS Core Test Cases (e2e)', () => {
         where: { id: createdDocId },
       });
       expect(doc).toBeDefined();
-      expect(doc.is_deleted).toBe(true);
+      expect(doc!.is_deleted).toBe(true);
     });
 
     it('PATCH /admin/users/:id/toggle-active should return 403 for non-admin and 200 for Administrator', async () => {
       const somchai = await prisma.user.findUnique({
         where: { username: 'somchai' },
       });
-      expect(somchai.is_active).toBe(true);
+      expect(somchai!.is_active).toBe(true);
 
       // Non-admin should get 403
       await request(app.getHttpServer() as import('http').Server)
-        .patch(`/api/admin/users/${somchai.id}/toggle-active`)
+        .patch(`/api/admin/users/${somchai!.id}/toggle-active`)
         .set('Cookie', somchaiCookie)
         .expect(403);
 
@@ -455,7 +455,7 @@ describe('DMS Core Test Cases (e2e)', () => {
       const response = await request(
         app.getHttpServer() as import('http').Server,
       )
-        .patch(`/api/admin/users/${somchai.id}/toggle-active`)
+        .patch(`/api/admin/users/${somchai!.id}/toggle-active`)
         .set('Cookie', adminCookie)
         .expect(200);
 
@@ -466,7 +466,7 @@ describe('DMS Core Test Cases (e2e)', () => {
 
       // Restore active status
       await prisma.user.update({
-        where: { id: somchai.id },
+        where: { id: somchai!.id },
         data: { is_active: true },
       });
     });

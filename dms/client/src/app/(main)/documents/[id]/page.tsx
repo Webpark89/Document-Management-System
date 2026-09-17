@@ -112,7 +112,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
 
       <PageHeader
         title={`Document: ${doc.doc_number || doc.id}`}
-        description="Review document properties, transaction metadata, and workflow logs."
+        subtitle="Review document properties, transaction metadata, and workflow logs."
       />
 
       {/* 2 COLUMNS LAYOUT */}
@@ -122,7 +122,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
         <div className="lg:col-span-2 space-y-6">
           
           {/* Metadata Card */}
-          {hasPerm('view_metadata') && (
+          {hasPerm('view_detail') && (
           <div className="bg-white rounded-2xl p-6 border border-slate-100/50 shadow-sm space-y-6">
             <div className="flex items-start gap-3">
               <div className="p-2.5 bg-slate-50 text-slate-500 rounded-xl">
@@ -176,7 +176,6 @@ export default function DocumentDetailPage({ params }: PageProps) {
           {hasPerm('preview_document') && (
             <DocumentPreview
               doc={doc}
-              onEditClick={() => router.push(`/submissions/create?edit=${doc.id}`)}
             />
           )}
         </div>

@@ -91,7 +91,6 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
   const [deliveryDate, setDeliveryDate] = useState(nextMonthStr);
   const [paymentTerms, setPaymentTerms] = useState(PAYMENT_TERMS_OPTIONS[0]);
   const [remark, setRemark] = useState("เอกสารใบสั่งซื้อฉบับนี้จะสมบูรณ์เมื่อมีลายเซ็นผู้มีอำนาจอนุมัติครบถ้วน");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const [items, setItems] = useState<POItemInput[]>([
     {
@@ -181,12 +180,6 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
     ]);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setUploadedFile(e.target.files[0]);
-    }
-  };
-
   const handleRemoveItem = (id: string) => {
     if (items.length === 1) return;
     setItems(items.filter((item) => item.id !== id));
@@ -230,7 +223,6 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
         amount: `฿${netTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         items,
         remark,
-        attachmentFileName: uploadedFile ? uploadedFile.name : undefined,
         workflowSteps,
       isDraft,
     });
@@ -611,8 +603,6 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
       {currentStep === 2 && (
         <>
           <Step2Visibility
-            uploadedFile={uploadedFile}
-            onFileChange={handleFileChange}
             visibility={visibility}
             onVisibilityChange={setVisibility}
           />

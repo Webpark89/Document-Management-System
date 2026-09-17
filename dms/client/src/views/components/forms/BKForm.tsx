@@ -69,7 +69,6 @@ export default function BKForm({
   }, [initialData]);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [detail, setDetail] = useState("");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const [visibility, setVisibility] = useState<VisibilityData>({ type: "CompanyWide", departments: [], users: [] });
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([]);
@@ -105,12 +104,6 @@ export default function BKForm({
     loadWorkflow();
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setUploadedFile(e.target.files[0]);
-    }
-  };
-
   const todayStr = formatThaiDate(new Date());
 
   const triggerSubmit = (isDraft: boolean) => {
@@ -124,7 +117,6 @@ export default function BKForm({
       department,
       category,
       detail,
-      attachmentFileName: uploadedFile ? uploadedFile.name : undefined,
       workflowSteps,
       isDraft,
     });
@@ -290,8 +282,6 @@ export default function BKForm({
       {currentStep === 2 && (
         <>
           <Step2Visibility
-            uploadedFile={uploadedFile}
-            onFileChange={handleFileChange}
             visibility={visibility}
             onVisibilityChange={setVisibility}
           />

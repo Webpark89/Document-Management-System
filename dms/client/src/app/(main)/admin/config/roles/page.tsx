@@ -218,7 +218,7 @@ function RolesListView({
     try {
       await adminService.deleteRole(role.id);
       const updated = await adminService.getRolesList();
-      onRolesChange(updated);
+      onRolesChange(updated as any);
       showToast("ปิดใช้งาน Role สำเร็จ", "success");
     } catch (e) {
       showToast("เกิดข้อผิดพลาด", "error");
@@ -282,9 +282,11 @@ function RolesListView({
                         key={role.id}
                         className={`${MD_TR} cursor-pointer hover:bg-slate-50/80 transition-colors`}
                         onDoubleClick={() => {}}
-                        onClick={() =>
-                          router.push(`/admin/config/roles?mode=edit&id=${role.id}`)
-                        }
+                        onClick={() => {
+                          if (hasPerm("role_management", "edit")) {
+                            router.push(`/admin/config/roles?mode=edit&id=${role.id}`);
+                          }
+                        }}
                       >
                         <td className={`${tdCls} min-w-0 font-bold text-slate-800`}>{role.name}</td>
                         <td className={`${MD_TD_NUM} w-[7.5rem]`}>
@@ -377,7 +379,7 @@ function CreateRoleForm({
         });
       });
 
-      await adminService.updateRole(created.id, { permissions: dtoPermissions });
+      await adminService.updateRole((created as any).id, { permissions: dtoPermissions as any });
 
       onSaved();
       showToast("สร้าง Role สำเร็จ", "success");
@@ -464,9 +466,9 @@ function EditRoleForm({ roleId }: { roleId: string }) {
 
   React.useEffect(() => {
     if (!roleId) return;
-    adminService.getRoleById(roleId).then(data => {
-      const presets: unknown = {};
-      (data.permissions || []).forEach((p: unknown) => {
+    adminService.getRoleById(roleId).then((data: any) => {
+      const presets: any = {};
+      (data.permissions || []).forEach((p: any) => {
          const parts = p.module.split('.');
          if (parts.length === 2) {
             const [sec, item] = parts;
@@ -486,7 +488,7 @@ function EditRoleForm({ roleId }: { roleId: string }) {
 
   const handleSave = async () => {
     setSaving(true);
-    const dtoPermissions: unknown[] = [];
+    const dtoPermissions: any[] = [];
     Object.entries(role.permissions).forEach(([sectionKey, items]) => {
       Object.entries(items).forEach(([itemKey, actions]) => {
         Object.entries(actions as Record<string, boolean>).forEach(([action, value]) => {
@@ -577,15 +579,15 @@ function RolesPageContent() {
     ]).then(([list, usersList]: [unknown[], unknown[]]) => {
       if (Array.isArray(list) && list.length > 0) {
         setRoles(
-          list.map((r: unknown) => {
+          list.map((r: any) => {
             const calculated = Array.isArray(usersList)
               ? usersList.filter(
-                  (u: unknown) =>
+                  (u: any) =>
                     (u.role?.name || u.role_name || u.role) === r.name
                 ).length
               : 0;
             const actions = Array.isArray(r.permissions)
-              ? Array.from(new Set(r.permissions.map((p: unknown) => p.action)))
+              ? Array.from(new Set(r.permissions.map((p: any) => p.action)))
               : [];
             const permSummary =
               r.name === "Administrator"

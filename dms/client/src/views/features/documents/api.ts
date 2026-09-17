@@ -37,7 +37,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
 export async function getDocuments(): Promise<Document[]> {
   try {
-    const res = await api.get<unknown>("/api/documents");
+    const res = await api.get<any>("/api/documents");
     if (Array.isArray(res.data)) return res.data;
     if (res.data && Array.isArray(res.data.data)) return res.data.data;
     return [];
@@ -98,11 +98,7 @@ export async function deleteDocument(id: string): Promise<boolean> {
 }
 
 export async function uploadNewDocumentVersion(id: string, formData: FormData): Promise<Document> {
-  const res = await api.post<Document>(`/api/documents/${id}/upload-new-version`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const res = await api.post<Document>(`/api/documents/${id}/upload-new-version`, formData);
   return res.data;
 }
 export async function updateDocumentFull(id: string, payload: CreateDocumentPayload): Promise<Document> {
@@ -111,10 +107,6 @@ export async function updateDocumentFull(id: string, payload: CreateDocumentPayl
 }
 
 export async function updateDocumentFullWithFile(id: string, formData: FormData): Promise<Document> {
-  const res = await api.put<Document>(`/api/documents/${id}/upload`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const res = await api.put<Document>(`/api/documents/${id}/upload`, formData);
   return res.data;
 }

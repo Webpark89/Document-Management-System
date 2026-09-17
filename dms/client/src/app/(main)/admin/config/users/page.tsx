@@ -406,7 +406,7 @@ function UsersListView({
                     <tr
                        key={user.id}
                       className={`${MD_TR} cursor-pointer`}
-                      onDoubleClick={() => setEditUser(user)}
+                      onDoubleClick={() => { if (hasPerm("user_management", "edit")) setEditUser(user); }}
                     >
                       <td className={`${tdCls} font-medium`}>{user.fullName}</td>
                       <td className={tdMuted}>{user.email}</td>

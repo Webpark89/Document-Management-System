@@ -195,7 +195,7 @@ export default function DocumentVersionsPage() {
 
   const showCheckboxes = versions.length > 1;
   const canCompare = selectedVersions.length === 2;
-  const docTypeStr = typeof doc?.type === 'object' ? doc?.type?.prefix : (doc?.type || "");
+  const docTypeStr = typeof doc?.type === 'object' ? (doc?.type as any)?.prefix : (doc?.type || "");
   const isFormType = ["PR", "PO", "BK", "บันทึก"].includes(docTypeStr);
 
   const iconActionBtn =

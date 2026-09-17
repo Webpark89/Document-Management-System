@@ -86,7 +86,7 @@ export default function ConfigPage() {
       adminService.getRolesList(),
       adminService.getUsersList()
     ]).then(([roles, users]) => {
-      const activeUsers = users.filter((u: unknown) => u.is_active).length;
+      const activeUsers = users.filter((u: any) => u.is_active).length;
       setStats({
         totalRoles: roles.length,
         totalUsers: users.length,

@@ -137,7 +137,7 @@ export default function FoldersPage() {
       showToast(`ลบสำเร็จ ${selectedFolderIds.length} โฟลเดอร์`, "success");
       setSelectedFolderIds([]);
       mutate();
-    } catch (err: unknown) {
+    } catch (err: any) {
       showToast(err.response?.data?.message || "เกิดข้อผิดพลาดในการลบโฟลเดอร์", "error");
     }
   };
@@ -363,7 +363,7 @@ export default function FoldersPage() {
                 showToast('สร้างโฟลเดอร์สำเร็จ', 'success');
               }
               mutate();
-            } catch (err: unknown) {
+            } catch (err: any) {
               showToast(err.response?.data?.message || 'เกิดข้อผิดพลาด', 'error');
               throw err;
             }
