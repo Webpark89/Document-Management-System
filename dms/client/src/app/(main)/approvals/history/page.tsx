@@ -1,5 +1,6 @@
 "use client";
 
+import { Pagination } from '@views/components/shared/Pagination';
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -388,49 +389,17 @@ export default function ApprovalHistoryPage() {
           </div>
 
           {/* PAGINATION */}
-          {filteredHistory.length > 0 && (
-            <div className="flex items-center justify-between pt-4 border-t border-slate-50 text-xs font-semibold text-slate-500">
-              <span>
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredHistory.length)} of{" "}
-                {filteredHistory.length} items
-              </span>
-              
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 border border-slate-100 rounded-lg hover:bg-slate-50 disabled:opacity-40 transition-all cursor-pointer"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    type="button"
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 rounded-lg border text-center transition-all cursor-pointer ${
-                      currentPage === page
-                        ? "bg-blue-600 border-blue-600 text-white shadow-xs"
-                        : "border-slate-100 hover:bg-slate-50 text-slate-600"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="p-2 border border-slate-100 rounded-lg hover:bg-slate-50 disabled:opacity-40 transition-all cursor-pointer"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+            {filteredHistory.length > 0 && (
+              <div className="-mx-4 -mb-4 sm:mx-0 sm:mb-0">
+                <Pagination 
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  totalItems={filteredHistory.length}
+                  itemsPerPage={itemsPerPage}
+                />
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
     </div>

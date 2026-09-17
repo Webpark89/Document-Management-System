@@ -33,12 +33,17 @@ if (process.env.NODE_ENV !== "production") {
   globalForSignature.SignatureContext = SignatureContext;
 }
 
+import { useAuth } from "@views/components/providers/AuthProvider";
+
 export function SignatureProvider({ children }: { children: React.ReactNode }) {
   const [signatures, setSignatures] = useState<SignatureRecord[]>([]);
+  const { user } = useAuth();
 
   useEffect(() => {
-    adminService.getSignaturesList().then(data => setSignatures(data as SignatureRecord[])).catch(() => {});
-  }, []);
+    if (user?.role === "Administrator" || user?.permissions?.includes("masterdata.access:view")) {
+      adminService.getSignaturesList().then(data => setSignatures(data as SignatureRecord[])).catch(() => {});
+    }
+  }, [user]);
 
   const addSignature = useCallback((input: AddSignatureInput) => {
     const record: SignatureRecord = {

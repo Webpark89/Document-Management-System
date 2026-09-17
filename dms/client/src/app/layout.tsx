@@ -40,9 +40,11 @@ export default function RootLayout({
   return (
     <html
       lang="th"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
       className={`${notoSans.variable} ${notoSansThai.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body suppressHydrationWarning className="min-h-full flex flex-col">
         <AuthProvider>
           <SignatureProvider>
             <SidebarProvider>

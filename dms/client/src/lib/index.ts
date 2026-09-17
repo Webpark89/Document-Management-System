@@ -21,7 +21,7 @@ export function clearAccessToken(): void {
 
 // ---- Safe API Wrapper ----
 const API_BASE = typeof window !== "undefined"
-  ? `http://${window.location.hostname}:4000`
+  ? ""
   : "http://127.0.0.1:4000";
 
 type ApiResponse<T> = { data: T };

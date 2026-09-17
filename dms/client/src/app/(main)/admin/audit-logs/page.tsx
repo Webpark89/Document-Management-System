@@ -2,6 +2,7 @@
 
    
    
+import { Pagination } from '@views/components/shared/Pagination';
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -559,50 +560,13 @@ function AuditLogsContent() {
             </div>
 
             {/* PAGINATION */}
-            {filteredLogs.length > 0 && (
-              <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between flex-wrap gap-4">
-                <p className="text-sm text-slate-500 font-medium">
-                  Showing <span className="font-bold text-slate-700">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-slate-700">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="font-bold text-slate-700">{totalItems}</span> entries
-                </p>
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  
-                  <div className="flex gap-1">
-                    {Array.from({ length: totalPages }).map((_, i) => {
-                      const page = i + 1;
-                      const isActive = currentPage === page;
-                      return (
-                        <button 
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors shadow-sm ${
-                            isActive 
-                              ? 'bg-indigo-600 text-white border-transparent' 
-                              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  
-                  <button 
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+            />
           </div>
         </>
       ) : (

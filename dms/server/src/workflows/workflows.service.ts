@@ -466,7 +466,10 @@ export class WorkflowsService {
     const doc = await this.prisma.document.findFirst({
       where: { OR: [{ id: documentId }, { doc_number: documentId }] },
       include: {
-        versions: { orderBy: { version_number: 'desc' }, take: 1 },
+        versions: { select: {
+              id: true, document_id: true, version_number: true, file_size: true, file_data: true, file_extension: true, form_data: true, uploaded_by_id: true, remarks: true, created_at: true, updated_at: true,
+              uploaded_by: true
+            }, orderBy: { version_number: 'desc' }, take: 1 },
       },
     });
 

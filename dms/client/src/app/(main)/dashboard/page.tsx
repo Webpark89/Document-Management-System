@@ -29,6 +29,7 @@ import { EmployeeDashboard } from "@views/components/dashboard/EmployeeDashboard
 import { ExecutiveDashboard } from "@views/components/dashboard/ExecutiveDashboard";
 import { getDocuments } from '@views/features/documents/api';
 import { dashboardService, DashboardStats } from '@/controllers/services/dashboard.service';
+import { adminService } from '@/controllers/services/admin.service';
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { formatThaiDate } from '@/lib/format-date';
 import PageHeader from '@views/components/shared/PageHeader';
@@ -114,13 +115,14 @@ export default function DashboardPage() {
     };
     load();
 
-    fetch("/api/admin/departments")
-      .then((res) => res.json())
-      .then((data) => {
-        if (cancelled) return;
-        if (Array.isArray(data) && data.length > 0) setDepartments(data.map((d: any) => d.name || d));
-      })
-      .catch(() => {});
+    if (user?.role === "Administrator" || user?.permissions?.includes("masterdata.access:view")) {
+      adminService.getDepartments()
+        .then((data) => {
+          if (cancelled) return;
+          if (Array.isArray(data) && data.length > 0) setDepartments(data.map((d: any) => d.name || d));
+        })
+        .catch(() => {});
+    }
 
     return () => { cancelled = true; };
   }, []);

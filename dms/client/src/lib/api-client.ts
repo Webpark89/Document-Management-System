@@ -13,7 +13,7 @@ import {
 } from '@views/features/roles-users';
 
 export const API_BASE_URL = typeof window !== "undefined"
-  ? `http://${window.location.hostname}:4000/api`
+  ? "/api"
   : "http://127.0.0.1:4000/api";
 
 export const apiClient = axios.create({

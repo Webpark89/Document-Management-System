@@ -209,10 +209,10 @@ export class DocumentsService {
           pr_form: true,
           po_form: true,
           bk_form: true,
-          versions: {
-            orderBy: { version_number: 'desc' },
-            take: 1,
-          },
+          versions: { select: {
+              id: true, document_id: true, version_number: true, file_size: true, file_extension: true, form_data: true, uploaded_by_id: true, remarks: true, created_at: true, updated_at: true,
+              uploaded_by: true
+            }, orderBy: { version_number: 'desc' }, take: 1 },
           workflow: {
             include: {
               steps: {
@@ -257,10 +257,10 @@ export class DocumentsService {
         pr_form: { include: { items: true, department: true } },
         po_form: { include: { items: true } },
         bk_form: { include: { department: true } },
-        versions: {
-          include: { uploaded_by: true },
-          orderBy: { version_number: 'desc' },
-        },
+        versions: { select: {
+              id: true, document_id: true, version_number: true, file_size: true, file_extension: true, form_data: true, uploaded_by_id: true, remarks: true, created_at: true, updated_at: true,
+              uploaded_by: true
+            }, orderBy: { version_number: 'desc' } },
         workflow: {
           include: {
             steps: {
@@ -505,7 +505,10 @@ export class DocumentsService {
         is_deleted: false,
       },
       include: {
-        versions: { orderBy: { version_number: 'desc' }, take: 1 },
+        versions: { select: {
+              id: true, document_id: true, version_number: true, file_size: true, file_extension: true, form_data: true, uploaded_by_id: true, remarks: true, created_at: true, updated_at: true,
+              uploaded_by: true
+            }, orderBy: { version_number: 'desc' }, take: 1 },
       },
     });
 
@@ -547,10 +550,10 @@ export class DocumentsService {
         pr_form: true,
         po_form: true,
         bk_form: true,
-        versions: {
-          include: { uploaded_by: true },
-          orderBy: { version_number: 'desc' },
-        },
+        versions: { select: {
+              id: true, document_id: true, version_number: true, file_size: true, file_extension: true, form_data: true, uploaded_by_id: true, remarks: true, created_at: true, updated_at: true,
+              uploaded_by: true
+            }, orderBy: { version_number: 'desc' } },
       },
     });
 
@@ -739,7 +742,10 @@ export class DocumentsService {
 
     const doc = await this.prisma.document.findUnique({
       where: { id: updatedDoc.real_id || updatedDoc.id },
-      include: { versions: { orderBy: { version_number: 'desc' }, take: 1 } },
+      include: { versions: { select: {
+              id: true, document_id: true, version_number: true, file_size: true, file_extension: true, form_data: true, uploaded_by_id: true, remarks: true, created_at: true, updated_at: true,
+              uploaded_by: true
+            }, orderBy: { version_number: 'desc' }, take: 1 } },
     });
     if (!doc) throw new NotFoundException('Document not found');
 
