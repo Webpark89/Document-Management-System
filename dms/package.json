@@ -1,17 +1,20 @@
 {
-  "name": "dms-monorepo",
-  "version": "1.0.0",
-  "private": true,
-  "workspaces": [
-    "client",
-    "server"
-  ],
-  "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=client\" \"npm run start:dev --workspace=server\"",
-    "build": "npm run build --workspace=client && npm run build --workspace=server",
-    "install:all": "npm install"
-  },
-  "devDependencies": {
-    "concurrently": "^9.1.0"
-  }
+    "name":  "dms-monorepo",
+    "version":  "1.0.0",
+    "private":  true,
+    "workspaces":  [
+                       "client",
+                       "server"
+                   ],
+    "scripts":  {
+                    "dev":  "concurrently -k -p \"[{name}]\" -n \"Client,Server\" -c \"cyan,blue\" \"npm run dev --workspace=client\" \"npm run start:dev --workspace=server\"",
+                    "build":  "npm run build --workspace=client \u0026\u0026 npm run build --workspace=server",
+                    "install:all":  "npm install",
+                    "predev":  "kill-port 3000 4000 || exit 0"
+                },
+    "devDependencies":  {
+                            "concurrently":  "^9.1.0",
+                            "cross-env":  "^10.1.0",
+                            "kill-port":  "^2.0.1"
+                        }
 }

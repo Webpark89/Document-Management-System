@@ -475,21 +475,30 @@ function AuditLogsContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {paginatedLogs.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="py-16 text-center">
-                        <div className="flex flex-col items-center justify-center">
-                          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3">
-                            <Search className="w-6 h-6" />
+                  {loading ? (
+                      <tr>
+                        <td colSpan={8} className="py-24 text-center">
+                          <div className="flex flex-col items-center justify-center">
+                            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                            <p className="text-slate-600 font-bold text-sm">กำลังโหลดข้อมูล Audit Log...</p>
+                            <p className="text-slate-400 text-xs mt-1">กรุณารอสักครู่</p>
                           </div>
-                          <p className="text-slate-600 font-bold text-sm">ไม่พบข้อมูล Audit Log</p>
-                          <p className="text-slate-400 text-xs mt-1">ลองปรับเงื่อนไขการค้นหาหรือช่วงเวลาใหม่อีกครั้ง</p>
-                          <p className="text-red-400 text-xs mt-4">Debug: realLogs={realLogs.length}, filteredLogs={filteredLogs.length}</p>
-                          {fetchError && <p className="text-red-500 font-mono text-xs mt-2 border border-red-200 bg-red-50 p-2 rounded w-full max-w-lg text-left overflow-auto">Error: {fetchError}</p>}
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
+                        </td>
+                      </tr>
+                    ) : paginatedLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-16 text-center">
+                          <div className="flex flex-col items-center justify-center">
+                            <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3">
+                              <Search className="w-6 h-6" />
+                            </div>
+                            <p className="text-slate-600 font-bold text-sm">ไม่พบข้อมูล Audit Log</p>
+                            <p className="text-slate-400 text-xs mt-1">ลองปรับเงื่อนไขการค้นหาหรือช่วงเวลาใหม่อีกครั้ง</p>
+                            {fetchError && <p className="text-red-500 font-mono text-xs mt-2 border border-red-200 bg-red-50 p-2 rounded w-full max-w-lg text-left overflow-auto">Error: {fetchError}</p>}
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
                     paginatedLogs.map((log) => (
                       <React.Fragment key={log.id}>
                         <tr className="hover:bg-slate-50/50 transition-colors group">
