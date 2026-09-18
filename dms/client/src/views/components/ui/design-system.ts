@@ -22,7 +22,7 @@ export const APP_STAT_CARD =
 export const APP_STAT_LABEL =
   "text-[11px] font-bold uppercase tracking-wider text-slate-500";
 export const APP_STAT_VALUE =
-  "mt-auto text-3xl font-black tabular-nums tracking-tight text-slate-800";
+  "mt-auto text-3xl font-black tabular-nums tracking-tight text-slate-800 truncate max-w-full w-full";
 
 export const APP_STAT_GRID_3 =
   "grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3";

@@ -33,7 +33,12 @@ export function AppStatCard({
         <Icon className={`size-5 ${iconColor}`} />
       </div>
       <span className={APP_STAT_LABEL}>{label}</span>
-      <span className={APP_STAT_VALUE}>{value}</span>
+      <span 
+        className={APP_STAT_VALUE} 
+        title={typeof value === 'string' || typeof value === 'number' ? String(value) : undefined}
+      >
+        {value}
+      </span>
     </div>
   );
 }
