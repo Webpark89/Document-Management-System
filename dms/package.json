@@ -7,16 +7,21 @@
     "server"
   ],
   "scripts": {
-    "dev": "concurrently -k -p \"[{name}]\" -n \"Client,Server\" -c \"cyan,blue\" \"npm run dev --workspace=client\" \"npm run start:dev --workspace=server\"",
-    "build": "npm run build --workspace=client && npm run build --workspace=server",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"Server,Client\" -c \"blue,cyan\" --kill-others-on-fail \"npm run start:dev --workspace=server\" \"npm run dev:client-wait\"",
+    "dev:client-wait": "npx wait-on tcp:127.0.0.1:4000 --timeout 120000 && npm run dev --workspace=client",
+    "dev:server": "npm run start:dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "build": "npm run build --workspace=server && npm run build --workspace=client",
     "install:all": "npm install",
-    "predev": "kill-port 3000 4000 || exit 0",
-    "prestart": "kill-port 3000 4000 || exit 0",
-    "start": "concurrently -p \"[{name}]\" -n \"Client,Server\" -c \"magenta,green\" \"npm run start --workspace=client\" \"npm run start:prod --workspace=server\""
+    "predev": "npx kill-port 3000 4000",
+    "prestart": "npx kill-port 3000 4000",
+    "start": "concurrently -p \"[{name}]\" -n \"Server,Client\" -c \"green,magenta\" --kill-others-on-fail \"npm run start:prod --workspace=server\" \"npm run start:client-wait\"",
+    "start:client-wait": "npx wait-on tcp:127.0.0.1:4000 --timeout 60000 && npm run start --workspace=client"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
     "cross-env": "^10.1.0",
-    "kill-port": "^2.0.1"
+    "kill-port": "^2.0.1",
+    "wait-on": "^9.5.1"
   }
 }

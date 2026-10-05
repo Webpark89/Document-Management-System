@@ -24,11 +24,23 @@ const nextConfig: any = {
     ignoreBuildErrors: true,
   },
   serverExternalPackages: [],
+
+  // Keep backend connections alive — avoids per-request TCP overhead
+  httpAgentOptions: {
+    keepAlive: true,
+  },
+
+  // Give backend up to 30s to respond — prevents 504/ECONNREFUSED on cold start
+  experimental: {
+    proxyTimeout: 30_000,
+  },
 };
 
 // Add allowed origins for dev server WebSocket
 if (process.env.NODE_ENV !== "production") {
+  // Merge, preserving proxyTimeout set above
   (nextConfig as any).experimental = {
+    proxyTimeout: 30_000,
     ...((nextConfig as any).experimental || {}),
   };
   (nextConfig as any).devIndicators = {
@@ -38,6 +50,6 @@ if (process.env.NODE_ENV !== "production") {
 
 
 // Allow local network IP for HMR WebSocket
-nextConfig.allowedDevOrigins = ['192.168.1.59', '127.0.0.1', 'localhost'];
+nextConfig.allowedDevOrigins = ['192.168.1.59', '192.168.1.57', '127.0.0.1', 'localhost'];
 
 export default nextConfig;

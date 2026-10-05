@@ -26,55 +26,78 @@ const API_BASE = typeof window !== "undefined"
 
 type ApiResponse<T> = { data: T };
 
+/** Retry on ECONNREFUSED (server not yet ready) with exponential backoff */
+async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      return await fn();
+    } catch (err: unknown) {
+      lastErr = err;
+      const msg = (err as any)?.message?.toLowerCase() ?? "";
+      const isConnErr =
+        msg.includes("econnrefused") ||
+        msg.includes("failed to fetch") ||
+        msg.includes("network request failed") ||
+        (err as any)?.name === "TypeError";
+      if (!isConnErr || i === maxAttempts - 1) break;
+      // Exponential backoff: 500ms, 1500ms, ...
+      await new Promise((r) => setTimeout(r, 500 * Math.pow(3, i)));
+    }
+  }
+  throw lastErr;
+}
+
 async function request<T>(
   method: string,
   path: string,
   body?: unknown
 ): Promise<ApiResponse<T>> {
-  const isFormData = body instanceof FormData;
-  const headers: Record<string, string> = {};
-  if (!isFormData) {
-    headers["Content-Type"] = "application/json";
-  }
+  return withRetry(async () => {
+    const isFormData = body instanceof FormData;
+    const headers: Record<string, string> = {};
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
 
-  try {
-    const res = await fetch(`${API_BASE}${path}`, {
-      method,
-      headers,
-   
-      credentials: "include", // Crucial for sending/receiving HttpOnly cookies
-      body: isFormData ? (body as any) : (body ? JSON.stringify(body) : undefined),
-    });
+    try {
+      const res = await fetch(`${API_BASE}${path}`, {
+        method,
+        headers,
+        credentials: "include", // Crucial for sending/receiving HttpOnly cookies
+        body: isFormData ? (body as any) : (body ? JSON.stringify(body) : undefined),
+      });
 
-    if (!res.ok) {
-      if (res.status === 401) {
-        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-          window.location.href = "/login";
-          // Allow it to throw so that the app doesn't hang indefinitely
+      if (!res.ok) {
+        if (res.status === 401) {
+          if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+            window.location.href = "/login";
+            // Allow it to throw so that the app doesn't hang indefinitely
+          }
         }
+        let serverMessage = `API Error: ${res.status} ${res.statusText}`;
+        try {
+          const errorData = await res.json();
+          if (errorData?.message) {
+            serverMessage = Array.isArray(errorData.message)
+              ? errorData.message.join(", ")
+              : errorData.message;
+          }
+        } catch {}
+        throw new Error(serverMessage);
       }
-      let serverMessage = `API Error: ${res.status} ${res.statusText}`;
-      try {
-        const errorData = await res.json();
-        if (errorData?.message) {
-          serverMessage = Array.isArray(errorData.message)
-            ? errorData.message.join(", ")
-            : errorData.message;
-        }
-      } catch {}
-      throw new Error(serverMessage);
-    }
 
-    const data = await res.json();
-    return { data };
-  } catch (err: unknown) {
-    if ((err as any)?.name === "TypeError" || (err as any)?.message?.toLowerCase().includes("fetch")) {
-      throw new Error(
-        "ไม่สามารถเชื่อมต่อ Backend Server ได้ (กรุณารัน `npm run dev` ที่โฟลเดอร์หลักเพื่อเปิด NestJS พอร์ต 4000)"
-      );
+      const data = await res.json();
+      return { data };
+    } catch (err: unknown) {
+      if ((err as any)?.name === "TypeError" || (err as any)?.message?.toLowerCase().includes("fetch")) {
+        throw new Error(
+          "ไม่สามารถเชื่อมต่อ Backend Server ได้ (กรุณารัน `npm run dev` ที่โฟลเดอร์หลักเพื่อเปิด NestJS พอร์ต 4000)"
+        );
+      }
+      throw err;
     }
-    throw err;
-  }
+  });
 }
 
 export const api = {
@@ -84,3 +107,4 @@ export const api = {
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
   delete: <T>(path: string) => request<T>("DELETE", path),
 };
+

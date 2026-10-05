@@ -1,8 +1,10 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
+  private readonly logger = new Logger(PrismaService.name);
+
   constructor() {
     super({
       datasources: {
@@ -16,6 +18,24 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.$connect();
+    const maxRetries = 5;
+    const delayMs = 2000;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await this.$connect();
+        this.logger.log('Database connected successfully');
+        return;
+      } catch (err) {
+        this.logger.warn(
+          `DB connection attempt ${attempt}/${maxRetries} failed. Retrying in ${delayMs}ms...`,
+        );
+        if (attempt === maxRetries) {
+          this.logger.error('Could not connect to database after max retries.');
+          throw err;
+        }
+        await new Promise((r) => setTimeout(r, delayMs));
+      }
+    }
   }
 }
+
