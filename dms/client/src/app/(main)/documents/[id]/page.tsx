@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
@@ -140,7 +140,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
             <div className="border-t border-slate-100 pt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
                 <span className="block text-[10px] font-bold text-slate-400 uppercase">Type</span>
-                <span className="text-xs font-bold text-slate-700">{doc.type?.name || doc.type?.prefix || "-"}</span>
+                <span className="text-xs font-bold text-slate-700">{doc.doc_type || (typeof doc.type === "string" ? doc.type : doc.type?.name) || "-"}</span>
               </div>
               <div>
                 <span className="block text-[10px] font-bold text-slate-400 uppercase">Status</span>

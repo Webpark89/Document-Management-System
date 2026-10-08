@@ -45,6 +45,9 @@ interface POFormProps {
   onNext: () => void;
   onBack: () => void;
   initialData?: any;
+  isViewer?: boolean;
+  tempSignature?: boolean;
+  onSignClick?: () => void;
 }
 
 const DEPARTMENTS = [
@@ -66,7 +69,7 @@ const PAYMENT_TERMS_OPTIONS = [
   "มัดจำ 30% ชำระส่วนที่เหลือวันส่งมอบ",
 ];
 
-export default function POForm({ onSubmit, onCancel, runningNumberPreview , currentStep, onNext, onBack, initialData }: POFormProps) {
+export default function POForm({ onSubmit, onCancel, runningNumberPreview , currentStep, onNext, onBack, initialData, isViewer, tempSignature, onSignClick }: any) {
   const { user } = useAuth();
   const defaultRequester = user?.full_name || user?.username || "Administrator";
   const defaultDept = user?.department || DEPARTMENTS[0];
@@ -109,9 +112,22 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
 
   React.useEffect(() => {
     async function loadWorkflow() {
-      try {
-        const { adminService } = await import("@/controllers/services/admin.service");
-        const workflows = (await adminService.getApprovalWorkflowsList()) as any[];
+        if (isViewer && initialData?.workflow?.steps) {
+          setWorkflowSteps(initialData.workflow.steps.map((s: any) => ({
+            id: String(s.step_order),
+            stepOrder: s.step_order,
+            roleName: s.approver?.role?.name || s.role_name || s.role || "",
+            approverName: s.approver ? `${s.approver.first_name} ${s.approver.last_name}` : "",
+            status: s.status,
+            signature_url: s.signature_url || s.approver?.signature_url || (s.approver?.id ? `/api/users/${s.approver.id}/signature` : (s.approver_id ? `/api/users/${s.approver_id}/signature` : null)), approver_id: s.approver_id || s.approver?.id,
+            isCurrentStep: s.step_order === initialData.workflow.current_step,
+            date: s.approved_at || null,
+          })));
+          return;
+        }
+        try {
+          const { adminService } = await import("@/controllers/services/admin.service");
+          const workflows = (await adminService.getApprovalWorkflowsList()) as any[];
         const poFlow = Array.isArray(workflows) ? workflows.find((w: any) => w.prefix === "PO") : null;
         if (poFlow && poFlow.steps && poFlow.steps.length > 0) {
           setWorkflowSteps(
@@ -238,20 +254,22 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
     >
       {(currentStep === 1 || currentStep === 4) && (
         <>
-      <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
-        <div className="text-sm">
-          <span className="font-bold text-slate-500 mr-2">Preview ID:</span> 
-          <span className="font-mono text-purple-600">{runningNumberPreview}</span>
-        </div>
-        <div className="text-xs text-slate-400 font-bold flex items-center gap-2">
-          <UploadCloud className="w-4 h-4" />
-          คลิกที่ข้อความที่มีเส้นประเพื่อพิมพ์ข้อมูลแบบออนไลน์
-        </div>
-      </div>
+          {!isViewer && (
+            <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
+              <div className="text-sm">
+                <span className="font-bold text-slate-500 mr-2">Preview ID:</span> 
+                <span className="font-mono text-purple-600">{runningNumberPreview}</span>
+              </div>
+              <div className="text-xs text-slate-400 font-bold flex items-center gap-2">
+                <UploadCloud className="w-4 h-4" />
+                คลิกที่ข้อความที่มีเส้นประเพื่อพิมพ์ข้อมูลแบบออนไลน์
+              </div>
+            </div>
+          )}
 
       {/* A4 WYSIWYG Editor Container */}
-      <div className="bg-slate-200/50 py-10 flex justify-center overflow-auto rounded-xl border border-slate-200 shadow-inner">
-        <div className="bg-white w-[210mm] min-h-[297mm] shadow-xl flex flex-col p-[12mm] text-[12px] text-slate-800 leading-snug font-sans relative origin-top">
+      <div className={`bg-slate-200/50 py-10 flex justify-center overflow-auto rounded-xl border border-slate-200 shadow-inner ${isViewer ? 'a4-viewer pointer-events-none' : ''}`}>
+        <div className="bg-white w-[210mm] min-h-[297mm] shadow-xl flex flex-col p-[12mm] text-[12px] text-slate-800 leading-snug font-sans relative origin-top mx-auto">
           
           {/* Header Block (Industrial Style) */}
           <div className="flex justify-between items-start border-b-2 border-purple-800 pb-4 mb-4">
@@ -320,7 +338,7 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
 
                   <span className="text-slate-600 font-bold mt-1">วันที่ส่งมอบ:</span>
                   <input 
-                    type="date"
+                    type="date" max={new Date().toISOString().split("T")[0]}
                     required
                     value={deliveryDate}
                     onChange={(e) => setDeliveryDate(e.target.value)}
@@ -372,15 +390,17 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
 
           {/* Items Table - Strict Borders */}
           <div className="flex-1">
-            <div className="flex justify-end mb-1">
-              <button
-                type="button"
-                onClick={handleAddItem}
-                className="flex items-center gap-1 text-[10px] font-bold text-purple-600 hover:text-purple-700 bg-purple-50 px-2 py-1 rounded"
-              >
-                <Plus className="w-3 h-3" /> เพิ่มรายการ
-              </button>
-            </div>
+            {!isViewer && (
+              <div className="flex justify-end mb-1">
+                <button
+                  type="button"
+                  onClick={handleAddItem}
+                  className="flex items-center gap-1 text-[10px] font-bold text-purple-600 hover:text-purple-700 bg-purple-50 px-2 py-1 rounded pointer-events-auto"
+                >
+                  <Plus className="w-3 h-3" /> เพิ่มรายการ
+                </button>
+              </div>
+            )}
             <table className="w-full border-collapse border-2 border-slate-800">
               <thead>
                 <tr className="bg-purple-100 border-b-2 border-slate-800 text-purple-900">
@@ -391,7 +411,7 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
                   <th className="border-r border-slate-800 py-1 px-1 text-center w-20 font-bold">ราคา/หน่วย</th>
                   <th className="border-r border-slate-800 py-1 px-1 text-center w-12 font-bold">VAT%</th>
                   <th className="border-r border-slate-800 py-1 px-1 text-center w-24 font-bold">จำนวนเงิน</th>
-                  <th className="py-1 px-1 text-center w-8"></th>
+                  {!isViewer && <th className="py-1 px-1 text-center w-8"></th>}
                 </tr>
               </thead>
               <tbody>
@@ -470,16 +490,18 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
                       <td className="border-r border-slate-800 py-2 px-2 text-right align-middle font-bold text-slate-900">
                         {itemTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                       </td>
-                      <td className="py-1 px-1 text-center align-middle">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveItem(item.id)}
-                          disabled={items.length === 1}
-                          className="text-slate-300 hover:text-rose-500 disabled:opacity-30 cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
+                      {!isViewer && (
+                        <td className="py-1 px-1 text-center align-middle">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(item.id)}
+                            disabled={items.length === 1}
+                            className="text-slate-300 hover:text-rose-500 disabled:opacity-30 cursor-pointer pointer-events-auto"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   )
                 })}
@@ -522,36 +544,71 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
           </div>
 
           {/* Signatures Placeholder */}
-          <div className={`mt-6 grid grid-cols-${Math.max(2, Math.min(workflowSteps.length + 1, 4))} gap-4 text-center`}>
-            <div className="border border-slate-800 p-1 flex flex-col h-28">
-              <div className="flex-1 flex items-center justify-center text-[10px] text-slate-400">
-                (ระบบจะดึงลายเซ็นต์อัตโนมัติ)
-              </div>
-              <div className="w-full border-t border-slate-800 pt-1 text-center bg-white">
-                <p className="font-bold text-slate-900 text-[11px]">ผู้จัดทำ (Prepared By)</p>
-                <p className="text-[10px] text-slate-700 mt-0.5">วันที่ {formatThaiDate(new Date())}</p>
-              </div>
-            </div>
-            {workflowSteps.map((step, idx) => (
-              <div key={idx} className="border border-slate-800 p-1 flex flex-col h-28">
-                <div className="flex-1 flex items-center justify-center text-[10px] text-slate-400">
-                  (รออนุมัติตามสายงาน)
-                </div>
-                <div className="w-full border-t border-slate-800 pt-1 text-center bg-white">
-                  <p className="font-bold text-slate-900 text-[11px] truncate px-1" title={step.roleName}>{step.roleName}</p>
-                  {currentStep === 4 && step.approverName && (
-                    <p className="text-[10px] text-blue-600 font-bold leading-tight">{step.approverName}</p>
-                  )}
-                  <p className="text-[10px] text-slate-700 mt-0.5">วันที่ ____/____/____</p>
-                </div>
-              </div>
-            ))}
+                <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+                  <div className="border border-slate-800 p-1 flex flex-col h-28 relative group pointer-events-auto">
+                    <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden w-full bg-white/50">
+                      {(() => {
+                        const creatorId = initialData?.creator_id || initialData?.creator?.id || user?.id;
+                        const creatorSig = initialData?.creator?.signature_url || (creatorId ? `/api/users/${creatorId}/signature` : null);
+                        return creatorSig ? (
+                          <img src={creatorSig} className="absolute inset-0 w-full h-full object-contain opacity-95 scale-115 p-1" alt="Signature" onError={(e) => { (e.currentTarget.style.display = 'none'); }} />
+                        ) : (
+                          <span className="text-[10px] text-slate-400">(ระบบจะดึงลายเซ็นต์อัตโนมัติ)</span>
+                        );
+                      })()}
+                    </div>
+                    <div className="w-full border-t border-slate-800 pt-1 text-center bg-white z-10 shrink-0">
+                      <p className="font-bold text-slate-900 text-[11px]">ผู้จัดทำ (Prepared By)</p>
+                      <p className="text-[10px] text-slate-700 mt-0.5">วันที่ {initialData?.created_at ? formatThaiDate(initialData.created_at) : formatThaiDate(new Date())}</p>
+                    </div>
+                  </div>
+                  {workflowSteps.map((step: any, idx: number) => {
+                  const isApproved = step.status === 'Approved';
+                  const isCurrentStep = step.isCurrentStep;
+                  const approverId = step.approver_id || step.approver?.id;
+                  const sigSrc = step.signature_url || step.approver?.signature_url || (approverId ? `/api/users/${approverId}/signature` : (isCurrentStep && user?.id ? `/api/users/${user.id}/signature` : null));
+
+                  return (
+                  <div key={idx} className="border border-slate-800 p-1 flex flex-col h-28 relative group pointer-events-auto">
+                    {isApproved || (isCurrentStep && tempSignature) ? (
+                      <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden w-full bg-white/50">
+                        <span className="absolute top-1 left-1.5 text-[7px] font-extrabold text-emerald-600 uppercase tracking-tighter z-10 bg-emerald-50/90 px-1 rounded border border-emerald-200/60 shadow-2xs">Signed & Approved</span>
+                        {sigSrc ? (
+                          <img src={sigSrc} className="absolute inset-0 w-full h-full object-contain opacity-95 scale-115 p-1" alt="Signature" onError={(e) => { (e.currentTarget.style.display = 'none'); }} />
+                        ) : (
+                          <span className="font-['Brush_Script_MT',cursive,italic] text-base leading-tight text-center px-1 truncate max-w-[90%] text-blue-900">{step.approverName || user?.full_name || "Approver"}</span>
+                        )}
+                      </div>
+                    ) : isCurrentStep && onSignClick ? (
+                      <div 
+                        className="flex-1 flex flex-col items-center justify-center w-full cursor-pointer hover:bg-blue-50/50 transition-colors"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSignClick(); }}
+                      >
+                        <p className="text-[10px] text-blue-500 font-bold group-hover:underline text-center px-2">คลิกเพื่อวางลายเซ็น<br/><span className="text-[8px] font-normal text-slate-400">(Click to Sign)</span></p>
+                      </div>
+                    ) : (
+                      <div className="flex-1 flex items-center justify-center text-[10px] text-slate-400">
+                        (รออนุมัติตามสายงาน)
+                      </div>
+                    )}
+
+                    <div className="w-full border-t border-slate-800 pt-1 text-center bg-white z-10 shrink-0">
+                      <p className="font-bold text-slate-900 text-[11px] truncate px-1" title={step.roleName || `ผู้อนุมัติลำดับที่ ${idx + 1}`}>{step.roleName || `ผู้อนุมัติลำดับที่ ${idx + 1}`}</p>
+                      {(step.approverName) && (
+                        <p className="text-[10px] text-blue-600 font-bold leading-tight">{step.approverName}</p>
+                      )}
+                      <p className="text-[10px] text-slate-700 mt-0.5">
+                        วันที่ {isApproved && step.date ? new Date(step.date).toLocaleDateString('th-TH') : (isCurrentStep && tempSignature ? new Date().toLocaleDateString('th-TH') : "____/____/____")}
+                      </p>
+                    </div>
+                  </div>
+                )})}
           </div>
 
         </div>
       </div>
 
-          {currentStep === 1 && (
+          {currentStep === 1 && !isViewer && (
             <div className="flex justify-end pt-4 border-t border-slate-100 mt-6">
               <button
                 type="button"
@@ -569,7 +626,7 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
               </button>
             </div>
           )}
-          {currentStep === 4 && (
+          {currentStep === 4 && !isViewer && (
             <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-6">
               <button
                 type="button"
@@ -670,3 +727,4 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
     </form>
   );
 }
+

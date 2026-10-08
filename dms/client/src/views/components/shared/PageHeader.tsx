@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Bell, User } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Bell, User, Inbox } from "lucide-react";
 import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { cn } from "@/lib/utils";
@@ -29,18 +29,20 @@ export default function PageHeader({
   className,
 }: PageHeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
   const { data: notificationsData } = useSWR('/api/notifications', async () => {
     return await getNotifications();
   }, { refreshInterval: 5000 });
 
   const notifications = notificationsData || [];
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const unreadNotifications = notifications.filter((n) => !n.is_read);
+  const unreadCount = unreadNotifications.length;
 
   // Track the newest notification to trigger toast
   const [lastNotifId, setLastNotifId] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (notifications.length > 0) {
       const newest = notifications[0]; // notifications are ordered desc
       if (!newest.is_read && lastNotifId && newest.id !== lastNotifId) {
@@ -58,6 +60,20 @@ export default function PageHeader({
       setLastNotifId(newest.id);
     }
   }, [notifications, lastNotifId]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    }
+    if (showNotifications) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showNotifications]);
 
   const { user } = useAuth();
   const displayName = user?.full_name || user?.username || "User";
@@ -88,7 +104,7 @@ export default function PageHeader({
 
       <div className="relative z-20 flex min-w-0 flex-wrap items-center justify-end gap-3 sm:gap-4">
         {actions ? <div className="flex shrink-0 items-center">{actions}</div> : null}
-        <div className="relative shrink-0">
+        <div className="relative shrink-0" ref={dropdownRef}>
           <button
             type="button"
             aria-label="Notifications"
@@ -110,28 +126,32 @@ export default function PageHeader({
                 <p className="text-sm font-bold text-slate-700">การแจ้งเตือน</p>
               </div>
               <ul className="max-h-72 overflow-y-auto">
-                {notifications.slice(0, 5).map((n) => (
-                  <Link
-                    key={n.id}
-                    href={
-                      n.message.includes("รออนุมัติ")
-                        ? `/approvals/${n.document_id}`
-                        : `/documents/${n.document_id}`
-                    }
-                    onClick={() => setShowNotifications(false)}
-                    className={cn(
-                      "block border-b border-slate-100 px-4 py-3 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer text-left",
-                      !n.is_read && "bg-blue-50/30"
-                    )}
-                  >
-                    <p className="text-sm text-slate-700 leading-snug font-medium">{n.message}</p>
-                    <p className="mt-1 text-[11px] font-semibold text-slate-400">
-                      {new Date(n.created_at).toLocaleString("th-TH", {
-                        year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                      })}
-                    </p>
-                  </Link>
-                ))}
+                {unreadNotifications.length > 0 ? (
+                  unreadNotifications.slice(0, 5).map((n) => (
+                    <Link
+                      key={n.id}
+                      href={
+                        n.message.includes("รออนุมัติ")
+                          ? `/approvals/${n.document_id}`
+                          : `/documents/${n.document_id}`
+                      }
+                      onClick={() => setShowNotifications(false)}
+                      className="block border-b border-slate-100 px-4 py-3 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer text-left bg-blue-50/30"
+                    >
+                      <p className="text-sm text-slate-700 leading-snug font-medium">{n.message}</p>
+                      <p className="mt-1 text-[11px] font-semibold text-slate-400">
+                        {new Date(n.created_at).toLocaleString("th-TH", {
+                          year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                        })}
+                      </p>
+                    </Link>
+                  ))
+                ) : (
+                  <li className="px-4 py-8 text-center flex flex-col items-center justify-center gap-2">
+                    <Inbox className="w-8 h-8 text-slate-200" />
+                    <p className="text-xs font-semibold text-slate-400">ไม่มีการแจ้งเตือนใหม่</p>
+                  </li>
+                )}
               </ul>
               <Link 
                 href="/notifications"

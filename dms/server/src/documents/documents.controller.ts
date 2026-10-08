@@ -36,7 +36,7 @@ export class DocumentsController {
     @Query('search') search?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-    @CurrentUser() user?: { id: string; role: string },
+    @CurrentUser() user?: { id: string; role: string; permissions?: string[] },
   ) {
     return this.documentsService.findAll({
       status,
@@ -46,6 +46,7 @@ export class DocumentsController {
       limit,
       currentUserId: user?.id,
       currentUserRole: user?.role,
+      permissions: user?.permissions,
     });
   }
 

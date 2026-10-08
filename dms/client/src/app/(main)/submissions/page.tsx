@@ -29,6 +29,7 @@ export default function SubmissionsPage() {
   
   // Data States
   const [myDocsList, setMyDocsList] = useState<Document[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Navigation & Filter States
   const [typeFilters, setTypeFilters] = useState<string[]>(["All"]);
@@ -44,16 +45,33 @@ export default function SubmissionsPage() {
   const itemsPerPage = 7;
 
   useEffect(() => {
+    if (!user) return; // Wait until user is loaded
+
     if (user && !hasPerm("view_list")) {
       router.replace("/dashboard");
       return;
     }
     // Fetch my created documents
+    setIsLoading(true);
     getDocuments().then((data) => {
-      // Keep non-approved items created by me
-      setMyDocsList(data.filter((doc) => doc.status !== "Approved"));
+      // Keep non-approved items created by me (unless user has view_all permission)
+      if (data && Array.isArray(data)) {
+        const canViewAll = user?.permissions?.includes('submissions.view_all:view') || user?.role === 'Administrator';
+        setMyDocsList(data.filter((doc) => {
+          if (doc.status === "Approved") return false;
+          if (canViewAll) return true;
+          return (doc as any).creator_id === user?.id;
+        }));
+      } else {
+        setMyDocsList([]);
+      }
+    }).catch(err => {
+      console.error(err);
+      setMyDocsList([]);
+    }).finally(() => {
+      setIsLoading(false);
     });
-  }, [user]);
+  }, [user, router]);
 
   const handleSort = (key: string) => {
     if (sortKey !== key) {
@@ -243,11 +261,11 @@ export default function SubmissionsPage() {
               )}
               {hasPerm("view_approval_history", "view") && (
                 <Link
-                  href="/approvals/history"
+                  href="/submissions/history"
                   className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
                 >
                   <CheckSquare className="w-4 h-4" />
-                  ประวัติการอนุมัติ
+                  ประวัติการถูกอนุมัติ
                 </Link>
               )}
             </div>
@@ -385,7 +403,16 @@ export default function SubmissionsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50/80">
-                {filteredItems.length > 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={9} className="text-center py-20 text-slate-400">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-blue-600 animate-spin"></div>
+                        <span className="text-xs font-bold text-slate-500">กำลังโหลดข้อมูลเอกสาร...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredItems.length > 0 ? (
                   paginatedItems.map((item) => (
                     <tr
                       key={item.id}

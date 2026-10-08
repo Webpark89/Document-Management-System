@@ -128,6 +128,7 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     label: "ส่งเรื่องขออนุมัติ (My Submissions)",
     items: [
       { key: "view_list",             label: "ดูรายการเอกสารที่ฉันส่งขออนุมัติ",                                    actions: ["view"] },
+      { key: "view_all",              label: "ดูเอกสารทั้งหมดในระบบ (ไม่จำกัดเฉพาะของตัวเอง)",                        actions: ["view"] },
       { key: "search_sort",           label: "ค้นหาและเรียงลำดับรายการ",                                           actions: ["view"] },
       { key: "filter_type",           label: "กรองประเภทเอกสาร (PR / PO / BK / OTHER)",                            actions: ["view"] },
       { key: "open_doc_detail",       label: "เปิดดูรายละเอียดเอกสาร",                                            actions: ["view"] },
@@ -145,6 +146,7 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     label: "รายการรออนุมัติ (Pending Approvals)",
     items: [
       { key: "view_list",             label: "ดูเอกสารที่ฉันต้องอนุมัติ",                                         actions: ["view"] },
+      { key: "view_all",              label: "ดูเอกสารรออนุมัติทั้งหมดในระบบ (ไม่จำกัดเฉพาะของตัวเอง)",                 actions: ["view"] },
       { key: "search_sort",           label: "ค้นหาและเรียงลำดับรายการ",                                           actions: ["view"] },
       { key: "open_doc_detail",       label: "เปิดดูรายละเอียดเอกสาร",                                            actions: ["view"] },
       { key: "approve_document",      label: "อนุมัติเอกสาร",                                                     actions: ["approve"] },

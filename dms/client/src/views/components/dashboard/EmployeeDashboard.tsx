@@ -29,10 +29,14 @@ const STATUS_COLORS = {
   Cancelled: "#64748b"
 };
 
+import { useRouter } from "next/navigation";
+
 export function EmployeeDashboard({ documents, stats }: { documents: any[], stats: any }) {
+  const router = useRouter();
   const { user } = useAuth();
   const [sortKey, setSortKey] = React.useState<string | null>(null);
   const [sortDirection, setSortDirection] = React.useState<"asc" | "desc" | null>(null);
+  const [activeStatusFilter, setActiveStatusFilter] = React.useState<string | null>(null);
 
   const handleSort = (key: string) => {
     if (sortKey !== key) {
@@ -85,7 +89,7 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
   }, [myDocs, pending, returned]);
 
   const recentActivity = useMemo(() => {
-    const data = [...myDocs];
+    let data = [...myDocs];
     if (sortKey && sortDirection) {
       data.sort((a, b) => {
         let comparison = 0;
@@ -98,14 +102,22 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
     } else {
       data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
+    if (activeStatusFilter) {
+      if (activeStatusFilter === "Returned") {
+        data = data.filter(d => d.status === "Returned" || d.status === "Rejected");
+      } else {
+        data = data.filter(d => d.status === activeStatusFilter);
+      }
+    }
     return data.slice(0, 8);
-  }, [myDocs, sortKey, sortDirection]);
+  }, [myDocs, sortKey, sortDirection, activeStatusFilter]);
 
 
 
-  const hasPerm = (_key: string) => {
-    // Show all widgets — permissions enforced at route level
-    return true;
+  const hasPerm = (key: string) => {
+    if (user?.role === "Administrator") return true;
+    if (!user?.permissions || user.permissions.length === 0) return false;
+    return user.permissions.includes(`dashboard.${key}:view`);
   };
 
   const showStatCards = hasPerm("employee_stat_cards");
@@ -118,10 +130,10 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
     <>
       {showStatCards && (
         <StatCardGrid columns={4}>
-        <AppStatCard label="เอกสารที่ฉันสร้าง (ทั้งหมด)" value={total} icon={FileText} iconBg="bg-blue-50" iconColor="text-blue-600" />
-        <AppStatCard label="รอการอนุมัติ (Pending)" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" />
-        <AppStatCard label="อนุมัติสำเร็จ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
-        <AppStatCard label="รออนุมัติจากฉัน" value={actionRequiredCount} icon={AlertCircle} iconBg="bg-rose-50" iconColor="text-rose-600" />
+        <AppStatCard label="เอกสารที่ฉันสร้าง (ทั้งหมด)" value={total} icon={FileText} iconBg="bg-blue-50" iconColor="text-blue-600" onClick={() => setActiveStatusFilter(null)} isActive={activeStatusFilter === null} />
+        <AppStatCard label="รอการอนุมัติ (Pending)" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Pending' ? null : 'Pending')} isActive={activeStatusFilter === 'Pending'} />
+        <AppStatCard label="อนุมัติสำเร็จ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Approved' ? null : 'Approved')} isActive={activeStatusFilter === 'Approved'} />
+        <AppStatCard label="รออนุมัติจากฉัน" value={actionRequiredCount} icon={AlertCircle} iconBg="bg-rose-50" iconColor="text-rose-600" onClick={() => router.push('/approvals')} />
         </StatCardGrid>
       )}
 
@@ -210,33 +222,71 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
         )}
 
         {showDocsStatusChart && (
-          <div className={`${APP_CARD_LG} flex flex-col lg:col-span-1`}>
-            <h3 className="text-sm font-bold text-slate-800 mb-2">สัดส่วนสถานะเอกสารของฉัน</h3>
-            <div className="flex-1 min-h-[250px]">
-              {statusData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={statusData}
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                      stroke="none"
-                      label={({ name, value }) => `${value}`}
-                      labelLine={false}
-                    >
-                      {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-sm text-slate-400">ไม่มีข้อมูลเอกสาร</div>
-              )}
+          <div className="flex flex-col gap-6 lg:col-span-1">
+            {/* 1. สัดส่วนสถานะเอกสารของฉัน */}
+            <div className={`${APP_CARD_LG} flex flex-col`}>
+              <h3 className="text-sm font-bold text-slate-800 mb-2">สัดส่วนสถานะเอกสารของฉัน</h3>
+              <div className="flex-1 min-h-[220px]">
+                {statusData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <PieChart>
+                      <Pie
+                        data={statusData}
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        stroke="none"
+                        label={({ name, value }) => `${value}`}
+                        labelLine={false}
+                      >
+                        {statusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                      <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-sm text-slate-400">ไม่มีข้อมูลเอกสาร</div>
+                )}
+              </div>
+            </div>
+
+            {/* 2. รายการเอกสารที่เปิดล่าสุด */}
+            <div className={`${APP_CARD_LG} flex flex-col flex-1`}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-slate-800">รายการเอกสารที่เปิดล่าสุด</h3>
+                <Clock className="w-4 h-4 text-slate-400" />
+              </div>
+              <div className="flex flex-col gap-2.5">
+                 {recentActivity.slice(0, 4).map((doc, index) => (
+                    <Link key={doc.id || index} href={`/documents/${doc.id}`} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/70 hover:bg-slate-100 transition-all border border-transparent hover:border-slate-200 group">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 shadow-sm ${
+                        doc.type === 'PR' ? 'bg-blue-100 text-blue-700' :
+                        doc.type === 'PO' ? 'bg-purple-100 text-purple-700' :
+                        doc.type === 'BK' ? 'bg-emerald-100 text-emerald-700' :
+                        'bg-amber-100 text-amber-700'
+                      }`}>
+                        <FileText className="w-4 h-4 opacity-80" />
+                      </div>
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="text-xs font-bold text-slate-700 truncate group-hover:text-blue-600 transition-colors">{doc.title}</span>
+                        <span className="text-[10px] text-slate-400 font-medium mt-0.5">{doc.id}</span>
+                      </div>
+                      <div className="ml-auto shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-white text-slate-300 group-hover:text-blue-500 group-hover:shadow-sm transition-all">
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </div>
+                    </Link>
+                 ))}
+                 {recentActivity.length === 0 && (
+                   <div className="text-center py-8 text-xs font-medium text-slate-400 flex flex-col items-center gap-2">
+                     <FileText className="w-6 h-6 opacity-20" />
+                     ยังไม่มีเอกสารเปิดล่าสุด
+                   </div>
+                 )}
+              </div>
             </div>
           </div>
         )}

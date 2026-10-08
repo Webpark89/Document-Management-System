@@ -167,8 +167,8 @@ function CreateUserPreview({ form }: { form: UserForm }) {
     <div className="flex min-h-[280px] flex-col rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
       <div className="flex items-start gap-4">
         <Avatar className="size-16 shrink-0 ring-2 ring-white">
-          <AvatarFallback className="bg-indigo-100 text-lg font-semibold text-indigo-700">
-            {initials}
+          <AvatarFallback className="bg-indigo-100 text-indigo-700">
+            <User className="size-8 text-indigo-700" />
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
@@ -357,7 +357,7 @@ function UsersListView({
                 </select>
                 <select className={inputCls} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
                   <option value="">ทุก Role</option>
-                  {USER_ROLE_OPTIONS.map((r) => (
+                  {(roles.length > 0 ? roles.filter(r => r.is_active !== false && r.isActive !== false).map(r => r.name) : USER_ROLE_OPTIONS).map((r) => (
                     <option key={r} value={r}>
                       {r}
                     </option>
@@ -740,9 +740,17 @@ function UserFormFields({
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
-  const deptList = depts.length > 0 ? depts.map(d => d.name) : ["แผนก IT", "แผนกจัดซื้อ", "แผนก HR", "แผนกผลิต"];
-  const posList = positions.length > 0 ? positions.map(p => p.name) : ["ผู้อำนวยการ", "ผู้จัดการ", "หัวหน้าแผนก", "พนักงาน"];
-  const roleList = roles.length > 0 ? roles.map(r => r.name) : USER_ROLE_OPTIONS;
+  const deptList = depts.length > 0 
+    ? depts.filter(d => (d.is_active !== false && d.isActive !== false) || d.name === form.department).map(d => d.name) 
+    : ["แผนก IT", "แผนกจัดซื้อ", "แผนก HR", "แผนกผลิต"];
+  const posList = positions.length > 0 
+    ? positions.filter(p => (p.is_active !== false && p.isActive !== false) || p.name === form.position).map(p => p.name) 
+    : ["ผู้อำนวยการ", "ผู้จัดการ", "หัวหน้าแผนก", "พนักงาน"];
+  const roleList = roles.length > 0 
+    ? roles
+        .filter(r => (r.is_active !== false && r.isActive !== false) || r.name === form.role)
+        .map(r => r.name)
+    : USER_ROLE_OPTIONS;
 
   const isCreateLayout = layout === "create";
   const fieldStackCls = isCreateLayout ? "flex flex-col gap-5" : "mt-4 space-y-3";
@@ -822,9 +830,13 @@ function UserFormFields({
       <label className={labelCls}>เบอร์โทร</label>
       <input
         type="tel"
+        maxLength={10}
         value={form.phone}
-        onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-        placeholder="081-234-5678"
+        onChange={(e) => {
+          const val = e.target.value.replace(/\D/g, "");
+          setForm((p) => ({ ...p, phone: val }));
+        }}
+        placeholder="0812345678"
         className={fieldInputCls("phone")}
       />
     </div>
@@ -834,7 +846,7 @@ function UserFormFields({
     <div>
       <label className={labelCls}>วันที่เริ่มงาน</label>
       <input
-        type="date"
+        type="date" max={new Date().toISOString().split("T")[0]}
         value={form.joinedAt}
         onChange={(e) => setForm((p) => ({ ...p, joinedAt: e.target.value }))}
         className={fieldInputCls("joinedAt")}

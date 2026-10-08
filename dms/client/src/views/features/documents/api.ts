@@ -8,17 +8,13 @@ import type { DashboardStats, Document } from "./types";
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   try {
-    const docs = await getDocuments();
+    const res = await api.get<DashboardStats>("/api/dashboard/stats");
     return {
-      total: docs.length,
-      approved: docs.filter((d) => d.status === "Approved").length,
-      pending: docs.filter((d) => d.status === "Pending").length,
-      actionRequired: docs.filter((d) => d.status === "Pending").length,
-      documents: docs,
+      ...res.data,
+      documents: [],
       trend: [],
       types: [],
       goals: [],
-      activity: [],
     };
   } catch {
     return {
@@ -35,9 +31,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 }
 
-export async function getDocuments(): Promise<Document[]> {
+export async function getDocuments(options?: { limit?: number; status?: string }): Promise<Document[]> {
   try {
-    const res = await api.get<any>("/api/documents");
+    const query = new URLSearchParams();
+    if (options?.limit) query.append("limit", options.limit.toString());
+    if (options?.status) query.append("status", options.status);
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const res = await api.get<any>(`/api/documents${qs}`);
     if (Array.isArray(res.data)) return res.data;
     if (res.data && Array.isArray(res.data.data)) return res.data.data;
     return [];

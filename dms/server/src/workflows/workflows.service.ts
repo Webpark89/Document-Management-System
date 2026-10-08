@@ -314,11 +314,14 @@ export class WorkflowsService {
     };
   }
 
-  async getApprovalsForUser(userId: string) {
+  async getApprovalsForUser(userId: string, canViewAll: boolean = false) {
+    const whereClause: any = {};
+    if (!canViewAll) {
+      whereClause.approver_id = userId;
+    }
+
     const steps = await this.prisma.workflowStep.findMany({
-      where: {
-        approver_id: userId,
-      },
+      where: whereClause,
       include: {
         workflow: {
           include: {

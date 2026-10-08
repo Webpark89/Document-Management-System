@@ -420,8 +420,8 @@ export default function Sidebar() {
               className="flex min-w-0 flex-1 items-center gap-3 rounded-lg transition-colors hover:bg-slate-50"
             >
               <Avatar className="h-9 w-9 flex-shrink-0">
-                <AvatarFallback className="bg-indigo-100 text-sm font-semibold text-indigo-700">
-                  {initials}
+                <AvatarFallback className="bg-indigo-100 text-indigo-700">
+                  <User className="h-4.5 w-4.5" />
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1 text-left">
@@ -445,8 +445,8 @@ export default function Sidebar() {
               title={displayName}
             >
               <Avatar className="h-9 w-9 flex-shrink-0">
-                <AvatarFallback className="bg-indigo-100 text-sm font-semibold text-indigo-700">
-                  {initials}
+                <AvatarFallback className="bg-indigo-100 text-indigo-700">
+                  <User className="h-4.5 w-4.5" />
                 </AvatarFallback>
               </Avatar>
             </Link>

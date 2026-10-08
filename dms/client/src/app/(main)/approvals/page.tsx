@@ -24,6 +24,7 @@ export default function ApprovalsInboxPage() {
   
   // Data States
   const [toApproveList, setToApproveList] = useState<Approval[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Navigation & Filter States
   const [typeFilters, setTypeFilters] = useState<string[]>(["All"]);
@@ -45,13 +46,20 @@ export default function ApprovalsInboxPage() {
   const itemsPerPage = 7;
 
   useEffect(() => {
+    if (!user) return;
     if (user && !hasPerm("view_list")) {
       router.replace("/dashboard");
       return;
     }
     // Fetch approvals (items waiting for MY approval)
+    setIsLoading(true);
     getApprovals().then((data) => {
       setToApproveList(data.filter((item) => item.status !== "Approved"));
+    }).catch(err => {
+      console.error(err);
+      setToApproveList([]);
+    }).finally(() => {
+      setIsLoading(false);
     });
   }, [user]);
 
@@ -260,6 +268,7 @@ export default function ApprovalsInboxPage() {
                   placeholder="ค้นหาชื่อ, เลขที่เอกสาร, ผู้ขอ, แผนก..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                   className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all shadow-2xs"
                 />
               </div>
@@ -330,6 +339,7 @@ export default function ApprovalsInboxPage() {
                     <span className="text-xs font-bold text-slate-500">ช่วงวันที่:</span>
                     <input
                       type="date"
+                      max={new Date().toISOString().split("T")[0]}
                       value={dateFrom}
                       onChange={(e) => setDateFrom(e.target.value)}
                       className="bg-white border border-slate-200 rounded-xl py-1 px-2.5 text-xs text-slate-700 font-semibold focus:outline-none"
@@ -337,6 +347,7 @@ export default function ApprovalsInboxPage() {
                     <span className="text-xs text-slate-400">-</span>
                     <input
                       type="date"
+                      max={new Date().toISOString().split("T")[0]}
                       value={dateTo}
                       onChange={(e) => setDateTo(e.target.value)}
                       className="bg-white border border-slate-200 rounded-xl py-1 px-2.5 text-xs text-slate-700 font-semibold focus:outline-none"
@@ -360,14 +371,14 @@ export default function ApprovalsInboxPage() {
 
           {/* TABLE */}
           <div className="overflow-x-auto border border-slate-100/50 rounded-2xl">
-            <table className="w-full table-fixed text-left border-collapse min-w-[950px]">
+            <table className="w-full table-fixed text-left border-collapse min-w-[1100px]">
               <thead>
                 <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                   <th className="py-4 pl-4 font-bold">ข้อมูลเอกสาร</th>
                   {hasPerm('search_sort') ? (
-                    <DataTableHeader title="รหัส (ID)" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
+                    <DataTableHeader title="รหัส (ID)" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-40" />
                   ) : (
-                    <th className="py-4 w-32 font-bold">รหัส (ID)</th>
+                    <th className="py-4 w-40 font-bold">รหัส (ID)</th>
                   )}
                   {hasPerm('search_sort') ? (
                     <DataTableHeader title="ผู้ส่งขอ" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
@@ -400,7 +411,16 @@ export default function ApprovalsInboxPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50/80">
-                {filteredItems.length > 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={10} className="text-center py-20 text-slate-400">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-amber-500 animate-spin"></div>
+                        <span className="text-xs font-bold text-slate-500">กำลังโหลดรายการอนุมัติ...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredItems.length > 0 ? (
                   paginatedItems.map((item) => (
                     <tr
                       key={item.id}

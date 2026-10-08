@@ -76,6 +76,9 @@ function DocumentsContent() {
   const [selectedCreators, setSelectedCreators] = useState<string[]>([]);
   const [selectedApprovers, setSelectedApprovers] = useState<string[]>([]);
   const personnelRef = React.useRef<HTMLDivElement>(null);
+  
+  const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);
+  const dateRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     adminService.getUsersList().then((res: any) => {
@@ -91,6 +94,9 @@ function DocumentsContent() {
     function handleClickOutside(event: MouseEvent) {
       if (personnelRef.current && !personnelRef.current.contains(event.target as Node)) {
         setIsPersonnelPopoverOpen(false);
+      }
+      if (dateRef.current && !dateRef.current.contains(event.target as Node)) {
+        setIsDatePopoverOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -547,7 +553,7 @@ function DocumentsContent() {
 
 
           {/* WORKSPACE CARD */}
-          <div className={`${APP_TABLE_CARD} flex flex-col p-6 space-y-6`}>
+          <div className={`${APP_TABLE_CARD} overflow-visible flex flex-col p-6 space-y-6`}>
         
         {/* ACTIVE FOLDER BANNER INDICATOR */}
         {hasPerm('view_folders') && activeFolder && (
@@ -580,12 +586,12 @@ function DocumentsContent() {
         )}
 
         {/* TOOLBAR */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs mb-4 overflow-x-auto hide-scrollbar">
-          <div className="flex items-center gap-4 min-w-max">
+        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs mb-4">
+          <div className="flex flex-wrap items-center gap-3 w-full justify-between xl:justify-start">
             
             {/* Search */}
             {hasPerm('search_filter') && (
-            <div className="relative w-[250px] shrink-0">
+            <div className="relative w-full sm:w-[220px] lg:w-[250px] shrink-0">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
                 <Search className="w-4 h-4" />
               </span>
@@ -594,13 +600,14 @@ function DocumentsContent() {
                 placeholder="ค้นหาชื่อ, เลขที่, ผู้ขอ, แผนก..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                 className="w-full bg-slate-50 hover:bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all focus:bg-white shadow-sm"
               />
             </div>
             )}
 
             {/* Filters */}
-            <div className="flex items-center gap-4 shrink-0 flex-nowrap xl:ml-auto">
+            <div className="flex flex-wrap items-center gap-3 flex-1 justify-end">
               
               {/* Type Filter */}
               {hasPerm('search_filter') && (
@@ -676,7 +683,7 @@ function DocumentsContent() {
                 </button>
 
                 {isPersonnelPopoverOpen && (
-                  <div className="absolute top-full right-0 sm:right-auto sm:-left-1/2 md:auto mt-2 w-[320px] sm:w-[500px] md:w-[600px] max-w-[90vw] bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden">
+                  <div className="absolute top-full right-0 mt-2 w-[320px] sm:w-[500px] md:w-[600px] max-w-[90vw] bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden">
                     <div className="p-3 border-b border-slate-100 bg-slate-50/50">
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
@@ -751,23 +758,44 @@ function DocumentsContent() {
               <div className="w-px h-5 bg-slate-200 hidden sm:block"></div>
 
               {/* Date Range Filter */}
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-xs font-bold text-slate-500 hidden sm:inline">ช่วงวันที่:</span>
-                <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2 py-1 shadow-sm">
-                  <input
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                    className="bg-transparent text-[10px] sm:text-xs text-slate-700 font-semibold focus:outline-none cursor-pointer w-24 sm:w-auto"
-                  />
-                  <span className="text-[10px] sm:text-xs text-slate-300">-</span>
-                  <input
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                    className="bg-transparent text-[10px] sm:text-xs text-slate-700 font-semibold focus:outline-none cursor-pointer w-24 sm:w-auto"
-                  />
-                </div>
+              <div className="flex items-center relative shrink-0" ref={dateRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsDatePopoverOpen(!isDatePopoverOpen)}
+                  className={`flex items-center gap-2 border rounded-xl py-1.5 px-3 text-xs font-semibold focus:outline-none transition-colors shadow-sm ${(dateFrom || dateTo) ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}
+                >
+                  <span className="hidden sm:inline">เลือกช่วงเวลา</span>
+                  <span className="sm:hidden">วันที่</span>
+                  {(dateFrom || dateTo) ? ' (ระบุแล้ว)' : ''}
+                  <ChevronDown className={`w-3.5 h-3.5 ${(dateFrom || dateTo) ? 'text-blue-500' : 'text-slate-400'}`} />
+                </button>
+
+                {isDatePopoverOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-[280px] bg-white rounded-2xl shadow-xl border border-slate-200 z-50 p-4">
+                    <div className="flex flex-col gap-3">
+                      <div>
+                        <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">ตั้งแต่</label>
+                        <input
+                          type="date"
+                          max={new Date().toISOString().split("T")[0]}
+                          value={dateFrom}
+                          onChange={(e) => setDateFrom(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">ถึง</label>
+                        <input
+                          type="date"
+                          max={new Date().toISOString().split("T")[0]}
+                          value={dateTo}
+                          onChange={(e) => setDateTo(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               
               {/* Clear Button */}

@@ -84,6 +84,7 @@ export interface FindAllOptions {
   limit?: number;
   currentUserId?: string;
   currentUserRole?: string;
+  permissions?: string[];
 }
 
 @Injectable()
@@ -160,6 +161,7 @@ export class DocumentsService {
       limit = 20,
       currentUserId,
       currentUserRole,
+      permissions = [],
     } = options;
 
     const take = Math.min(Math.max(Number(limit), 1), 100);
@@ -167,11 +169,14 @@ export class DocumentsService {
 
     const where: Prisma.DocumentWhereInput = { is_deleted: false };
 
-    if (currentUserRole !== 'Administrator' && currentUserId) {
+    const canViewAll = currentUserRole === 'Administrator' || permissions.includes('submissions.view_all:view') || permissions.includes('document.view_all:view');
+
+    if (!canViewAll && currentUserId) {
       const userObj = await this.prisma.user.findUnique({ where: { id: currentUserId } });
       const deptId = userObj?.department_id;
       
       const visibilityConditions: any[] = [
+        { creator_id: currentUserId }, // Creator can always see their own doc
         { visibility_type: 'CompanyWide' },
         { visibility_users: { has: currentUserId } }
       ];
@@ -815,9 +820,9 @@ export class DocumentsService {
       : 'ไม่ระบุ';
 
     const amount = doc.pr_form
-      ? `฿${Number(doc.pr_form.total_amount).toLocaleString()}`
+      ? `฿${Number(doc.pr_form.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       : doc.po_form
-        ? `฿${Number(doc.po_form.total_amount).toLocaleString()}`
+        ? `฿${Number(doc.po_form.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         : '-';
 
     const creatorSigUrl = doc.creator?.signature_encrypted

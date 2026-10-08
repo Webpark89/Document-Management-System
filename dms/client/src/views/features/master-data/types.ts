@@ -4,7 +4,6 @@ export interface DepartmentRecord {
   code: string;
   employeeCount: number;
   isActive: boolean;
-  employeeCount?: number;
 }
 
 export interface PositionRecord {

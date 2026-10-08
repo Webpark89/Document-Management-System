@@ -29,8 +29,10 @@ export class WorkflowsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('approvals')
-  async getApprovals(@CurrentUser() user: User) {
-    return this.workflowsService.getApprovalsForUser(user.id);
+  async getApprovals(@CurrentUser() user: any) {
+    const permissions = user.permissions || [];
+    const canViewAll = permissions.includes('approvals.view_all:view') || user.role === 'Administrator';
+    return this.workflowsService.getApprovalsForUser(user.id, canViewAll);
   }
 
   @Get('workflows/:documentId')

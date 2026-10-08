@@ -16,6 +16,8 @@ export type AppStatCardProps = {
   icon: ElementType;
   iconBg?: string;
   iconColor?: string;
+  onClick?: () => void;
+  isActive?: boolean;
 };
 
 export function AppStatCard({
@@ -24,9 +26,16 @@ export function AppStatCard({
   icon: Icon,
   iconBg = "bg-blue-50",
   iconColor = "text-blue-600",
+  onClick,
+  isActive,
 }: AppStatCardProps) {
   return (
-    <div className={APP_STAT_CARD}>
+    <div
+      onClick={onClick}
+      className={`${APP_STAT_CARD} ${
+        onClick ? "cursor-pointer hover:shadow-md hover:border-blue-200 transition-all" : ""
+      } ${isActive ? "ring-2 ring-blue-500 border-transparent shadow-md" : ""}`}
+    >
       <div
         className={`mb-3 flex size-9 shrink-0 items-center justify-center rounded-xl ${iconBg}`}
       >

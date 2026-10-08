@@ -160,47 +160,33 @@ export function FolderSidebar({
                   </span>
 
                   {folder.can_edit && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveMenuId(isMenuOpen ? null : folder.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-300/50 rounded-lg text-slate-500 transition-opacity cursor-pointer"
-                    >
-                      <MoreVertical className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
+                      <button
+                        type="button"
+                        title="แก้ไขโฟลเดอร์"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditFolder(folder);
+                        }}
+                        className="p-1 hover:bg-white rounded-lg text-slate-500 hover:text-blue-600 transition-colors cursor-pointer shadow-xs border border-slate-200/50"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        title="ลบโฟลเดอร์"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteFolder(folder);
+                        }}
+                        className="p-1 hover:bg-white rounded-lg text-slate-500 hover:text-rose-600 transition-colors cursor-pointer shadow-xs border border-slate-200/50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
-
-              {/* Context Dropdown Menu */}
-              {isMenuOpen && (
-                <div className="absolute right-2 top-full mt-1 w-36 bg-white rounded-xl shadow-lg border border-slate-200 p-1 z-30 animate-in fade-in zoom-in-95">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveMenuId(null);
-                      onEditFolder(folder);
-                    }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 rounded-lg font-medium"
-                  >
-                    <Edit2 className="w-3.5 h-3.5 text-slate-500" />
-                    <span>แก้ไข</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveMenuId(null);
-                      onDeleteFolder(folder);
-                    }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg font-medium"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>ลบโฟลเดอร์</span>
-                  </button>
-                </div>
-              )}
             </div>
           );
         })}

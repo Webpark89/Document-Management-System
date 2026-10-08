@@ -7,6 +7,7 @@ import {
   FileText,
   CheckSquare,
   Users,
+  User,
   Shield,
   Database,
   Hash,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useAuth } from "@views/components/providers/AuthProvider";
 
 interface NavItem {
   label: string;
@@ -118,10 +120,20 @@ function NavLink({ item, depth = 0 }: { item: NavItem; depth?: number }) {
 }
 
 export function Sidebar() {
+  const { user } = useAuth();
+  
+  // Get Initials
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
+    const parts = name.split(" ");
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`;
+    return name.slice(0, 2);
+  };
+
   return (
     <aside className="flex h-full w-64 flex-col bg-[--color-sidebar-bg]">
       {/* Logo */}
-      <div className="flex items-center gap-3 border-b border-[--color-sidebar-border] px-5 py-4">
+      <Link href="/dashboard" className="flex items-center gap-3 border-b border-[--color-sidebar-border] px-5 py-4 cursor-pointer hover:bg-[--color-sidebar-hover] transition-colors">
         <div className="flex size-8 items-center justify-center rounded-lg bg-blue-600">
           <FileStack className="size-4 text-white" />
         </div>
@@ -129,7 +141,7 @@ export function Sidebar() {
           <p className="text-sm font-bold text-white">DMS</p>
           <p className="text-[10px] text-slate-500">Document Management</p>
         </div>
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
@@ -142,15 +154,19 @@ export function Sidebar() {
 
       {/* Bottom User Info */}
       <div className="border-t border-[--color-sidebar-border] px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
-            วภ
-          </div>
+        <Link href="/profile" className="flex items-center gap-3 cursor-pointer group hover:bg-[--color-sidebar-hover] p-1.5 rounded-lg transition-colors">
+          <div className="flex size-8 items-center justify-center rounded-full bg-blue-600 text-white shrink-0 shadow-xs">
+              <User className="size-4" />
+            </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-medium text-white">วิภา รักดี</p>
-            <p className="truncate text-[10px] text-slate-500">Manager</p>
+            <p className="truncate text-xs font-medium text-white group-hover:text-blue-300 transition-colors">
+              {user?.full_name || "Guest"}
+            </p>
+            <p className="truncate text-[10px] text-slate-500">
+              {user?.position || user?.role || "User"}
+            </p>
           </div>
-        </div>
+        </Link>
       </div>
     </aside>
   );

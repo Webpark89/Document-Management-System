@@ -80,6 +80,14 @@ function AllFoldersContent() {
 
      
   const handleCreateOrUpdateFolder = async (payload: any) => {
+    const isDuplicate = folders.some(
+      (f) => f.name.trim().toLowerCase() === payload.name.trim().toLowerCase() && f.id !== editingFolder?.id
+    );
+    if (isDuplicate) {
+      showToast("ชื่อโฟลเดอร์นี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น", "error");
+      return Promise.reject("Duplicate folder name");
+    }
+
     if (editingFolder) {
       await updateFolder(editingFolder.id, payload);
       showToast("อัปเดตโฟลเดอร์เรียบร้อยแล้ว");

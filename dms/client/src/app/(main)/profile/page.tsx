@@ -18,7 +18,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
    
    
    
-import { Loader2, Upload, ShieldCheck } from "lucide-react";
+import { Loader2, Upload, ShieldCheck, User } from "lucide-react";
 import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { useSignatures } from '@views/components/providers/SignatureProvider';
@@ -194,8 +194,8 @@ export default function ProfilePage() {
                   <div className="p-6 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 w-full">
                     <div className="flex items-center gap-5 min-w-0 flex-1">
                       <Avatar className="size-24 rounded-full ring-1 ring-slate-200 shadow-sm shrink-0">
-                        <AvatarFallback className="bg-slate-100 text-2xl font-bold text-slate-700">
-                          {initials}
+                        <AvatarFallback className="bg-slate-100 text-slate-700">
+                          <User className="size-12 text-slate-600" />
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">

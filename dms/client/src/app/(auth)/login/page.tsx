@@ -24,7 +24,14 @@ export default function LoginPage() {
       await login(username, password);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err?.message || "ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง");
+      const errMsg = err?.message || "";
+      if (errMsg.includes("401") || errMsg.includes("Unauthorized")) {
+        setError("ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง");
+      } else if (errMsg.includes("500") || errMsg.includes("fetch") || errMsg.includes("เชื่อมต่อ")) {
+        setError("ไม่สามารถเชื่อมต่อกับserverได้");
+      } else {
+        setError(errMsg || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
+      }
     } finally {
       setLoading(false);
     }

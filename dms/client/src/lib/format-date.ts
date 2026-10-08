@@ -114,5 +114,5 @@ export function formatThaiTime(dateInput?: string | Date | number | null): strin
   if (isNaN(date.getTime())) return "-";
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `: น.`;
+  return `${hours}:${minutes} น.`;
 }

@@ -83,49 +83,32 @@ export function FolderCard({ folder, isActive, isPinned, onClick, onEdit, onDele
           
 
           {folder.can_edit && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMenu(!showMenu);
-                }}
-                className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <MoreVertical className="w-4 h-4" />
-              </button>
-
-              {showMenu && (
-                <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-xl shadow-lg border border-slate-200 p-1 z-20 animate-in fade-in">
-                  {onEdit && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowMenu(false);
-                        onEdit();
-                      }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 rounded-lg font-medium"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                      <span>แก้ไข</span>
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowMenu(false);
-                        onDelete();
-                      }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg font-medium"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>ลบ</span>
-                    </button>
-                  )}
-                </div>
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+              {onEdit && (
+                <button
+                  type="button"
+                  title="แก้ไข"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit();
+                  }}
+                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors bg-white/80 backdrop-blur-sm shadow-xs border border-slate-200/50"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  type="button"
+                  title="ลบโฟลเดอร์"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete();
+                  }}
+                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors bg-white/80 backdrop-blur-sm shadow-xs border border-slate-200/50"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               )}
             </div>
           )}

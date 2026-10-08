@@ -27,7 +27,7 @@ const API_BASE = typeof window !== "undefined"
 type ApiResponse<T> = { data: T };
 
 /** Retry on ECONNREFUSED (server not yet ready) with exponential backoff */
-async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 1): Promise<T> {
   let lastErr: unknown;
   for (let i = 0; i < maxAttempts; i++) {
     try {
@@ -41,8 +41,7 @@ async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
         msg.includes("network request failed") ||
         (err as any)?.name === "TypeError";
       if (!isConnErr || i === maxAttempts - 1) break;
-      // Exponential backoff: 500ms, 1500ms, ...
-      await new Promise((r) => setTimeout(r, 500 * Math.pow(3, i)));
+      // Removed exponential backoff to prevent sluggish UI
     }
   }
   throw lastErr;
@@ -70,12 +69,24 @@ async function request<T>(
 
       if (!res.ok) {
         if (res.status === 401) {
-          if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+          if (
+            typeof window !== "undefined" && 
+            !window.location.pathname.startsWith("/login") &&
+            !path.includes("login") &&
+            !path.includes("password")
+          ) {
             window.location.href = "/login";
-            // Allow it to throw so that the app doesn't hang indefinitely
           }
         }
+        if (res.status >= 500) {
+          return Promise.reject("ไม่สามารถเชื่อมต่อกับserverได้");
+        }
+        
         let serverMessage = `API Error: ${res.status} ${res.statusText}`;
+        if (res.status === 401) {
+          serverMessage = "ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง";
+        }
+        
         try {
           const errorData = await res.json();
           if (errorData?.message) {
@@ -84,18 +95,18 @@ async function request<T>(
               : errorData.message;
           }
         } catch {}
-        throw new Error(serverMessage);
+        
+        // Use Promise.reject with string to avoid Next.js Red Screen of Death
+        return Promise.reject(serverMessage);
       }
 
       const data = await res.json();
       return { data };
     } catch (err: unknown) {
       if ((err as any)?.name === "TypeError" || (err as any)?.message?.toLowerCase().includes("fetch")) {
-        throw new Error(
-          "ไม่สามารถเชื่อมต่อ Backend Server ได้ (กรุณารัน `npm run dev` ที่โฟลเดอร์หลักเพื่อเปิด NestJS พอร์ต 4000)"
-        );
+        return Promise.reject("ไม่สามารถเชื่อมต่อกับserverได้");
       }
-      throw err;
+      return Promise.reject(err);
     }
   });
 }

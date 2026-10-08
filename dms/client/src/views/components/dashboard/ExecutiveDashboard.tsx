@@ -55,10 +55,14 @@ const TYPE_COLORS = {
 
 type ViewScopeOption = "ALL" | "MY_DEPT" | "MY_DOCS" | "CUSTOM_DEPTS";
 
+import { useRouter } from "next/navigation";
+
 export function ExecutiveDashboard({ documents, stats, departments }: { documents: any[], stats: any, departments: string[] }) {
+  const router = useRouter();
   const { user } = useAuth();
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+  const [activeStatusFilter, setActiveStatusFilter] = useState<string | null>(null);
 
   const [viewScope, setViewScope] = useState<ViewScopeOption>("ALL");
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
@@ -173,12 +177,15 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
 
   const deptPendingData = useMemo(() => {
     const counts: Record<string, number> = {};
+    const docsByDept: Record<string, any[]> = {};
     filteredData.filter(d => d.status === 'Pending').forEach(d => {
       const dept = d.department || 'ไม่ระบุ';
       counts[dept] = (counts[dept] || 0) + 1;
+      if (!docsByDept[dept]) docsByDept[dept] = [];
+      docsByDept[dept].push(d);
     });
     return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
+      .map(([name, value]) => ({ name, value, docs: docsByDept[name] }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 5); // top 5
   }, [filteredData]);
@@ -197,14 +204,19 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
     } else {
       data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
+    if (activeStatusFilter) {
+      if (activeStatusFilter === "Returned") {
+        return data.filter(d => d.status === "Returned" || d.status === "Rejected");
+      }
+      return data.filter(d => d.status === activeStatusFilter);
+    }
     return data; // Do not slice here, individual tables will slice
-  }, [filteredData, sortKey, sortDirection]);
+  }, [filteredData, sortKey, sortDirection, activeStatusFilter]);
 
-  const hasPerm = (_key: string) => {
-    // Show all widgets — permissions checked at route level
-    if (!user?.permissions || user.permissions.length === 0) return true;
-    if (user.role === "Administrator" || user.role === "Executive" || user.role === "Manager") return true;
-    return true;
+  const hasPerm = (key: string) => {
+    if (user?.role === "Administrator") return true;
+    if (!user?.permissions || user.permissions.length === 0) return false;
+    return user.permissions.includes(`dashboard.${key}:view`);
   };
 
   const showStatCards = hasPerm("executive_stat_cards");
@@ -305,12 +317,12 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
 
       {showStatCards && (
         <StatCardGrid columns={6}>
-          <AppStatCard label="เอกสารทั้งระบบ" value={total} icon={FileText} iconBg="bg-blue-50" iconColor="text-blue-600" />
-          <AppStatCard label="รออนุมัติทั้งระบบ" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" />
-          <AppStatCard label="อนุมัติ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
-          <AppStatCard label="ส่งกลับแก้ไข" value={returned} icon={AlertCircle} iconBg="bg-orange-50" iconColor="text-orange-600" />
+          <AppStatCard label="เอกสารทั้งระบบ" value={total} icon={FileText} iconBg="bg-blue-50" iconColor="text-blue-600" onClick={() => setActiveStatusFilter(null)} isActive={activeStatusFilter === null} />
+          <AppStatCard label="รออนุมัติทั้งระบบ" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Pending' ? null : 'Pending')} isActive={activeStatusFilter === 'Pending'} />
+          <AppStatCard label="อนุมัติ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Approved' ? null : 'Approved')} isActive={activeStatusFilter === 'Approved'} />
+          <AppStatCard label="ส่งกลับแก้ไข" value={returned} icon={AlertCircle} iconBg="bg-orange-50" iconColor="text-orange-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Returned' ? null : 'Returned')} isActive={activeStatusFilter === 'Returned'} />
           <AppStatCard label="ยอด PR/PO (บ.)" value={totalBudget.toLocaleString()} icon={TrendingUp} iconBg="bg-purple-50" iconColor="text-purple-600" />
-          <AppStatCard label="รออนุมัติจากฉัน" value={actionRequiredCount} icon={CheckCircle2} iconBg="bg-rose-50" iconColor="text-rose-600" />
+          <AppStatCard label="รออนุมัติจากฉัน" value={actionRequiredCount} icon={CheckCircle2} iconBg="bg-rose-50" iconColor="text-rose-600" onClick={() => router.push('/approvals')} />
         </StatCardGrid>
       )}
 
@@ -319,7 +331,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
           <div className={`lg:col-span-2 ${APP_CARD_LG} flex flex-col`}>
             <h3 className="text-sm font-bold text-slate-800 mb-6">เอกสารตามประเภท (จำนวนจริง)</h3>
             <div className="flex-1 min-h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={typeData} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600, fill: '#64748b' }} width={60} />
@@ -340,7 +352,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
           <div className={`${APP_CARD_LG} flex flex-col lg:col-span-1`}>
             <h3 className="text-sm font-bold text-slate-800 mb-2">สัดส่วนสถานะรวมทั้งระบบ</h3>
             <div className="flex-1 min-h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
                     data={statusData}
@@ -368,25 +380,97 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {showPendingDeptChart && (
           <div className={`lg:col-span-1 ${APP_CARD_LG} flex flex-col`}>
-            <h3 className="text-sm font-bold text-slate-800 mb-6">เอกสารรออนุมัติแยกตามแผนก (Top 5)</h3>
-            <div className="flex-1 min-h-[220px] flex items-center justify-center">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-sm font-bold text-slate-800">เอกสารรออนุมัติแยกตามแผนก (Top 5)</h3>
+              <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+                <Clock className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col justify-start">
               {deptPendingData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={deptPendingData} margin={{ top: 15, right: 0, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                    <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32} fill="#f59e0b">
-                      <LabelList dataKey="value" position="top" style={{ fontSize: 12, fill: '#334155', fontWeight: 700 }} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="w-full flex flex-col gap-4">
+                  {deptPendingData.map((dept, index) => {
+                    const typeCounts = dept.docs.reduce((acc: any, d: any) => {
+                      const t = d.type || 'Other';
+                      acc[t] = (acc[t] || 0) + 1;
+                      return acc;
+                    }, {});
+                    const chartData = Object.entries(typeCounts).map(([name, value]) => ({
+                      name,
+                      value,
+                      fill: (TYPE_COLORS as any)[name] || TYPE_COLORS.Other
+                    }));
+
+                    return (
+                      <div key={dept.name} className="flex items-center p-4 bg-slate-50/50 rounded-2xl border border-transparent hover:border-slate-100 hover:bg-white shadow-none hover:shadow-sm transition-all duration-300 group">
+                        
+                        {/* Top Left Number & Circle Area */}
+                        <div className="flex items-start gap-4">
+                          {/* Number on the top left */}
+                          <div className="flex flex-col items-center mt-0.5 w-8">
+                            <span className="text-2xl font-black text-slate-800 leading-none group-hover:text-amber-500 transition-colors">{dept.value}</span>
+                            <span className="text-[9px] font-bold text-slate-400 mt-1.5 uppercase tracking-wide">ฉบับ</span>
+                          </div>
+                          
+                          {/* Pie Chart */}
+                          <div className="w-16 h-16 relative -mt-1">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={chartData}
+                                  innerRadius={22}
+                                  outerRadius={32}
+                                  paddingAngle={4}
+                                  dataKey="value"
+                                  stroke="none"
+                                >
+                                  {chartData.map((entry: any, i: number) => (
+                                    <Cell key={`cell-${i}`} fill={entry.fill} />
+                                  ))}
+                                </Pie>
+                                <Tooltip 
+                                  contentStyle={{ borderRadius: '8px', fontSize: '10px', padding: '4px 8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                  itemStyle={{ color: '#334155', fontWeight: 700 }}
+                                />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                        
+                        {/* Right Area: Dept Name & Legend */}
+                        <div className="ml-auto flex flex-col items-end text-right">
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <span className={`flex items-center justify-center w-4 h-4 rounded font-bold text-[9px] ${
+                                index === 0 ? 'bg-amber-100 text-amber-700' :
+                                index === 1 ? 'bg-slate-200 text-slate-600' :
+                                index === 2 ? 'bg-orange-100 text-orange-600' :
+                                'bg-slate-100 text-slate-400'
+                              }`}>
+                                {index + 1}
+                            </span>
+                            <span className="text-xs font-bold text-slate-700">{dept.name}</span>
+                          </div>
+                          
+                          <div className="flex flex-wrap justify-end gap-x-2 gap-y-1 w-32">
+                            {chartData.map((c: any) => (
+                              <div key={c.name} className="flex items-center gap-1 text-[9px] font-bold text-slate-500">
+                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: c.fill }} />
+                                <span>{c.name} ({c.value})</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
-                <div className="text-center py-8">
+                <div className="text-center py-12 my-auto">
                   <div className="w-12 h-12 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Clock className="w-6 h-6" />
+                    <CheckCircle2 className="w-6 h-6" />
                   </div>
-                  <p className="text-xs font-semibold text-slate-400">ไม่มีเอกสารรอการอนุมัติในขณะนี้</p>
+                  <p className="text-xs font-semibold text-slate-400">เคลียร์งานครบทุกแผนกแล้ว</p>
                 </div>
               )}
             </div>

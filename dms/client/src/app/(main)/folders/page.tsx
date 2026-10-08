@@ -354,6 +354,14 @@ export default function FoldersPage() {
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
           onSubmit={async (data) => {
+            const isDuplicate = folders.some(
+              (f) => f.name.trim().toLowerCase() === data.name.trim().toLowerCase() && f.id !== editingFolder?.id
+            );
+            if (isDuplicate) {
+              showToast("ชื่อโฟลเดอร์นี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น", "error");
+              return Promise.reject("Duplicate folder name");
+            }
+
             try {
               if (editingFolder) {
                 await updateFolder(editingFolder.id, data);

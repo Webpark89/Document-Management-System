@@ -156,3 +156,5 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+.a4-viewer input, .a4-viewer textarea, .a4-viewer select { background: transparent !important; border-color: transparent !important; color: #0f172a !important; font-weight: 500 !important; appearance: none !important; box-shadow: none !important; resize: none !important; overflow: hidden !important; } .a4-viewer select { background-image: none !important; pointer-events: none; } .a4-viewer textarea { pointer-events: none; } .a4-viewer input { pointer-events: none; }

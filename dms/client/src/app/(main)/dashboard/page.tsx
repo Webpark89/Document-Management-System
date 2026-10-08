@@ -86,7 +86,7 @@ export default function DashboardPage() {
     const load = async () => {
       try {
         const [docs, statsData] = await Promise.all([
-          getDocuments().catch(() => [] as any[]),
+          getDocuments({ limit: 1000 }).catch(() => [] as any[]),
           dashboardService.getStats().catch(() => null),
         ]);
         if (cancelled) return;

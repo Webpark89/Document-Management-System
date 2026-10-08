@@ -16,16 +16,20 @@ export class DashboardService {
       where: { status: 'Pending', is_deleted: false },
     });
 
-    // Action Required: count workflow steps where this user is the approver and status is Pending
-    const actionRequired = await this.prisma.workflowStep.count({
+    // Action Required: count workflow steps where this user is the approver, status is Pending, and it's their turn
+    const userSteps = await this.prisma.workflowStep.findMany({
       where: {
         approver_id: userId,
         status: 'Pending',
         workflow: {
+          status: 'Pending',
           document: { is_deleted: false },
         },
       },
+      include: { workflow: true }
     });
+    
+    const actionRequired = userSteps.filter(s => s.step_order === s.workflow.current_step).length;
 
     // Recent activity (AuditLogs)
     const recentActivity = await this.prisma.auditLog.findMany({
