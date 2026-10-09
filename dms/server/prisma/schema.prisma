@@ -381,6 +381,9 @@ model WorkflowStep {
   workflow          Workflow       @relation(fields: [workflow_id], references: [id], onDelete: Cascade)
   approver          User?          @relation(fields: [approver_id], references: [id])
 
+  @@index([workflow_id])
+  @@index([approver_id])
+  @@index([status])
   @@map("workflow_steps")
 }
 

@@ -164,7 +164,7 @@ export class DocumentsService {
       permissions = [],
     } = options;
 
-    const take = Math.min(Math.max(Number(limit), 1), 100);
+    const take = Math.min(Math.max(Number(limit), 1), 1000);
     const skip = (Math.max(Number(page), 1) - 1) * take;
 
     const where: Prisma.DocumentWhereInput = { is_deleted: false };
@@ -209,19 +209,55 @@ export class DocumentsService {
       this.prisma.document.findMany({
         where,
         include: {
-          type: true,
-          creator: { include: { department: true } },
-          pr_form: true,
-          po_form: true,
-          bk_form: true,
-          versions: { select: {
-              id: true, document_id: true, version_number: true, file_size: true, file_extension: true, form_data: true, uploaded_by_id: true, remarks: true, created_at: true, updated_at: true,
-              uploaded_by: true
-            }, orderBy: { version_number: 'desc' }, take: 1 },
+          type: { select: { id: true, prefix: true, type_name: true } },
+          creator: {
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              email: true,
+              department: { select: { id: true, name: true } },
+              position: { select: { id: true, name: true } },
+              role: { select: { id: true, name: true } },
+            },
+          },
+          pr_form: { select: { id: true, total_amount: true, purpose: true, remark: true } },
+          po_form: { select: { id: true, total_amount: true, remark: true } },
+          bk_form: { select: { id: true, subject: true, detail: true } },
+          versions: {
+            select: {
+              id: true,
+              document_id: true,
+              version_number: true,
+              file_size: true,
+              file_extension: true,
+              uploaded_by_id: true,
+              remarks: true,
+              created_at: true,
+              updated_at: true,
+            },
+            orderBy: { version_number: 'desc' },
+            take: 1,
+          },
           workflow: {
-            include: {
+            select: {
+              id: true,
+              current_step: true,
+              total_steps: true,
+              status: true,
               steps: {
-                include: { approver: { include: { role: true } } },
+                select: {
+                  id: true,
+                  step_order: true,
+                  status: true,
+                  approver: {
+                    select: {
+                      id: true,
+                      first_name: true,
+                      last_name: true,
+                    },
+                  },
+                },
                 orderBy: { step_order: 'asc' },
               },
             },

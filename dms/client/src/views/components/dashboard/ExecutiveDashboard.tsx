@@ -316,13 +316,12 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
       )}
 
       {showStatCards && (
-        <StatCardGrid columns={6}>
+        <StatCardGrid columns={5}>
           <AppStatCard label="เอกสารทั้งระบบ" value={total} icon={FileText} iconBg="bg-blue-50" iconColor="text-blue-600" onClick={() => setActiveStatusFilter(null)} isActive={activeStatusFilter === null} />
           <AppStatCard label="รออนุมัติทั้งระบบ" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Pending' ? null : 'Pending')} isActive={activeStatusFilter === 'Pending'} />
           <AppStatCard label="อนุมัติ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Approved' ? null : 'Approved')} isActive={activeStatusFilter === 'Approved'} />
           <AppStatCard label="ส่งกลับแก้ไข" value={returned} icon={AlertCircle} iconBg="bg-orange-50" iconColor="text-orange-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Returned' ? null : 'Returned')} isActive={activeStatusFilter === 'Returned'} />
-          <AppStatCard label="ยอด PR/PO (บ.)" value={totalBudget.toLocaleString()} icon={TrendingUp} iconBg="bg-purple-50" iconColor="text-purple-600" />
-          <AppStatCard label="รออนุมัติจากฉัน" value={actionRequiredCount} icon={CheckCircle2} iconBg="bg-rose-50" iconColor="text-rose-600" onClick={() => router.push('/approvals')} />
+          <AppStatCard label="ยอด PR/PO" value={`${totalBudget.toLocaleString()} บาท`} icon={TrendingUp} iconBg="bg-purple-50" iconColor="text-purple-600" />
         </StatCardGrid>
       )}
 

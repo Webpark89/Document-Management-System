@@ -332,15 +332,35 @@ export class WorkflowsService {
         workflow: {
           include: {
             document: {
-              include: {
-                creator: { include: { department: true } },
-                type: true,
-                pr_form: true,
-                po_form: true,
+              select: {
+                id: true,
+                doc_number: true,
+                title: true,
+                created_at: true,
+                status: true,
+                creator: {
+                  select: {
+                    id: true,
+                    first_name: true,
+                    last_name: true,
+                    department: { select: { name: true } },
+                  },
+                },
+                type: { select: { prefix: true, type_name: true } },
+                pr_form: { select: { total_amount: true } },
+                po_form: { select: { total_amount: true } },
               },
             },
             steps: {
-              include: { approver: true },
+              select: {
+                step_order: true,
+                approver: {
+                  select: {
+                    first_name: true,
+                    last_name: true,
+                  },
+                },
+              },
               orderBy: { step_order: 'asc' },
             },
           },

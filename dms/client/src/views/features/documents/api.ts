@@ -33,49 +33,21 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
 export async function getDocuments(options?: { limit?: number; status?: string }): Promise<Document[]> {
   try {
-    const limit = Math.min(options?.limit || 50, 50); // Hard cap at 50 per request to prevent Prisma N-API crash
     const query = new URLSearchParams();
+    const limit = options?.limit || 1000;
     query.append("limit", limit.toString());
     if (options?.status) query.append("status", options.status);
     
     const qs = query.toString() ? `?${query.toString()}` : "";
     const res = await api.get<any>(`/api/documents${qs}`);
     
-    let allDocs: Document[] = [];
     if (Array.isArray(res.data)) {
-      allDocs = res.data;
-    } else if (res.data && Array.isArray(res.data.data)) {
-      allDocs = res.data.data;
-      
-      // If the caller requested more than 50 (e.g. limit 1000) OR didn't specify a limit (meaning fetch all)
-      const requestedLimit = options?.limit || 1000;
-      if (requestedLimit > 50 && res.data.meta && res.data.meta.totalPages > 1) {
-        const totalPages = res.data.meta.totalPages;
-        // Cap at 20 pages (1000 docs) to prevent infinite loops or massive memory usage
-        const maxPages = Math.min(totalPages, Math.ceil(requestedLimit / 50));
-        
-        const pagePromises = [];
-        for (let i = 2; i <= maxPages; i++) {
-          const pageQuery = new URLSearchParams(query);
-          pageQuery.append("page", i.toString());
-          pagePromises.push(api.get<any>(`/api/documents?${pageQuery.toString()}`));
-        }
-        const pageResults = await Promise.all(pagePromises);
-        pageResults.forEach(pr => {
-          if (pr.data && Array.isArray(pr.data.data)) {
-            allDocs = allDocs.concat(pr.data.data);
-          }
-        });
-      }
+      return res.data;
     }
-    
-    // Trim to original requested limit if needed
-    const finalLimit = options?.limit || 1000;
-    if (allDocs.length > finalLimit) {
-      allDocs = allDocs.slice(0, finalLimit);
+    if (res.data && Array.isArray(res.data.data)) {
+      return res.data.data;
     }
-    
-    return allDocs;
+    return [];
   } catch (err) {
     console.warn("[getDocuments] Failed to fetch documents", err);
     return [];
