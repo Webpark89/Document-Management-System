@@ -26,7 +26,7 @@ export default function DocumentUploadPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const editId = searchParams.get("edit");
+  const editId = searchParams.get("edit") || searchParams.get("draftId");
   const [editDoc, setEditDoc] = useState<any>(null);
   const [loadingDoc, setLoadingDoc] = useState(false);
   const { showToast } = useToast();
@@ -186,7 +186,10 @@ export default function DocumentUploadPage() {
         const updated = await updateDocumentFull(editId, apiPayload);
         if (!data.isDraft && updated) {
           const docIdToSubmit = updated.id || (updated as any).real_id || editId;
-          await workflowsService.submitWorkflow(docIdToSubmit, apiPayload.workflow_steps);
+          const ok = await workflowsService.submitWorkflow(docIdToSubmit, apiPayload.workflow_steps);
+          if (!ok) {
+            throw new Error("ไม่สามารถส่งเอกสารเข้าสู่สายการอนุมัติได้ กรุณาตรวจสอบผู้มีอำนาจอนุมัติ");
+          }
         }
         mutate("documents");
         showToast(data.isDraft ? "บันทึกการแก้ไขร่างเรียบร้อยแล้ว" : "ส่งเอกสารที่แก้ไขขออนุมัติใหม่เรียบร้อยแล้ว");
@@ -198,7 +201,10 @@ export default function DocumentUploadPage() {
       const created = await addDocument(apiPayload);
       if (!data.isDraft && created && (created.id || (created as any).real_id)) {
         const docIdToSubmit = created.id || (created as any).real_id;
-        await workflowsService.submitWorkflow(docIdToSubmit, apiPayload.workflow_steps);
+        const ok = await workflowsService.submitWorkflow(docIdToSubmit, apiPayload.workflow_steps);
+        if (!ok) {
+          throw new Error("ไม่สามารถส่งเอกสารเข้าสู่สายการอนุมัติได้ กรุณาตรวจสอบผู้มีอำนาจอนุมัติ");
+        }
       }
       mutate("documents");
       showToast(
@@ -248,7 +254,10 @@ export default function DocumentUploadPage() {
         const updated = await updateDocumentFull(editId, apiPayload);
         if (!data.isDraft && updated) {
           const docIdToSubmit = updated.id || (updated as any).real_id || editId;
-          await workflowsService.submitWorkflow(docIdToSubmit, apiPayload.workflow_steps);
+          const ok = await workflowsService.submitWorkflow(docIdToSubmit, apiPayload.workflow_steps);
+          if (!ok) {
+            throw new Error("ไม่สามารถส่งเอกสารเข้าสู่สายการอนุมัติได้ กรุณาตรวจสอบผู้มีอำนาจอนุมัติ");
+          }
         }
         mutate("documents");
         showToast(data.isDraft ? "บันทึกการแก้ไขร่างเรียบร้อยแล้ว" : "ส่งเอกสารที่แก้ไขขออนุมัติใหม่เรียบร้อยแล้ว");
@@ -260,7 +269,10 @@ export default function DocumentUploadPage() {
       const created = await addDocument(apiPayload);
       if (!data.isDraft && created && (created.id || (created as any).real_id)) {
         const docIdToSubmit = created.id || (created as any).real_id;
-        await workflowsService.submitWorkflow(docIdToSubmit, apiPayload.workflow_steps);
+        const ok = await workflowsService.submitWorkflow(docIdToSubmit, apiPayload.workflow_steps);
+        if (!ok) {
+          throw new Error("ไม่สามารถส่งเอกสารเข้าสู่สายการอนุมัติได้ กรุณาตรวจสอบผู้มีอำนาจอนุมัติ");
+        }
       }
       mutate("documents");
       showToast(
@@ -357,7 +369,10 @@ export default function DocumentUploadPage() {
       const created = res.data;
       if (!data.isDraft && created && (created.id || created.real_id)) {
         const docIdToSubmit = created.id || created.real_id!;
-        await workflowsService.submitWorkflow(docIdToSubmit, workflowStepsMapped);
+        const ok = await workflowsService.submitWorkflow(docIdToSubmit, workflowStepsMapped);
+        if (!ok) {
+          throw new Error("ไม่สามารถส่งเอกสารเข้าสู่สายการอนุมัติได้ กรุณาตรวจสอบผู้มีอำนาจอนุมัติ");
+        }
       }
       mutate("documents");
       showToast(

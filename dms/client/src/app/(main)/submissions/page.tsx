@@ -11,9 +11,10 @@ import { getApprovals, Approval } from '@views/features/workflow/api';
 import { getDocuments } from '@views/features/documents/api';
 import type { Document } from '@views/features/documents/types';
 import { getStatusVariant } from "@/lib/document-status";
-import { formatThaiDate } from "@/lib/format-date";
+import { formatThaiDate, formatThaiTime } from "@/lib/format-date";
 import DataTableHeader from '@views/components/ui/DataTableHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
+import DocTypeBadge from '@views/components/shared/DocTypeBadge';
 
 import { useAuth } from '@views/components/providers/AuthProvider';
 
@@ -87,9 +88,15 @@ export default function SubmissionsPage() {
     }
   };
 
-  const getDocTypeCategory = (id: string, typeStr?: string): "PR" | "PO" | "BK" | "OTHER" => {
+  const getDocTypeCategory = (id: string, typeVal?: unknown): "PR" | "PO" | "BK" | "OTHER" => {
+    let raw = "";
+    if (typeof typeVal === "string") {
+      raw = typeVal;
+    } else if (typeVal && typeof typeVal === "object") {
+      raw = (typeVal as any).prefix || (typeVal as any).code || (typeVal as any).type_name || "";
+    }
     const upperId = (id || "").toUpperCase();
-    const upperType = (typeStr || "").toUpperCase();
+    const upperType = (raw || "").toUpperCase();
     if (upperId.startsWith("PR") || upperType === "PR") return "PR";
     if (upperId.startsWith("PO") || upperType === "PO") return "PO";
     if (upperId.startsWith("BK") || upperType === "BK" || upperType.includes("MEMO") || upperType.includes("บันทึก")) return "BK";
@@ -103,23 +110,28 @@ export default function SubmissionsPage() {
   const mySubmissionsTotalCount = myPendingCount + myDraftCount + myReturnedCount;
 
   // Active items
-  const rawList = myDocsList.map((doc) => ({
-    id: doc.id,
-    real_id: doc.real_id || doc.id,
-    name: doc.name || doc.title || "",
-    type: doc.type || "PR",
-    amount: doc.amount || "-",
-    sender: doc.sender || doc.creator_name || "ฉัน",
-    department: doc.department || "ไม่ระบุ",
-    approvers: doc.approvers || ((doc as any).workflow?.steps || []).map((s: any) => s.approver ? `${s.approver.first_name} ${s.approver.last_name}` : null).filter(Boolean),
-    submittedDate: formatThaiDate(doc.submittedDate || doc.created_at),
-    createdAtTime: new Date(doc.created_at || doc.submittedDate || 0).getTime(),
-    currentLevel: (doc as any).workflow?.current_step || 1,
-    maxLevels: (doc as any).workflow?.total_steps || 1,
-    status: doc.status,
-    isToApprove: false,
-    rawCreatedAt: doc.created_at,
-  }));
+  const rawList = myDocsList.map((doc) => {
+    const rawType = (doc as any).type || (doc as any).doc_type;
+    const resolvedType = (typeof rawType === 'object' ? rawType?.prefix : rawType) || (doc.doc_number || doc.id || '').split('-')[0] || "OTHER";
+    return {
+      id: doc.id,
+      real_id: doc.real_id || doc.id,
+      name: doc.name || doc.title || "",
+      type: resolvedType,
+      amount: doc.amount || "-",
+      sender: doc.sender || doc.creator_name || "ฉัน",
+      department: doc.department || "ไม่ระบุ",
+      approvers: doc.approvers || ((doc as any).workflow?.steps || []).map((s: any) => s.approver ? `${s.approver.first_name} ${s.approver.last_name}` : null).filter(Boolean),
+      submittedDate: formatThaiDate(doc.submittedDate || doc.created_at),
+      submittedTime: formatThaiTime(doc.created_at || doc.submittedDate),
+      createdAtTime: new Date(doc.created_at || doc.submittedDate || 0).getTime(),
+      currentLevel: (doc as any).workflow?.current_step || 1,
+      maxLevels: (doc as any).workflow?.total_steps || 1,
+      status: doc.status,
+      isToApprove: false,
+      rawCreatedAt: doc.created_at,
+    };
+  });
 
   // Filtering
   const filteredItems = rawList
@@ -387,22 +399,33 @@ export default function SubmissionsPage() {
           </div>
 
           {/* TABLE */}
-          <div className="overflow-x-auto border border-slate-100/50 rounded-2xl">
-            <table className="w-full table-fixed text-left border-collapse min-w-[950px]">
+          <div className="overflow-x-auto border border-slate-200/80 rounded-2xl bg-white shadow-2xs">
+            <table className="w-full table-fixed text-left border-collapse min-w-[1150px]">
+              <colgroup>
+                <col className="w-[300px]" />
+                <col className="w-[140px]" />
+                <col className="w-[130px]" />
+                <col className="w-[120px]" />
+                <col className="w-[160px]" />
+                <col className="w-[120px]" />
+                <col className="w-[75px]" />
+                <col className="w-[110px]" />
+                <col className="w-[100px]" />
+              </colgroup>
               <thead>
-                <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="py-4 pl-4 font-bold">ข้อมูลเอกสาร</th>
-                  <DataTableHeader title="รหัส (ID)" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
-                  <DataTableHeader title="ผู้สร้าง" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
-                  <DataTableHeader title="แผนก" sortKey="department" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
-                  <th className="py-4 font-bold w-40">รายชื่อผู้อนุมัติ</th>
-                  <DataTableHeader title="วันที่ส่ง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
-                  <th className="py-4 text-center font-bold w-16">ขั้นที่</th>
-                  <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 text-center w-28" />
-                  <th className="py-4 pr-4 text-center font-bold w-24">ดำเนินการ</th>
+                <tr className="bg-slate-50/70 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="py-3.5 pl-4 pr-3 font-bold">ข้อมูลเอกสาร</th>
+                  <DataTableHeader title="รหัส (ID)" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
+                  <DataTableHeader title="ผู้สร้าง" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
+                  <DataTableHeader title="แผนก" sortKey="department" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
+                  <th className="py-3.5 px-3 font-bold">รายชื่อผู้อนุมัติ</th>
+                  <DataTableHeader title="วันที่ส่ง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
+                  <th className="py-3.5 px-3 text-center font-bold">ขั้นที่</th>
+                  <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3 text-center" />
+                  <th className="py-3.5 pr-4 pl-3 text-center font-bold">ดำเนินการ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50/80">
+              <tbody className="divide-y divide-slate-100">
                 {isLoading ? (
                   <tr>
                     <td colSpan={9} className="text-center py-20 text-slate-400">
@@ -428,37 +451,33 @@ export default function SubmissionsPage() {
                           }
                         }
                       }}
-                      className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
+                      className="hover:bg-slate-50/70 transition-colors group cursor-pointer"
                     >
-                      <td className="py-4 pl-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-xl flex-shrink-0 ${getTypeBadgeClass(item.id)}`}>
-                            <FileEdit className="w-5 h-5" />
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-xs font-bold text-slate-800 truncate" title={item.name}>
+                      <td className="py-4 pl-4 pr-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <DocTypeBadge docId={item.id} type={item.type} />
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-sm font-bold text-slate-800 truncate" title={item.name}>
                               {item.name}
                             </span>
-                            <span className="text-[11px] text-slate-500 font-medium">มูลค่า: {item.amount}</span>
+                            <span className="text-[10px] text-slate-400 font-semibold block truncate">มูลค่า: {item.amount}</span>
                           </div>
                         </div>
                       </td>
-                      <td className="py-4">
-                        <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">
-                          {item.id}
-                        </span>
+                      <td className="py-4 px-3 text-sm font-mono font-bold text-slate-600 whitespace-nowrap">
+                        {item.id}
                       </td>
-                      <td className="py-4">
-                        <span className="text-xs font-bold text-slate-700">{item.sender}</span>
+                      <td className="py-4 px-3 text-sm font-semibold text-slate-700 truncate" title={item.sender}>
+                        {item.sender}
                       </td>
-                      <td className="py-4">
-                        <span className="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md">{item.department}</span>
+                      <td className="py-4 px-3">
+                        <span className="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md inline-block max-w-full truncate" title={item.department}>{item.department}</span>
                       </td>
-                      <td className="py-4 text-xs font-semibold text-slate-700">
+                      <td className="py-4 px-3 text-xs font-semibold text-slate-700">
                         {item.approvers && item.approvers.length > 0 ? (
-                          <div className="flex flex-col gap-1">
+                          <div className="flex flex-col gap-1 min-w-0">
                             {item.approvers.map((name: string, index: number) => (
-                              <span key={index} className="leading-tight block text-slate-600 font-medium">
+                              <span key={index} className="leading-tight block text-slate-600 font-medium truncate" title={name}>
                                 • {name}
                               </span>
                             ))}
@@ -467,20 +486,23 @@ export default function SubmissionsPage() {
                           <span className="text-slate-400 font-normal text-xs">-</span>
                         )}
                       </td>
-                      <td className="py-4 text-sm text-slate-400 font-medium">
-                        {item.submittedDate}
+                      <td className="py-4 px-3 text-sm whitespace-nowrap">
+                        <div className="font-semibold text-slate-700">{item.submittedDate}</div>
+                        {item.submittedTime && item.submittedTime !== "-" && (
+                          <div className="text-[11px] text-slate-400 font-medium">{item.submittedTime}</div>
+                        )}
                       </td>
-                      <td className="py-4 text-center">
-                        <span className="text-xs font-semibold px-2 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
                           {item.currentLevel} / {item.maxLevels}
                         </span>
                       </td>
-                      <td className="py-4 text-center">
+                      <td className="py-4 px-3 text-center whitespace-nowrap">
                         <Badge variant={getStatusVariant(item.status)}>
                           {item.status}
                         </Badge>
                       </td>
-                      <td className="py-4 pr-4 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-4 pr-4 pl-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         {item.isToApprove ? (
                           <Link
                             href={`/approvals/${item.id}`}
@@ -521,7 +543,7 @@ export default function SubmissionsPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={9}
                       className="py-16 text-center text-sm font-medium text-slate-400"
                     >
                       ไม่พบรายการเอกสารในหมวดหมู่นี้

@@ -89,16 +89,19 @@ export class DocumentsController {
     @Param('id') id: string,
     @Res() res: Response,
     @Query('v') version?: number,
+    @Query('download') isDownload?: string,
     @CurrentUser() user?: { id: string; role: string },
     @Req() req?: Request,
   ) {
-    const buffer = await this.documentsService.getFileBuffer(id, version);
+    const { buffer, filename } = await this.documentsService.getFileBuffer(
+      id,
+      version ? Number(version) : undefined,
+    );
     if (user && req) {
       const ip =
         req.headers['x-forwarded-for'] ||
         req.socket?.remoteAddress ||
         '127.0.0.1';
-      // Find doc real_id from getFileBuffer (it doesn't return id, so let's use the param id)
       this.documentsService.logAction(
         user.id,
         'Download',
@@ -107,10 +110,13 @@ export class DocumentsController {
         id,
       );
     }
+    const dispositionType =
+      isDownload === 'true' || isDownload === '1' ? 'attachment' : 'inline';
+    const encodedFilename = encodeURIComponent(filename);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
-      `inline; filename="document-${id}.pdf"`,
+      `${dispositionType}; filename="${filename}"; filename*=UTF-8''${encodedFilename}`,
     );
     res.send(buffer);
   }
@@ -191,7 +197,7 @@ export class DocumentsController {
       }),
     )
     file: Express.Multer.File,
-    @Body() body: { title?: string },
+    @Body() body: { title?: string; remarks?: string },
     @CurrentUser() user: { id: string; role: string },
   ) {
     return this.documentsService.uploadNewVersion(
@@ -199,6 +205,8 @@ export class DocumentsController {
       user.id,
       file,
       body.title,
+      body.remarks,
+      user.role,
     );
   }
 

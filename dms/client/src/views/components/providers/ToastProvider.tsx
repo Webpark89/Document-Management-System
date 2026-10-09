@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useMemo } from "react";
 import { swalToast } from "@/lib/swal";
 
-type ToastType = "success" | "error";
+type ToastType = "success" | "error" | "warning" | "info";
 
 type ToastContextValue = {
   showToast: (message: string, type?: ToastType) => void;

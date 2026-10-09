@@ -18,14 +18,18 @@ import {
   ChevronUp,
   Plus,
   X,
-  Check
+  Check,
+  UploadCloud,
+  Loader2,
+  FileText,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Badge } from '@views/components/ui/badge';
-import { getDocuments, deleteDocument, getDocumentById } from '@views/features/documents/api';
+import { getDocuments, deleteDocument, getDocumentById, downloadDocument, uploadDocumentFile } from '@views/features/documents/api';
 import { Document } from '@views/features/documents/types';
 import { DocumentPreview } from '@views/components/documents/DocumentPreview';
 import PageHeader from '@views/components/shared/PageHeader';
+import DocTypeBadge from '@views/components/shared/DocTypeBadge';
 import { useToast } from '@views/components/providers/ToastProvider';
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { swalConfirm } from "@/lib/swal";
@@ -49,7 +53,7 @@ function DocumentsContent() {
   const { user } = useAuth();
   const hasPerm = (itemKey: string, action: string = 'view') =>
     !!user?.permissions?.includes(`document.${itemKey}:${action}`);
-  const { data: initialDocs, error } = useSWR("documents", getDocuments);
+  const { data: initialDocs, error, mutate: mutateDocuments } = useSWR("documents", getDocuments);
   const [documents, setDocuments] = useState<Document[]>([]);
 
   useEffect(() => {
@@ -237,11 +241,47 @@ function DocumentsContent() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  // Form States - Upload
-  const [newDocName, setNewDocName] = useState("");
-  const [newDocType, setNewDocType] = useState<Document["type"]>("PR");
-  const [newDocSender, setNewDocSender] = useState("");
-  const [newDocAmount, setNewDocAmount] = useState("");
+  // Form States - Real Upload
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadTitle, setUploadTitle] = useState("");
+  const [uploadType, setUploadType] = useState<"DOC" | "PR" | "PO" | "BK">("DOC");
+  const [uploadPurpose, setUploadPurpose] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleUploadDocumentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadFile) {
+      showToast("กรุณาเลือกไฟล์ PDF", "error");
+      return;
+    }
+    if (!uploadTitle.trim()) {
+      showToast("กรุณาระบุชื่อเรื่องเอกสาร", "error");
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+      formData.append("title", uploadTitle.trim());
+      formData.append("prefix", uploadType);
+      formData.append("purpose", uploadPurpose.trim());
+
+      const created = await uploadDocumentFile(formData);
+      showToast(`อัปโหลดเอกสาร ${(created as any).doc_number || created.id} สำเร็จแล้ว`, "success");
+      setIsUploadOpen(false);
+      setUploadFile(null);
+      setUploadTitle("");
+      setUploadPurpose("");
+      setUploadType("DOC");
+      mutateDocuments();
+    } catch (err: any) {
+      console.error("Upload failed", err);
+      showToast(err.message || "เกิดข้อผิดพลาดในการอัปโหลดเอกสาร", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Form States - Edit & Preview
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
@@ -264,84 +304,23 @@ function DocumentsContent() {
     }
   };
 
-  // Create new document action
-  const handleUploadSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newDocName || !newDocSender) {
-      alert("Please fill in document name and submitter!");
-      return;
-    }
-
-    const newId = `DOC-2026-${String(documents.length + 1).padStart(3, "0")}`;
-    const newDoc: Document = {
-      id: newId,
-      name: newDocName,
-      type: newDocType,
-      submittedDate: new Date().toISOString().split("T")[0],
-      status: "Draft",
-      sender: newDocSender,
-      amount: newDocAmount ? `฿${Number(newDocAmount).toLocaleString()}` : "-",
-      version: "v1.0",
-      department: "Purchasing"
-    };
-
-    setDocuments([newDoc, ...documents]);
-    setIsUploadOpen(false);
-    
-    // Clear form
-    setNewDocName("");
-    setNewDocSender("");
-    setNewDocAmount("");
-    setNewDocType("PR");
-
-    showToast(`Successfully created ${newId} (Draft)`);
-  };
-
-  // Edit document action
-  const handleEditSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedDoc) return;
-
-    setDocuments(
-      documents.map((doc) =>
-        doc.id === selectedDoc.id
-          ? {
-              ...doc,
-              name: editDocName,
-              type: editDocType,
-              sender: editDocSender,
-              amount: editDocAmount,
-              status: editDocStatus,
-              version: `v${(parseFloat(doc.version.replace("v", "")) + 0.1).toFixed(1)}`,
-            }
-          : doc
-      )
-    );
-
-    setIsEditOpen(false);
-    showToast(`Updated document details for ${selectedDoc.id}`);
-  };
-
-  // Open Edit Modal with pre-populated values
-  const openEditModal = (doc: Document) => {
-    setSelectedDoc(doc);
-    setEditDocName(doc.name);
-    setEditDocType(doc.type);
-    setEditDocSender(doc.sender);
-    setEditDocAmount(doc.amount);
-    setEditDocStatus(doc.status as Document["status"]);
-    setIsEditOpen(true);
-  };
-
-  // Open Preview Modal
-  const openPreviewModal = (doc: Document) => {
-    setSelectedDoc(doc);
-    setIsPreviewOpen(true);
-  };
-
   // Download action
-  const triggerDownload = (doc: Document) => {
-    showToast(`Download started: ${doc.id}_original.pdf`);
+  const [downloadingDocId, setDownloadingDocId] = useState<string | null>(null);
+
+  const triggerDownload = async (doc: Document) => {
+    const docId = (doc as any).real_id || doc.id;
+    const docNum = (doc as any).doc_number || doc.id;
+    try {
+      setDownloadingDocId(doc.id);
+      showToast(`กำลังเริ่มดาวน์โหลดเอกสาร ${docNum}...`, "info");
+      await downloadDocument(docId, undefined, `${docNum}.pdf`);
+      showToast(`ดาวน์โหลดเอกสาร ${docNum} สำเร็จแล้ว`, "success");
+    } catch (err: any) {
+      console.error("Download failed:", err);
+      showToast(err.message || `เกิดข้อผิดพลาดในการดาวน์โหลดเอกสาร ${docNum}`, "error");
+    } finally {
+      setDownloadingDocId(null);
+    }
   };
 
   // Delete action
@@ -516,6 +495,16 @@ function DocumentsContent() {
               size="compact"
               title="เอกสารทั้งหมด (All Documents)"
               subtitle="ดูและค้นหาเอกสารที่ผ่านการอนุมัติแล้วทั้งหมดในระบบ"
+              actions={
+                <button
+                  type="button"
+                  onClick={() => setIsUploadOpen(true)}
+                  className="flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>อัปโหลดเอกสาร (Upload Document)</span>
+                </button>
+              }
             />
 
 
@@ -813,20 +802,20 @@ function DocumentsContent() {
         </div>
 {/* TABLE */}
         <div className="overflow-x-auto border border-slate-200/80 rounded-2xl bg-white shadow-2xs">
-          <table className="w-full text-left border-collapse min-w-[950px]">
+          <table className="w-full table-fixed text-left border-collapse min-w-[1150px]">
             <colgroup>
               <col className="w-12" />
-              <col className="w-32" />
-              <col className="w-64" />
-              <col className="w-24" />
-              <col className="w-40" />
-              <col className="w-28" />
-              <col className="w-28" />
-              <col className="w-28" />
-              <col className="w-28" />
+              <col className="w-[140px]" />
+              <col className="w-[300px]" />
+              <col className="w-[100px]" />
+              <col className="w-[130px]" />
+              <col className="w-[120px]" />
+              <col className="w-[120px]" />
+              <col className="w-[110px]" />
+              <col className="w-[110px]" />
             </colgroup>
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <tr className="bg-slate-50/70 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 <th className="py-3.5 pl-4 text-center">
                   {hasPerm('bulk_select', 'edit') && (
                   <input
@@ -845,20 +834,20 @@ function DocumentsContent() {
                   />
                   )}
                 </th>
-                <DataTableHeader title="รหัสเอกสาร" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5" />
-                <th className="py-3.5 font-bold">ชื่อเอกสาร / รายละเอียด</th>
-                <DataTableHeader title="ประเภท" sortKey="type" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5" />
-                <th className="py-3.5 font-bold">แผนก</th>
-                <DataTableHeader title="วันที่สร้าง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5" />
-                <DataTableHeader title="วันที่อนุมัติสำเร็จ" sortKey="approvedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5" />
-                <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 text-center" />
-                <th className="py-3.5 pr-4 text-center font-bold">การกระทำ</th>
+                <DataTableHeader title="รหัสเอกสาร" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
+                <th className="py-3.5 px-3 font-bold">ชื่อเอกสาร / รายละเอียด</th>
+                <DataTableHeader title="ประเภท" sortKey="type" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
+                <th className="py-3.5 px-3 font-bold">แผนก</th>
+                <DataTableHeader title="วันที่สร้าง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
+                <DataTableHeader title="วันที่อนุมัติสำเร็จ" sortKey="approvedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
+                <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3 text-center" />
+                <th className="py-3.5 pr-4 pl-3 text-center font-bold">การกระทำ</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50/80">
+            <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center">
+                  <td colSpan={9} className="py-16 text-center">
                     <div className="inline-block w-6 h-6 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-2" />
                     <p className="text-xs text-slate-400 font-semibold">Loading document database...</p>
                   </td>
@@ -887,35 +876,33 @@ function DocumentsContent() {
                         />
                         )}
                       </td>
-                      <td className="py-4 text-sm font-bold text-slate-500">{doc.id}</td>
-                    <td className="py-4">
-                      <div>
-                        <p className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-snug">
+                      <td className="py-4 px-3 text-sm font-mono font-bold text-slate-600 whitespace-nowrap">{doc.id}</td>
+                    <td className="py-4 px-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-snug truncate" title={doc.name}>
                           {doc.name}
                         </p>
-                        <span className="text-[10px] font-semibold text-slate-400">
+                        <span className="text-[10px] font-semibold text-slate-400 block truncate">
                           Creator: {doc.sender} {doc.amount !== "-" ? `| Value: ${doc.amount}` : ""}
                         </span>
                       </div>
                     </td>
-                    <td className="py-4">
-                      <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-50 border border-slate-100 text-slate-600">
-                        {doc.type}
-                      </span>
+                    <td className="py-4 px-3 whitespace-nowrap">
+                      <DocTypeBadge docId={doc.id} type={doc.type} />
                     </td>
-                    <td className="py-4">
-                      <span className="text-xs font-medium px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">
+                    <td className="py-4 px-3">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-50 border border-slate-100 text-slate-600 inline-block max-w-full truncate" title={doc.department || (doc as any).creator?.department?.name || "ทั่วไป"}>
                         {doc.department || (doc as any).creator?.department?.name || "ทั่วไป"}
                       </span>
                     </td>
-                    <td className="py-4 text-sm text-slate-400 font-medium">{formatThaiDate(doc.submittedDate || (doc as any).created_at)}</td>
-                    <td className="py-4 text-sm text-slate-400 font-medium">{(doc.status === "Approved" || doc.status === "อนุมัติแล้ว") && doc.approved_at ? formatThaiDate(doc.approved_at) : "-"}</td>
-                    <td className="py-4 text-center">
+                    <td className="py-4 px-3 text-sm text-slate-400 font-medium whitespace-nowrap">{formatThaiDate(doc.submittedDate || (doc as any).created_at)}</td>
+                    <td className="py-4 px-3 text-sm text-slate-400 font-medium whitespace-nowrap">{(doc.status === "Approved" || doc.status === "อนุมัติแล้ว") && doc.approved_at ? formatThaiDate(doc.approved_at) : "-"}</td>
+                    <td className="py-4 px-3 text-center whitespace-nowrap">
                       <Badge variant={getStatusVariant(doc.status)}>
                         {doc.status}
                       </Badge>
                     </td>
-                    <td className="py-4 pr-4 text-center">
+                    <td className="py-4 pr-4 pl-3 text-center whitespace-nowrap">
                       <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
                         {hasPerm('preview_document') && (
                         <button
@@ -960,11 +947,16 @@ function DocumentsContent() {
                         {hasPerm('download_document') && (
                         <button
                           type="button"
+                          disabled={downloadingDocId === doc.id}
                           title="ดาวน์โหลด (Download)"
                           onClick={(e) => { e.stopPropagation(); triggerDownload(doc); }}
-                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-emerald-600 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-emerald-600 transition-colors cursor-pointer disabled:opacity-50"
                         >
-                          <Download className="w-4 h-4" />
+                          {downloadingDocId === doc.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
                         </button>
                         )}
                         {hasPerm('delete_document', 'delete') && (
@@ -1075,6 +1067,173 @@ function DocumentsContent() {
         folders={folders}
         documentCount={selectedDocIds.length}
       />
+
+      {/* UPLOAD DOCUMENT MODAL */}
+      {isUploadOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 sm:p-6 overflow-y-auto animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-in zoom-in-95">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                  <UploadCloud className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">อัปโหลดเอกสารใหม่ (Upload Document)</h3>
+                  <p className="text-xs text-slate-400">อัปโหลดไฟล์ PDF เพื่อบันทึกลงระบบ</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isUploading) {
+                    setIsUploadOpen(false);
+                    setUploadFile(null);
+                  }
+                }}
+                className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUploadDocumentSubmit} className="p-6 space-y-4">
+              {/* File input area */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  ไฟล์ PDF <span className="text-red-500">*</span>
+                </label>
+                {!uploadFile ? (
+                  <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:bg-slate-50/50 transition-colors">
+                    <UploadCloud className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                    <p className="text-xs font-bold text-slate-700">คลิกเพื่อเลือกไฟล์ PDF</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">รองรับไฟล์ .pdf ขนาดสูงสุด 20MB</p>
+                    <input
+                      type="file"
+                      id="upload-doc-file"
+                      accept=".pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) {
+                          setUploadFile(f);
+                          if (!uploadTitle) {
+                            setUploadTitle(f.name.replace(/\.pdf$/i, ""));
+                          }
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor="upload-doc-file"
+                      className="inline-flex items-center gap-1.5 mt-3 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      เลือกไฟล์
+                    </label>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-blue-100/70 text-blue-600 flex items-center justify-center">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800 truncate max-w-[260px]">{uploadFile.name}</p>
+                        <p className="text-[10px] text-slate-400 font-medium">
+                          {(uploadFile.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isUploading}
+                      onClick={() => setUploadFile(null)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                      title="ยกเลิกไฟล์"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  ชื่อเรื่องเอกสาร <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={uploadTitle}
+                  onChange={(e) => setUploadTitle(e.target.value)}
+                  placeholder="เช่น สัญญาว่าจ้าง ประจำปี 2026"
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white"
+                />
+              </div>
+
+              {/* Document Type */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  ประเภทเอกสาร
+                </label>
+                <select
+                  value={uploadType}
+                  onChange={(e) => setUploadType(e.target.value as any)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-600 focus:bg-white cursor-pointer"
+                >
+                  <option value="DOC">เอกสารทั่วไป (DOC)</option>
+                  <option value="PR">ใบขอซื้อ (PR)</option>
+                  <option value="PO">ใบสั่งซื้อ (PO)</option>
+                  <option value="BK">บันทึกข้อความ (BK)</option>
+                </select>
+              </div>
+
+              {/* Purpose / Remarks */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  คำอธิบาย / วัตถุประสงค์
+                </label>
+                <textarea
+                  rows={2}
+                  value={uploadPurpose}
+                  onChange={(e) => setUploadPurpose(e.target.value)}
+                  placeholder="ระบุวัตถุประสงค์หรือรายละเอียดเพิ่มเติม..."
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white resize-none"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end items-center gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  disabled={isUploading}
+                  onClick={() => setIsUploadOpen(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploading || !uploadFile}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      กำลังอัปโหลด...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" />
+                      ยืนยันอัปโหลด
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
           </>
         ) : (
           <div className="mt-12 flex flex-col items-center justify-center p-12 text-slate-400">

@@ -99,6 +99,14 @@ export default function UploadOnlyForm({
   }, []);
 
   const handleSubmit = (isDraft: boolean) => {
+    if (!title.trim()) {
+      alert("กรุณาระบุชื่อเรื่องเอกสาร");
+      return;
+    }
+    if (!uploadedFile && !initialData?.versions?.[0]?.file_data) {
+      alert("กรุณาเลือกไฟล์ PDF ที่ต้องการอัปโหลด");
+      return;
+    }
     onSubmit({
       title,
       sender: defaultRequester,
@@ -272,9 +280,13 @@ export default function UploadOnlyForm({
                   const form = e.currentTarget.closest('form');
                   if (form && !form.checkValidity()) {
                     form.reportValidity();
-                  } else {
-                    onNext();
+                    return;
                   }
+                  if (!uploadedFile && !initialData?.versions?.[0]?.file_data) {
+                    alert("กรุณาเลือกไฟล์ PDF ที่ต้องการอัปโหลดก่อนดำเนินการต่อ");
+                    return;
+                  }
+                  onNext();
                 }}
                 className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"
               >

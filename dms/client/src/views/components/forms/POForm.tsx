@@ -33,6 +33,7 @@ export interface POSubmitData {
   items: POItemInput[];
   remark: string;
   attachmentFileName?: string;
+  visibility?: VisibilityData;
   workflowSteps: WorkflowStepInput[];
   isDraft: boolean;
 }
@@ -239,6 +240,7 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
         amount: `฿${netTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         items,
         remark,
+        visibility,
         workflowSteps,
       isDraft,
     });
@@ -248,7 +250,6 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        triggerSubmit(false);
       }}
       className="space-y-6"
     >
@@ -645,7 +646,8 @@ export default function POForm({ onSubmit, onCancel, runningNumberPreview , curr
                   Save as Draft (บันทึกร่าง)
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={() => triggerSubmit(false)}
                   className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-purple-100 cursor-pointer active:scale-95"
                 >
                   <Send className="w-4 h-4" />

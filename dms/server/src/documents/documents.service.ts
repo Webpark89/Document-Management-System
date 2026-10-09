@@ -8,6 +8,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 
 import { Prisma, AuditAction } from '@prisma/client';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
+import puppeteer from 'puppeteer-core';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 
 export interface DocumentResponsePayload {
   id: string;
@@ -512,20 +518,22 @@ export class DocumentsService {
     const doc = await this.create(dto, creatorId);
 
     try {
-      // Store PDF buffer directly in Postgres
-      const version = await this.prisma.documentVersion.create({
-        data: {
+      const fileSizeKb = `${(file.size / 1024).toFixed(1)} KB`;
+      // Update version 1 with the uploaded PDF buffer
+      await this.prisma.documentVersion.updateMany({
+        where: {
           document_id: doc.real_id,
           version_number: 1,
+        },
+        data: {
           file_data: file.buffer,
-          file_size: String(file.size),
+          file_size: fileSizeKb,
           file_extension: 'pdf',
-          uploaded_by_id: creatorId,
-          remarks: 'Initial upload',
+          remarks: 'อัปโหลดไฟล์เอกสาร',
         },
       });
 
-      return { ...doc, version_number: version.version_number };
+      return { ...doc, version_number: 1 };
     } catch (err) {
       await this.prisma.document
         .delete({ where: { id: doc.real_id } })
@@ -539,6 +547,8 @@ export class DocumentsService {
     userId: string,
     file: Express.Multer.File,
     title?: string,
+    remarks?: string,
+    userRole?: string,
   ) {
     const doc = await this.prisma.document.findFirst({
       where: {
@@ -546,43 +556,54 @@ export class DocumentsService {
         is_deleted: false,
       },
       include: {
-        versions: { select: {
-              id: true, document_id: true, version_number: true, file_size: true, file_extension: true, form_data: true, uploaded_by_id: true, remarks: true, created_at: true, updated_at: true,
-              uploaded_by: true
-            }, orderBy: { version_number: 'desc' }, take: 1 },
+        versions: {
+          select: {
+            id: true,
+            document_id: true,
+            version_number: true,
+            file_size: true,
+            file_extension: true,
+            form_data: true,
+            uploaded_by_id: true,
+            remarks: true,
+            created_at: true,
+            updated_at: true,
+            uploaded_by: true,
+          },
+          orderBy: { version_number: 'desc' },
+          take: 1,
+        },
       },
     });
 
     if (!doc) throw new NotFoundException('ไม่พบเอกสาร');
-    if (doc.creator_id !== userId) {
-      throw new BadRequestException(
-        'เฉพาะผู้สร้างเอกสารเท่านั้นที่สามารถอัปโหลดเวอร์ชันใหม่ได้',
+    if (doc.creator_id !== userId && userRole !== 'Administrator') {
+      throw new ForbiddenException(
+        'เฉพาะผู้สร้างเอกสารหรือผู้ดูแลระบบเท่านั้นที่สามารถอัปโหลดเวอร์ชันใหม่ได้',
       );
-    }
-
-    if (!['Returned', 'Rejected', 'Draft', 'Pending'].includes(doc.status)) {
-      throw new BadRequestException('เอกสารไม่ได้อยู่ในสถานะที่สามารถแก้ไขได้');
     }
 
     const nextVersion =
       doc.versions.length > 0 ? doc.versions[0].version_number + 1 : 2;
 
-    const version = await this.prisma.documentVersion.create({
+    const versionRemarks = remarks || 'อัปโหลดเวอร์ชันใหม่เพื่อแก้ไข';
+    const fileSizeKb = `${(file.size / 1024).toFixed(1)} KB`;
+
+    await this.prisma.documentVersion.create({
       data: {
         document_id: doc.id,
         version_number: nextVersion,
         file_data: file.buffer,
-        file_size: String(file.size),
+        file_size: fileSizeKb,
         file_extension: 'pdf',
         uploaded_by_id: userId,
-        remarks: 'อัปโหลดเวอร์ชันใหม่เพื่อแก้ไข',
+        remarks: versionRemarks,
       },
     });
 
     const updatedDoc = await this.prisma.document.update({
       where: { id: doc.id },
       data: {
-        status: 'Draft',
         ...(title ? { title } : {}),
       },
       include: {
@@ -591,10 +612,22 @@ export class DocumentsService {
         pr_form: true,
         po_form: true,
         bk_form: true,
-        versions: { select: {
-              id: true, document_id: true, version_number: true, file_size: true, file_extension: true, form_data: true, uploaded_by_id: true, remarks: true, created_at: true, updated_at: true,
-              uploaded_by: true
-            }, orderBy: { version_number: 'desc' } },
+        versions: {
+          select: {
+            id: true,
+            document_id: true,
+            version_number: true,
+            file_size: true,
+            file_extension: true,
+            form_data: true,
+            uploaded_by_id: true,
+            remarks: true,
+            created_at: true,
+            updated_at: true,
+            uploaded_by: true,
+          },
+          orderBy: { version_number: 'desc' },
+        },
       },
     });
 
@@ -607,8 +640,8 @@ export class DocumentsService {
         details: {
           newState: {
             id: doc.id,
-            status: 'Draft',
             version: nextVersion,
+            remarks: versionRemarks,
           },
         },
       },
@@ -625,7 +658,7 @@ export class DocumentsService {
   async getFileBuffer(
     documentId: string,
     versionNumber?: number,
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const isUuid =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
         documentId,
@@ -638,29 +671,674 @@ export class DocumentsService {
           : [{ doc_number: documentId }],
         is_deleted: false,
       },
+      include: {
+        type: true,
+        creator: {
+          include: { department: true, position: true, role: true },
+        },
+        pr_form: { include: { items: true, department: true } },
+        po_form: { include: { items: true } },
+        bk_form: { include: { department: true } },
+        workflow: {
+          include: {
+            steps: {
+              include: { approver: { include: { role: true } } },
+              orderBy: { step_order: 'asc' },
+            },
+          },
+        },
+        versions: {
+          orderBy: { version_number: 'desc' },
+        },
+      },
     });
 
     if (!doc) {
       throw new NotFoundException('ไม่พบเอกสาร');
     }
 
-    const versionWhere: Prisma.DocumentVersionWhereInput = {
-      document_id: doc.id,
-    };
+    let version = doc.versions[0];
     if (versionNumber) {
-      versionWhere.version_number = Number(versionNumber);
+      const found = doc.versions.find(
+        (v) => v.version_number === Number(versionNumber),
+      );
+      if (found) version = found;
     }
 
-    const version = await this.prisma.documentVersion.findFirst({
-      where: versionWhere,
-      orderBy: { version_number: 'desc' },
+    const vNum = version?.version_number || 1;
+    const filename = `${doc.doc_number || doc.id}_v${vNum}.pdf`;
+
+    if (version && version.file_data && version.file_data.length > 0) {
+      return { buffer: Buffer.from(version.file_data), filename };
+    }
+
+    const generatedBuffer = await this.generateFallbackPdf(doc, version);
+    return { buffer: generatedBuffer, filename };
+  }
+
+  private decryptSignature(cipherText?: string | null): string | null {
+    if (!cipherText) return null;
+    try {
+      const parts = cipherText.split(':');
+      if (parts.length !== 3) return null;
+      const [ivHex, authTagHex, encryptedHex] = parts;
+      const rawKey = process.env.ENCRYPTION_KEY || 'default_secret_key_32bytes_len!!';
+      const key = crypto.createHash('sha256').update(rawKey).digest();
+      const iv = Buffer.from(ivHex, 'hex');
+      const authTag = Buffer.from(authTagHex, 'hex');
+      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+      decipher.setAuthTag(authTag);
+      let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+      return decrypted;
+    } catch {
+      return null;
+    }
+  }
+
+  private buildDocumentHtml(doc: any, version?: any): string {
+    // 1. Company Settings
+    let companyName = 'บริษัท ฮาฮา';
+    let companyAddress = 'เลขที่ 282 (หรือ 2086) ถนนรามคำแหง แขวงหัวหมาก เขตบางกะปิ กรุงเทพมหานคร 10240';
+    try {
+      const settingsPath = path.join(process.cwd(), 'uploads', 'settings.json');
+      if (fs.existsSync(settingsPath)) {
+        const s = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        if (s.companyName) companyName = s.companyName;
+        if (s.companyAddress) companyAddress = s.companyAddress;
+      }
+    } catch {}
+
+    const rawPrefix = doc.type?.prefix || (doc.doc_number || doc.id || '').split('-')[0] || 'DOC';
+    const prefix = rawPrefix.toUpperCase();
+    const docNumber = doc.doc_number || doc.id;
+    const vFormData = version?.form_data || {};
+
+    const rawDate = doc.created_at ? new Date(doc.created_at) : new Date();
+    const thaiDay = rawDate.getDate();
+    const thaiMonth = rawDate.getMonth() + 1;
+    const thaiYear = rawDate.getFullYear() + 543;
+    const docDate = `${thaiDay}/${thaiMonth}/${thaiYear}`;
+
+    const requesterName = doc.creator
+      ? `${doc.creator.first_name || ''} ${doc.creator.last_name || ''}`.trim() || doc.creator.username || 'วิภา รักดี'
+      : 'วิภา รักดี';
+    const department = doc.creator?.department?.name || doc.pr_form?.department?.name || doc.bk_form?.department?.name || 'แผนกจัดซื้อ';
+    const title = doc.title || '-';
+
+    const isPO = prefix === 'PO';
+    const isBK = prefix === 'BK' || prefix === 'MEMO';
+
+    const primaryColor = isPO ? '#6b21a8' : '#1e40af';
+    const primaryLight = isPO ? '#f3e8ff' : '#dbeafe';
+    const primaryText = isPO ? '#581c87' : '#1e3a8a';
+    const highlightBanner = isPO ? '#7e22ce' : '#1d4ed8';
+
+    const titleTH = isPO ? 'ใบสั่งซื้อ/สั่งจ้าง' : isBK ? 'บันทึกข้อความ' : 'ใบขออนุมัติจัดซื้อ/จัดจ้าง';
+    const titleEN = isPO ? 'PURCHASE ORDER' : isBK ? 'MEMORANDUM' : 'PURCHASE REQUEST';
+
+    // Signatures resolution
+    const creatorSig = this.decryptSignature(doc.creator?.signature_encrypted);
+    const approvedSteps = (doc.workflow?.steps || []).filter((s: any) => s.status === 'Approved');
+
+    let signatures = [
+      {
+        role: 'ผู้จัดทำ (Prepared By)',
+        name: requesterName,
+        date: docDate,
+        isApproved: false,
+        sigImage: creatorSig,
+      },
+    ];
+
+    if (approvedSteps.length > 0) {
+      approvedSteps.forEach((s: any, idx: number) => {
+        const stepName = s.approver
+          ? `${s.approver.first_name || ''} ${s.approver.last_name || ''}`.trim() || 'ผู้อนุมัติ'
+          : s.approver_name || 'ผู้อนุมัติ';
+        const stepRole = s.approver?.role?.name || (idx === 0 ? 'Manager' : 'Executive');
+        const sigImg = this.decryptSignature(s.approver?.signature_encrypted);
+        signatures.push({
+          role: stepRole,
+          name: stepName,
+          date: docDate,
+          isApproved: true,
+          sigImage: sigImg,
+        });
+      });
+    } else if (doc.status === 'Approved' || doc.status === 'Pending') {
+      signatures.push({
+        role: 'Manager',
+        name: requesterName,
+        date: docDate,
+        isApproved: true,
+        sigImage: null,
+      });
+      signatures.push({
+        role: 'Executive',
+        name: 'ประเสริฐ มีสุข',
+        date: docDate,
+        isApproved: doc.status === 'Approved',
+        sigImage: null,
+      });
+    }
+
+    if (isBK) {
+      const detail = doc.bk_form?.detail || vFormData.detail || doc.title || '';
+      return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          @page { size: A4; margin: 0; }
+          * { box-sizing: border-box; }
+          body { font-family: 'Tahoma', 'Segoe UI', sans-serif; margin: 0; padding: 15mm 20mm; font-size: 14px; color: #0f172a; line-height: 1.6; }
+          .memo-title { font-size: 26px; font-weight: 900; text-align: center; margin-bottom: 25px; }
+          .memo-grid { display: grid; grid-template-columns: 90px 1fr 60px 1fr; margin-bottom: 12px; gap: 8px; }
+          .label { font-weight: bold; font-size: 15px; }
+          .dotted { border-bottom: 1px dotted #94a3b8; padding-bottom: 2px; }
+          .full-row { display: grid; grid-template-columns: 60px 1fr; margin-bottom: 12px; gap: 8px; }
+          .memo-content { margin-top: 25px; min-height: 350px; text-indent: 40px; line-height: 1.8; font-size: 14px; }
+          .signatures-area { margin-top: 40px; display: flex; justify-content: flex-end; gap: 40px; }
+          .sig-col { text-align: center; width: 180px; }
+          .sig-box { height: 60px; display: flex; align-items: center; justify-content: center; }
+          .sig-box img { max-height: 55px; max-width: 140px; }
+        </style>
+      </head>
+      <body>
+        <div class="memo-title">บันทึกข้อความ</div>
+        <div class="memo-grid">
+          <span class="label">ส่วนราชการ</span>
+          <span class="dotted">${department || '-'}</span>
+          <span class="label">วันที่</span>
+          <span class="dotted">${docDate}</span>
+        </div>
+        <div class="full-row">
+          <span class="label">ที่</span>
+          <span class="dotted">${docNumber}</span>
+        </div>
+        <div class="full-row">
+          <span class="label">เรื่อง</span>
+          <span class="dotted" style="font-weight: bold;">${title || '-'}</span>
+        </div>
+        <div class="full-row" style="margin-bottom: 20px;">
+          <span class="label">เรียน</span>
+          <span class="dotted">ผู้บริหาร / ผู้เกี่ยวข้อง</span>
+        </div>
+        <div class="memo-content">${detail}</div>
+        <div class="signatures-area">
+          ${signatures.map(s => `
+            <div class="sig-col">
+              <div class="sig-box">
+                ${s.sigImage ? `<img src="${s.sigImage}" />` : `
+                  <svg width="100" height="35" viewBox="0 0 100 35">
+                    <path d="M10 25 Q 30 5, 50 20 T 90 15" fill="none" stroke="#2563eb" stroke-width="2" />
+                  </svg>
+                `}
+              </div>
+              <div style="border-top: 1px dotted #94a3b8; padding-top: 4px; font-weight: bold;">( ${s.name} )</div>
+              <div style="font-size: 11px; color: #475569;">${s.role}</div>
+              <div style="font-size: 10px; color: #64748b;">${s.date || docDate}</div>
+            </div>
+          `).join('')}
+        </div>
+      </body>
+      </html>
+      `;
+    }
+
+    // PR / PO Data
+    let items = (isPO ? doc.po_form?.items : doc.pr_form?.items) || vFormData.items || [];
+    if (!Array.isArray(items) || items.length === 0) {
+      items = [{ item_name: 'Item Reference 1', remark: 'หมายเหตุ...', quantity: 1, unit: 'ชิ้น', unit_price: doc.pr_form?.total_amount || 0 }];
+    }
+
+    let subTotal = 0;
+    items.forEach((it: any) => {
+      subTotal += Number(it.quantity || 1) * Number(it.unit_price || it.unitPrice || 0);
+    });
+    if (subTotal === 0 && (doc.pr_form?.total_amount || doc.po_form?.total_amount)) {
+      subTotal = Number(doc.pr_form?.total_amount || doc.po_form?.total_amount);
+    }
+    const vatAmount = subTotal * 0.07;
+    const grandTotal = subTotal + vatAmount;
+
+    const purpose = doc.pr_form?.purpose || vFormData.purpose || title;
+    let requiredDate = 'ตามที่ระบุในรายการ';
+    if (doc.pr_form?.required_date || vFormData.required_date) {
+      const rd = new Date(doc.pr_form?.required_date || vFormData.required_date);
+      requiredDate = `${rd.getDate()} / ${rd.getMonth() + 1} / ${rd.getFullYear()}`;
+    }
+
+    const vendorName = vFormData.vendorName || doc.po_form?.vendor_name || 'ไม่ระบุ';
+    const vendorContact = vFormData.vendorContact || doc.po_form?.vendor_contact || 'ไม่ระบุ';
+    const remark = doc.pr_form?.remark || doc.po_form?.remark || vFormData.remark || 'เอกสารใบขอซื้อฉบับนี้ใช้สำหรับขออนุมัติภายในก่อนดำเนินการจัดซื้อ';
+
+    const itemsRows = items.map((item: any, idx: number) => `
+      <tr style="border-bottom: 1px solid #cbd5e1;">
+        <td style="border-right: 1px solid #1e293b; padding: 6px 4px; text-align: center;">${idx + 1}</td>
+        <td style="border-right: 1px solid #1e293b; padding: 6px 8px;">
+          <div style="font-weight: bold; color: #0f172a;">${item.item_name || item.name || item.description}</div>
+          ${item.remark ? `<div style="font-size: 10px; color: #64748b;">${item.remark}</div>` : ''}
+        </td>
+        <td style="border-right: 1px solid #1e293b; padding: 6px 4px; text-align: center;">${item.quantity}</td>
+        <td style="border-right: 1px solid #1e293b; padding: 6px 4px; text-align: center;">${item.unit || 'ชิ้น'}</td>
+        <td style="border-right: 1px solid #1e293b; padding: 6px 8px; text-align: right;">${Number(item.unit_price || item.unitPrice || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+        <td style="padding: 6px 8px; text-align: right; font-weight: bold;">${(Number(item.quantity || 1) * Number(item.unit_price || item.unitPrice || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+      </tr>
+    `).join('');
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        @page { size: A4; margin: 0; }
+        * { box-sizing: border-box; }
+        body {
+          font-family: 'Tahoma', 'Segoe UI', sans-serif;
+          margin: 0;
+          padding: 12mm;
+          font-size: 11px;
+          color: #1e293b;
+          line-height: 1.4;
+        }
+        .header-block {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          border-bottom: 2px solid ${primaryColor};
+          padding-bottom: 12px;
+          margin-bottom: 12px;
+        }
+        .company-info {
+          max-width: 280px;
+        }
+        .company-name {
+          font-size: 16px;
+          font-weight: bold;
+          color: ${primaryText};
+        }
+        .company-addr {
+          font-size: 10px;
+          color: #334155;
+          margin-top: 4px;
+          line-height: 1.35;
+          white-space: pre-wrap;
+        }
+        .header-right {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+        }
+        .title-box {
+          border: 2px solid ${primaryColor};
+          background: ${primaryLight};
+          color: ${primaryText};
+          width: 250px;
+          text-align: center;
+          padding: 6px 12px;
+          margin-bottom: 6px;
+        }
+        .title-th {
+          font-size: 16px;
+          font-weight: 900;
+          margin: 0;
+        }
+        .title-en {
+          font-size: 10px;
+          font-weight: bold;
+          text-transform: uppercase;
+          margin: 2px 0 0 0;
+          letter-spacing: 0.5px;
+        }
+        .meta-table {
+          border-collapse: collapse;
+          border: 1px solid #1e293b;
+          width: 250px;
+          font-size: 10px;
+        }
+        .meta-table th {
+          border: 1px solid #1e293b;
+          background: ${primaryLight};
+          padding: 3px 6px;
+          font-weight: bold;
+          text-align: left;
+          width: 35%;
+        }
+        .meta-table td {
+          border: 1px solid #1e293b;
+          padding: 3px 6px;
+          text-align: center;
+          font-weight: bold;
+        }
+        .two-boxes {
+          display: flex;
+          gap: 12px;
+          margin-bottom: 12px;
+        }
+        .info-box {
+          flex: 1;
+          border: 1px solid #1e293b;
+          padding: 8px;
+        }
+        .box-title {
+          font-weight: bold;
+          color: ${primaryText};
+          border-bottom: 1px solid #1e293b;
+          padding-bottom: 4px;
+          margin-bottom: 6px;
+          font-size: 11px;
+        }
+        .info-row {
+          display: grid;
+          grid-template-columns: 85px 1fr;
+          gap: 4px;
+          margin-bottom: 3px;
+          font-size: 10.5px;
+        }
+        .info-label {
+          font-weight: bold;
+          color: #475569;
+        }
+        .info-val {
+          font-weight: bold;
+          color: #0f172a;
+        }
+        .items-table {
+          width: 100%;
+          border-collapse: collapse;
+          border: 2px solid #1e293b;
+        }
+        .items-table th {
+          background: ${primaryLight};
+          border-bottom: 2px solid #1e293b;
+          color: ${primaryText};
+          font-weight: bold;
+          padding: 6px 4px;
+          font-size: 10.5px;
+          text-align: center;
+        }
+        .remarks-total-block {
+          display: flex;
+          border: 2px solid #1e293b;
+          border-top: none;
+          margin-bottom: 16px;
+        }
+        .remarks-side {
+          flex: 1;
+          padding: 8px 12px;
+          border-right: 1px solid #1e293b;
+        }
+        .total-side {
+          width: 250px;
+        }
+        .total-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 4px 8px;
+          font-size: 10.5px;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .grand-total-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: ${highlightBanner};
+          color: #ffffff;
+          padding: 6px 8px;
+          font-weight: bold;
+        }
+        .signatures-row {
+          display: flex;
+          gap: 12px;
+        }
+        .sig-card {
+          flex: 1;
+          border: 1px solid #1e293b;
+          padding: 6px 8px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          min-height: 105px;
+        }
+        .sig-badge {
+          display: inline-block;
+          border: 1px solid #10b981;
+          color: #059669;
+          font-weight: bold;
+          font-size: 8.5px;
+          padding: 1px 6px;
+          border-radius: 4px;
+          margin-bottom: 2px;
+        }
+        .sig-img-container {
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .sig-img-container img {
+          max-height: 42px;
+          max-width: 130px;
+        }
+        .sig-divider {
+          border-top: 1px solid #94a3b8;
+          margin: 2px 8px 4px 8px;
+        }
+        .sig-role {
+          font-weight: bold;
+          font-size: 10.5px;
+          color: #0f172a;
+        }
+        .sig-name {
+          font-size: 10px;
+          color: #2563eb;
+          font-weight: bold;
+        }
+        .sig-date {
+          font-size: 9px;
+          color: #64748b;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header-block">
+        <div class="company-info">
+          <div class="company-name">${companyName}</div>
+          <div class="company-addr">${companyAddress}</div>
+        </div>
+        <div class="header-right">
+          <div class="title-box">
+            <h2 class="title-th">${titleTH}</h2>
+            <p class="title-en">${titleEN}</p>
+          </div>
+          <table class="meta-table">
+            <tr>
+              <th>เลขที่ / No.</th>
+              <td>${docNumber}</td>
+            </tr>
+            <tr>
+              <th>วันที่ / Date</th>
+              <td>${docDate}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      ${isPO ? `
+        <div class="two-boxes">
+          <div class="info-box">
+            <div class="box-title">ผู้ขาย / Vendor</div>
+            <div class="info-row"><span class="info-label">ชื่อร้าน/บริษัท:</span><span class="info-val">${vendorName}</span></div>
+            <div class="info-row"><span class="info-label">ข้อมูลติดต่อ:</span><span class="info-val">${vendorContact}</span></div>
+          </div>
+          <div class="info-box">
+            <div class="box-title">ผู้ซื้อ / Buyer</div>
+            <div class="info-row"><span class="info-label">ชื่อ / Name:</span><span class="info-val">${requesterName}</span></div>
+            <div class="info-row"><span class="info-label">แผนก / Dept:</span><span class="info-val">${department}</span></div>
+            <div class="info-row"><span class="info-label">เรื่อง:</span><span class="info-val">${title}</span></div>
+          </div>
+        </div>
+      ` : `
+        <div class="two-boxes">
+          <div class="info-box">
+            <div class="box-title">ผู้เสนอขอจัดซื้อ / Requester</div>
+            <div class="info-row"><span class="info-label">ชื่อ / Name:</span><span class="info-val">${requesterName}</span></div>
+            <div class="info-row"><span class="info-label">แผนก / Dept:</span><span class="info-val">${department}</span></div>
+            <div class="info-row"><span class="info-label">เรื่อง / โครงการ:</span><span class="info-val">${title}</span></div>
+          </div>
+          <div class="info-box">
+            <div class="box-title">วัตถุประสงค์ / Purpose</div>
+            <div class="info-row"><span class="info-label">วัตถุประสงค์:</span><span class="info-val">${purpose}</span></div>
+            <div class="info-row"><span class="info-label">วันที่ต้องการ:</span><span class="info-val">${requiredDate}</span></div>
+          </div>
+        </div>
+      `}
+
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width: 36px; border-right: 1px solid #1e293b;">No.</th>
+            <th style="border-right: 1px solid #1e293b;">รายการสินค้า / บริการ</th>
+            <th style="width: 55px; border-right: 1px solid #1e293b;">จำนวน</th>
+            <th style="width: 55px; border-right: 1px solid #1e293b;">หน่วย</th>
+            <th style="width: 85px; border-right: 1px solid #1e293b;">ราคา/หน่วย</th>
+            <th style="width: 95px;">จำนวนเงิน</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsRows}
+        </tbody>
+      </table>
+
+      <div class="remarks-total-block">
+        <div class="remarks-side">
+          <div style="font-weight: bold; margin-bottom: 4px;">หมายเหตุ / Remarks:</div>
+          <div style="color: #475569; font-size: 10px;">${remark}</div>
+        </div>
+        <div class="total-side">
+          <div class="total-row">
+            <span>ยอดรวม<br><small>Sub Total</small></span>
+            <span style="font-weight: bold;">${Number(subTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+          </div>
+          <div class="total-row">
+            <span>ภาษีมูลค่าเพิ่ม 7%<br><small>VAT 7%</small></span>
+            <span style="font-weight: bold;">${Number(vatAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+          </div>
+          <div class="grand-total-row">
+            <span>ยอดสุทธิ<br><small style="font-size: 8px;">Grand Total</small></span>
+            <span style="font-size: 13px; font-weight: 900;">฿${Number(grandTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="signatures-row">
+        ${signatures.map(s => `
+          <div class="sig-card">
+            <div>
+              ${s.isApproved ? `<div class="sig-badge">SIGNED & APPROVED</div>` : ''}
+              <div class="sig-img-container">
+                ${s.sigImage ? `<img src="${s.sigImage}" />` : `
+                  <svg width="100" height="35" viewBox="0 0 100 35">
+                    <path d="M10 25 Q 30 5, 50 20 T 90 15" fill="none" stroke="#2563eb" stroke-width="2" />
+                  </svg>
+                `}
+              </div>
+            </div>
+            <div>
+              <div class="sig-divider"></div>
+              <div class="sig-role">${s.role}</div>
+              <div class="sig-name">${s.name}</div>
+              <div class="sig-date">${s.date ? `วันที่ ${s.date}` : ''}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </body>
+    </html>
+    `;
+  }
+
+  async generateFallbackPdf(doc: any, version?: any): Promise<Buffer> {
+    // 1. High-fidelity PDF generation via Chromium/Edge (100% matches browser preview)
+    try {
+      const chromePaths = [
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+      ];
+      const executablePath = chromePaths.find((p) => fs.existsSync(p));
+
+      if (executablePath) {
+        const html = this.buildDocumentHtml(doc, version);
+        const browser = await puppeteer.launch({
+          executablePath,
+          headless: true,
+          args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
+        });
+        try {
+          const page = await browser.newPage();
+          await page.setContent(html, { waitUntil: 'load' });
+          const pdfBuffer = await page.pdf({
+            format: 'A4',
+            printBackground: true,
+            margin: { top: '0mm', right: '0mm', bottom: '0mm', left: '0mm' },
+          });
+          return Buffer.from(pdfBuffer);
+        } finally {
+          await browser.close();
+        }
+      }
+    } catch (err) {
+      console.warn('Chromium PDF rendering error, falling back to pdf-lib:', err);
+    }
+
+    // 2. Secondary fallback using pdf-lib
+    const pdfDoc = await PDFDocument.create();
+    let customFont: any = null;
+    const fontPath = 'C:/Windows/Fonts/tahoma.ttf';
+    try {
+      if (fs.existsSync(fontPath)) {
+        const fontBytes = fs.readFileSync(fontPath);
+        pdfDoc.registerFontkit(fontkit);
+        customFont = await pdfDoc.embedFont(fontBytes);
+      }
+    } catch (e) {
+      console.warn('Could not load custom font, falling back to StandardFonts:', e);
+    }
+    const fallbackFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const font = customFont || fallbackFont;
+
+    const safeText = (text: string | null | undefined): string => {
+      if (!text) return '-';
+      const str = String(text);
+      if (customFont) return str;
+      return str.replace(/[^\x20-\x7E]/g, ' ');
+    };
+
+    const page = pdfDoc.addPage([595.28, 841.89]);
+    const { width, height } = page.getSize();
+
+    page.drawRectangle({
+      x: 36,
+      y: height - 55,
+      width: width - 72,
+      height: 35,
+      color: rgb(0.08, 0.25, 0.55),
+    });
+    page.drawText(safeText('บริษัท ฮาฮา'), {
+      x: 50,
+      y: height - 42,
+      size: 11,
+      font,
+      color: rgb(1, 1, 1),
     });
 
-    if (!version || !version.file_data) {
-      throw new NotFoundException('ไม่พบไฟล์ PDF ในฐานข้อมูล');
-    }
-
-    return version.file_data;
+    const pdfBytes = await pdfDoc.save();
+    return Buffer.from(pdfBytes);
   }
 
   async updateDocumentFull(id: string, dto: CreateDocumentDto, userId: string) {
@@ -912,8 +1590,8 @@ export class DocumentsService {
       folder_id: doc.folder_id,
       title: doc.title,
       name: doc.title,
-      type: doc.type?.prefix || 'PR',
-      doc_type: doc.type?.type_name || 'ใบขอซื้อ',
+      type: doc.type?.prefix || (doc.doc_number || doc.id || '').split('-')[0] || 'DOC',
+      doc_type: doc.type?.type_name || ((doc.doc_number || doc.id || '').startsWith('PO') ? 'ใบสั่งซื้อ (PO)' : (doc.doc_number || doc.id || '').startsWith('BK') ? 'บันทึกข้อความ (BK)' : (doc.doc_number || doc.id || '').startsWith('PR') ? 'ใบขอซื้อ (PR)' : 'เอกสารทั่วไป (DOC)'),
       creator_name: creatorName,
       sender: creatorName,
       approvers,

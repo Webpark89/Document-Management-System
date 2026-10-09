@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { api } from "@/lib";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Loader2 } from "lucide-react";
+import { downloadDocument } from '@views/features/documents/api';
 import { useAuth } from '@views/components/providers/AuthProvider';
 import { useSignatures } from '@views/components/providers/SignatureProvider';
 import { API_BASE_URL } from '@/lib';
@@ -71,9 +72,13 @@ function SignatureDisplay({
 
 export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isViewer, tempSignature, onSignClick }: DocumentPreviewProps) {
   let doc = initialDoc as any;
+  const rawType = doc?.type || doc?.doc_type;
+  const rawPrefix = (typeof rawType === 'object' ? rawType?.prefix : rawType) || (doc?.doc_number || doc?.id || '').split('-')[0] || 'OTHER';
+  const resolvedTypePrefix = String(rawPrefix).toUpperCase();
+
   if (versionId && doc?.versions) {
     const version = doc.versions.find((v: any) => v.id === versionId || v.version_number?.toString() === versionId.toString());
-    const docTypePrefix = (typeof doc.type === 'object' ? doc.type?.prefix : doc.type) || 'PR';
+    const docTypePrefix = resolvedTypePrefix;
     if (version && version.form_data) {
       doc = { ...doc };
       const vFormData = version.form_data;
@@ -102,7 +107,7 @@ export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isView
     api.get<any>("/api/admin/settings").then(res => { if (res.data?.companyName) setCompanySettings(res.data); }).catch(() => {});
   }, []);
   
-  const type = doc.type || "OTHER";
+  const type = resolvedTypePrefix;
   const isApproved = doc.status === "Approved";
 
   // Attempt to extract approvals from workflow
@@ -496,8 +501,9 @@ export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isView
 
   // PDF Renderer
   const renderPDF = () => {
-    // Fallback to local mock PDF for testing
-    const fileUrl = doc.versions?.[0]?.file_path || "/mock.pdf";
+    const docId = doc?.real_id || doc?.id;
+    const vParam = versionId ? `?v=${versionId}` : '';
+    const fileUrl = doc?.fileUrl || (docId ? `/api/documents/${docId}/download${vParam}` : null);
     
     return (
       <div className="bg-slate-200/70 rounded-xl p-4 sm:p-8 border border-slate-200 min-h-[400px] flex flex-col relative overflow-hidden">
@@ -506,16 +512,21 @@ export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isView
             <FileText className="w-5 h-5 text-rose-500" />
             <span className="font-bold text-sm">PDF Document Viewer</span>
           </div>
-          {fileUrl && (
-            <a
-              href={fileUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition-colors"
+          {docId && (
+            <button
+              type="button"
+              onClick={() => {
+                downloadDocument(
+                  docId,
+                  versionId ? Number(versionId) : undefined,
+                  `${doc.doc_number || doc.id}.pdf`
+                ).catch((e) => console.error(e));
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition-colors cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              Open / Download
-            </a>
+              ดาวน์โหลด (Download)
+            </button>
           )}
         </div>
         <div className="flex-1 bg-white rounded-b-xl overflow-hidden relative flex flex-col items-center justify-center">

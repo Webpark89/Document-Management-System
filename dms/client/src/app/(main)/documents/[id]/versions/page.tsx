@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, AlertCircle, Eye, Download, FileText, X, Clock, FileUp, User } from "lucide-react";
-import { getDocumentById } from '@views/features/documents/api';
+import { ArrowLeft, ArrowRight, AlertCircle, Eye, Download, FileText, X, Clock, FileUp, User, UploadCloud, Loader2, Upload } from "lucide-react";
+import { getDocumentById, downloadDocument, uploadNewDocumentVersion } from '@views/features/documents/api';
 import { Document, DocumentVersion } from '@views/features/documents/types';
 import PageHeader from '@views/components/shared/PageHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from '@views/components/ui/design-system';
@@ -103,6 +103,67 @@ export default function DocumentVersionsPage() {
   const [showCompareResult, setShowCompareResult] = useState(false);
   const [showCompareModal, setShowCompareModal] = useState(false);
   const [viewingVersion, setViewingVersion] = useState<string | null>(null);
+
+  // Version Download state
+  const [downloadingVersion, setDownloadingVersion] = useState<string | number | null>(null);
+
+  const handleDownloadVersion = async (vNum: string | number) => {
+    if (!doc) return;
+    const docId = (doc as any).real_id || doc.id;
+    const docNum = (doc as any).doc_number || doc.id;
+    const numericVersion = typeof vNum === "number" ? vNum : parseInt(String(vNum).replace(/\D/g, ""), 10) || 1;
+    try {
+      setDownloadingVersion(vNum);
+      showToast(`กำลังเริ่มดาวน์โหลดเวอร์ชัน ${vNum}...`, "info");
+      await downloadDocument(docId, numericVersion, `${docNum}_v${numericVersion}.pdf`);
+      showToast(`ดาวน์โหลดเวอร์ชัน ${vNum} สำเร็จแล้ว`, "success");
+    } catch (err: any) {
+      console.error("Version download failed", err);
+      showToast(err.message || `เกิดข้อผิดพลาดในการดาวน์โหลดเวอร์ชัน ${vNum}`, "error");
+    } finally {
+      setDownloadingVersion(null);
+    }
+  };
+
+  // Upload New Version state
+  const [isUploadVersionOpen, setIsUploadVersionOpen] = useState(false);
+  const [newVersionFile, setNewVersionFile] = useState<File | null>(null);
+  const [newVersionRemarks, setNewVersionRemarks] = useState("");
+  const [isUploadingVersion, setIsUploadingVersion] = useState(false);
+
+  const handleUploadVersionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newVersionFile) {
+      showToast("กรุณาเลือกไฟล์ PDF สำหรับเวอร์ชันใหม่", "error");
+      return;
+    }
+    if (!doc) return;
+
+    try {
+      setIsUploadingVersion(true);
+      const targetId = (doc as any).real_id || doc.id;
+      const formData = new FormData();
+      formData.append("file", newVersionFile);
+      if (newVersionRemarks.trim()) {
+        formData.append("remarks", newVersionRemarks.trim());
+      }
+
+      await uploadNewDocumentVersion(targetId, formData);
+      showToast("อัปโหลดเวอร์ชันใหม่สำเร็จแล้ว", "success");
+      setIsUploadVersionOpen(false);
+      setNewVersionFile(null);
+      setNewVersionRemarks("");
+
+      // Reload document data
+      const updated = await getDocumentById(id);
+      if (updated) setDoc(updated);
+    } catch (err: any) {
+      console.error("Upload version failed", err);
+      showToast(err.message || "เกิดข้อผิดพลาดในการอัปโหลดเวอร์ชันใหม่", "error");
+    } finally {
+      setIsUploadingVersion(false);
+    }
+  };
 
   useEffect(() => {
     getDocumentById(id).then((found) => {
@@ -222,21 +283,31 @@ export default function DocumentVersionsPage() {
           title={`ประวัติการแก้ไข (Version History): ${doc.id}`}
           subtitle={`ติดตามการเปลี่ยนแปลงของ "${doc.name}"`}
           actions={
-            showCheckboxes ? (
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setShowCompareResult(true)}
-                disabled={!canCompare}
-                title={!canCompare ? "เลือก 2 เวอร์ชันเพื่อเปรียบเทียบ" : "เปรียบเทียบเวอร์ชันที่เลือก"}
-                className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all ${
-                  canCompare
-                    ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
-                    : "cursor-not-allowed bg-slate-200 text-slate-500 opacity-50"
-                }`}
+                type="button"
+                onClick={() => setIsUploadVersionOpen(true)}
+                className="flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-blue-700 cursor-pointer"
               >
-                <FileText className="size-4" />
-                Compare Selected Versions
+                <Upload className="size-3.5" />
+                อัปโหลดเวอร์ชันใหม่ (Upload Version)
               </button>
-            ) : undefined
+              {showCheckboxes && (
+                <button
+                  onClick={() => setShowCompareResult(true)}
+                  disabled={!canCompare}
+                  title={!canCompare ? "เลือก 2 เวอร์ชันเพื่อเปรียบเทียบ" : "เปรียบเทียบเวอร์ชันที่เลือก"}
+                  className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+                    canCompare
+                      ? "bg-slate-800 text-white shadow-xs hover:bg-slate-900 cursor-pointer"
+                      : "cursor-not-allowed bg-slate-200 text-slate-500 opacity-50"
+                  }`}
+                >
+                  <FileText className="size-3.5" />
+                  Compare Selected
+                </button>
+              )}
+            </div>
           }
         />
         </div>
@@ -324,12 +395,15 @@ export default function DocumentVersionsPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() =>
-                            showToast(`กำลังดาวน์โหลดไฟล์เวอร์ชัน ${ver.version_number}...`, "success")
-                          }
-                          className={`${iconActionBtn} hover:text-emerald-600`}
+                          disabled={downloadingVersion === ver.version_number}
+                          onClick={() => handleDownloadVersion(ver.version_number)}
+                          className={`${iconActionBtn} hover:text-emerald-600 disabled:opacity-50`}
                         >
-                          <Download className="size-4" />
+                          {downloadingVersion === ver.version_number ? (
+                            <Loader2 className="size-4 animate-spin text-blue-600" />
+                          ) : (
+                            <Download className="size-4" />
+                          )}
                           <span className={iconActionTooltip}>ดาวน์โหลด</span>
                         </button>
                       </div>
@@ -627,17 +701,27 @@ export default function DocumentVersionsPage() {
             <div className="p-4 border-t border-slate-100 bg-white rounded-b-2xl flex justify-between items-center">
               <div className="flex gap-4">
                 <button 
-                  onClick={() => showToast(`กำลังดาวน์โหลดไฟล์ ${selectedData[0].version_number}...`, "success")}
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors"
+                  disabled={downloadingVersion === selectedData[0].version_number}
+                  onClick={() => handleDownloadVersion(selectedData[0].version_number)}
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  <Download className="w-4 h-4" />
+                  {downloadingVersion === selectedData[0].version_number ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
                   โหลด {selectedData[0].version_number}
                 </button>
                 <button 
-                  onClick={() => showToast(`กำลังดาวน์โหลดไฟล์ ${selectedData[1].version_number}...`, "success")}
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors"
+                  disabled={downloadingVersion === selectedData[1].version_number}
+                  onClick={() => handleDownloadVersion(selectedData[1].version_number)}
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  <Download className="w-4 h-4" />
+                  {downloadingVersion === selectedData[1].version_number ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
                   โหลด {selectedData[1].version_number}
                 </button>
               </div>
@@ -696,21 +780,154 @@ export default function DocumentVersionsPage() {
               </div>
               <div className="p-4 border-t border-slate-100 bg-white rounded-b-2xl flex justify-between items-center">
               <button 
+                disabled={downloadingVersion === versions.find(v => v.id === viewingVersion)?.version_number}
                 onClick={() => {
-                  showToast(`กำลังดาวน์โหลดไฟล์ ${versions.find(v => v.id === viewingVersion)?.version_number}...`, "success");
+                  const targetVer = versions.find(v => v.id === viewingVersion);
+                  if (targetVer) handleDownloadVersion(targetVer.version_number);
                 }}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors"
+                className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
               >
-                <Download className="w-4 h-4" />
+                {downloadingVersion === versions.find(v => v.id === viewingVersion)?.version_number ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
                 โหลดเวอร์ชันนี้
               </button>
               <button 
                 onClick={() => setViewingVersion(null)}
-                className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors"
+                className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors cursor-pointer"
               >
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* UPLOAD NEW VERSION MODAL */}
+      {isUploadVersionOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 sm:p-6 overflow-y-auto animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-in zoom-in-95">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                  <UploadCloud className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">อัปโหลดเวอร์ชันใหม่ (Upload New Version)</h3>
+                  <p className="text-xs text-slate-400">อัปโหลดไฟล์ PDF ฉบับแก้ไขสำหรับ {doc.doc_number || doc.id}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isUploadingVersion) {
+                    setIsUploadVersionOpen(false);
+                    setNewVersionFile(null);
+                  }
+                }}
+                className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUploadVersionSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  ไฟล์ PDF เวอร์ชันใหม่ <span className="text-red-500">*</span>
+                </label>
+                {!newVersionFile ? (
+                  <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:bg-slate-50/50 transition-colors">
+                    <UploadCloud className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                    <p className="text-xs font-bold text-slate-700">คลิกเพื่อเลือกไฟล์ PDF</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">รองรับไฟล์ .pdf ขนาดสูงสุด 20MB</p>
+                    <input
+                      type="file"
+                      id="upload-new-ver-file"
+                      accept=".pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) setNewVersionFile(f);
+                      }}
+                    />
+                    <label
+                      htmlFor="upload-new-ver-file"
+                      className="inline-flex items-center gap-1.5 mt-3 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      เลือกไฟล์
+                    </label>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-blue-100/70 text-blue-600 flex items-center justify-center">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800 truncate max-w-[260px]">{newVersionFile.name}</p>
+                        <p className="text-[10px] text-slate-400 font-medium">
+                          {(newVersionFile.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isUploadingVersion}
+                      onClick={() => setNewVersionFile(null)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                      title="ยกเลิกไฟล์"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  หมายเหตุการแก้ไข (Remarks)
+                </label>
+                <textarea
+                  rows={2}
+                  value={newVersionRemarks}
+                  onChange={(e) => setNewVersionRemarks(e.target.value)}
+                  placeholder="เช่น ปรับปรุงรายละเอียดตามความเห็นของผู้จัดการ หรือ แนบเอกสารฉบับแก้ไข..."
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white resize-none"
+                />
+              </div>
+
+              <div className="flex justify-end items-center gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  disabled={isUploadingVersion}
+                  onClick={() => setIsUploadVersionOpen(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploadingVersion || !newVersionFile}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {isUploadingVersion ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      กำลังอัปโหลด...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" />
+                      ยืนยันอัปโหลด
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

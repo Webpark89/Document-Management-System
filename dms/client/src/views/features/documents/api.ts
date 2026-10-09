@@ -117,3 +117,75 @@ export async function updateDocumentFullWithFile(id: string, formData: FormData)
   const res = await api.put<Document>(`/api/documents/${id}/upload`, formData);
   return res.data;
 }
+
+export async function uploadDocumentFile(formData: FormData): Promise<Document> {
+  const res = await api.post<Document>("/api/documents/upload", formData);
+  return res.data;
+}
+
+export async function downloadDocument(
+  docId: string,
+  versionNumber?: number,
+  suggestedFilename?: string,
+): Promise<void> {
+  const query = new URLSearchParams();
+  if (versionNumber) query.append("v", versionNumber.toString());
+  query.append("download", "true");
+
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  const url = `/api/documents/${docId}/download${qs}`;
+
+  const res = await fetch(url, {
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    let errorMsg = "ดาวน์โหลดเอกสารไม่สำเร็จ";
+    try {
+      const data = await res.json();
+      if (data?.message) {
+        errorMsg = Array.isArray(data.message)
+          ? data.message.join(", ")
+          : data.message;
+      }
+    } catch {}
+    throw new Error(errorMsg);
+  }
+
+  const blob = await res.blob();
+  const blobUrl = window.URL.createObjectURL(blob);
+
+  let filename = suggestedFilename;
+  if (!filename) {
+    const disposition = res.headers.get("Content-Disposition");
+    if (disposition && disposition.includes("filename*=")) {
+      const match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+      if (match && match[1]) {
+        try {
+          filename = decodeURIComponent(match[1]);
+        } catch {}
+      }
+    }
+    if (!filename && disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename="?([^";]+)"?/i);
+      if (match && match[1]) {
+        filename = match[1];
+      }
+    }
+  }
+
+  if (!filename) {
+    filename = `${docId}${versionNumber ? `_v${versionNumber}` : ""}.pdf`;
+  }
+  if (!filename.toLowerCase().endsWith(".pdf")) {
+    filename += ".pdf";
+  }
+
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(blobUrl);
+}

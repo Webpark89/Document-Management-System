@@ -14,6 +14,7 @@ export type DocumentType = "PR" | "PO" | "MEMO" | "OTHER" | "Certificate" | "Gen
 
 export interface Document {
   id: string;              // doc_number, e.g. "PR-2026-0001"
+  doc_number?: string;
   real_id?: string;
   folder_id?: string;
   name: string;            // title
@@ -39,7 +40,7 @@ export interface Document {
 export interface DocumentVersion {
   id: string;
   document_id: string;
-  version_number: string;
+  version_number: string | number;
   uploaded_by: string;
   created_at: string;
   file_size_kb: number;

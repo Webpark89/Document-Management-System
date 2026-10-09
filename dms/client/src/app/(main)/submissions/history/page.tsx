@@ -4,7 +4,7 @@ import { Pagination } from '@views/components/shared/Pagination';
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, CheckSquare, Eye, Search, ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { Check, CheckSquare, Eye, Search, ChevronLeft, ChevronRight, FileText, FileEdit } from "lucide-react";
 import PageHeader from '@views/components/shared/PageHeader';
 import { Badge } from '@views/components/ui/badge';
 import { getDocuments } from '@views/features/documents/api';
@@ -14,6 +14,7 @@ import { formatThaiDate } from "@/lib/format-date";
 import DataTableHeader from '@views/components/ui/DataTableHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
 import { useAuth } from '@views/components/providers/AuthProvider';
+import DocTypeBadge from '@views/components/shared/DocTypeBadge';
 
 export default function ApprovedSubmissionsHistoryPage() {
   const router = useRouter();
@@ -320,18 +321,28 @@ export default function ApprovedSubmissionsHistoryPage() {
           </div>
 
           {/* TABLE */}
-          <div className="overflow-x-auto border border-slate-100/50 rounded-2xl">
-            <table className="w-full text-left border-collapse min-w-[900px]">
+          <div className="overflow-x-auto border border-slate-200/80 rounded-2xl bg-white shadow-2xs">
+            <table className="w-full table-fixed text-left border-collapse min-w-[1150px]">
+              <colgroup>
+                <col className="w-[300px]" />
+                <col className="w-[140px]" />
+                <col className="w-[130px]" />
+                <col className="w-[120px]" />
+                <col className="w-[160px]" />
+                <col className="w-[120px]" />
+                <col className="w-[110px]" />
+                <col className="w-[100px]" />
+              </colgroup>
               <thead>
-                <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="py-4 pl-4 font-bold">ข้อมูลเอกสาร</th>
+                <tr className="bg-slate-50/70 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="py-3.5 pl-4 pr-3 font-bold">ข้อมูลเอกสาร</th>
                   <DataTableHeader
                     title="รหัส (ID)"
                     sortKey="id"
                     currentSortKey={sortKey}
                     currentDirection={sortDirection}
                     onSort={handleSort}
-                    className="py-4"
+                    className="py-3.5 px-3"
                   />
                   <DataTableHeader
                     title="ผู้สร้าง"
@@ -339,7 +350,7 @@ export default function ApprovedSubmissionsHistoryPage() {
                     currentSortKey={sortKey}
                     currentDirection={sortDirection}
                     onSort={handleSort}
-                    className="py-4"
+                    className="py-3.5 px-3"
                   />
                   <DataTableHeader
                     title="แผนก"
@@ -347,16 +358,16 @@ export default function ApprovedSubmissionsHistoryPage() {
                     currentSortKey={sortKey}
                     currentDirection={sortDirection}
                     onSort={handleSort}
-                    className="py-4"
+                    className="py-3.5 px-3"
                   />
-                  <th className="py-4 font-bold">รายชื่อผู้อนุมัติ</th>
+                  <th className="py-3.5 px-3 font-bold">รายชื่อผู้อนุมัติ</th>
                   <DataTableHeader
                     title="วันที่อนุมัติ"
                     sortKey="approvedDate"
                     currentSortKey={sortKey}
                     currentDirection={sortDirection}
                     onSort={handleSort}
-                    className="py-4"
+                    className="py-3.5 px-3"
                   />
                   <DataTableHeader
                     title="สถานะ"
@@ -364,51 +375,47 @@ export default function ApprovedSubmissionsHistoryPage() {
                     currentSortKey={sortKey}
                     currentDirection={sortDirection}
                     onSort={handleSort}
-                    className="py-4"
+                    className="py-3.5 px-3 text-center"
                   />
-                  <th className="py-4 pr-4 text-center font-bold">ดำเนินการ</th>
+                  <th className="py-3.5 pr-4 pl-3 text-center font-bold">ดำเนินการ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50/80">
+              <tbody className="divide-y divide-slate-100">
                 {paginatedItems.length > 0 ? (
                   paginatedItems.map((item) => (
                     <tr
                       key={item.id}
                       onClick={() => router.push(`/documents/${item.real_id}?source=submissions_history`)}
-                      className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
+                      className="hover:bg-slate-50/70 transition-colors group cursor-pointer"
                     >
-                      <td className="py-4 pl-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-xl flex-shrink-0 ${getTypeBadgeClass(item.id)}`}>
-                            <FileText className="w-5 h-5" />
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-xs font-bold text-slate-800 truncate" title={item.name}>
+                      <td className="py-4 pl-4 pr-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <DocTypeBadge docId={item.id} type={item.type} />
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-sm font-bold text-slate-800 truncate" title={item.name}>
                               {item.name}
                             </span>
-                            <span className="text-[11px] text-slate-500 font-medium">มูลค่า: {item.amount}</span>
+                            <span className="text-[10px] text-slate-400 font-semibold block truncate">มูลค่า: {item.amount}</span>
                           </div>
                         </div>
                       </td>
-                      <td className="py-4">
-                        <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">
-                          {item.id}
-                        </span>
+                      <td className="py-4 px-3 text-sm font-mono font-bold text-slate-600 whitespace-nowrap">
+                        {item.id}
                       </td>
-                      <td className="py-4">
-                        <span className="text-xs font-bold text-slate-700">{item.sender}</span>
+                      <td className="py-4 px-3 text-sm font-semibold text-slate-700 truncate" title={item.sender}>
+                        {item.sender}
                       </td>
-                      <td className="py-4">
-                        <span className="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md">
+                      <td className="py-4 px-3">
+                        <span className="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md inline-block max-w-full truncate" title={item.department}>
                           {item.department}
                         </span>
                       </td>
-                      <td className="py-4 text-xs font-semibold text-slate-700">
+                      <td className="py-4 px-3 text-xs font-semibold text-slate-700">
                         {item.approvers.length > 0 ? (
-                          <div className="flex flex-col gap-0.5">
+                          <div className="flex flex-col gap-0.5 min-w-0">
                             {item.approvers.map((app: string, idx: number) => (
-                              <span key={idx} className="text-[11px] text-slate-600 flex items-center gap-1">
-                                <span className="text-emerald-500 font-bold">•</span> {app}
+                              <span key={idx} className="text-[11px] text-slate-600 flex items-center gap-1 truncate" title={app}>
+                                <span className="text-emerald-500 font-bold shrink-0">•</span> <span className="truncate">{app}</span>
                               </span>
                             ))}
                           </div>
@@ -416,15 +423,15 @@ export default function ApprovedSubmissionsHistoryPage() {
                           <span className="text-slate-400">-</span>
                         )}
                       </td>
-                      <td className="py-4 text-xs font-semibold text-slate-600">
+                      <td className="py-4 px-3 text-sm text-slate-400 font-medium whitespace-nowrap">
                         {item.approvedDate}
                       </td>
-                      <td className="py-4">
+                      <td className="py-4 px-3 text-center whitespace-nowrap">
                         <Badge variant={getStatusVariant(item.status)} className="font-extrabold shadow-2xs">
                           อนุมัติแล้ว
                         </Badge>
                       </td>
-                      <td className="py-4 pr-4 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-4 pr-4 pl-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <Link
                           href={`/documents/${item.real_id}?source=submissions_history`}
                           className="px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer border border-emerald-200/60"

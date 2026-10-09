@@ -160,7 +160,7 @@ export default function ApprovalDetailPage({ params }: PageProps) {
                   Type
                 </p>
                 <p className="text-sm font-bold text-slate-800 mt-1">
-                  {doc.type}
+                  {(doc as any).doc_type || (typeof doc.type === 'object' ? (doc.type as any)?.type_name || (doc.type as any)?.prefix : doc.type) || (doc.doc_number || doc.id || '').split('-')[0] || '-'}
                 </p>
               </div>
               <div>

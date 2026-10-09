@@ -43,6 +43,50 @@ export default function ApprovalWorkflowSection({
           .filter((u) => (u as UserItem).is_active)
           .map((u) => u as UserItem);
         setUsers(activeUsers);
+
+        // Auto-select approver if step has no approverId selected
+        if (steps && steps.length > 0 && activeUsers.length > 0) {
+          const chosenIds = new Set<string>();
+          const updated = steps.map((step) => {
+            if (step.approverId) {
+              chosenIds.add(step.approverId);
+              return step;
+            }
+            // Find best matching user for step.roleName
+            const targetRole = (step.roleName || "").trim().toLowerCase();
+            const candidates = activeUsers.filter((u) => {
+              if (chosenIds.has(u.id)) return false;
+              if (!targetRole) return true;
+              const uPos = (u.position || "").trim().toLowerCase();
+              const uRole = (u.role || "").trim().toLowerCase();
+              return (
+                uPos === targetRole ||
+                uRole === targetRole ||
+                targetRole.includes(uPos) ||
+                uPos.includes(targetRole) ||
+                targetRole.includes(uRole) ||
+                uRole.includes(targetRole)
+              );
+            });
+
+            const picked = candidates[0] || activeUsers.find((u) => !chosenIds.has(u.id));
+            if (picked) {
+              chosenIds.add(picked.id);
+              return {
+                ...step,
+                approverId: picked.id,
+                approverName: `${picked.first_name} ${picked.last_name}`.trim(),
+              };
+            }
+            return step;
+          });
+
+          // Only trigger onChange if any step was updated
+          const hasChanges = updated.some((s, i) => s.approverId !== steps[i]?.approverId);
+          if (hasChanges) {
+            onChange(updated);
+          }
+        }
       })
       .catch(() => {})
       .finally(() => setIsLoading(false));
@@ -162,7 +206,9 @@ export default function ApprovalWorkflowSection({
                             userPos === targetRole ||
                             userRole === targetRole ||
                             targetRole.includes(userPos) ||
-                            userPos.includes(targetRole)
+                            userPos.includes(targetRole) ||
+                            targetRole.includes(userRole) ||
+                            userRole.includes(targetRole)
                           );
                         })
                         .map((u) => {

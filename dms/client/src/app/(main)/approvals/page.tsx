@@ -15,6 +15,7 @@ import { formatThaiDate, formatThaiTime } from "@/lib/format-date";
 import DataTableHeader from '@views/components/ui/DataTableHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/components/ui/design-system';
 import { useAuth } from '@views/components/providers/AuthProvider';
+import DocTypeBadge from '@views/components/shared/DocTypeBadge';
 
 export default function ApprovalsInboxPage() {
   const router = useRouter();
@@ -77,9 +78,15 @@ export default function ApprovalsInboxPage() {
     }
   };
 
-  const getDocTypeCategory = (id: string, typeStr?: string): "PR" | "PO" | "BK" | "OTHER" => {
+  const getDocTypeCategory = (id: string, typeVal?: unknown): "PR" | "PO" | "BK" | "OTHER" => {
+    let raw = "";
+    if (typeof typeVal === "string") {
+      raw = typeVal;
+    } else if (typeVal && typeof typeVal === "object") {
+      raw = (typeVal as any).prefix || (typeVal as any).code || (typeVal as any).type_name || "";
+    }
     const upperId = (id || "").toUpperCase();
-    const upperType = (typeStr || "").toUpperCase();
+    const upperType = (raw || "").toUpperCase();
     if (upperId.startsWith("PR") || upperType === "PR") return "PR";
     if (upperId.startsWith("PO") || upperType === "PO") return "PO";
     if (upperId.startsWith("BK") || upperType === "BK" || upperType.includes("MEMO") || upperType.includes("บันทึก")) return "BK";
@@ -90,24 +97,28 @@ export default function ApprovalsInboxPage() {
   const toApproveCount = toApproveList.filter((item) => item.status === "Pending").length;
   
   // Active items
-  const rawList = toApproveList.map((item) => ({
-    id: item.id,
-    real_id: (item as any).real_id || item.id,
-    name: item.name,
-    type: (item as any).type || (item as any).docType || "PR",
-    amount: item.amount,
-    sender: item.requester,
-    department: (item as any).department || "ไม่ระบุ",
-    approvers: item.approvers || [],
-    submittedDate: formatThaiDate(item.submittedDate),
-    rawSubmittedDate: (item as any).rawSubmittedDate || item.submittedDate,
-    submittedTime: formatThaiTime((item as any).rawSubmittedDate || item.submittedDate),
-    createdAtTime: new Date((item as any).rawSubmittedDate || item.submittedDate || 0).getTime(),
-    currentLevel: item.currentLevel,
-    maxLevels: item.maxLevels,
-    status: item.status,
-    isToApprove: true,
-  }));
+  const rawList = toApproveList.map((item) => {
+    const rawType = (item as any).type || (item as any).docType;
+    const resolvedType = (typeof rawType === 'object' ? rawType?.prefix : rawType) || (item.id || '').split('-')[0] || "OTHER";
+    return {
+      id: item.id,
+      real_id: (item as any).real_id || item.id,
+      name: item.name,
+      type: resolvedType,
+      amount: item.amount,
+      sender: item.requester,
+      department: (item as any).department || "ไม่ระบุ",
+      approvers: item.approvers || [],
+      submittedDate: formatThaiDate(item.submittedDate),
+      rawSubmittedDate: (item as any).rawSubmittedDate || item.submittedDate,
+      submittedTime: formatThaiTime((item as any).rawSubmittedDate || item.submittedDate),
+      createdAtTime: new Date((item as any).rawSubmittedDate || item.submittedDate || 0).getTime(),
+      currentLevel: item.currentLevel,
+      maxLevels: item.maxLevels,
+      status: item.status,
+      isToApprove: true,
+    };
+  });
 
   // Filtering
   const filteredItems = rawList
@@ -370,50 +381,56 @@ export default function ApprovalsInboxPage() {
           </div>
 
           {/* TABLE */}
-          <div className="overflow-x-auto border border-slate-100/50 rounded-2xl">
-            <table className="w-full table-fixed text-left border-collapse min-w-[1100px]">
+          <div className="overflow-x-auto border border-slate-200/80 rounded-2xl bg-white shadow-2xs">
+            <table className="w-full table-fixed text-left border-collapse min-w-[1150px]">
+              <colgroup>
+                <col className="w-[300px]" />
+                <col className="w-[140px]" />
+                <col className="w-[130px]" />
+                <col className="w-[120px]" />
+                <col className="w-[160px]" />
+                <col className="w-[120px]" />
+                <col className="w-[75px]" />
+                <col className="w-[110px]" />
+                <col className="w-[100px]" />
+              </colgroup>
               <thead>
-                <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="py-4 pl-4 font-bold">ข้อมูลเอกสาร</th>
+                <tr className="bg-slate-50/70 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="py-3.5 pl-4 pr-3 font-bold">ข้อมูลเอกสาร</th>
                   {hasPerm('search_sort') ? (
-                    <DataTableHeader title="รหัส (ID)" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-40" />
+                    <DataTableHeader title="รหัส (ID)" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
                   ) : (
-                    <th className="py-4 w-40 font-bold">รหัส (ID)</th>
+                    <th className="py-3.5 px-3 font-bold">รหัส (ID)</th>
                   )}
                   {hasPerm('search_sort') ? (
-                    <DataTableHeader title="ผู้ส่งขอ" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
+                    <DataTableHeader title="ผู้ส่งขอ" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
                   ) : (
-                    <th className="py-4 w-32 font-bold">ผู้ส่งขอ</th>
+                    <th className="py-3.5 px-3 font-bold">ผู้ส่งขอ</th>
                   )}
                   {hasPerm('search_sort') ? (
-                    <DataTableHeader title="แผนก" sortKey="department" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
+                    <DataTableHeader title="แผนก" sortKey="department" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
                   ) : (
-                    <th className="py-4 w-32 font-bold">แผนก</th>
+                    <th className="py-3.5 px-3 font-bold">แผนก</th>
                   )}
-                  <th className="py-4 font-bold w-40">รายชื่อผู้อนุมัติ</th>
+                  <th className="py-3.5 px-3 font-bold">รายชื่อผู้อนุมัติ</th>
                   {hasPerm('search_sort') ? (
-                    <DataTableHeader title="วันที่ส่ง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
+                    <DataTableHeader title="วันที่ส่ง" sortKey="submittedDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
                   ) : (
-                    <th className="py-4 w-32 font-bold">วันที่ส่ง</th>
+                    <th className="py-3.5 px-3 font-bold">วันที่ส่ง</th>
                   )}
+                  <th className="py-3.5 px-3 text-center font-bold">ขั้นที่</th>
                   {hasPerm('search_sort') ? (
-                    <DataTableHeader title="เวลา" sortKey="submittedTime" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-24" />
+                    <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3 text-center" />
                   ) : (
-                    <th className="py-4 w-24 font-bold">เวลา</th>
+                    <th className="py-3.5 px-3 text-center font-bold">สถานะ</th>
                   )}
-                  <th className="py-4 text-center font-bold w-16">ขั้นที่</th>
-                  {hasPerm('search_sort') ? (
-                    <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 text-center w-28" />
-                  ) : (
-                    <th className="py-4 text-center w-28 font-bold">สถานะ</th>
-                  )}
-                  <th className="py-4 pr-4 text-center font-bold w-24">ดำเนินการ</th>
+                  <th className="py-3.5 pr-4 pl-3 text-center font-bold">ดำเนินการ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50/80">
+              <tbody className="divide-y divide-slate-100">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={10} className="text-center py-20 text-slate-400">
+                    <td colSpan={9} className="text-center py-20 text-slate-400">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-amber-500 animate-spin"></div>
                         <span className="text-xs font-bold text-slate-500">กำลังโหลดรายการอนุมัติ...</span>
@@ -434,39 +451,36 @@ export default function ApprovalsInboxPage() {
                       }}
                       className={`transition-colors group ${hasPerm('open_doc_detail') ? 'hover:bg-blue-50/50 cursor-pointer' : 'cursor-default'} ${item.status === "Pending" && (item.rawSubmittedDate || 0) > lastViewed ? 'bg-amber-50/40 border-l-4 border-l-amber-500 shadow-sm' : ''}`}
                     >
-                      <td className="py-4 pl-4">
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border shrink-0 ${getTypeBadgeClass(
-                              item.id
-                            )}`}
-                          >
-                            {getDocTypeLabel(item.id)}
-                          </span>
-                          <div>
-                            <p className="text-sm font-bold text-slate-800 leading-snug group-hover:text-blue-600 transition-colors">
+                      <td className="py-4 pl-4 pr-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <DocTypeBadge docId={item.id} type={item.type} />
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span 
+                              className="text-sm font-bold text-slate-800 truncate"
+                              title={item.name}
+                            >
                               {item.name}
-                            </p>
-                            <span className="text-[10px] font-semibold text-slate-400">
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-semibold block truncate">
                               มูลค่า: {item.amount}
                             </span>
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 text-sm font-mono font-bold text-slate-500">
+                      <td className="py-4 px-3 text-sm font-mono font-bold text-slate-600 whitespace-nowrap">
                         {item.id}
                       </td>
-                      <td className="py-4 text-sm font-semibold text-slate-700">
+                      <td className="py-4 px-3 text-sm font-semibold text-slate-700 truncate" title={item.sender}>
                         {item.sender}
                       </td>
-                      <td className="py-4">
-                        <span className="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md">{item.department}</span>
+                      <td className="py-4 px-3">
+                        <span className="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md inline-block max-w-full truncate" title={item.department}>{item.department}</span>
                       </td>
-                      <td className="py-4 text-xs font-semibold text-slate-700">
+                      <td className="py-4 px-3 text-xs font-semibold text-slate-700">
                         {item.approvers && item.approvers.length > 0 ? (
-                          <div className="flex flex-col gap-1">
+                          <div className="flex flex-col gap-1 min-w-0">
                             {item.approvers.map((name: string, index: number) => (
-                              <span key={index} className="leading-tight block text-slate-600 font-medium">
+                              <span key={index} className="leading-tight block text-slate-600 font-medium truncate" title={name}>
                                 • {name}
                               </span>
                             ))}
@@ -475,23 +489,23 @@ export default function ApprovalsInboxPage() {
                           <span className="text-slate-400 font-normal text-xs">-</span>
                         )}
                       </td>
-                      <td className="py-4 text-sm text-slate-400 font-medium">
-                        {item.submittedDate}
+                      <td className="py-4 px-3 text-sm whitespace-nowrap">
+                        <div className="font-semibold text-slate-700">{item.submittedDate}</div>
+                        {item.submittedTime && item.submittedTime !== "-" && (
+                          <div className="text-[11px] text-slate-400 font-medium">{item.submittedTime}</div>
+                        )}
                       </td>
-                      <td className="py-4 text-sm text-slate-400 font-medium">
-                        {item.submittedTime}
-                      </td>
-                      <td className="py-4 text-center">
-                        <span className="text-xs font-semibold px-2 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                      <td className="py-4 px-3 text-center whitespace-nowrap">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
                           {item.currentLevel} / {item.maxLevels}
                         </span>
                       </td>
-                      <td className="py-4 text-center">
+                      <td className="py-4 px-3 text-center whitespace-nowrap">
                         <Badge variant={getStatusVariant(item.status)}>
                           {item.status}
                         </Badge>
                       </td>
-                      <td className="py-4 pr-4 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-4 pr-4 pl-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         {/* Action buttons — requires open_doc_detail:view */}
                         {hasPerm('open_doc_detail') ? (
                           item.isToApprove ? (
@@ -537,7 +551,7 @@ export default function ApprovalsInboxPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="py-16 text-center text-sm font-medium text-slate-400"
                     >
                       ไม่พบรายการเอกสารในหมวดหมู่นี้

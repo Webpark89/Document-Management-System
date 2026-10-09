@@ -94,21 +94,74 @@ export class WorkflowsService {
             }
           }
 
-          // Fallback if still unassigned
+          // Fallback if still unassigned: check approval matrix for this step, or department manager, then admin
           if (!resolvedApproverId) {
-            const adminUser = await this.prisma.user.findFirst({
+            const creatorUser = await this.prisma.user.findUnique({
+              where: { id: doc.creator_id },
+            });
+            const creatorDeptId = creatorUser?.department_id;
+
+            // Try resolving by approval matrix required_role for this step_order
+            const matrixStep = await this.prisma.approvalMatrix.findFirst({
               where: {
-                role: { name: 'Administrator' },
-                is_active: true,
-                is_deleted: false,
+                document_type_id: doc.type_id,
+                step_order: s.step_order,
               },
             });
-            const fallbackUser =
-              adminUser ||
-              (await this.prisma.user.findFirst({
-                where: { is_active: true, is_deleted: false },
-              }));
-            resolvedApproverId = fallbackUser?.id || null;
+
+            if (matrixStep) {
+              if (creatorDeptId) {
+                const deptApprover = await this.prisma.user.findFirst({
+                  where: {
+                    role_id: matrixStep.required_role_id,
+                    department_id: creatorDeptId,
+                    is_active: true,
+                    is_deleted: false,
+                  },
+                });
+                if (deptApprover) resolvedApproverId = deptApprover.id;
+              }
+              if (!resolvedApproverId) {
+                const roleApprover = await this.prisma.user.findFirst({
+                  where: {
+                    role_id: matrixStep.required_role_id,
+                    is_active: true,
+                    is_deleted: false,
+                  },
+                });
+                if (roleApprover) resolvedApproverId = roleApprover.id;
+              }
+            }
+
+            // If still unassigned, try creator's department manager
+            if (!resolvedApproverId && creatorDeptId) {
+              const deptManager = await this.prisma.user.findFirst({
+                where: {
+                  department_id: creatorDeptId,
+                  role: { name: 'Manager' },
+                  is_active: true,
+                  is_deleted: false,
+                },
+              });
+              if (deptManager) resolvedApproverId = deptManager.id;
+            }
+
+            // Final fallback to Administrator
+            if (!resolvedApproverId) {
+              const adminUser = await this.prisma.user.findFirst({
+                where: {
+                  role: { name: 'Administrator' },
+                  is_active: true,
+                  is_deleted: false,
+                },
+              });
+              const fallbackUser =
+                adminUser ||
+                (await this.prisma.user.findFirst({
+                  where: { is_active: true, is_deleted: false },
+                }));
+              resolvedApproverId = fallbackUser?.id || null;
+            }
           }
 
           return {
@@ -404,15 +457,20 @@ export class WorkflowsService {
         docId: doc.doc_number || doc.id,
         docName: doc.title,
         name: doc.title,
-        type: doc.type?.prefix || 'PR',
+        type: doc.type?.prefix || (doc.doc_number || doc.id || '').split('-')[0] || 'DOC',
+        doc_type: doc.type?.type_name || 'เอกสารทั่วไป',
         sender: creatorName,
+        requester: creatorName,
+        department: doc.creator?.department?.name || 'ไม่ระบุ',
         approvers,
         submittedDate: doc.created_at,
         amount,
         status: doc.status,
         stepStatus: s.status,
         stepOrder: s.step_order,
+        currentLevel: s.step_order,
         totalSteps: s.workflow.total_steps,
+        maxLevels: s.workflow.total_steps,
         comment: s.comment,
       };
     });

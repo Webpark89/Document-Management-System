@@ -11,7 +11,8 @@ import {
   Eye, 
   CheckCircle2, 
   XCircle, 
-  RotateCcw
+  RotateCcw,
+  FileEdit
    
    
    
@@ -19,6 +20,7 @@ import {
    
    
 import PageHeader from '@views/components/shared/PageHeader';
+import DocTypeBadge from '@views/components/shared/DocTypeBadge';
    
    
 import { getDocuments } from '@views/features/documents/api';
@@ -44,6 +46,7 @@ export interface ApprovalHistoryItem {
   actionDate: string;
   comment?: string;
   level: string;
+  type?: string;
 }
 
 const MOCK_APPROVAL_HISTORY: ApprovalHistoryItem[] = [
@@ -252,6 +255,14 @@ export default function ApprovalHistoryPage() {
     }
   };
 
+  const getTypeBadgeClass = (id: string) => {
+    if (id.startsWith("PR")) return "bg-blue-50 text-blue-700 border-blue-200";
+    if (id.startsWith("PO")) return "bg-purple-50 text-purple-700 border-purple-200";
+    if (id.startsWith("CERT")) return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    if (id.startsWith("DOC") || id.startsWith("BK")) return "bg-amber-50 text-amber-700 border-amber-200";
+    return "bg-slate-50 text-slate-700 border-slate-200";
+  };
+
   return (
     <div className={APP_PAGE_SHELL}>
       <div className={APP_PAGE_CONTENT}>
@@ -322,20 +333,29 @@ export default function ApprovalHistoryPage() {
           </div>
 
           {/* TABLE */}
-          <div className="overflow-x-auto border border-slate-100/50 rounded-2xl">
-            <table className="w-full table-fixed text-left border-collapse min-w-[900px]">
+          <div className="overflow-x-auto border border-slate-200/80 rounded-2xl bg-white shadow-2xs">
+            <table className="w-full table-fixed text-left border-collapse min-w-[1100px]">
+              <colgroup>
+                <col className="w-[160px]" />
+                <col className="w-[280px]" />
+                <col className="w-[130px]" />
+                <col className="w-[130px]" />
+                <col className="w-[130px]" />
+                <col className="w-[180px]" />
+                <col className="w-[110px]" />
+              </colgroup>
               <thead>
-                <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <DataTableHeader title="วันเวลาดำเนินการ" sortKey="actionDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 pl-4 w-44" />
-                  <th className="py-4 font-bold">ข้อมูลเอกสาร</th>
-                  <DataTableHeader title="รหัสเอกสาร" sortKey="docId" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-32" />
-                  <DataTableHeader title="ผู้ขออนุมัติ" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 w-36" />
-                  <DataTableHeader title="ผลการพิจารณา" sortKey="action" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 text-center w-36" />
-                  <th className="py-4 font-bold w-56">หมายเหตุ / เหตุผล</th>
-                  <th className="py-4 pr-4 text-center font-bold w-24">ดำเนินการ</th>
+                <tr className="bg-slate-50/70 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <DataTableHeader title="วันเวลาดำเนินการ" sortKey="actionDate" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 pl-4 pr-3" />
+                  <th className="py-3.5 px-3 font-bold">ข้อมูลเอกสาร</th>
+                  <DataTableHeader title="รหัสเอกสาร" sortKey="docId" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
+                  <DataTableHeader title="ผู้ขออนุมัติ" sortKey="requester" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3" />
+                  <DataTableHeader title="ผลการพิจารณา" sortKey="action" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3.5 px-3 text-center" />
+                  <th className="py-3.5 px-3 font-bold">หมายเหตุ / เหตุผล</th>
+                  <th className="py-3.5 pr-4 pl-3 text-center font-bold">ดำเนินการ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50/80">
+              <tbody className="divide-y divide-slate-100">
                 {paginatedItems.length > 0 ? (
                   paginatedItems.map((item) => (
                     <tr 
@@ -343,30 +363,35 @@ export default function ApprovalHistoryPage() {
                       onClick={() => router.push(`/approvals/${item.docId}`)}
                       className="hover:bg-blue-50/50 transition-colors group cursor-pointer"
                     >
-                      <td className="py-4 pl-4 text-xs font-semibold text-slate-500">
+                      <td className="py-4 pl-4 pr-3 text-xs font-semibold text-slate-500 whitespace-nowrap">
                         {formatThaiDate(item.actionDate, true)}
                       </td>
-                      <td className="py-4">
-                        <p className="text-sm font-bold text-slate-800 leading-snug group-hover:text-blue-600 transition-colors">
-                          {item.docName}
-                        </p>
-                        <span className="text-[10px] font-semibold text-slate-400">
-                          มูลค่า: {item.amount} · ขั้นตอน: {item.level}
-                        </span>
+                      <td className="py-4 px-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <DocTypeBadge docId={item.docId} type={item.type} />
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-sm font-bold text-slate-800 leading-snug group-hover:text-blue-600 transition-colors truncate" title={item.docName}>
+                              {item.docName}
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-400 block truncate">
+                              มูลค่า: {item.amount} · ขั้นตอน: {item.level}
+                            </span>
+                          </div>
+                        </div>
                       </td>
-                      <td className="py-4 text-sm font-mono font-bold text-slate-500">
+                      <td className="py-4 px-3 text-sm font-mono font-bold text-slate-600 whitespace-nowrap">
                         {item.docId}
                       </td>
-                      <td className="py-4 text-sm font-semibold text-slate-700">
+                      <td className="py-4 px-3 text-sm font-semibold text-slate-700 truncate" title={item.requester}>
                         {item.requester}
                       </td>
-                      <td className="py-4 text-center">
+                      <td className="py-4 px-3 text-center whitespace-nowrap">
                         {getActionBadge(item.action)}
                       </td>
-                      <td className="py-4 text-xs text-slate-600 font-medium truncate max-w-[200px]" title={item.comment}>
+                      <td className="py-4 px-3 text-xs text-slate-600 font-medium truncate" title={item.comment}>
                         {item.comment || "-"}
                       </td>
-                      <td className="py-4 pr-4 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-4 pr-4 pl-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <Link
                           href={`/approvals/${item.docId}`}
                           className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 mx-auto cursor-pointer"

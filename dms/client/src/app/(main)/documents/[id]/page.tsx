@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, History, FileText, AlertCircle } from "lucide-react";
-import { getDocumentById } from '@views/features/documents/api';
+import { ArrowLeft, History, FileText, AlertCircle, Download, Loader2 } from "lucide-react";
+import { getDocumentById, downloadDocument } from '@views/features/documents/api';
 import { getWorkflow } from '@views/features/workflow/api';
 import { WorkflowTracker } from '@views/components/workflow/WorkflowTracker';
 import { DocumentPreview } from '@views/components/documents/DocumentPreview';
@@ -15,6 +15,7 @@ import { getStatusVariant } from "@/lib/document-status";
 import { CancelDocumentButton } from '@views/components/documents/CancelDocumentButton';
 import { ResubmitButton } from '@views/components/documents/ResubmitButton';
 import { useAuth } from '@views/components/providers/AuthProvider';
+import { useToast } from '@views/components/providers/ToastProvider';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -24,11 +25,30 @@ export default function DocumentDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const hasPerm = (itemKey: string, action: string = 'view') =>
     !!user?.permissions?.includes(`document.${itemKey}:${action}`);
   const [doc, setDoc] = useState<any>(null);
   const [workflow, setWorkflow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (!doc) return;
+    const docId = doc.real_id || doc.id;
+    const docNum = doc.doc_number || doc.id;
+    try {
+      setIsDownloading(true);
+      showToast(`กำลังดาวน์โหลดเอกสาร ${docNum}...`, "info");
+      await downloadDocument(docId, undefined, `${docNum}.pdf`);
+      showToast(`ดาวน์โหลดเอกสาร ${docNum} สำเร็จแล้ว`, "success");
+    } catch (err: any) {
+      console.error("Download failed", err);
+      showToast(err.message || `เกิดข้อผิดพลาดในการดาวน์โหลดเอกสาร ${docNum}`, "error");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   useEffect(() => {
     Promise.all([getDocumentById(id), getWorkflow(id)]).then(([d, w]) => {
@@ -98,6 +118,22 @@ export default function DocumentDetailPage({ params }: PageProps) {
             <CancelDocumentButton document={doc} />
           )}
           
+          {hasPerm('download_document') && (
+            <button
+              type="button"
+              disabled={isDownloading}
+              onClick={handleDownload}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all shadow-xs cursor-pointer disabled:opacity-50"
+            >
+              {isDownloading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              ดาวน์โหลด (Download)
+            </button>
+          )}
+
           {hasPerm('view_version_history') && (
             <Link
               href={`/documents/${doc.id}/versions`}

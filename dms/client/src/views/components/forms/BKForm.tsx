@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { Save, Send, FileCode2, UploadCloud } from "lucide-react";
@@ -17,6 +17,7 @@ export interface BKSubmitData {
   category: string;
   detail: string;
   attachmentFileName?: string;
+  visibility?: VisibilityData;
   workflowSteps: WorkflowStepInput[];
   isDraft: boolean;
 }
@@ -132,6 +133,7 @@ export default function BKForm({
       department,
       category,
       detail,
+      visibility,
       workflowSteps,
       isDraft,
     });
@@ -141,7 +143,6 @@ export default function BKForm({
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        triggerSubmit(false);
       }}
       className="space-y-6"
     >
