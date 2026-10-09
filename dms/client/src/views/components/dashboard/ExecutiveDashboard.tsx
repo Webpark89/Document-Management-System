@@ -178,7 +178,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
   const deptPendingData = useMemo(() => {
     const counts: Record<string, number> = {};
     const docsByDept: Record<string, any[]> = {};
-    filteredData.filter(d => d.status === 'Pending').forEach(d => {
+    filteredData.forEach(d => {
       const dept = d.department || 'ไม่ระบุ';
       counts[dept] = (counts[dept] || 0) + 1;
       if (!docsByDept[dept]) docsByDept[dept] = [];
@@ -187,7 +187,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value, docs: docsByDept[name] }))
       .sort((a, b) => b.value - a.value)
-      .slice(0, 5); // top 5
+      
   }, [filteredData]);
 
   const recentActivity = useMemo(() => {
@@ -381,7 +381,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
         {showPendingDeptChart && (
           <div className={`lg:col-span-1 ${APP_CARD_LG} flex flex-col`}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-sm font-bold text-slate-800">เอกสารรออนุมัติแยกตามแผนก (Top 5)</h3>
+              <h3 className="text-sm font-bold text-slate-800">เอกสารรออนุมัติแยกตามแผนก </h3>
               <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
                 <Clock className="w-4 h-4" />
               </div>

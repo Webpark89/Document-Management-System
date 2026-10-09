@@ -169,7 +169,7 @@ export class DocumentsService {
 
     const where: Prisma.DocumentWhereInput = { is_deleted: false };
 
-    const canViewAll = currentUserRole === 'Administrator' || permissions.includes('submissions.view_all:view') || permissions.includes('document.view_all:view');
+    const canViewAll = permissions.includes('submissions.view_all:view') || permissions.includes('document.view_all:view');
 
     if (!canViewAll && currentUserId) {
       const userObj = await this.prisma.user.findUnique({ where: { id: currentUserId } });

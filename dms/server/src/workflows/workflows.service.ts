@@ -315,7 +315,13 @@ export class WorkflowsService {
   }
 
   async getApprovalsForUser(userId: string, canViewAll: boolean = false) {
-    const whereClause: any = {};
+    const whereClause: any = {
+      status: 'Pending',
+      workflow: {
+        status: 'Pending',
+      },
+    };
+    
     if (!canViewAll) {
       whereClause.approver_id = userId;
     }

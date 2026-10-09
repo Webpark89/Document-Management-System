@@ -31,7 +31,7 @@ export class WorkflowsController {
   @Get('approvals')
   async getApprovals(@CurrentUser() user: any) {
     const permissions = user.permissions || [];
-    const canViewAll = permissions.includes('approvals.view_all:view') || user.role === 'Administrator';
+    const canViewAll = permissions.includes('approvals.view_all:view');
     return this.workflowsService.getApprovalsForUser(user.id, canViewAll);
   }
 
