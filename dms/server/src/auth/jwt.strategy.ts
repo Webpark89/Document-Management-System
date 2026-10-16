@@ -1,11 +1,14 @@
+import * as crypto from 'crypto';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import type { Request } from 'express';
+import { normalizeDashboardPermissions } from '../common/dashboard-permissions';
 
 export interface JwtPayload {
   sub: string;
+  credential_version: string;
   username: string;
   role: string;
 }
@@ -53,9 +56,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       },
     });
 
-    if (!user || !user.is_active) {
+    if (!user || !user.is_active || user.is_deleted || !user.role?.is_active) {
       throw new UnauthorizedException('User inactive or not found');
     }
+
+    if (
+      payload.credential_version !==
+      crypto.createHash('sha256').update(user.password_hash).digest('hex')
+    )
+      throw new UnauthorizedException(
+        'รหัสผ่านเปลี่ยนแล้ว กรุณาเข้าสู่ระบบใหม่',
+      );
 
     const empId = (() => {
       if (user.username === 'admin') return 'EMP-00001';
@@ -72,16 +83,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       username: user.username,
       full_name: `${user.first_name} ${user.last_name}`,
       role: user.role?.name || 'Employee',
+      role_id: user.role_id,
+      department_id: user.department_id,
       department: user.department?.name || null,
       email: user.email,
       position: user.position?.name || null,
       signature_url: user.signature_encrypted
         ? `/api/users/${user.id}/signature`
         : null,
-      permissions:
+      permissions: normalizeDashboardPermissions(
         user.role?.permissions.map(
           (p) => `${p.permission.module}:${p.permission.action}`,
         ) || [],
+      ),
     };
   }
 }

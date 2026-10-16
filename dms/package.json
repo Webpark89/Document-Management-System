@@ -16,7 +16,10 @@
     "predev": "npx kill-port 3000 4000",
     "prestart": "npx kill-port 3000 4000",
     "start": "concurrently -p \"[{name}]\" -n \"Server,Client\" -c \"green,magenta\" --kill-others-on-fail \"npm run start:prod --workspace=server\" \"npm run start:client-wait\"",
-    "start:client-wait": "npx wait-on tcp:127.0.0.1:4000 --timeout 60000 && npm run start --workspace=client"
+    "start:client-wait": "npx wait-on tcp:127.0.0.1:4000 --timeout 60000 && npm run start --workspace=client",
+    "test:flow": "npm run test:e2e --workspace=server",
+    "test:api-client": "node --test scripts/verify-api-client.cjs",
+    "test:dashboard": "node --test scripts/verify-dashboard.cjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

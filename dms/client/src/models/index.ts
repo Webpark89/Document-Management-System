@@ -1,7 +1,17 @@
 // Document Models & Types (Aligned with Nissui Requirements)
 
-export type DocumentStatus = "Draft" | "Pending" | "Approved" | "Rejected" | "Cancelled" | "Returned";
+export type DocumentStatus =
+  "Draft" | "Pending" | "Approved" | "Rejected" | "Cancelled" | "Returned";
 export type DocumentType = string;
+export interface ApprovalSignatureInput {
+  signature_x?: number;
+  signature_y?: number;
+  signature_page?: number;
+  signature_width?: number;
+  signature_height?: number;
+  annotation_text?: string;
+  date_stamp?: boolean;
+}
 
 export interface Document {
   id: string;
@@ -105,8 +115,10 @@ export interface User {
 }
 
 // Permission Model
-export type PermissionAction = "View" | "Create" | "Edit" | "Delete" | "Approve";
-export type PermissionModule = "Document" | "User" | "Workflow" | "Master Data" | "Audit Log";
+export type PermissionAction =
+  "View" | "Create" | "Edit" | "Delete" | "Approve";
+export type PermissionModule =
+  "Document" | "User" | "Workflow" | "Master Data" | "Audit Log";
 
 export interface Permission {
   id: string;
@@ -154,7 +166,16 @@ export interface AuditLog {
   user_id: string;
   username: string;
   user_fullname: string;
-  action: "Login" | "Upload" | "Download" | "View" | "Edit" | "Delete" | "Approve" | "Reject" | "Signature";
+  action:
+    | "Login"
+    | "Upload"
+    | "Download"
+    | "View"
+    | "Edit"
+    | "Delete"
+    | "Approve"
+    | "Reject"
+    | "Signature";
   module: string;
   target_id?: string;
   details?: {

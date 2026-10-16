@@ -1,0 +1,145 @@
+{
+  "date": "2026-10-15",
+  "kind": "PostgreSQL and Nest HTTP integration using isolated scratch schema",
+  "schema": "codex_flow_1792033520790_f008fe",
+  "primaryBefore": {
+    "documents": 127,
+    "versions": 252,
+    "users": 8
+  },
+  "primaryAfter": {
+    "documents": 128,
+    "versions": 254,
+    "users": 8
+  },
+  "total": 31,
+  "passed": 30,
+  "failed": 1,
+  "results": [
+    {
+      "name": "HTTP requires authentication for documents/workflow/signature",
+      "status": "PASS"
+    },
+    {
+      "name": "Empty-permission user cannot change approval master",
+      "status": "PASS"
+    },
+    {
+      "name": "Signature accepts real PNG; rejects corrupt bytes and SVG",
+      "status": "PASS"
+    },
+    {
+      "name": "Creation permission and nested item input enforced",
+      "status": "PASS"
+    },
+    {
+      "name": "Invalid master update preserves previous steps",
+      "status": "PASS"
+    },
+    {
+      "name": "PR: Draft, private visibility, named approvals, signed download, immutable versions",
+      "status": "PASS"
+    },
+    {
+      "name": "PO: Draft, private visibility, named approvals, signed download, immutable versions",
+      "status": "PASS"
+    },
+    {
+      "name": "BK: Draft, private visibility, named approvals, signed download, immutable versions",
+      "status": "PASS"
+    },
+    {
+      "name": "DOC: Draft, private visibility, named approvals, signed download, immutable versions",
+      "status": "PASS"
+    },
+    {
+      "name": "Return/edit/resubmit preserves previous form and previous workflow history",
+      "status": "PASS"
+    },
+    {
+      "name": "DOC edit reuses existing file without uploading a replacement",
+      "status": "PASS"
+    },
+    {
+      "name": "Cancel stops inbox and prevents approval; soft delete is separate",
+      "status": "PASS"
+    },
+    {
+      "name": "Concurrent creation allocates distinct running numbers",
+      "status": "PASS"
+    },
+    {
+      "name": "Concurrent approvals have one winner and one conflict",
+      "status": "PASS"
+    },
+    {
+      "name": "Signature/PDF failure rolls back step, document and versions",
+      "status": "PASS"
+    },
+    {
+      "name": "Inactive user and inactive role invalidate existing JWT",
+      "status": "PASS"
+    },
+    {
+      "name": "Notification read_at and user scope",
+      "status": "PASS"
+    },
+    {
+      "name": "Running settings persist and partial update keeps year valid",
+      "status": "PASS"
+    },
+    {
+      "name": "Master departments use soft delete and can be restored",
+      "status": "PASS"
+    },
+    {
+      "name": "Folder visibility, document visibility and move permissions are enforced",
+      "status": "PASS"
+    },
+    {
+      "name": "Signature management persists, clears original only, preserves signed PDF",
+      "status": "PASS"
+    },
+    {
+      "name": "Dashboard respects visibility; returns real counts",
+      "status": "PASS"
+    },
+    {
+      "name": "Password reset delivers through local SMTP sink, consumes token once and revokes old JWT",
+      "status": "PASS"
+    },
+    {
+      "name": "Legacy current version freezes before editing or approval",
+      "status": "PASS"
+    },
+    {
+      "name": "Admin creates users with chosen password and inactive status; password reset revokes sessions",
+      "status": "PASS"
+    },
+    {
+      "name": "Custom master document type uploads and signs a PDF using its own matrix",
+      "status": "PASS"
+    },
+    {
+      "name": "Company settings persist and previous versions keep their frozen company",
+      "status": "PASS"
+    },
+    {
+      "name": "Version history permission protects history API and historical file reads",
+      "status": "PASS"
+    },
+    {
+      "name": "Later approvals preserve prior signer image and creator image after profile changes",
+      "status": "PASS"
+    },
+    {
+      "name": "My Submissions lists 200 documents with a 3 MB signer profile without duplicating binary data",
+      "status": "PASS"
+    },
+    {
+      "name": "Read-only primary schema unchanged by tests",
+      "status": "FAIL",
+      "detail": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   documents: 128,\n-   documents: 127,\n    users: 8,\n+   versions: 254\n-   versions: 252\n  }\n | get /documents/bee5a663-f7f9-47a7-b089-3f27bc90660f/download?v=1&download=true ไม่มีสิทธิ์ดำเนินการนี้"
+    }
+  ]
+}

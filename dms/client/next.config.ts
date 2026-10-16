@@ -7,11 +7,12 @@ const appRoot = path.dirname(fileURLToPath(import.meta.url));
 const monorepoRoot = path.resolve(appRoot, "..");
 
 const nextConfig: any = {
+  distDir: process.env.DMS_DIST_DIR || ".next",
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: "http://127.0.0.1:4000/api/:path*",
+        destination: `${process.env.DMS_BACKEND_URL || "http://127.0.0.1:4000"}/api/:path*`,
       },
     ];
   },
@@ -21,7 +22,7 @@ const nextConfig: any = {
   outputFileTracingRoot: monorepoRoot,
 
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   serverExternalPackages: [],
 
@@ -30,9 +31,9 @@ const nextConfig: any = {
     keepAlive: true,
   },
 
-  // Give backend up to 30s to respond — prevents 504/ECONNREFUSED on cold start
+  // PDF transactions can wait 30s for a connection and run for up to 60s.
   experimental: {
-    proxyTimeout: 30_000,
+    proxyTimeout: 120_000,
   },
 };
 
@@ -40,7 +41,7 @@ const nextConfig: any = {
 if (process.env.NODE_ENV !== "production") {
   // Merge, preserving proxyTimeout set above
   (nextConfig as any).experimental = {
-    proxyTimeout: 30_000,
+    proxyTimeout: 120_000,
     ...((nextConfig as any).experimental || {}),
   };
   (nextConfig as any).devIndicators = {
@@ -48,8 +49,12 @@ if (process.env.NODE_ENV !== "production") {
   };
 }
 
-
 // Allow local network IP for HMR WebSocket
-nextConfig.allowedDevOrigins = ['192.168.1.59', '192.168.1.57', '127.0.0.1', 'localhost'];
+nextConfig.allowedDevOrigins = [
+  "192.168.1.59",
+  "192.168.1.57",
+  "127.0.0.1",
+  "localhost",
+];
 
 export default nextConfig;

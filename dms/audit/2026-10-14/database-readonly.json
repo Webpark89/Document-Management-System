@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-14",
+  "environment": {
+    "databaseConfigured": true,
+    "jwtSecretConfigured": true,
+    "encryptionKeyConfigured": false,
+    "smtpHostConfigured": false,
+    "smtpUserConfigured": false,
+    "smtpPasswordConfigured": false,
+    "databaseIsLoopback": true
+  },
+  "readOnly": true,
+  "database": {
+    "documents": 127,
+    "versions": 252,
+    "users": 8,
+    "documentTypes": [
+      {
+        "prefix": "PR",
+        "is_active": true,
+        "approval_matrix": [
+          {
+            "step_order": 1
+          },
+          {
+            "step_order": 2
+          },
+          {
+            "step_order": 3
+          }
+        ]
+      },
+      {
+        "prefix": "PO",
+        "is_active": true,
+        "approval_matrix": [
+          {
+            "step_order": 1
+          },
+          {
+            "step_order": 2
+          }
+        ]
+      },
+      {
+        "prefix": "BK",
+        "is_active": true,
+        "approval_matrix": [
+          {
+            "step_order": 1
+          }
+        ]
+      },
+      {
+        "prefix": "DOC",
+        "is_active": true,
+        "approval_matrix": [
+          {
+            "step_order": 1
+          }
+        ]
+      }
+    ],
+    "visibility": [
+      {
+        "_count": {
+          "_all": 127
+        },
+        "visibility_type": "CompanyWide"
+      }
+    ],
+    "workflowStatusMismatch": [
+      {
+        "count": 0
+      }
+    ],
+    "duplicateVersions": [
+      {
+        "count": 0
+      }
+    ],
+    "signedStepsWithoutPdf": [
+      {
+        "count": 95
+      }
+    ],
+    "deletedDocumentsInPendingWorkflow": [
+      {
+        "count": 0
+      }
+    ]
+  },
+  "status": "CONNECTED"
+}

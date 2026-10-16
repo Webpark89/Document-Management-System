@@ -36,13 +36,13 @@ export function ResubmitButton({ documentId, docStatus, onSuccess }: ResubmitBut
       const ok = await workflowsService.submitWorkflow(documentId);
       if (ok) {
         showToast("ส่งขออนุมัติใหม่อีกครั้งเรียบร้อยแล้ว (Resubmitted)", "success");
-        onSuccess?.();
-        router.refresh();
+        if (onSuccess) onSuccess();
+        else router.refresh();
       } else {
         showToast("เกิดข้อผิดพลาดในการส่งขออนุมัติใหม่", "error");
       }
-    } catch {
-      showToast("เกิดข้อผิดพลาดในการส่งขออนุมัติใหม่", "error");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการส่งขออนุมัติใหม่", "error");
     } finally {
       setIsSubmitting(false);
     }

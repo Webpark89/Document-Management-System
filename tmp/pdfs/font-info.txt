@@ -1,0 +1,7 @@
+PAGE SIZE (595.32, 841.92)
+PAGE 1 FONTS [(('BCDGEE+TH SarabunPSK,Bold', 20.04), 175), (('BCDHEE+TH SarabunPSK,Bold', 20.04), 14), (('BCDEEE+Aptos', 11.04), 2), (('BCDFEE+TH SarabunPSK', 11.04), 2), (('BCDFEE+TH SarabunPSK', 20.04), 1), (('BCDIEE+TH SarabunPSK', 20.04), 1)]
+PAGE 3 FONTS [(('BCDIEE+TH SarabunPSK', 15.96), 836), (('BCDFEE+TH SarabunPSK', 15.96), 48), (('BCDFEE+TH SarabunPSK', 11.04), 6), (('BCDFEE+TH SarabunPSK', 12.0), 4), (('BCDEEE+Aptos', 11.04), 2), (('BCDJEE+CordiaNew', 14.04), 1)]
+PAGE 4 FONTS [(('BCDIEE+TH SarabunPSK', 15.96), 1188), (('BCDIEE+TH SarabunPSK', 14.04), 60), (('BCDFEE+TH SarabunPSK', 15.96), 16), (('BCDGEE+TH SarabunPSK,Bold', 15.96), 8), (('BCDFEE+TH SarabunPSK', 14.04), 6), (('BCDEEE+Aptos', 11.04), 2)]
+PAGE 15 FONTS [(('BCDIEE+TH SarabunPSK', 15.96), 1054), (('BCDGEE+TH SarabunPSK,Bold', 15.96), 145), (('BCDFEE+TH SarabunPSK', 15.96), 19), (('BCDGEE+TH SarabunPSK,Bold', 18.0), 11), (('BCDHEE+TH SarabunPSK,Bold', 15.96), 7), (('BCDEEE+Aptos', 11.04), 2)]
+PAGE 36 FONTS [(('BCDIEE+TH SarabunPSK', 15.96), 1065), (('BCDFEE+TH SarabunPSK', 15.96), 31), (('BCDJEE+CordiaNew', 14.04), 2), (('BCDEEE+Aptos', 11.04), 2)]
+PAGE 54 FONTS [(('BCDIEE+TH SarabunPSK', 15.96), 618), (('BCDFEE+TH SarabunPSK', 15.96), 66), (('BCDGEE+TH SarabunPSK,Bold', 15.96), 18), (('BCDFEE+TH SarabunPSK', 0.48), 4), (('BCDJEE+CordiaNew', 14.04), 2), (('BCDEEE+Aptos', 11.04), 2)]

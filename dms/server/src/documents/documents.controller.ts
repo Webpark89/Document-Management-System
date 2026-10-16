@@ -1,28 +1,39 @@
 import {
+  BadRequestException,
+  Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Put,
-  Delete,
-  Param,
   Query,
-  Body,
+  Req,
+  Res,
+  UploadedFile,
   UseGuards,
   UseInterceptors,
-  UploadedFile,
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
-  BadRequestException,
-  Res,
-  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { plainToInstance } from 'class-transformer';
+import { validateOrReject } from 'class-validator';
 import type { Request, Response } from 'express';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
+import { permissions, requirePermission } from '../common/document-policy';
+import type { Actor } from '../common/document-policy';
+
+const pdfPipe = new ParseFilePipe({
+  validators: [
+    new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
+    new FileTypeValidator({ fileType: 'application/pdf' }),
+  ],
+});
 
 @UseGuards(JwtAuthGuard)
 @Controller('documents')
@@ -30,13 +41,13 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Get()
-  async findAll(
+  findAll(
+    @CurrentUser() user: Actor,
     @Query('status') status?: string,
     @Query('type') type?: string,
     @Query('search') search?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-    @CurrentUser() user?: { id: string; role: string; permissions?: string[] },
   ) {
     return this.documentsService.findAll({
       status,
@@ -44,161 +55,172 @@ export class DocumentsController {
       search,
       page,
       limit,
-      currentUserId: user?.id,
-      currentUserRole: user?.role,
-      permissions: user?.permissions,
+      currentUserId: user.id,
     });
   }
 
   @Get(':id')
   async findOne(
     @Param('id') id: string,
-    @CurrentUser() user?: { id: string; role: string },
-    @Req() req?: Request,
+    @CurrentUser() user: Actor,
+    @Req() request: Request,
   ) {
     const doc = await this.documentsService.findOne(id, user);
-    if (user && req) {
-      const ip =
-        req.headers['x-forwarded-for'] ||
-        req.socket?.remoteAddress ||
-        '127.0.0.1';
-      void void this.documentsService.logAction(
-        user.id,
-        'View',
-        doc.real_id,
-        Array.isArray(ip) ? ip[0] : ip,
-        doc.id,
-      );
-    }
+    await this.documentsService.logAction(
+      user.id,
+      'View',
+      doc.real_id,
+      request.ip ?? '',
+      doc.doc_number,
+    );
     return doc;
   }
 
   @Get(':id/versions')
-  async findVersions(@Param('id') id: string, @CurrentUser() user?: any) {
-    const doc = await this.documentsService.findOne(id, user);
-    return doc.versions || [];
+  async versions(@Param('id') id: string, @CurrentUser() user: Actor) {
+    requirePermission(user, permissions.history);
+    return (await this.documentsService.findOne(id, user)).versions;
   }
 
   @Get(':id/signed-url')
-  async getSignedUrl(@Param('id') id: string) {
-    return this.documentsService.getLatestVersionDownloadUrl(id);
+  signedUrl(@Param('id') id: string, @CurrentUser() user: Actor) {
+    return this.documentsService.getLatestVersionDownloadUrl(id, user);
   }
 
   @Get(':id/download')
-  async downloadFile(
+  async download(
     @Param('id') id: string,
-    @Res() res: Response,
-    @Query('v') version?: number,
-    @Query('download') isDownload?: string,
-    @CurrentUser() user?: { id: string; role: string },
-    @Req() req?: Request,
+    @CurrentUser() user: Actor,
+    @Res() response: Response,
+    @Req() request: Request,
+    @Query('v') version?: string,
+    @Query('download') download?: string,
   ) {
     const { buffer, filename } = await this.documentsService.getFileBuffer(
       id,
-      version ? Number(version) : undefined,
+      version === undefined ? undefined : Number(version),
+      user,
+      !(download === 'true' || download === '1'),
     );
-    if (user && req) {
-      const ip =
-        req.headers['x-forwarded-for'] ||
-        req.socket?.remoteAddress ||
-        '127.0.0.1';
-      this.documentsService.logAction(
-        user.id,
-        'Download',
-        id,
-        Array.isArray(ip) ? ip[0] : ip,
-        id,
-      );
-    }
-    const dispositionType =
-      isDownload === 'true' || isDownload === '1' ? 'attachment' : 'inline';
-    const encodedFilename = encodeURIComponent(filename);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
+    const doc = await this.documentsService.getDocument(id);
+    await this.documentsService.logAction(
+      user.id,
+      'Download',
+      doc.id,
+      request.ip ?? '',
+      doc.doc_number,
+    );
+    response.setHeader('Content-Type', 'application/pdf');
+    response.setHeader('Cache-Control', 'private, no-store');
+    response.setHeader(
       'Content-Disposition',
-      `${dispositionType}; filename="${filename}"; filename*=UTF-8''${encodedFilename}`,
+      `${download === 'true' || download === '1' ? 'attachment' : 'inline'}; filename="document.pdf"; filename*=UTF-8''${encodeURIComponent(filename)}`,
     );
-    res.send(buffer);
+    response.send(buffer);
+  }
+
+  @Get(':id/versions/:version/signatures/:step')
+  async signature(
+    @Param('id') id: string,
+    @Param('version') version: string,
+    @Param('step') step: string,
+    @CurrentUser() user: Actor,
+    @Res() response: Response,
+  ) {
+    const image = await this.documentsService.getVersionSignature(
+      id,
+      Number(version),
+      Number(step),
+      user,
+    );
+    response.setHeader('Content-Type', image.mimeType);
+    response.setHeader('Cache-Control', 'private, no-store');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.send(image.buffer);
   }
 
   @Post()
-  async create(
-    @Body() dto: CreateDocumentDto,
-    @CurrentUser() user: { id: string; role: string },
-  ) {
+  create(@Body() dto: CreateDocumentDto, @CurrentUser() user: Actor) {
     return this.documentsService.create(dto, user.id);
   }
 
+  private async uploadDto(
+    body: Record<string, string>,
+  ): Promise<CreateDocumentDto> {
+    try {
+      const value = body.payload
+        ? JSON.parse(body.payload)
+        : {
+            ...body,
+            prefix: body.prefix || 'DOC',
+            items: body.items ? JSON.parse(body.items) : undefined,
+            visibility: body.visibility
+              ? JSON.parse(body.visibility)
+              : undefined,
+          };
+      const dto = plainToInstance(CreateDocumentDto, value);
+      await validateOrReject(dto, {
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      });
+      return dto;
+    } catch {
+      throw new BadRequestException('ข้อมูลเอกสารไม่ถูกต้อง');
+    }
+  }
+
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadDocument(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: 'application/pdf' }),
-        ],
-        fileIsRequired: true,
-      }),
-    )
-    file: Express.Multer.File,
-    @Body()
-    body: {
-      title?: string;
-      prefix?: string;
-      purpose?: string;
-      items?: string;
-      approver_ids?: string | string[];
-    },
-    @CurrentUser() user: { id: string; role: string },
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }),
+  )
+  async upload(
+    @UploadedFile(pdfPipe) file: Express.Multer.File,
+    @Body() body: Record<string, string>,
+    @CurrentUser() user: Actor,
   ) {
-    if (!body.title) {
-      throw new BadRequestException('กรุณาระบุชื่อเอกสาร');
-    }
-
-    let approverIds: string[] = [];
-    if (body.approver_ids) {
-      try {
-        approverIds =
-          typeof body.approver_ids === 'string'
-            ? (JSON.parse(body.approver_ids) as string[])
-            : body.approver_ids;
-      } catch {
-        approverIds = [];
-      }
-    }
-
-    const dto: CreateDocumentDto = {
-      title: body.title || 'Untitled',
-      prefix: body.prefix || 'DOC',
-      purpose: body.purpose,
-      items: body.items ? (JSON.parse(body.items) as any[]) : [],
-    };
-
     return this.documentsService.createWithFile(
-      dto,
+      await this.uploadDto(body),
       user.id,
       file,
-      approverIds,
+    );
+  }
+
+  @Put(':id')
+  update(
+    @Param('id') id: string,
+    @Body() dto: CreateDocumentDto,
+    @CurrentUser() user: Actor,
+  ) {
+    return this.documentsService.updateDocumentFull(id, dto, user.id);
+  }
+
+  @Put(':id/upload')
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }),
+  )
+  async updateUpload(
+    @Param('id') id: string,
+    @UploadedFile(pdfPipe) file: Express.Multer.File,
+    @Body() body: Record<string, string>,
+    @CurrentUser() user: Actor,
+  ) {
+    return this.documentsService.updateDocumentFullWithFile(
+      id,
+      await this.uploadDto(body),
+      user.id,
+      file,
     );
   }
 
   @Post(':id/upload-new-version')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadNewVersion(
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }),
+  )
+  uploadVersion(
     @Param('id') id: string,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: 'application/pdf' }),
-        ],
-        fileIsRequired: true,
-      }),
-    )
-    file: Express.Multer.File,
+    @UploadedFile(pdfPipe) file: Express.Multer.File,
     @Body() body: { title?: string; remarks?: string },
-    @CurrentUser() user: { id: string; role: string },
+    @CurrentUser() user: Actor,
   ) {
     return this.documentsService.uploadNewVersion(
       id,
@@ -206,64 +228,24 @@ export class DocumentsController {
       file,
       body.title,
       body.remarks,
-      user.role,
     );
   }
 
-  @Put(':id')
-  async updateFull(
+  @Post(':id/cancel')
+  cancel(
     @Param('id') id: string,
-    @Body() dto: CreateDocumentDto,
-    @CurrentUser() user: { id: string; role: string },
+    @Body() body: { reason?: string },
+    @CurrentUser() user: Actor,
   ) {
-    return this.documentsService.updateDocumentFull(id, dto, user.id);
-  }
-
-  @Put(':id/upload')
-  @UseInterceptors(FileInterceptor('file'))
-  async updateFullWithFile(
-    @Param('id') id: string,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: 'application/pdf' }),
-        ],
-        fileIsRequired: true,
-      }),
-    )
-    file: Express.Multer.File,
-    @Body()
-    body: {
-      title?: string;
-      prefix?: string;
-      purpose?: string;
-      items?: string;
-    },
-    @CurrentUser() user: { id: string; role: string },
-  ) {
-    const dto: CreateDocumentDto = {
-      title: body.title || 'Untitled',
-      prefix: body.prefix || 'DOC',
-      purpose: body.purpose,
-      items: body.items ? (JSON.parse(body.items) as any[]) : [],
-    };
-    return this.documentsService.updateDocumentFullWithFile(
+    return this.documentsService.cancel(
       id,
-      dto,
-      user.id,
-      file,
+      user,
+      String(body.reason ?? '').slice(0, 5000),
     );
   }
 
   @Delete(':id')
-  async remove(
-    @Param('id') id: string,
-    @CurrentUser() user: { id: string; role: string },
-  ) {
-    return this.documentsService.softDelete(id, {
-      id: user.id,
-      role: user.role,
-    });
+  remove(@Param('id') id: string, @CurrentUser() user: Actor) {
+    return this.documentsService.softDelete(id, user);
   }
 }

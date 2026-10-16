@@ -1,0 +1,13 @@
+{
+  "removedSchemas": [
+    "codex_flow_1791967806251_a6c254",
+    "codex_flow_1791969308133_be615c",
+    "codex_flow_1791969567259_02d73f"
+  ],
+  "remainingScratchSchemas": [],
+  "primaryAfter": {
+    "documents": 127,
+    "versions": 252,
+    "users": 8
+  }
+}

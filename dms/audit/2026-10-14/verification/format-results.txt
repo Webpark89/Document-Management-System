@@ -1,0 +1,74 @@
+dms/client/next.config.ts 94ms (unchanged)
+dms/client/src/app/(auth)/forgot-password/page.tsx 25ms (unchanged)
+dms/client/src/app/(auth)/login/page.tsx 17ms (unchanged)
+dms/client/src/app/(main)/admin/config/general/page.tsx 16ms (unchanged)
+dms/client/src/app/(main)/admin/config/roles/page.tsx 81ms
+dms/client/src/app/(main)/admin/config/users/page.tsx 129ms (unchanged)
+dms/client/src/app/(main)/admin/master-data/page.tsx 193ms (unchanged)
+dms/client/src/app/(main)/admin/reports/page.tsx 86ms (unchanged)
+dms/client/src/app/(main)/approvals/[id]/page.tsx 26ms (unchanged)
+dms/client/src/app/(main)/approvals/history/page.tsx 32ms (unchanged)
+dms/client/src/app/(main)/dashboard/page.tsx 15ms (unchanged)
+dms/client/src/app/(main)/documents/[id]/page.tsx 21ms (unchanged)
+dms/client/src/app/(main)/documents/[id]/versions/page.tsx 93ms (unchanged)
+dms/client/src/app/(main)/documents/page.tsx 125ms (unchanged)
+dms/client/src/app/(main)/submissions/create/page.tsx 34ms (unchanged)
+dms/client/src/controllers/services/admin.service.ts 26ms (unchanged)
+dms/client/src/controllers/services/documents.service.ts 7ms (unchanged)
+dms/client/src/controllers/services/workflows.service.ts 4ms (unchanged)
+dms/client/src/lib/index.ts 13ms (unchanged)
+dms/client/src/models/index.ts 9ms (unchanged)
+dms/client/src/views/components/documents/CancelDocumentButton.tsx 9ms (unchanged)
+dms/client/src/views/components/documents/DocumentPreview.tsx 13ms
+dms/client/src/views/components/folders/FolderCreateModal.tsx 11ms (unchanged)
+dms/client/src/views/components/forms/ApprovalWorkflowSection.tsx 35ms (unchanged)
+dms/client/src/views/components/forms/BKForm.tsx 29ms
+dms/client/src/views/components/forms/POForm.tsx 76ms
+dms/client/src/views/components/forms/PRForm.tsx 147ms
+dms/client/src/views/components/forms/Step2Visibility.tsx 50ms (unchanged)
+dms/client/src/views/components/forms/UploadOnlyForm.tsx 29ms (unchanged)
+dms/client/src/views/components/providers/SignatureProvider.tsx 10ms (unchanged)
+dms/client/src/views/components/shared/Sidebar.tsx 52ms (unchanged)
+dms/client/src/views/components/workflow/ApprovalActions.tsx 25ms (unchanged)
+dms/client/src/views/components/workflow/DocumentSignerViewer.tsx 16ms (unchanged)
+dms/client/src/views/features/documents/api.ts 45ms (unchanged)
+dms/client/src/views/features/master-data/components/DocumentRunningTab.tsx 77ms (unchanged)
+dms/client/src/views/features/master-data/types.ts 35ms (unchanged)
+dms/client/src/views/features/master-data/utils.ts 18ms (unchanged)
+dms/client/src/views/features/roles-users/components/role-permissions.tsx 169ms
+dms/client/src/views/features/workflow/api.ts 25ms (unchanged)
+dms/package.json 46ms
+dms/server/package.json 7ms
+dms/server/src/admin/admin.controller.ts 72ms (unchanged)
+dms/server/src/admin/admin.module.ts 6ms (unchanged)
+dms/server/src/admin/admin.service.ts 163ms (unchanged)
+dms/server/src/admin/dto/create-user.dto.ts 17ms (unchanged)
+dms/server/src/app.module.ts 4ms (unchanged)
+dms/server/src/auth/auth.controller.ts 14ms (unchanged)
+dms/server/src/auth/auth.service.ts 30ms (unchanged)
+dms/server/src/auth/jwt.strategy.ts 19ms (unchanged)
+dms/server/src/common/encryption/encryption.service.ts 29ms (unchanged)
+dms/server/src/common/filters/http-exception.filter.ts 12ms (unchanged)
+dms/server/src/dashboard/dashboard.service.ts 37ms (unchanged)
+dms/server/src/documents/documents.controller.ts 39ms (unchanged)
+dms/server/src/documents/documents.module.ts 9ms (unchanged)
+dms/server/src/documents/documents.service.ts 277ms
+dms/server/src/documents/dto/create-document.dto.ts 16ms (unchanged)
+dms/server/src/folders/dto/create-folder.dto.ts 9ms (unchanged)
+dms/server/src/folders/dto/update-folder.dto.ts 5ms
+dms/server/src/folders/folders.controller.ts 9ms (unchanged)
+dms/server/src/folders/folders.service.ts 71ms
+dms/server/src/main.ts 20ms
+dms/server/src/notifications/notifications.controller.ts 14ms (unchanged)
+dms/server/src/notifications/notifications.service.ts 20ms (unchanged)
+dms/server/src/users/users.controller.ts 12ms (unchanged)
+dms/server/src/users/users.service.ts 19ms (unchanged)
+dms/server/src/workflows/dto/approve-step.dto.ts 6ms (unchanged)
+dms/server/src/workflows/dto/reject-step.dto.ts 4ms (unchanged)
+dms/server/src/workflows/workflows.controller.ts 9ms (unchanged)
+dms/server/src/workflows/workflows.module.ts 4ms (unchanged)
+dms/server/src/workflows/workflows.service.ts 83ms
+dms/server/src/common/document-policy.ts 19ms (unchanged)
+dms/server/src/common/lookups.controller.ts 15ms (unchanged)
+dms/server/src/auth/dto/password.dto.ts 3ms (unchanged)
+dms/scripts/verify-flow-e2e.cjs 185ms

@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { api } from "@/lib";
+import { usePermission } from "@/controllers/hooks/usePermission";
 import { Hash, Inbox, Loader2, X } from "lucide-react";
 import { swalConfirm } from "@/lib/swal";
-import { useSidebar } from '@views/components/providers/SidebarProvider';
+import { useSidebar } from "@views/components/providers/SidebarProvider";
 import {
   RESET_CYCLE_LABELS,
   YEAR_FORMAT_LABELS,
@@ -15,7 +17,7 @@ import {
   type RunningDigits,
   type RunningSeparator,
   type YearFormat,
-} from '@views/features/master-data';
+} from "@views/features/master-data";
 import {
   InactiveFilterCheckbox,
   MasterDataMobileCardList,
@@ -38,7 +40,7 @@ import {
   StatCards,
   StatusBadge,
   StatusFormToggle,
-} from '@views/components/ui/admin';
+} from "@views/components/ui/admin";
 
 type Props = {
   showToast: (message: string, type: "success" | "error") => void;
@@ -65,7 +67,18 @@ const inputCls =
 
 export default function DocumentRunningTab({ showToast }: Props) {
   const { isOpen } = useSidebar();
-  const [configs, setConfigs] = useState<DocumentRunningConfig[]>(() => getRunningConfigs());
+  const [configs, setConfigs] = useState<DocumentRunningConfig[]>([]);
+  const { canAny } = usePermission();
+  const canEdit = canAny([
+    "masterdata.running_numbers:edit",
+    "masterdata.access:edit",
+  ]);
+  useEffect(() => {
+    api
+      .get<DocumentRunningConfig[]>("/api/admin/running-numbers")
+      .then((r) => setConfigs(r.data))
+      .catch((error) => showToast(String(error), "error"));
+  }, []);
   const [showInactive, setShowInactive] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -83,8 +96,10 @@ export default function DocumentRunningTab({ showToast }: Props) {
 
   const rows = useMemo(
     () =>
-      showInactive ? configs.filter((c) => !c.isActive) : configs.filter((c) => c.isActive),
-    [configs, showInactive]
+      showInactive
+        ? configs.filter((c) => !c.isActive)
+        : configs.filter((c) => c.isActive),
+    [configs, showInactive],
   );
 
   const stats = useMemo(
@@ -93,7 +108,7 @@ export default function DocumentRunningTab({ showToast }: Props) {
       active: configs.filter((c) => c.isActive).length,
       inactive: configs.filter((c) => !c.isActive).length,
     }),
-    [configs]
+    [configs],
   );
 
   const preview = useMemo(() => {
@@ -105,12 +120,13 @@ export default function DocumentRunningTab({ showToast }: Props) {
         runningDigits: form.runningDigits,
         separator: form.separator,
       },
-      editingRow.currentCounter + 1
+      editingRow.currentCounter + 1,
     );
   }, [editingRow, form]);
 
   const isDirty = modalOpen && runningFormSnapshot(form) !== baseline;
-  const showPatternWarning = !!editingRow && editingRow.currentCounter > 0 && isDirty;
+  const showPatternWarning =
+    !!editingRow && editingRow.currentCounter > 0 && isDirty;
 
   const openEdit = (matrixKey: string) => {
     const row = configs.find((c) => c.matrixKey === matrixKey);
@@ -147,7 +163,6 @@ export default function DocumentRunningTab({ showToast }: Props) {
   const handleSave = async () => {
     if (!editingKey || !editingRow) return;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
 
     const patch = {
       yearFormat: form.yearFormat,
@@ -157,9 +172,18 @@ export default function DocumentRunningTab({ showToast }: Props) {
       isActive: form.isActive,
     };
 
-    updateRunningConfig(editingKey, patch);
+    try {
+      await api.patch(`/api/admin/running-numbers/${editingRow.id}`, patch);
+    } catch (error) {
+      setSaving(false);
+      showToast(
+        error instanceof Error ? error.message : String(error),
+        "error",
+      );
+      return;
+    }
     setConfigs((prev) =>
-      prev.map((c) => (c.matrixKey === editingKey ? { ...c, ...patch } : c))
+      prev.map((c) => (c.matrixKey === editingKey ? { ...c, ...patch } : c)),
     );
 
     setSaving(false);
@@ -172,7 +196,10 @@ export default function DocumentRunningTab({ showToast }: Props) {
   const mobileRows = useMemo(
     () =>
       rows.map((row) => {
-        const { pattern, example } = formatRunningPattern(row, row.currentCounter + 1);
+        const { pattern, example } = formatRunningPattern(
+          row,
+          row.currentCounter + 1,
+        );
         return {
           id: row.matrixKey,
           title: row.typeName,
@@ -183,17 +210,26 @@ export default function DocumentRunningTab({ showToast }: Props) {
               value: (
                 <>
                   <p className="font-mono text-xs text-slate-600">{pattern}</p>
-                  <p className="mt-0.5 text-xs text-slate-400">ตัวอย่าง: {example}</p>
+                  <p className="mt-0.5 text-xs text-slate-400">
+                    ตัวอย่าง: {example}
+                  </p>
                 </>
               ),
             },
-            { label: "รอบรีเซ็ตเลขที่", value: RESET_CYCLE_LABELS[row.resetCycle] },
+            {
+              label: "รอบรีเซ็ตเลขที่",
+              value: RESET_CYCLE_LABELS[row.resetCycle],
+            },
             { label: "เลขที่ปัจจุบัน", value: row.currentCounter },
           ],
-          actions: <RowActions onEdit={() => openEdit(row.matrixKey)} />,
+          actions: (
+            <RowActions
+              onEdit={canEdit ? () => openEdit(row.matrixKey) : undefined}
+            />
+          ),
         };
       }),
-    [rows]
+    [rows],
   );
 
   return (
@@ -206,7 +242,8 @@ export default function DocumentRunningTab({ showToast }: Props) {
                 แก้ไขรูปแบบเลขที่ — {editingRow.typeName}
               </h3>
               <p className="text-xs text-slate-400 mt-1">
-                กรอกรายละเอียดการตั้งค่าการออกเลขที่เอกสารสำหรับ {editingRow.typeName}
+                กรอกรายละเอียดการตั้งค่าการออกเลขที่เอกสารสำหรับ{" "}
+                {editingRow.typeName}
               </p>
             </div>
             <button
@@ -222,7 +259,9 @@ export default function DocumentRunningTab({ showToast }: Props) {
 
           <div className="space-y-4 max-w-md">
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">Prefix</label>
+              <label className="mb-1.5 block text-xs text-slate-500">
+                Prefix
+              </label>
               <div className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-slate-500">
                 {editingRow.prefix}
               </div>
@@ -232,24 +271,33 @@ export default function DocumentRunningTab({ showToast }: Props) {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">ส่วนปี</label>
+              <label className="mb-1.5 block text-xs text-slate-500">
+                ส่วนปี
+              </label>
               <select
                 className={inputCls}
                 value={form.yearFormat}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, yearFormat: e.target.value as YearFormat }))
+                  setForm((f) => ({
+                    ...f,
+                    yearFormat: e.target.value as YearFormat,
+                  }))
                 }
               >
-                {(Object.keys(YEAR_FORMAT_LABELS) as YearFormat[]).map((key) => (
-                  <option key={key} value={key}>
-                    {YEAR_FORMAT_LABELS[key]}
-                  </option>
-                ))}
+                {(Object.keys(YEAR_FORMAT_LABELS) as YearFormat[]).map(
+                  (key) => (
+                    <option key={key} value={key}>
+                      {YEAR_FORMAT_LABELS[key]}
+                    </option>
+                  ),
+                )}
               </select>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">จำนวนหลัก Running Number</label>
+              <label className="mb-1.5 block text-xs text-slate-500">
+                จำนวนหลัก Running Number
+              </label>
               <select
                 className={inputCls}
                 value={form.runningDigits}
@@ -267,43 +315,58 @@ export default function DocumentRunningTab({ showToast }: Props) {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">ตัวคั่น (Separator)</label>
+              <label className="mb-1.5 block text-xs text-slate-500">
+                ตัวคั่น (Separator)
+              </label>
               <select
                 className={inputCls}
                 value={form.separator}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, separator: e.target.value as RunningSeparator }))
+                  setForm((f) => ({
+                    ...f,
+                    separator: e.target.value as RunningSeparator,
+                  }))
                 }
               >
                 <option value="-">- (ขีดกลาง)</option>
-                <option value="/">/ (ทับ)</option>
                 <option value="none">ไม่มี</option>
               </select>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">รอบรีเซ็ตเลขที่</label>
+              <label className="mb-1.5 block text-xs text-slate-500">
+                รอบรีเซ็ตเลขที่
+              </label>
               <select
                 className={inputCls}
                 value={form.resetCycle}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, resetCycle: e.target.value as ResetCycle }))
+                  setForm((f) => ({
+                    ...f,
+                    resetCycle: e.target.value as ResetCycle,
+                  }))
                 }
               >
-                {(Object.keys(RESET_CYCLE_LABELS) as ResetCycle[]).map((key) => (
-                  <option key={key} value={key}>
-                    {RESET_CYCLE_LABELS[key]}
-                  </option>
-                ))}
+                {(Object.keys(RESET_CYCLE_LABELS) as ResetCycle[]).map(
+                  (key) => (
+                    <option key={key} value={key}>
+                      {RESET_CYCLE_LABELS[key]}
+                    </option>
+                  ),
+                )}
               </select>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">เลขที่ปัจจุบัน</label>
+              <label className="mb-1.5 block text-xs text-slate-500">
+                เลขที่ปัจจุบัน
+              </label>
               <div className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-slate-500 tabular-nums">
                 {editingRow.currentCounter}
               </div>
-              <p className="mt-1 text-xs text-slate-400">นับอัตโนมัติจากเอกสารที่ออกเลขแล้ว</p>
+              <p className="mt-1 text-xs text-slate-400">
+                นับอัตโนมัติจากเอกสารที่ออกเลขแล้ว
+              </p>
             </div>
 
             <StatusFormToggle
@@ -313,13 +376,18 @@ export default function DocumentRunningTab({ showToast }: Props) {
 
             <div className="rounded-lg border border-blue-100 bg-blue-50/60 px-4 py-3">
               <p className="text-xs text-slate-500">ตัวอย่างเลขที่</p>
-              <p className="mt-1 font-mono text-sm font-medium text-blue-800">{preview.example}</p>
-              <p className="mt-1 font-mono text-xs text-slate-500">{preview.pattern}</p>
+              <p className="mt-1 font-mono text-sm font-medium text-blue-800">
+                {preview.example}
+              </p>
+              <p className="mt-1 font-mono text-xs text-slate-500">
+                {preview.pattern}
+              </p>
             </div>
 
             {showPatternWarning && (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                การเปลี่ยนรูปแบบจะมีผลกับเอกสารใหม่เท่านั้น เอกสารเดิมจะไม่เปลี่ยนเลขที่
+                การเปลี่ยนรูปแบบจะมีผลกับเอกสารใหม่เท่านั้น
+                เอกสารเดิมจะไม่เปลี่ยนเลขที่
               </p>
             )}
           </div>
@@ -347,8 +415,13 @@ export default function DocumentRunningTab({ showToast }: Props) {
       ) : (
         <>
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <h2 className="text-sm font-medium text-slate-800">รูปแบบเลขที่เอกสาร</h2>
-            <InactiveFilterCheckbox checked={showInactive} onChange={setShowInactive} />
+            <h2 className="text-sm font-medium text-slate-800">
+              รูปแบบเลขที่เอกสาร
+            </h2>
+            <InactiveFilterCheckbox
+              checked={showInactive}
+              onChange={setShowInactive}
+            />
           </div>
 
           <MasterDataTableWrap
@@ -376,24 +449,34 @@ export default function DocumentRunningTab({ showToast }: Props) {
               </thead>
               <tbody>
                 {rows.map((row) => {
-                  const { pattern, example } = formatRunningPattern(row, row.currentCounter + 1);
+                  const { pattern, example } = formatRunningPattern(
+                    row,
+                    row.currentCounter + 1,
+                  );
                   return (
-                    <tr
-                      key={row.matrixKey}
-                      className={`group ${MD_TR}`}
-                    >
+                    <tr key={row.matrixKey} className={`group ${MD_TR}`}>
                       <td className={MD_TD_STICKY}>{row.typeName}</td>
                       <td className={tdCls}>
-                        <p className="font-mono text-xs text-slate-600">{pattern}</p>
-                        <p className="mt-0.5 text-xs text-slate-400">ตัวอย่าง: {example}</p>
+                        <p className="font-mono text-xs text-slate-600">
+                          {pattern}
+                        </p>
+                        <p className="mt-0.5 text-xs text-slate-400">
+                          ตัวอย่าง: {example}
+                        </p>
                       </td>
-                      <td className={tdMuted}>{RESET_CYCLE_LABELS[row.resetCycle]}</td>
+                      <td className={tdMuted}>
+                        {RESET_CYCLE_LABELS[row.resetCycle]}
+                      </td>
                       <td className={tdNum}>{row.currentCounter}</td>
                       <td className={MD_TD_STATUS}>
                         <StatusBadge active={row.isActive} />
                       </td>
                       <td className={MD_TD_ACTION}>
-                        <RowActions onEdit={() => openEdit(row.matrixKey)} />
+                        <RowActions
+                          onEdit={
+                            canEdit ? () => openEdit(row.matrixKey) : undefined
+                          }
+                        />
                       </td>
                     </tr>
                   );

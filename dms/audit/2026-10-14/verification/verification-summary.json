@@ -1,0 +1,40 @@
+{
+  "completedDate": "2026-10-15",
+  "flowTests": {
+    "total": 30,
+    "passed": 30,
+    "failed": 0
+  },
+  "serverBuild": "PASS (nest build in npm run test:flow)",
+  "clientProductionBuild": "PASS (Next.js 16 webpack; strict TypeScript enabled)",
+  "originalDatabase": {
+    "documents": 127,
+    "versions": 252,
+    "users": 8
+  },
+  "remainingScratchSchemas": 0,
+  "lint": {
+    "server": {
+      "errors": 343,
+      "warnings": 12
+    },
+    "client": {
+      "errors": 474,
+      "warnings": 27
+    }
+  },
+  "pdfVisualCheck": {
+    "PR": "1 page; signatures and amounts checked",
+    "PO": "1 page; zero VAT and signatures checked",
+    "BK": "1 page; body and signatures checked",
+    "DOC": "2-page fixture; signatures and separate annotations on page 2 checked"
+  },
+  "constraints": [
+    "Real outbound SMTP is not configured; local SMTP sink tested.",
+    "Historic files/signatures that were never stored cannot be reconstructed.",
+    "ESLint is not fully passing; detailed reports retained.",
+    "Final browser screenshot unavailable because browser plugin module access was denied; earlier PR create/submit/approve UI run completed."
+  ],
+  "clientStandaloneTypecheck": "PASS (tsc --noEmit after removing generated test builds)",
+  "diffWhitespaceCheck": "PASS"
+}

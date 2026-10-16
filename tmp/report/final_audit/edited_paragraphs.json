@@ -1,0 +1,1562 @@
+[
+  {
+    "index": 92,
+    "text": "บทที่ 1 บทนำ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3167
+  },
+  {
+    "index": 95,
+    "text": "    1. ที่มาและความสำคัญ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3187
+  },
+  {
+    "index": 98,
+    "text": "    2. วัตถุประสงค์",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3215
+  },
+  {
+    "index": 101,
+    "text": "    3. รายละเอียดเกี่ยวกับองค์กรหรือหน่วยงาน",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3238
+  },
+  {
+    "index": 104,
+    "text": "    4. ขอบเขตของระบบ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3286
+  },
+  {
+    "index": 107,
+    "text": "    5. ตำแหน่งและลักษณะงานที่ได้รับมอบหมาย",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3310
+  },
+  {
+    "index": 110,
+    "text": "    6. อุปกรณ์และเครื่องมือที่ใช้ในการพัฒนา",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3356
+  },
+  {
+    "index": 113,
+    "text": "บทที่ 2 ตรวจสอบเอกสาร",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3399
+  },
+  {
+    "index": 116,
+    "text": "    1. ระบบจัดการเอกสารและเวอร์ชัน",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3428
+  },
+  {
+    "index": 119,
+    "text": "    2. ระบบอนุมัติและลายเซ็นอิเล็กทรอนิกส์",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3466
+  },
+  {
+    "index": 122,
+    "text": "    3. เทคโนโลยีส่วนติดต่อผู้ใช้",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3512
+  },
+  {
+    "index": 125,
+    "text": "    4. เทคโนโลยีบริการและฐานข้อมูล",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3548
+  },
+  {
+    "index": 128,
+    "text": "    5. การควบคุมสิทธิ์และประวัติการใช้งาน",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3586
+  },
+  {
+    "index": 135,
+    "text": "บทที่ 3 รายละเอียดของงานที่ปฏิบัติ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3649
+  },
+  {
+    "index": 138,
+    "text": "    1. ศึกษาความต้องการและระบบงานเดิม",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3691
+  },
+  {
+    "index": 141,
+    "text": "    2. วิเคราะห์ขอบเขตและผู้ใช้งาน",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3732
+  },
+  {
+    "index": 144,
+    "text": "    3. ออกแบบสถาปัตยกรรมและกระบวนการ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3770
+  },
+  {
+    "index": 147,
+    "text": "    4. ออกแบบกรณีใช้งาน",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3810
+  },
+  {
+    "index": 150,
+    "text": "    5. ออกแบบฐานข้อมูล",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3837
+  },
+  {
+    "index": 153,
+    "text": "    6. พัฒนาระบบ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3864
+  },
+  {
+    "index": 156,
+    "text": "    7. การทดสอบและตรวจสอบ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3885
+  },
+  {
+    "index": 159,
+    "text": "บทที่ 4 ผลการดำเนินงาน",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3911
+  },
+  {
+    "index": 162,
+    "text": "    1. ผลงานตามโมดูล",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3942
+  },
+  {
+    "index": 165,
+    "text": "    2. ผลการตรวจสอบระบบ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3967
+  },
+  {
+    "index": 168,
+    "text": "    3. การประเมินการใช้งาน",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3995
+  },
+  {
+    "index": 171,
+    "text": "บทที่ 5 สรุปผลการปฏิบัติงาน ประโยชน์ที่ได้รับ และข้อเสนอแนะ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4022
+  },
+  {
+    "index": 174,
+    "text": "    1. สรุปผลการดำเนินงาน",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4090
+  },
+  {
+    "index": 177,
+    "text": "    2. ผลสำเร็จตามวัตถุประสงค์",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4120
+  },
+  {
+    "index": 180,
+    "text": "    3. ประโยชน์ที่ได้รับ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4155
+  },
+  {
+    "index": 183,
+    "text": "    4. ข้อเสนอแนะ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4184
+  },
+  {
+    "index": 186,
+    "text": "เอกสารอ้างอิง",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4202
+  },
+  {
+    "index": 189,
+    "text": "ภาคผนวก ก การติดตั้งโปรแกรมที่เกี่ยวข้อง",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4220
+  },
+  {
+    "index": 192,
+    "text": "ภาคผนวก ข แบบฟอร์มสหกิจศึกษา",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4265
+  },
+  {
+    "index": 195,
+    "text": "ประวัติการศึกษา",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4298
+  },
+  {
+    "index": 201,
+    "text": "ตารางที่ 1 ขอบเขตการทำงานตามบทบาท",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4337
+  },
+  {
+    "index": 204,
+    "text": "ตารางที่ 2 แผนงานการปฏิบัติงาน",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4374
+  },
+  {
+    "index": 207,
+    "text": "ตารางที่ 3 กรณีใช้งานหลักของระบบ",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4408
+  },
+  {
+    "index": 210,
+    "text": "ตารางที่ 4 Data Dictionary ตาราง departments",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4444
+  },
+  {
+    "index": 213,
+    "text": "ตารางที่ 5 Data Dictionary ตาราง positions",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4493
+  },
+  {
+    "index": 216,
+    "text": "ตารางที่ 6 Data Dictionary ตาราง document_types",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4540
+  },
+  {
+    "index": 219,
+    "text": "ตารางที่ 7 Data Dictionary ตาราง roles",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4592
+  },
+  {
+    "index": 222,
+    "text": "ตารางที่ 8 Data Dictionary ตาราง permissions",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4635
+  },
+  {
+    "index": 225,
+    "text": "ตารางที่ 9 Data Dictionary ตาราง role_permissions",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4684
+  },
+  {
+    "index": 228,
+    "text": "ตารางที่ 10 Data Dictionary ตาราง users",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4738
+  },
+  {
+    "index": 231,
+    "text": "ตารางที่ 11 Data Dictionary ตาราง documents",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4782
+  },
+  {
+    "index": 234,
+    "text": "ตารางที่ 12 Data Dictionary ตาราง pr_forms",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4830
+  },
+  {
+    "index": 237,
+    "text": "ตารางที่ 13 Data Dictionary ตาราง pr_form_items",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4877
+  },
+  {
+    "index": 240,
+    "text": "ตารางที่ 14 Data Dictionary ตาราง po_forms",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4929
+  },
+  {
+    "index": 243,
+    "text": "ตารางที่ 15 Data Dictionary ตาราง po_form_items",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4976
+  },
+  {
+    "index": 246,
+    "text": "ตารางที่ 16 Data Dictionary ตาราง bk_forms",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5028
+  },
+  {
+    "index": 249,
+    "text": "ตารางที่ 17 Data Dictionary ตาราง document_versions",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5075
+  },
+  {
+    "index": 252,
+    "text": "ตารางที่ 18 Data Dictionary ตาราง approval_matrix",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5131
+  },
+  {
+    "index": 255,
+    "text": "ตารางที่ 19 Data Dictionary ตาราง workflows",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5185
+  },
+  {
+    "index": 258,
+    "text": "ตารางที่ 20 Data Dictionary ตาราง workflow_steps",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5233
+  },
+  {
+    "index": 261,
+    "text": "ตารางที่ 21 Data Dictionary ตาราง notifications",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5286
+  },
+  {
+    "index": 264,
+    "text": "ตารางที่ 22 Data Dictionary ตาราง running_numbers",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5338
+  },
+  {
+    "index": 267,
+    "text": "ตารางที่ 23 Data Dictionary ตาราง audit_logs",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5392
+  },
+  {
+    "index": 270,
+    "text": "ตารางที่ 24 Data Dictionary ตาราง folders",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5441
+  },
+  {
+    "index": 273,
+    "text": "ตารางที่ 25 Data Dictionary ตาราง folder_permissions",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5487
+  },
+  {
+    "index": 276,
+    "text": "ตารางที่ 26 รายการตรวจสอบการทำงานของระบบ",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5544
+  },
+  {
+    "index": 279,
+    "text": "ตารางที่ 27 ผลลัพธ์ตามหน้าที่หลักของระบบ",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5589
+  },
+  {
+    "index": 285,
+    "text": "ภาพที่ 1 ภาพรวมกระบวนการเดิมและกระบวนการใหม่",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5651
+  },
+  {
+    "index": 288,
+    "text": "ภาพที่ 2 แผนภาพกรณีใช้งานระบบ DMS",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5699
+  },
+  {
+    "index": 291,
+    "text": "ภาพที่ 3 สถาปัตยกรรมระบบ",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5736
+  },
+  {
+    "index": 294,
+    "text": "ภาพที่ 4 ผังขั้นตอนการสร้างและส่งอนุมัติเอกสาร",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5764
+  },
+  {
+    "index": 297,
+    "text": "ภาพที่ 5 ผังขั้นตอนการพิจารณาอนุมัติ",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5814
+  },
+  {
+    "index": 300,
+    "text": "ภาพที่ 6 Sequence Diagram การสร้างเอกสาร",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5854
+  },
+  {
+    "index": 303,
+    "text": "ภาพที่ 7 Sequence Diagram การอนุมัติและลงลายเซ็น",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5898
+  },
+  {
+    "index": 306,
+    "text": "ภาพที่ 8 ER Diagram ระบบ DMS",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5951
+  },
+  {
+    "index": 309,
+    "text": "ภาพที่ 9 หน้าเข้าสู่ระบบ",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5984
+  },
+  {
+    "index": 312,
+    "text": "ภาพที่ 10 หน้าแดชบอร์ด",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6013
+  },
+  {
+    "index": 315,
+    "text": "ภาพที่ 11 หน้าศูนย์เอกสาร",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6040
+  },
+  {
+    "index": 318,
+    "text": "ภาพที่ 12 หน้าสร้างแบบฟอร์ม PR",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6070
+  },
+  {
+    "index": 321,
+    "text": "ภาพที่ 13 หน้าสร้างแบบฟอร์ม PO",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6105
+  },
+  {
+    "index": 324,
+    "text": "ภาพที่ 14 หน้าสร้างบันทึกข้อความ BK",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6140
+  },
+  {
+    "index": 327,
+    "text": "ภาพที่ 15 หน้ารายละเอียดเอกสารและเวอร์ชัน",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6180
+  },
+  {
+    "index": 330,
+    "text": "ภาพที่ 16 หน้ารายการอนุมัติ",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6226
+  },
+  {
+    "index": 333,
+    "text": "ภาพที่ 17 หน้าจัดการข้อมูลหลัก",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6258
+  },
+  {
+    "index": 339,
+    "text": "ภาพภาคผนวกที่ ก1 หน้าดาวน์โหลด Visual Studio Code",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6317
+  },
+  {
+    "index": 342,
+    "text": "ภาพภาคผนวกที่ ก2 การยอมรับข้อตกลงการติดตั้ง Visual Studio Code",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6371
+  },
+  {
+    "index": 345,
+    "text": "ภาพภาคผนวกที่ ก3 การเลือกตัวเลือกเพิ่มเติมของ Visual Studio Code",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6438
+  },
+  {
+    "index": 348,
+    "text": "ภาพภาคผนวกที่ ก4 การติดตั้ง Visual Studio Code เสร็จสมบูรณ์",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6507
+  },
+  {
+    "index": 351,
+    "text": "ภาพภาคผนวกที่ ก5 ตัวเลือก Windows Installer สำหรับ Node.js",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6571
+  },
+  {
+    "index": 354,
+    "text": "ภาพภาคผนวกที่ ก6 ลำดับการติดตั้งและตรวจสอบ Node.js และ npm",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6634
+  },
+  {
+    "index": 357,
+    "text": "ภาพภาคผนวกที่ ก7 หน้าดาวน์โหลดตัวติดตั้ง PostgreSQL",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6697
+  },
+  {
+    "index": 360,
+    "text": "ภาพภาคผนวกที่ ก8 การเลือกส่วนประกอบของ PostgreSQL",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6753
+  },
+  {
+    "index": 363,
+    "text": "ภาพภาคผนวกที่ ก9 การกำหนดรหัสผ่านผู้ดูแล PostgreSQL",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6807
+  },
+  {
+    "index": 366,
+    "text": "ภาพภาคผนวกที่ ก10 การกำหนดพอร์ตของ PostgreSQL",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6863
+  },
+  {
+    "index": 369,
+    "text": "ภาพภาคผนวกที่ ก11 การติดตั้ง PostgreSQL เสร็จสมบูรณ์",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6913
+  },
+  {
+    "index": 372,
+    "text": "ภาพภาคผนวกที่ ก12 ตัวอย่างค่าการเชื่อมต่อ PostgreSQL ใน pgAdmin",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6970
+  },
+  {
+    "index": 375,
+    "text": "ภาพภาคผนวกที่ ก13 ตัวอย่างการสร้างฐานข้อมูลและตั้งค่าไฟล์สภาพแวดล้อม",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 7038
+  },
+  {
+    "index": 378,
+    "text": "ภาพภาคผนวกที่ ก14 คำสั่งติดตั้งแพ็กเกจที่ใช้พัฒนาระบบ DMS",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 7111
+  },
+  {
+    "index": 382,
+    "text": "บทที่ 1",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7174
+  },
+  {
+    "index": 384,
+    "text": "1. ที่มาและความสำคัญ",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7187
+  },
+  {
+    "index": 387,
+    "text": "2. วัตถุประสงค์",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7739
+  },
+  {
+    "index": 393,
+    "text": "3. รายละเอียดเกี่ยวกับองค์กรหรือหน่วยงาน",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 8038
+  },
+  {
+    "index": 397,
+    "text": "4. ขอบเขตของระบบ",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 8469
+  },
+  {
+    "index": 400,
+    "text": "ตารางที่ 1 ขอบเขตการทำงานตามบทบาท",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 8707
+  },
+  {
+    "index": 416,
+    "text": "5. ตำแหน่งและลักษณะงานที่ได้รับมอบหมาย",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 8965
+  },
+  {
+    "index": 420,
+    "text": "ตารางที่ 2 แผนงานการปฏิบัติงาน",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 9261
+  },
+  {
+    "index": 441,
+    "text": "6. อุปกรณ์และเครื่องมือที่ใช้ในการพัฒนา",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 9567
+  },
+  {
+    "index": 445,
+    "text": "บทที่ 2",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 9857
+  },
+  {
+    "index": 447,
+    "text": "1. ระบบจัดการเอกสารและเวอร์ชัน",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 9879
+  },
+  {
+    "index": 449,
+    "text": "2. ระบบอนุมัติและลายเซ็นอิเล็กทรอนิกส์",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10218
+  },
+  {
+    "index": 451,
+    "text": "3. เทคโนโลยีส่วนติดต่อผู้ใช้",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10534
+  },
+  {
+    "index": 453,
+    "text": "4. เทคโนโลยีบริการและฐานข้อมูล",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10797
+  },
+  {
+    "index": 455,
+    "text": "5. การควบคุมสิทธิ์และประวัติการใช้งาน",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 11132
+  },
+  {
+    "index": 458,
+    "text": "บทที่ 3",
+    "page": 4,
+    "physical": 14,
+    "inTable": false,
+    "start": 11431
+  },
+  {
+    "index": 460,
+    "text": "1. ศึกษาความต้องการและระบบงานเดิม",
+    "page": 4,
+    "physical": 14,
+    "inTable": false,
+    "start": 11466
+  },
+  {
+    "index": 463,
+    "text": "ภาพที่ 1 ภาพรวมกระบวนการเดิมและกระบวนการใหม่",
+    "page": 4,
+    "physical": 14,
+    "inTable": false,
+    "start": 11764
+  },
+  {
+    "index": 467,
+    "text": "2. วิเคราะห์ขอบเขตและผู้ใช้งาน",
+    "page": 5,
+    "physical": 15,
+    "inTable": false,
+    "start": 11812
+  },
+  {
+    "index": 470,
+    "text": "ภาพที่ 2 แผนภาพกรณีใช้งานระบบ DMS",
+    "page": 5,
+    "physical": 15,
+    "inTable": false,
+    "start": 12090
+  },
+  {
+    "index": 477,
+    "text": "3. ออกแบบสถาปัตยกรรมและกระบวนการ",
+    "page": 6,
+    "physical": 16,
+    "inTable": false,
+    "start": 12130
+  },
+  {
+    "index": 480,
+    "text": "ภาพที่ 3 สถาปัตยกรรมระบบ",
+    "page": 6,
+    "physical": 16,
+    "inTable": false,
+    "start": 12460
+  },
+  {
+    "index": 482,
+    "text": "ภาพที่ 4 ผังขั้นตอนการสร้างและส่งอนุมัติเอกสาร",
+    "page": 7,
+    "physical": 17,
+    "inTable": false,
+    "start": 12487
+  },
+  {
+    "index": 485,
+    "text": "ภาพที่ 5 ผังขั้นตอนการพิจารณาอนุมัติ",
+    "page": 8,
+    "physical": 18,
+    "inTable": false,
+    "start": 12779
+  },
+  {
+    "index": 488,
+    "text": "4. ออกแบบกรณีใช้งาน",
+    "page": 9,
+    "physical": 19,
+    "inTable": false,
+    "start": 12818
+  },
+  {
+    "index": 490,
+    "text": "ตารางที่ 3 กรณีใช้งานหลักของระบบ",
+    "page": 9,
+    "physical": 19,
+    "inTable": false,
+    "start": 12939
+  },
+  {
+    "index": 521,
+    "text": "ภาพที่ 6 Sequence Diagram การสร้างเอกสาร",
+    "page": 9,
+    "physical": 19,
+    "inTable": false,
+    "start": 13647
+  },
+  {
+    "index": 523,
+    "text": "ภาพที่ 7 Sequence Diagram การอนุมัติและลงลายเซ็น",
+    "page": 10,
+    "physical": 20,
+    "inTable": false,
+    "start": 13690
+  },
+  {
+    "index": 525,
+    "text": "5. ออกแบบฐานข้อมูล",
+    "page": 10,
+    "physical": 20,
+    "inTable": false,
+    "start": 13740
+  },
+  {
+    "index": 534,
+    "text": "ภาพที่ 8 ER Diagram ระบบ DMS",
+    "page": 11,
+    "physical": 21,
+    "inTable": false,
+    "start": 14077
+  },
+  {
+    "index": 537,
+    "text": "ตารางที่ 4 Data Dictionary ตาราง departments (แผนก)",
+    "page": 12,
+    "physical": 22,
+    "inTable": false,
+    "start": 14108
+  },
+  {
+    "index": 562,
+    "text": "ตารางที่ 5 Data Dictionary ตาราง positions (ตำแหน่ง)",
+    "page": 12,
+    "physical": 22,
+    "inTable": false,
+    "start": 14362
+  },
+  {
+    "index": 591,
+    "text": "ตารางที่ 6 Data Dictionary ตาราง document_types (ประเภทเอกสาร)",
+    "page": 12,
+    "physical": 22,
+    "inTable": false,
+    "start": 14650
+  },
+  {
+    "index": 621,
+    "text": "ตารางที่ 7 Data Dictionary ตาราง roles (บทบาท)",
+    "page": 13,
+    "physical": 23,
+    "inTable": false,
+    "start": 14980
+  },
+  {
+    "index": 646,
+    "text": "ตารางที่ 8 Data Dictionary ตาราง permissions (สิทธิ์การใช้งาน)",
+    "page": 13,
+    "physical": 23,
+    "inTable": false,
+    "start": 15231
+  },
+  {
+    "index": 675,
+    "text": "ตารางที่ 9 Data Dictionary ตาราง role_permissions (สิทธิ์ตามบทบาท)",
+    "page": 13,
+    "physical": 23,
+    "inTable": false,
+    "start": 15542
+  },
+  {
+    "index": 688,
+    "text": "ตารางที่ 10 Data Dictionary ตาราง users (ผู้ใช้งาน)",
+    "page": 14,
+    "physical": 24,
+    "inTable": false,
+    "start": 15741
+  },
+  {
+    "index": 757,
+    "text": "ตารางที่ 11 Data Dictionary ตาราง documents (เอกสาร)",
+    "page": 14,
+    "physical": 24,
+    "inTable": false,
+    "start": 16485
+  },
+  {
+    "index": 826,
+    "text": "ตารางที่ 12 Data Dictionary ตาราง pr_forms (ใบขอซื้อ)",
+    "page": 15,
+    "physical": 25,
+    "inTable": false,
+    "start": 17253
+  },
+  {
+    "index": 878,
+    "text": "ตารางที่ 13 Data Dictionary ตาราง pr_form_items (รายการใบขอซื้อ)",
+    "page": 16,
+    "physical": 26,
+    "inTable": false,
+    "start": 17801
+  },
+  {
+    "index": 923,
+    "text": "ตารางที่ 14 Data Dictionary ตาราง po_forms (ใบสั่งซื้อ)",
+    "page": 16,
+    "physical": 26,
+    "inTable": false,
+    "start": 18248
+  },
+  {
+    "index": 969,
+    "text": "ตารางที่ 15 Data Dictionary ตาราง po_form_items (รายการใบสั่งซื้อ)",
+    "page": 17,
+    "physical": 27,
+    "inTable": false,
+    "start": 18727
+  },
+  {
+    "index": 1018,
+    "text": "ตารางที่ 16 Data Dictionary ตาราง bk_forms (บันทึกข้อความ)",
+    "page": 17,
+    "physical": 27,
+    "inTable": false,
+    "start": 19219
+  },
+  {
+    "index": 1051,
+    "text": "ตารางที่ 17 Data Dictionary ตาราง document_versions (เวอร์ชันเอกสาร)",
+    "page": 18,
+    "physical": 28,
+    "inTable": false,
+    "start": 19617
+  },
+  {
+    "index": 1100,
+    "text": "ตารางที่ 18 Data Dictionary ตาราง approval_matrix (กฎลำดับอนุมัติ)",
+    "page": 18,
+    "physical": 28,
+    "inTable": false,
+    "start": 20150
+  },
+  {
+    "index": 1131,
+    "text": "ตารางที่ 19 Data Dictionary ตาราง workflows (กระบวนการอนุมัติ)",
+    "page": 19,
+    "physical": 29,
+    "inTable": false,
+    "start": 20529
+  },
+  {
+    "index": 1164,
+    "text": "ตารางที่ 20 Data Dictionary ตาราง workflow_steps (ขั้นตอนอนุมัติ)",
+    "page": 19,
+    "physical": 29,
+    "inTable": false,
+    "start": 20931
+  },
+  {
+    "index": 1213,
+    "text": "ตารางที่ 21 Data Dictionary ตาราง notifications (การแจ้งเตือน)",
+    "page": 20,
+    "physical": 30,
+    "inTable": false,
+    "start": 21509
+  },
+  {
+    "index": 1250,
+    "text": "ตารางที่ 22 Data Dictionary ตาราง running_numbers (เลขเอกสารต่อเนื่อง)",
+    "page": 20,
+    "physical": 30,
+    "inTable": false,
+    "start": 21914
+  },
+  {
+    "index": 1293,
+    "text": "ตารางที่ 23 Data Dictionary ตาราง audit_logs (ประวัติกิจกรรม)",
+    "page": 21,
+    "physical": 31,
+    "inTable": false,
+    "start": 22408
+  },
+  {
+    "index": 1330,
+    "text": "ตารางที่ 24 Data Dictionary ตาราง folders (โฟลเดอร์)",
+    "page": 21,
+    "physical": 31,
+    "inTable": false,
+    "start": 22830
+  },
+  {
+    "index": 1383,
+    "text": "ตารางที่ 25 Data Dictionary ตาราง folder_permissions (สิทธิ์โฟลเดอร์)",
+    "page": 22,
+    "physical": 32,
+    "inTable": false,
+    "start": 23391
+  },
+  {
+    "index": 1416,
+    "text": "6. พัฒนาระบบ",
+    "page": 22,
+    "physical": 32,
+    "inTable": false,
+    "start": 23778
+  },
+  {
+    "index": 1419,
+    "text": "7. การทดสอบและตรวจสอบ",
+    "page": 22,
+    "physical": 32,
+    "inTable": false,
+    "start": 24256
+  },
+  {
+    "index": 1421,
+    "text": "ตารางที่ 26 รายการตรวจสอบการทำงานของระบบ",
+    "page": 22,
+    "physical": 32,
+    "inTable": false,
+    "start": 24552
+  },
+  {
+    "index": 1440,
+    "text": "บทที่ 4",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 24914
+  },
+  {
+    "index": 1442,
+    "text": "1. ผลงานตามโมดูล",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 24937
+  },
+  {
+    "index": 1445,
+    "text": "ภาพที่ 9 หน้าเข้าสู่ระบบ",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 25127
+  },
+  {
+    "index": 1447,
+    "text": "ภาพที่ 10 หน้าแดชบอร์ด",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 25154
+  },
+  {
+    "index": 1449,
+    "text": "ภาพที่ 11 หน้าศูนย์เอกสาร",
+    "page": 24,
+    "physical": 34,
+    "inTable": false,
+    "start": 25179
+  },
+  {
+    "index": 1451,
+    "text": "ภาพที่ 12 หน้าสร้างแบบฟอร์ม PR",
+    "page": 24,
+    "physical": 34,
+    "inTable": false,
+    "start": 25207
+  },
+  {
+    "index": 1453,
+    "text": "ภาพที่ 13 หน้าสร้างแบบฟอร์ม PO",
+    "page": 24,
+    "physical": 34,
+    "inTable": false,
+    "start": 25240
+  },
+  {
+    "index": 1455,
+    "text": "ภาพที่ 14 หน้าสร้างบันทึกข้อความ BK",
+    "page": 25,
+    "physical": 35,
+    "inTable": false,
+    "start": 25273
+  },
+  {
+    "index": 1457,
+    "text": "ภาพที่ 15 หน้ารายละเอียดเอกสารและเวอร์ชัน",
+    "page": 25,
+    "physical": 35,
+    "inTable": false,
+    "start": 25311
+  },
+  {
+    "index": 1459,
+    "text": "ภาพที่ 16 หน้ารายการอนุมัติ",
+    "page": 25,
+    "physical": 35,
+    "inTable": false,
+    "start": 25355
+  },
+  {
+    "index": 1461,
+    "text": "ภาพที่ 17 หน้าจัดการข้อมูลหลัก",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 25385
+  },
+  {
+    "index": 1462,
+    "text": "2. ผลการตรวจสอบระบบ",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 25416
+  },
+  {
+    "index": 1464,
+    "text": "ตารางที่ 27 ผลลัพธ์ตามหน้าที่หลักของระบบ",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 25639
+  },
+  {
+    "index": 1483,
+    "text": "3. การประเมินการใช้งาน",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 26024
+  },
+  {
+    "index": 1485,
+    "text": "บทที่ 5",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 26313
+  },
+  {
+    "index": 1487,
+    "text": "1. สรุปผลการดำเนินงาน",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 26373
+  },
+  {
+    "index": 1489,
+    "text": "2. ผลสำเร็จตามวัตถุประสงค์",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 26644
+  },
+  {
+    "index": 1491,
+    "text": "3. ประโยชน์ที่ได้รับ",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 26926
+  },
+  {
+    "index": 1498,
+    "text": "4. ข้อเสนอแนะ",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27345
+  },
+  {
+    "index": 1505,
+    "text": "เอกสารอ้างอิง",
+    "page": 28,
+    "physical": 38,
+    "inTable": false,
+    "start": 27644
+  },
+  {
+    "index": 1524,
+    "text": "ภาคผนวก",
+    "page": 29,
+    "physical": 39,
+    "inTable": false,
+    "start": 28031
+  },
+  {
+    "index": 1555,
+    "text": "ภาคผนวก ก",
+    "page": 30,
+    "physical": 40,
+    "inTable": false,
+    "start": 28070
+  },
+  {
+    "index": 1558,
+    "text": "1. การติดตั้งโปรแกรม Visual Studio Code (ระบบปฏิบัติการ Windows)",
+    "page": 31,
+    "physical": 41,
+    "inTable": false,
+    "start": 28113
+  },
+  {
+    "index": 1561,
+    "text": "ภาพภาคผนวกที่ ก1 หน้าดาวน์โหลด Visual Studio Code",
+    "page": 31,
+    "physical": 41,
+    "inTable": false,
+    "start": 28309
+  },
+  {
+    "index": 1564,
+    "text": "ภาพภาคผนวกที่ ก2 การยอมรับข้อตกลงการติดตั้ง Visual Studio Code",
+    "page": 31,
+    "physical": 41,
+    "inTable": false,
+    "start": 28462
+  },
+  {
+    "index": 1565,
+    "text": "1. การติดตั้งโปรแกรม Visual Studio Code (ต่อ)",
+    "page": 32,
+    "physical": 42,
+    "inTable": false,
+    "start": 28525
+  },
+  {
+    "index": 1568,
+    "text": "ภาพภาคผนวกที่ ก3 การเลือกตัวเลือกเพิ่มเติมของ Visual Studio Code",
+    "page": 32,
+    "physical": 42,
+    "inTable": false,
+    "start": 28694
+  },
+  {
+    "index": 1571,
+    "text": "ภาพภาคผนวกที่ ก4 การติดตั้ง Visual Studio Code เสร็จสมบูรณ์",
+    "page": 32,
+    "physical": 42,
+    "inTable": false,
+    "start": 28855
+  },
+  {
+    "index": 1572,
+    "text": "2. การติดตั้ง Node.js และ npm (ระบบปฏิบัติการ Windows)",
+    "page": 33,
+    "physical": 43,
+    "inTable": false,
+    "start": 28915
+  },
+  {
+    "index": 1575,
+    "text": "ภาพภาคผนวกที่ ก5 ตัวเลือก Windows Installer สำหรับ Node.js",
+    "page": 33,
+    "physical": 43,
+    "inTable": false,
+    "start": 29113
+  },
+  {
+    "index": 1578,
+    "text": "ภาพภาคผนวกที่ ก6 ลำดับการติดตั้งและตรวจสอบ Node.js และ npm",
+    "page": 33,
+    "physical": 43,
+    "inTable": false,
+    "start": 29348
+  },
+  {
+    "index": 1580,
+    "text": "3. การติดตั้ง PostgreSQL และ pgAdmin (ระบบปฏิบัติการ Windows)",
+    "page": 34,
+    "physical": 44,
+    "inTable": false,
+    "start": 29528
+  },
+  {
+    "index": 1583,
+    "text": "ภาพภาคผนวกที่ ก7 หน้าดาวน์โหลดตัวติดตั้ง PostgreSQL",
+    "page": 34,
+    "physical": 44,
+    "inTable": false,
+    "start": 29729
+  },
+  {
+    "index": 1586,
+    "text": "ภาพภาคผนวกที่ ก8 การเลือกส่วนประกอบของ PostgreSQL",
+    "page": 34,
+    "physical": 44,
+    "inTable": false,
+    "start": 29931
+  },
+  {
+    "index": 1587,
+    "text": "3. การติดตั้ง PostgreSQL และ pgAdmin (ต่อ)",
+    "page": 35,
+    "physical": 45,
+    "inTable": false,
+    "start": 29981
+  },
+  {
+    "index": 1590,
+    "text": "ภาพภาคผนวกที่ ก9 การกำหนดรหัสผ่านผู้ดูแล PostgreSQL",
+    "page": 35,
+    "physical": 45,
+    "inTable": false,
+    "start": 30123
+  },
+  {
+    "index": 1593,
+    "text": "ภาพภาคผนวกที่ ก10 การกำหนดพอร์ตของ PostgreSQL",
+    "page": 35,
+    "physical": 45,
+    "inTable": false,
+    "start": 30308
+  },
+  {
+    "index": 1594,
+    "text": "3. การติดตั้ง PostgreSQL และ pgAdmin (ต่อ)",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 30354
+  },
+  {
+    "index": 1597,
+    "text": "ภาพภาคผนวกที่ ก11 การติดตั้ง PostgreSQL เสร็จสมบูรณ์",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 30553
+  },
+  {
+    "index": 1598,
+    "text": "4. การเชื่อมต่อฐานข้อมูลด้วย pgAdmin",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 30606
+  },
+  {
+    "index": 1601,
+    "text": "ภาพภาคผนวกที่ ก12 ตัวอย่างค่าการเชื่อมต่อ PostgreSQL ใน pgAdmin",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 30792
+  },
+  {
+    "index": 1602,
+    "text": "5. การติดตั้งแพ็กเกจและเตรียมโปรเจกต์ DMS",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 30856
+  },
+  {
+    "index": 1605,
+    "text": "ภาพภาคผนวกที่ ก13 ตัวอย่างการสร้างฐานข้อมูลและตั้งค่าไฟล์สภาพแวดล้อม",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 31106
+  },
+  {
+    "index": 1608,
+    "text": "ภาพภาคผนวกที่ ก14 คำสั่งติดตั้งแพ็กเกจที่ใช้พัฒนาระบบ DMS",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 31355
+  },
+  {
+    "index": 1626,
+    "text": "ภาคผนวก ข",
+    "page": 38,
+    "physical": 48,
+    "inTable": false,
+    "start": 32001
+  },
+  {
+    "index": 1629,
+    "text": "ภาคผนวก ข แบบฟอร์มสหกิจศึกษา",
+    "page": 39,
+    "physical": 49,
+    "inTable": false,
+    "start": 32032
+  },
+  {
+    "index": 1650,
+    "text": "ประวัติการศึกษา",
+    "page": 49,
+    "physical": 59,
+    "inTable": false,
+    "start": 32160
+  },
+  {
+    "index": 1654,
+    "text": "ประวัติการศึกษา         โรงเรียนวังไกลกังวล ในพระบรมราชูปถัมภ์",
+    "page": 49,
+    "physical": 59,
+    "inTable": false,
+    "start": 32304
+  }
+]

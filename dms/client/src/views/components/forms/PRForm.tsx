@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Save, Send, UploadCloud } from "lucide-react";
 import { api } from "@/lib";
-import { useAuth } from '@views/components/providers/AuthProvider';
+import { useAuth } from "@views/components/providers/AuthProvider";
 import { formatThaiDate } from "@/lib/format-date";
 import Step2Visibility, { VisibilityData } from "./Step2Visibility";
 import ApprovalWorkflowSection, {
@@ -32,6 +32,7 @@ export interface PRSubmitData {
   attachmentFileName?: string;
   workflowSteps: WorkflowStepInput[];
   isDraft: boolean;
+  visibility: VisibilityData;
 }
 
 interface PRFormProps {
@@ -47,15 +48,6 @@ interface PRFormProps {
   onSignClick?: () => void;
 }
 
-const DEPARTMENTS = [
-  "แผนกจัดซื้อ",
-  "แผนกบัญชีและการเงิน",
-  "แผนกคลังสินค้าและจัดส่ง",
-  "แผนกเทคโนโลยีสารสนเทศ",
-  "แผนกทรัพยากรบุคคล",
-  "แผนกผลิต",
-];
-
 const UNITS = ["ชิ้น", "เครื่อง", "ชุด", "กล่อง", "แพ็ค", "งวด", "งาน"];
 
 export default function PRForm({
@@ -66,10 +58,16 @@ export default function PRForm({
   onNext,
   onBack,
   initialData,
-  isViewer, tempSignature, onSignClick }: PRFormProps) {
+  isViewer,
+  tempSignature,
+  onSignClick,
+}: PRFormProps) {
   const { user } = useAuth();
-  const defaultRequester = user?.full_name || user?.username || "Administrator";
-  const defaultDept = user?.department || DEPARTMENTS[0];
+  const defaultRequester =
+    isViewer && initialData?.creator
+      ? `${initialData.creator.first_name} ${initialData.creator.last_name}`
+      : user?.full_name || user?.username || "";
+  const defaultDept = user?.department || "";
 
   const todayStr = new Date().toISOString().split("T")[0];
   const nextWeekStr = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -78,7 +76,7 @@ export default function PRForm({
 
   const [companySettings, setCompanySettings] = useState({
     companyName: "บริษัท นิสซุย (ประเทศไทย) จำกัด",
-    companyAddress: "เลขที่ 123 อาคารนิสซุย ถนนสุขุมวิท"
+    companyAddress: "เลขที่ 123 อาคารนิสซุย ถนนสุขุมวิท",
   });
 
   const [title, setTitle] = useState("");
@@ -86,7 +84,9 @@ export default function PRForm({
   const [requestedDate, setRequestedDate] = useState(todayStr);
   const [requiredDate, setRequiredDate] = useState(nextWeekStr);
   const [purpose, setPurpose] = useState("");
-  const [remark, setRemark] = useState("เอกสารใบขอซื้อฉบับนี้ใช้สำหรับขออนุมัติภายในก่อนดำเนินการจัดซื้อ");
+  const [remark, setRemark] = useState(
+    "เอกสารใบขอซื้อฉบับนี้ใช้สำหรับขออนุมัติภายในก่อนดำเนินการจัดซื้อ",
+  );
 
   const [items, setItems] = useState<PRItemInput[]>([
     {
@@ -99,13 +99,29 @@ export default function PRForm({
     },
   ]);
 
-  const [visibility, setVisibility] = useState<VisibilityData>({ type: "CompanyWide", departments: [], users: [] });
+  const [visibility, setVisibility] = useState<VisibilityData>({
+    type: "CompanyWide",
+    departments: [],
+    users: [],
+  });
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([]);
+  React.useEffect(() => {
+    if (initialData?.visibility) setVisibility(initialData.visibility);
+  }, [initialData]);
 
   useEffect(() => {
-    api.get<any>("/api/admin/settings")
-      .then(res => { if (res.data?.companyName) setCompanySettings(res.data); })
-      .catch((err) => { console.error('Failed to fetch settings:', err); });
+    if (initialData?._meta?.company) {
+      setCompanySettings(initialData._meta.company);
+      return;
+    }
+    api
+      .get<any>("/api/admin/settings")
+      .then((res) => {
+        if (res.data?.companyName) setCompanySettings(res.data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch settings:", err);
+      });
   }, []);
 
   useEffect(() => {
@@ -113,71 +129,93 @@ export default function PRForm({
       if (initialData.title) setTitle(initialData.title);
       if (initialData.pr_form?.purpose) setPurpose(initialData.pr_form.purpose);
       if (initialData.pr_form?.remark) setRemark(initialData.pr_form.remark);
-      if (initialData.department?.name) setDepartment(initialData.department.name);
+      if (initialData.department?.name)
+        setDepartment(initialData.department.name);
       else if (initialData.department) setDepartment(initialData.department);
-      
-      if (initialData.pr_form?.requested_date) setRequestedDate(formatThaiDate(initialData.pr_form.requested_date));
+
+      if (initialData.pr_form?.requested_date)
+        setRequestedDate(
+          new Date(initialData.pr_form.requested_date)
+            .toISOString()
+            .split("T")[0],
+        );
       if (initialData.pr_form?.required_date) {
         const d = new Date(initialData.pr_form.required_date);
         setRequiredDate(d.toISOString().split("T")[0]);
       }
-      
-      if (initialData.pr_form?.items && Array.isArray(initialData.pr_form.items) && initialData.pr_form.items.length > 0) {
-        setItems(initialData.pr_form.items.map((item: any, idx: number) => ({
-          id: String(idx + 1),
-          description: item.item_name || item.description || '',
-          quantity: Number(item.quantity) || 1,
-          unit: item.unit || 'ชิ้น',
-          unitPrice: Number(item.unit_price) || 0,
-          remark: item.remark || '',
-        })));
+
+      if (
+        initialData.pr_form?.items &&
+        Array.isArray(initialData.pr_form.items) &&
+        initialData.pr_form.items.length > 0
+      ) {
+        setItems(
+          initialData.pr_form.items.map((item: any, idx: number) => ({
+            id: String(idx + 1),
+            description: item.item_name || item.description || "",
+            quantity: Number(item.quantity) || 1,
+            unit: item.unit || "ชิ้น",
+            unitPrice: Number(item.unit_price) || 0,
+            remark: item.remark || "",
+          })),
+        );
       }
     }
   }, [initialData]);
 
   useEffect(() => {
+    let active = true;
     async function loadWorkflow() {
-        if (isViewer && initialData?.workflow?.steps) { console.log("Workflow Steps:", initialData.workflow.steps);
-          setWorkflowSteps(initialData.workflow.steps.map((s: any) => ({
+      if (isViewer && initialData?.workflow?.steps) {
+        setWorkflowSteps(
+          initialData.workflow.steps.map((s: any) => ({
             id: String(s.step_order),
             stepOrder: s.step_order,
-            roleName: s.approver?.role?.name || s.role_name || s.role || "",
-            approverName: s.approver ? `${s.approver.first_name} ${s.approver.last_name}` : "",
+            roleName: s.approver?.role?.name || "",
+            approverName: s.approver
+              ? `${s.approver.first_name} ${s.approver.last_name}`
+              : "",
+            approverId: s.approver_id,
+            approver_id: s.approver_id,
             status: s.status,
-            signature_url: s.signature_url || s.approver?.signature_url || (s.approver?.id ? `/api/users/${s.approver.id}/signature` : (s.approver_id ? `/api/users/${s.approver_id}/signature` : null)), approver_id: s.approver_id || s.approver?.id,
+            signature_url: s.signature_url || s.approver?.signature_url,
+            date: s.action_date,
             isCurrentStep: s.step_order === initialData.workflow.current_step,
-            date: s.approved_at || null,
-          })));
-          return;
-        }
-        try {
-          const { adminService } = await import("@/controllers/services/admin.service");
-          const workflows = (await adminService.getApprovalWorkflowsList()) as any[];
-        const prFlow = Array.isArray(workflows) ? workflows.find((w: any) => w.prefix === "PR") : null;
-        if (prFlow && prFlow.steps && prFlow.steps.length > 0) {
+          })),
+        );
+        return;
+      }
+      try {
+        const { adminService } =
+          await import("@/controllers/services/admin.service");
+        const templates = (await adminService.getWorkflowTemplates()) as any[];
+        const flow = templates.find((t) => t.prefix === "PR");
+        if (active)
           setWorkflowSteps(
-            prFlow.steps.map((role: string, idx: number) => ({
-              id: String(idx + 1),
-              stepOrder: idx + 1,
-              roleName: role,
-              approverName: "",
-            }))
+            (flow?.steps ?? []).map((role: string, index: number) => {
+              const old = initialData?.workflow?.steps?.find(
+                (s: any) => s.step_order === index + 1,
+              );
+              return {
+                id: String(index + 1),
+                stepOrder: index + 1,
+                roleName: role,
+                approverId: old?.approver_id,
+                approverName: old?.approver
+                  ? `${old.approver.first_name} ${old.approver.last_name}`
+                  : "",
+              };
+            }),
           );
-        } else {
-          setWorkflowSteps([
-            { id: "1", stepOrder: 1, roleName: "หัวหน้าฝ่ายจัดซื้อ (Purchasing Manager)", approverName: "" },
-            { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
-          ]);
-        }
-      } catch (err) {
-        setWorkflowSteps([
-          { id: "1", stepOrder: 1, roleName: "หัวหน้าฝ่ายจัดซื้อ (Purchasing Manager)", approverName: "" },
-          { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
-        ]);
+      } catch {
+        if (active) setWorkflowSteps([]);
       }
     }
-    loadWorkflow();
-  }, []);
+    void loadWorkflow();
+    return () => {
+      active = false;
+    };
+  }, [initialData, isViewer]);
 
   const handleAddItem = () => {
     const newId = String(items.length + 1);
@@ -199,20 +237,24 @@ export default function PRForm({
     setItems(items.filter((item) => item.id !== id));
   };
 
-  const handleItemChange = (id: string, field: keyof PRItemInput, value: string | number) => {
+  const handleItemChange = (
+    id: string,
+    field: keyof PRItemInput,
+    value: string | number,
+  ) => {
     setItems(
       items.map((item) => {
         if (item.id !== id) return item;
         return { ...item, [field]: value };
-      })
+      }),
     );
   };
 
   const subTotal = items.reduce(
     (sum, item) => sum + item.quantity * item.unitPrice,
-    0
+    0,
   );
-  const vat = subTotal * 0.07;
+  const vat = 0;
   const grandTotal = subTotal + vat;
 
   const handleSubmit = (isDraft: boolean) => {
@@ -227,6 +269,7 @@ export default function PRForm({
       amount: grandTotal.toFixed(2),
       items,
       workflowSteps,
+      visibility,
       isDraft,
     });
   };
@@ -238,8 +281,12 @@ export default function PRForm({
           {!isViewer && (
             <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
               <div className="text-sm">
-                <span className="font-bold text-slate-500 mr-2">Preview ID:</span> 
-                <span className="font-mono text-blue-600">{runningNumberPreview}</span>
+                <span className="font-bold text-slate-500 mr-2">
+                  Preview ID:
+                </span>
+                <span className="font-mono text-blue-600">
+                  {runningNumberPreview}
+                </span>
               </div>
               <div className="text-xs text-slate-400 font-bold flex items-center gap-2">
                 <UploadCloud className="w-4 h-4" />
@@ -249,32 +296,47 @@ export default function PRForm({
           )}
 
           {/* A4 WYSIWYG Editor Container */}
-          <div className={`bg-slate-200/50 py-10 flex justify-center overflow-auto rounded-xl border border-slate-200 shadow-inner ${isViewer ? 'a4-viewer pointer-events-none' : ''}`}>
+          <div
+            className={`bg-slate-200/50 py-10 flex justify-center overflow-auto rounded-xl border border-slate-200 shadow-inner ${isViewer ? "a4-viewer pointer-events-none" : ""}`}
+          >
             <div className="bg-white w-[210mm] min-h-[297mm] shadow-xl flex flex-col p-[12mm] text-[12px] text-slate-800 leading-snug font-sans relative origin-top mx-auto">
-              
               {/* Header Block (Industrial Blue Style) */}
               <div className="flex justify-between items-start border-b-2 border-blue-800 pb-4 mb-4">
                 <div className="flex items-start gap-4">
                   <div>
-                    <h1 className="font-bold text-lg text-blue-900">{companySettings.companyName}</h1>
-                    <p className="text-slate-700 mt-1 max-w-[200px] leading-tight whitespace-pre-wrap">{companySettings.companyAddress}</p>
+                    <h1 className="font-bold text-lg text-blue-900">
+                      {companySettings.companyName}
+                    </h1>
+                    <p className="text-slate-700 mt-1 max-w-[200px] leading-tight whitespace-pre-wrap">
+                      {companySettings.companyAddress}
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col items-end">
                   <div className="border-2 border-blue-800 px-4 py-2 mb-2 text-center w-64 bg-blue-100 text-blue-900">
-                     <h2 className="text-xl font-black">ใบขออนุมัติจัดซื้อ/จัดจ้าง</h2>
-                     <p className="text-xs font-bold uppercase">PURCHASE REQUEST</p>
+                    <h2 className="text-xl font-black">
+                      ใบขออนุมัติจัดซื้อ/จัดจ้าง
+                    </h2>
+                    <p className="text-xs font-bold uppercase">
+                      PURCHASE REQUEST
+                    </p>
                   </div>
-                  
+
                   <table className="border-collapse border border-slate-800 text-left text-[11px] w-64">
                     <tbody>
                       <tr>
-                        <th className="border border-slate-800 px-2 py-1 bg-blue-50 font-bold w-1/3">เลขที่ / No.</th>
-                        <td className="border border-slate-800 px-2 py-1 font-bold text-slate-400 text-center">{runningNumberPreview}</td>
+                        <th className="border border-slate-800 px-2 py-1 bg-blue-50 font-bold w-1/3">
+                          เลขที่ / No.
+                        </th>
+                        <td className="border border-slate-800 px-2 py-1 font-bold text-slate-400 text-center">
+                          {runningNumberPreview}
+                        </td>
                       </tr>
                       <tr>
-                        <th className="border border-slate-800 px-2 py-1 bg-blue-50 font-bold">วันที่ / Date</th>
+                        <th className="border border-slate-800 px-2 py-1 bg-blue-50 font-bold">
+                          วันที่ / Date
+                        </th>
                         <td className="border border-slate-800 px-2 py-1 text-center font-bold text-slate-900">
                           {formatThaiDate(new Date())}
                         </td>
@@ -286,64 +348,76 @@ export default function PRForm({
 
               {/* Requester & Purpose Info */}
               <div className="grid grid-cols-2 gap-4 mb-4">
-                 {/* Requester Info */}
-                 <div className="border border-slate-800 p-2">
-                    <p className="font-bold border-b border-slate-800 pb-1 mb-2 text-blue-900">ผู้เสนอขอจัดซื้อ / Requester</p>
-                    <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 text-[11px]">
-                      <span className="text-slate-600 font-bold">ชื่อ / Name:</span>
-                      <span className="font-bold text-slate-900">{defaultRequester}</span>
+                {/* Requester Info */}
+                <div className="border border-slate-800 p-2">
+                  <p className="font-bold border-b border-slate-800 pb-1 mb-2 text-blue-900">
+                    ผู้เสนอขอจัดซื้อ / Requester
+                  </p>
+                  <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 text-[11px]">
+                    <span className="text-slate-600 font-bold">
+                      ชื่อ / Name:
+                    </span>
+                    <span className="font-bold text-slate-900">
+                      {defaultRequester}
+                    </span>
 
-                      <span className="text-slate-600 font-bold mt-1">แผนก / Dept:</span>
-                      <select
-                        value={department}
-                        onChange={(e) => setDepartment(e.target.value)}
-                        className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 font-bold text-slate-900 bg-transparent cursor-pointer"
-                      >
-                        {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
-                      </select>
+                    <span className="text-slate-600 font-bold mt-1">
+                      แผนก / Dept:
+                    </span>
+                    <span className="font-bold text-slate-900">
+                      {department || "—"}
+                    </span>
 
-                      <span className="text-slate-600 font-bold mt-1">เรื่อง / โครงการ:</span>
-                      <textarea
-                        rows={1}
-                        required
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        onInput={(e) => {
-                          e.currentTarget.style.height = 'auto';
-                          e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
-                        }}
-                        placeholder="ระบุชื่อเรื่องที่ขอซื้อ..."
-                        className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 font-bold text-slate-900 bg-blue-50/30 px-1 w-full resize-none overflow-hidden block"
-                      />
-                    </div>
-                 </div>
+                    <span className="text-slate-600 font-bold mt-1">
+                      เรื่อง / โครงการ:
+                    </span>
+                    <textarea
+                      rows={1}
+                      required
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      onInput={(e) => {
+                        e.currentTarget.style.height = "auto";
+                        e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                      }}
+                      placeholder="ระบุชื่อเรื่องที่ขอซื้อ..."
+                      className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 font-bold text-slate-900 bg-blue-50/30 px-1 w-full resize-none overflow-hidden block"
+                    />
+                  </div>
+                </div>
 
-                 {/* Purpose Info */}
-                 <div className="border border-slate-800 p-2">
-                    <p className="font-bold border-b border-slate-800 pb-1 mb-2 text-blue-900">วัตถุประสงค์ / Purpose</p>
-                    <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 text-[11px]">
-                      <span className="text-slate-600 font-bold mt-1">วัตถุประสงค์:</span>
-                      <textarea
-                        rows={2}
-                        value={purpose}
-                        onChange={(e) => setPurpose(e.target.value)}
-                        onInput={(e) => {
-                          e.currentTarget.style.height = 'auto';
-                          e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
-                        }}
-                        placeholder="ระบุวัตถุประสงค์/ความจำเป็น..."
-                        className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 font-bold text-slate-900 bg-blue-50/30 px-1 w-full resize-none overflow-hidden block"
-                      />
+                {/* Purpose Info */}
+                <div className="border border-slate-800 p-2">
+                  <p className="font-bold border-b border-slate-800 pb-1 mb-2 text-blue-900">
+                    วัตถุประสงค์ / Purpose
+                  </p>
+                  <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 text-[11px]">
+                    <span className="text-slate-600 font-bold mt-1">
+                      วัตถุประสงค์:
+                    </span>
+                    <textarea
+                      rows={2}
+                      value={purpose}
+                      onChange={(e) => setPurpose(e.target.value)}
+                      onInput={(e) => {
+                        e.currentTarget.style.height = "auto";
+                        e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                      }}
+                      placeholder="ระบุวัตถุประสงค์/ความจำเป็น..."
+                      className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 font-bold text-slate-900 bg-blue-50/30 px-1 w-full resize-none overflow-hidden block"
+                    />
 
-                      <span className="text-slate-600 font-bold mt-1">วันที่ต้องการ:</span>
-                      <input 
-                        type="date" max={new Date().toISOString().split("T")[0]}
-                        value={requiredDate}
-                        onChange={(e) => setRequiredDate(e.target.value)}
-                        className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 font-bold text-slate-900 bg-transparent w-full"
-                      />
-                    </div>
-                 </div>
+                    <span className="text-slate-600 font-bold mt-1">
+                      วันที่ต้องการ:
+                    </span>
+                    <input
+                      type="date"
+                      value={requiredDate}
+                      onChange={(e) => setRequiredDate(e.target.value)}
+                      className="border-b border-dotted border-blue-400 pb-1 focus:outline-none focus:border-blue-600 font-bold text-slate-900 bg-transparent w-full"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Items Table */}
@@ -362,30 +436,55 @@ export default function PRForm({
                 <table className="w-full border-collapse border-2 border-slate-800">
                   <thead>
                     <tr className="bg-blue-100 border-b-2 border-slate-800 text-blue-900">
-                      <th className="border-r border-slate-800 py-1 px-1 text-center w-8 font-bold">No.</th>
-                      <th className="border-r border-slate-800 py-1 px-1 text-center font-bold">รายการสินค้า / บริการ</th>
-                      <th className="border-r border-slate-800 py-1 px-1 text-center w-14 font-bold">จำนวน</th>
-                      <th className="border-r border-slate-800 py-1 px-1 text-center w-14 font-bold">หน่วย</th>
-                      <th className="border-r border-slate-800 py-1 px-1 text-center w-24 font-bold">ราคา/หน่วย</th>
-                      <th className="border-r border-slate-800 py-1 px-1 text-center w-24 font-bold">จำนวนเงิน</th>
-                      {!isViewer && <th className="py-1 px-1 text-center w-8"></th>}
+                      <th className="border-r border-slate-800 py-1 px-1 text-center w-8 font-bold">
+                        No.
+                      </th>
+                      <th className="border-r border-slate-800 py-1 px-1 text-center font-bold">
+                        รายการสินค้า / บริการ
+                      </th>
+                      <th className="border-r border-slate-800 py-1 px-1 text-center w-14 font-bold">
+                        จำนวน
+                      </th>
+                      <th className="border-r border-slate-800 py-1 px-1 text-center w-14 font-bold">
+                        หน่วย
+                      </th>
+                      <th className="border-r border-slate-800 py-1 px-1 text-center w-24 font-bold">
+                        ราคา/หน่วย
+                      </th>
+                      <th className="border-r border-slate-800 py-1 px-1 text-center w-24 font-bold">
+                        จำนวนเงิน
+                      </th>
+                      {!isViewer && (
+                        <th className="py-1 px-1 text-center w-8"></th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
                     {items.map((item, idx) => {
                       const itemTotal = item.quantity * item.unitPrice;
-                      
+
                       return (
-                        <tr key={item.id} className="border-b border-slate-400 group hover:bg-slate-50">
-                          <td className="border-r border-slate-800 py-1 px-1 text-center align-middle">{idx + 1}</td>
+                        <tr
+                          key={item.id}
+                          className="border-b border-slate-400 group hover:bg-slate-50"
+                        >
+                          <td className="border-r border-slate-800 py-1 px-1 text-center align-middle">
+                            {idx + 1}
+                          </td>
                           <td className="border-r border-slate-800 py-1 px-1 align-top">
                             <textarea
                               rows={1}
                               required
                               value={item.description}
-                              onChange={(e) => handleItemChange(item.id, "description", e.target.value)}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id,
+                                  "description",
+                                  e.target.value,
+                                )
+                              }
                               onInput={(e) => {
-                                e.currentTarget.style.height = 'auto';
+                                e.currentTarget.style.height = "auto";
                                 e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
                               }}
                               placeholder="ระบุชื่อสินค้า/บริการ..."
@@ -394,9 +493,15 @@ export default function PRForm({
                             <textarea
                               rows={1}
                               value={item.remark}
-                              onChange={(e) => handleItemChange(item.id, "remark", e.target.value)}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id,
+                                  "remark",
+                                  e.target.value,
+                                )
+                              }
                               onInput={(e) => {
-                                e.currentTarget.style.height = 'auto';
+                                e.currentTarget.style.height = "auto";
                                 e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
                               }}
                               placeholder="หมายเหตุ..."
@@ -409,17 +514,33 @@ export default function PRForm({
                               min="1"
                               required
                               value={item.quantity}
-                              onChange={(e) => handleItemChange(item.id, "quantity", Math.max(1, parseFloat(e.target.value) || 0))}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id,
+                                  "quantity",
+                                  Math.max(1, parseFloat(e.target.value) || 0),
+                                )
+                              }
                               className="w-10 text-center bg-transparent focus:outline-none focus:bg-blue-50 p-1 font-bold text-slate-900"
                             />
                           </td>
                           <td className="border-r border-slate-800 py-1 px-1 align-middle text-center">
                             <select
                               value={item.unit}
-                              onChange={(e) => handleItemChange(item.id, "unit", e.target.value)}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id,
+                                  "unit",
+                                  e.target.value,
+                                )
+                              }
                               className="w-14 bg-transparent focus:outline-none focus:bg-blue-50 text-[11px] p-1 cursor-pointer font-bold text-slate-900"
                             >
-                              {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                              {UNITS.map((u) => (
+                                <option key={u} value={u}>
+                                  {u}
+                                </option>
+                              ))}
                             </select>
                           </td>
                           <td className="border-r border-slate-800 py-1 px-1 align-middle text-right">
@@ -429,13 +550,22 @@ export default function PRForm({
                               step="0.01"
                               required
                               value={item.unitPrice || ""}
-                              onChange={(e) => handleItemChange(item.id, "unitPrice", Math.max(0, parseFloat(e.target.value) || 0))}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id,
+                                  "unitPrice",
+                                  Math.max(0, parseFloat(e.target.value) || 0),
+                                )
+                              }
                               placeholder="0"
                               className="w-20 text-right bg-transparent focus:outline-none focus:bg-blue-50 p-1 font-bold text-slate-900"
                             />
                           </td>
                           <td className="border-r border-slate-800 py-2 px-2 text-right align-middle font-bold text-slate-900">
-                            {itemTotal.toLocaleString("th-TH", {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                            {itemTotal.toLocaleString("th-TH", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
                           </td>
                           {!isViewer && (
                             <td className="py-1 px-1 text-center align-middle">
@@ -450,7 +580,7 @@ export default function PRForm({
                             </td>
                           )}
                         </tr>
-                      )
+                      );
                     })}
                   </tbody>
                 </table>
@@ -458,100 +588,199 @@ export default function PRForm({
 
               {/* Footer Totals */}
               <div className="mt-4 grid grid-cols-[1fr_auto] border-2 border-slate-800 items-stretch">
-                 <div className="p-3 border-r-2 border-slate-800 flex flex-col justify-between">
-                      <div>
-                        <span className="font-bold text-slate-900">หมายเหตุ / Remarks:</span>
-                        <textarea
-                          rows={2}
-                          value={remark}
-                          onChange={(e) => setRemark(e.target.value)}
-                          onInput={(e) => {
-                            e.currentTarget.style.height = 'auto';
-                            e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
-                          }}
-                          placeholder="เพิ่มหมายเหตุ..."
-                          className="w-full mt-1 bg-transparent focus:outline-none focus:bg-blue-50 p-1 text-[11px] text-slate-700 resize-none overflow-hidden"
-                        />
-                      </div>
-                 </div>
-                 <div className="w-[200px] flex flex-col">
-                    <div className="grid grid-cols-[100px_1fr] px-2 py-1 border-b border-slate-800 text-[11px]">
-                      <span>ยอดรวม<br/><span className="text-[9px]">Sub Total</span></span>
-                      <span className="text-right flex items-center justify-end font-bold">{subTotal.toLocaleString("th-TH", {minimumFractionDigits: 2})}</span>
-                    </div>
-                    <div className="grid grid-cols-[100px_1fr] px-2 py-1 border-b border-slate-800 text-[11px]">
-                      <span>ภาษีมูลค่าเพิ่ม 7%<br/><span className="text-[9px]">VAT 7%</span></span>
-                      <span className="text-right flex items-center justify-end font-bold">{vat.toLocaleString("th-TH", {minimumFractionDigits: 2})}</span>
-                    </div>
-                    <div className="grid grid-cols-[100px_1fr] p-2 bg-blue-800 text-white font-bold flex-1 items-center">
-                      <span>ยอดสุทธิ<br/><span className="text-[9px] font-normal">Grand Total</span></span>
-                      <span className="text-right text-lg">฿{grandTotal.toLocaleString("th-TH", {minimumFractionDigits: 2})}</span>
-                    </div>
-                 </div>
+                <div className="p-3 border-r-2 border-slate-800 flex flex-col justify-between">
+                  <div>
+                    <span className="font-bold text-slate-900">
+                      หมายเหตุ / Remarks:
+                    </span>
+                    <textarea
+                      rows={2}
+                      value={remark}
+                      onChange={(e) => setRemark(e.target.value)}
+                      onInput={(e) => {
+                        e.currentTarget.style.height = "auto";
+                        e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                      }}
+                      placeholder="เพิ่มหมายเหตุ..."
+                      className="w-full mt-1 bg-transparent focus:outline-none focus:bg-blue-50 p-1 text-[11px] text-slate-700 resize-none overflow-hidden"
+                    />
+                  </div>
+                </div>
+                <div className="w-[200px] flex flex-col">
+                  <div className="grid grid-cols-[100px_1fr] px-2 py-1 border-b border-slate-800 text-[11px]">
+                    <span>
+                      ยอดรวม
+                      <br />
+                      <span className="text-[9px]">Sub Total</span>
+                    </span>
+                    <span className="text-right flex items-center justify-end font-bold">
+                      {subTotal.toLocaleString("th-TH", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-[100px_1fr] px-2 py-1 border-b border-slate-800 text-[11px]">
+                    <span>
+                      ภาษีมูลค่าเพิ่ม 0%
+                      <br />
+                      <span className="text-[9px]">VAT 0%</span>
+                    </span>
+                    <span className="text-right flex items-center justify-end font-bold">
+                      {vat.toLocaleString("th-TH", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-[100px_1fr] p-2 bg-blue-800 text-white font-bold flex-1 items-center">
+                    <span>
+                      ยอดสุทธิ
+                      <br />
+                      <span className="text-[9px] font-normal">
+                        Grand Total
+                      </span>
+                    </span>
+                    <span className="text-right text-lg">
+                      ฿
+                      {grandTotal.toLocaleString("th-TH", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* Signatures Placeholder */}
-                <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-                  <div className="border border-slate-800 p-1 flex flex-col h-28 relative group pointer-events-auto">
-                    <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden w-full bg-white/50">
-                      {(() => {
-                        const creatorId = initialData?.creator_id || initialData?.creator?.id || user?.id;
-                        const creatorSig = initialData?.creator?.signature_url || (creatorId ? `/api/users/${creatorId}/signature` : null);
-                        return creatorSig ? (
-                          <img src={creatorSig} className="absolute inset-0 w-full h-full object-contain opacity-95 scale-115 p-1" alt="Signature" onError={(e) => { (e.currentTarget.style.display = 'none'); }} />
-                        ) : (
-                          <span className="text-[10px] text-slate-400">(ระบบจะดึงลายเซ็นต์อัตโนมัติ)</span>
-                        );
-                      })()}
-                    </div>
-                    <div className="w-full border-t border-slate-800 pt-1 text-center bg-white z-10 shrink-0">
-                      <p className="font-bold text-slate-900 text-[11px]">ผู้จัดทำ (Prepared By)</p>
-                      <p className="text-[10px] text-slate-700 mt-0.5">วันที่ {initialData?.created_at ? formatThaiDate(initialData.created_at) : formatThaiDate(new Date())}</p>
-                    </div>
+              <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+                <div className="border border-slate-800 p-1 flex flex-col h-28 relative group pointer-events-auto">
+                  <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden w-full bg-white/50">
+                    {(() => {
+                      const creatorId =
+                        initialData?.creator_id ||
+                        initialData?.creator?.id ||
+                        user?.id;
+                      const creatorSig =
+                        initialData?.creator?.signature_url ||
+                        (!isViewer && creatorId
+                          ? `/api/users/${creatorId}/signature`
+                          : null);
+                      return creatorSig ? (
+                        <img
+                          src={creatorSig}
+                          className="absolute inset-0 w-full h-full object-contain opacity-95 scale-115 p-1"
+                          alt="Signature"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <span className="text-[10px] text-slate-400">
+                          (ระบบจะดึงลายเซ็นต์อัตโนมัติ)
+                        </span>
+                      );
+                    })()}
                   </div>
-                  {workflowSteps.map((step: any, idx: number) => {
-                  const isApproved = step.status === 'Approved';
+                  <div className="w-full border-t border-slate-800 pt-1 text-center bg-white z-10 shrink-0">
+                    <p className="font-bold text-slate-900 text-[11px]">
+                      ผู้จัดทำ (Prepared By)
+                    </p>
+                    <p className="text-[10px] text-slate-700 mt-0.5">
+                      วันที่{" "}
+                      {initialData?.created_at
+                        ? formatThaiDate(initialData.created_at)
+                        : formatThaiDate(new Date())}
+                    </p>
+                  </div>
+                </div>
+                {workflowSteps.map((step: any, idx: number) => {
+                  const isApproved = step.status === "Approved";
                   const isCurrentStep = step.isCurrentStep;
                   const approverId = step.approver_id || step.approver?.id;
-                  const sigSrc = step.signature_url || step.approver?.signature_url || (approverId ? `/api/users/${approverId}/signature` : (isCurrentStep && user?.id ? `/api/users/${user.id}/signature` : null));
+                  const sigSrc =
+                    step.signature_url ||
+                    step.approver?.signature_url ||
+                    (isCurrentStep && tempSignature && user?.id
+                      ? `/api/users/${user.id}/signature`
+                      : null);
 
                   return (
-                  <div key={idx} className="border border-slate-800 p-1 flex flex-col h-28 relative group pointer-events-auto">
-                    {isApproved || (isCurrentStep && tempSignature) ? (
-                      <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden w-full bg-white/50">
-                        <span className="absolute top-1 left-1.5 text-[7px] font-extrabold text-emerald-600 uppercase tracking-tighter z-10 bg-emerald-50/90 px-1 rounded border border-emerald-200/60 shadow-2xs">Signed & Approved</span>
-                        {sigSrc ? (
-                          <img src={sigSrc} className="absolute inset-0 w-full h-full object-contain opacity-95 scale-115 p-1" alt="Signature" onError={(e) => { (e.currentTarget.style.display = 'none'); }} />
-                        ) : (
-                          <span className="font-['Brush_Script_MT',cursive,italic] text-base leading-tight text-center px-1 truncate max-w-[90%] text-blue-900">{step.approverName || user?.full_name || "Approver"}</span>
-                        )}
-                      </div>
-                    ) : isCurrentStep && onSignClick ? (
-                      <div 
-                        className="flex-1 flex flex-col items-center justify-center w-full cursor-pointer hover:bg-blue-50/50 transition-colors"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSignClick(); }}
-                      >
-                        <p className="text-[10px] text-blue-500 font-bold group-hover:underline text-center px-2">คลิกเพื่อวางลายเซ็น<br/><span className="text-[8px] font-normal text-slate-400">(Click to Sign)</span></p>
-                      </div>
-                    ) : (
-                      <div className="flex-1 flex items-center justify-center text-[10px] text-slate-400">
-                        (รออนุมัติตามสายงาน)
-                      </div>
-                    )}
-
-                    <div className="w-full border-t border-slate-800 pt-1 text-center bg-white z-10 shrink-0">
-                      <p className="font-bold text-slate-900 text-[11px] truncate px-1" title={step.roleName || `ผู้อนุมัติลำดับที่ ${idx + 1}`}>{step.roleName || `ผู้อนุมัติลำดับที่ ${idx + 1}`}</p>
-                      {(step.approverName) && (
-                        <p className="text-[10px] text-blue-600 font-bold leading-tight">{step.approverName}</p>
+                    <div
+                      key={idx}
+                      className="border border-slate-800 p-1 flex flex-col h-28 relative group pointer-events-auto"
+                    >
+                      {isApproved || (isCurrentStep && tempSignature) ? (
+                        <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden w-full bg-white/50">
+                          <span className="absolute top-1 left-1.5 text-[7px] font-extrabold text-emerald-600 uppercase tracking-tighter z-10 bg-emerald-50/90 px-1 rounded border border-emerald-200/60 shadow-2xs">
+                            {isApproved
+                              ? "Signed & Approved"
+                              : "Signature Preview"}
+                          </span>
+                          {sigSrc ? (
+                            <img
+                              src={sigSrc}
+                              className="absolute inset-0 w-full h-full object-contain opacity-95 scale-115 p-1"
+                              alt="Signature"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <span className="text-base leading-tight text-center px-1 truncate max-w-[90%] text-blue-900">
+                              {step.approverName ||
+                                user?.full_name ||
+                                "Approver"}
+                            </span>
+                          )}
+                        </div>
+                      ) : isCurrentStep && onSignClick ? (
+                        <div
+                          className="flex-1 flex flex-col items-center justify-center w-full cursor-pointer hover:bg-blue-50/50 transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onSignClick();
+                          }}
+                        >
+                          <p className="text-[10px] text-blue-500 font-bold group-hover:underline text-center px-2">
+                            คลิกเพื่อวางลายเซ็น
+                            <br />
+                            <span className="text-[8px] font-normal text-slate-400">
+                              (Click to Sign)
+                            </span>
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex-1 flex items-center justify-center text-[10px] text-slate-400">
+                          (รออนุมัติตามสายงาน)
+                        </div>
                       )}
-                      <p className="text-[10px] text-slate-700 mt-0.5">
-                        วันที่ {isApproved && step.date ? new Date(step.date).toLocaleDateString('th-TH') : (isCurrentStep && tempSignature ? new Date().toLocaleDateString('th-TH') : "____/____/____")}
-                      </p>
-                    </div>
-                  </div>
-                )})}
-              </div>
 
+                      <div className="w-full border-t border-slate-800 pt-1 text-center bg-white z-10 shrink-0">
+                        <p
+                          className="font-bold text-slate-900 text-[11px] truncate px-1"
+                          title={
+                            step.roleName || `ผู้อนุมัติลำดับที่ ${idx + 1}`
+                          }
+                        >
+                          {step.roleName || `ผู้อนุมัติลำดับที่ ${idx + 1}`}
+                        </p>
+                        {step.approverName && (
+                          <p className="text-[10px] text-blue-600 font-bold leading-tight">
+                            {step.approverName}
+                          </p>
+                        )}
+                        <p className="text-[10px] text-slate-700 mt-0.5">
+                          วันที่{" "}
+                          {isApproved && step.date
+                            ? new Date(step.date).toLocaleDateString("th-TH")
+                            : isCurrentStep && tempSignature
+                              ? new Date().toLocaleDateString("th-TH")
+                              : "____/____/____"}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -560,7 +789,7 @@ export default function PRForm({
               <button
                 type="button"
                 onClick={(e) => {
-                  const form = e.currentTarget.closest('form');
+                  const form = e.currentTarget.closest("form");
                   if (form && !form.checkValidity()) {
                     form.reportValidity();
                   } else {
@@ -609,38 +838,62 @@ export default function PRForm({
         <div className="space-y-6">
           <Step2Visibility value={visibility} onChange={setVisibility} />
           <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <button type="button" onClick={onBack} className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer">ย้อนกลับ</button>
-            <button type="button" onClick={(e) => {
-                const form = e.currentTarget.closest('form');
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            >
+              ย้อนกลับ
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                const form = e.currentTarget.closest("form");
                 if (form && !form.checkValidity()) {
                   form.reportValidity();
                 } else {
                   onNext();
                 }
-              }} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer">ถัดไป (กำหนดสายอนุมัติ)</button>
+              }}
+              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"
+            >
+              ถัดไป (กำหนดสายอนุมัติ)
+            </button>
           </div>
         </div>
       )}
 
       {currentStep === 3 && (
         <div className="space-y-6">
-          <ApprovalWorkflowSection steps={workflowSteps} onChange={setWorkflowSteps} />
+          <ApprovalWorkflowSection
+            steps={workflowSteps}
+            onChange={setWorkflowSteps}
+          />
           <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <button type="button" onClick={onBack} className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer">ย้อนกลับ</button>
-            <button type="button" onClick={(e) => {
-                const form = e.currentTarget.closest('form');
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            >
+              ย้อนกลับ
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                const form = e.currentTarget.closest("form");
                 if (form && !form.checkValidity()) {
                   form.reportValidity();
                 } else {
                   onNext();
                 }
-              }} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer">ถัดไป (ตรวจสอบพรีวิว)</button>
+              }}
+              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"
+            >
+              ถัดไป (ตรวจสอบพรีวิว)
+            </button>
           </div>
         </div>
       )}
-
-
     </form>
   );
 }
-

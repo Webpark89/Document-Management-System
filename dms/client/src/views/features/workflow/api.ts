@@ -3,11 +3,14 @@
 // Calls real backend API
 // ============================================================
 
-import { api } from "@/lib";
+import { api, ApiError } from "@/lib";
 import { formatThaiDate, formatThaiTime } from "@/lib/format-date";
 
 export interface Approval {
   id: string;
+  real_id?: string;
+  department?: string;
+  type?: string;
   name: string;
   amount: string;
   requester: string;
@@ -17,7 +20,14 @@ export interface Approval {
   rawSubmittedDate?: number;
   currentLevel: number;
   maxLevels: number;
-  status: "Draft" | "Pending" | "Approved" | "Returned" | "Returned for Revision" | "Cancelled" | string;
+  status:
+    | "Draft"
+    | "Pending"
+    | "Approved"
+    | "Returned"
+    | "Returned for Revision"
+    | "Cancelled"
+    | string;
 }
 
 export interface WorkflowStep {
@@ -51,13 +61,22 @@ export async function getApprovals(): Promise<Approval[]> {
 
       return {
         id: item.id,
+        real_id: item.real_id,
+        department: item.department,
+        type: item.type,
         name: item.name,
         amount: item.amount,
         requester: item.sender,
         approvers: item.approvers || [],
-        submittedDate: formatThaiDate(item.submittedDate || item.created_at || item.createdAt),
-        submittedTime: formatThaiTime(item.submittedDate || item.created_at || item.createdAt),
-        rawSubmittedDate: new Date(item.submittedDate || item.created_at || item.createdAt || Date.now()).getTime(),
+        submittedDate: formatThaiDate(
+          item.submittedDate || item.created_at || item.createdAt,
+        ),
+        submittedTime: formatThaiTime(
+          item.submittedDate || item.created_at || item.createdAt,
+        ),
+        rawSubmittedDate: new Date(
+          item.submittedDate || item.created_at || item.createdAt || Date.now(),
+        ).getTime(),
         currentLevel: item.stepOrder,
         maxLevels: item.totalSteps,
         status: mappedStatus,
@@ -69,35 +88,44 @@ export async function getApprovals(): Promise<Approval[]> {
   }
 }
 
-export async function getWorkflow(documentId: string): Promise<WorkflowData | null> {
+export function mapWorkflow(w: any, documentId: string): WorkflowData | null {
+  if (!w) return null;
+  return {
+    documentId: w.document_id || documentId,
+    status: w.status,
+    currentStep: w.current_step,
+    totalSteps: w.total_steps,
+    steps: (w.steps || []).map((s: any) => ({
+      id: s.id,
+      stepOrder: s.step_order,
+      roleName: s.approver_role || s.approver?.role?.name || "",
+      approverName:
+        s.approver_name ||
+        (s.approver
+          ? `${s.approver.first_name || ""} ${s.approver.last_name || ""}`.trim()
+          : undefined),
+      approverId: s.approver_id,
+      status: s.status,
+      actionDate: s.action_date,
+      comment: s.comment,
+    })),
+  };
+}
+
+export async function getWorkflow(
+  documentId: string,
+): Promise<WorkflowData | null> {
   try {
     const res = await api.get<any>(`/api/workflows/${documentId}`);
-    const w = res.data;
-    if (!w) return null;
-    return {
-      documentId: w.document_id || documentId,
-      status: w.status,
-      currentStep: w.current_step,
-      totalSteps: w.total_steps,
-      steps: (w.steps || []).map((s: any) => ({
-        id: s.id,
-        stepOrder: s.step_order,
-        roleName: s.approver_role,
-        approverName: s.approver_name,
-        approverId: s.approver_id,
-        status: s.status,
-        actionDate: s.action_date,
-        comment: s.comment,
-      })),
-    };
+    return mapWorkflow(res.data, documentId);
   } catch (err) {
-    console.warn(`[getWorkflow] No workflow found for document ${documentId}`);
-    return null;
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
   }
 }
 
 export async function submitApprove(
-  documentId: string, 
+  documentId: string,
   comment: string,
   signatureParams?: {
     signature_x?: number;
@@ -105,10 +133,17 @@ export async function submitApprove(
     signature_page?: number;
     signature_width?: number;
     signature_height?: number;
-  }
+    expected_step: number;
+    expected_version: number;
+    annotation_text?: string;
+    date_stamp?: boolean;
+  },
 ): Promise<{ success: boolean; message: string }> {
   const payload = { comment, ...signatureParams };
-  const res = await api.post<{ success: boolean }>(`/api/workflows/${documentId}/approve`, payload);
+  const res = await api.post<{ success: boolean }>(
+    `/api/workflows/${documentId}/approve`,
+    payload,
+  );
   return { success: res.data.success, message: "อนุมัติเอกสารสำเร็จ" };
 }
 
@@ -116,12 +151,23 @@ export async function submitReject(
   documentId: string,
   comment: string,
   rejectType: "return" | "cancel" = "return",
-  returnToStep?: number
+  returnToStep?: number,
+  expectedStep?: number,
+  expectedVersion?: number,
 ): Promise<{ success: boolean; message: string }> {
-  const res = await api.post<{ success: boolean }>(`/api/workflows/${documentId}/reject`, {
-    comment,
-    reject_type: rejectType,
-    return_to_step: returnToStep,
-  });
-  return { success: res.data.success, message: rejectType === "return" ? "ตีกลับเอกสารสำเร็จ" : "ปฏิเสธเอกสารถาวรสำเร็จ" };
+  const res = await api.post<{ success: boolean }>(
+    `/api/workflows/${documentId}/reject`,
+    {
+      comment,
+      reject_type: rejectType,
+      return_to_step: returnToStep,
+      expected_step: expectedStep,
+      expected_version: expectedVersion,
+    },
+  );
+  return {
+    success: res.data.success,
+    message:
+      rejectType === "return" ? "ตีกลับเอกสารสำเร็จ" : "ปฏิเสธเอกสารถาวรสำเร็จ",
+  };
 }

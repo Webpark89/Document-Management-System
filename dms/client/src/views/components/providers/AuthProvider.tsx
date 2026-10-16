@@ -1,17 +1,16 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  api,
-   
-   
-   
-} from "@/lib";
-   
-   
+import { normalizeDashboardPermissions } from "@/lib/dashboard-permissions";
+import { api } from "@/lib";
 
-   
 type AuthUser = {
   id: string;
   full_name: string;
@@ -35,15 +34,23 @@ type AuthContextValue = {
 };
 
 const globalForAuth = globalThis as unknown as {
-  AuthContext: React.Context<AuthContextValue | undefined>
+  AuthContext: React.Context<AuthContextValue | undefined>;
 };
 
-const AuthContext = globalForAuth.AuthContext || createContext<AuthContextValue | undefined>(undefined);
+const AuthContext =
+  globalForAuth.AuthContext ||
+  createContext<AuthContextValue | undefined>(undefined);
 if (process.env.NODE_ENV !== "production") {
   globalForAuth.AuthContext = AuthContext;
 }
 
-const PUBLIC_ROUTES = ["/auth/login", "/auth", "/login", "/forgot-password", "/reset-password"];
+const PUBLIC_ROUTES = [
+  "/auth/login",
+  "/auth",
+  "/login",
+  "/forgot-password",
+  "/reset-password",
+];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -67,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (loading) return;
 
     const isPublic = PUBLIC_ROUTES.some(
-      (route) => pathname === route || pathname.startsWith(`${route}/`)
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
     );
 
     if (!user && !isPublic) {
@@ -81,10 +88,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, loading, pathname, router]);
 
   const login = async (username: string, password: string) => {
-    const response = await api.post<{ user: AuthUser }>(
-      "/api/auth/login",
-      { username: username.trim(), password }
-    );
+    const response = await api.post<{ user: AuthUser }>("/api/auth/login", {
+      username: username.trim(),
+      password,
+    });
     const profile = response.data.user;
     setUser(profile);
     return profile;
@@ -98,18 +105,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.replace("/login");
   };
 
+  const sessionUser = useMemo(
+    () =>
+      user
+        ? {
+            ...user,
+            permissions: normalizeDashboardPermissions(user.permissions ?? []),
+          }
+        : null,
+    [user],
+  );
   const value = useMemo<AuthContextValue>(
     () => ({
-      user,
+      user: sessionUser,
       loading,
       isAuthenticated: Boolean(user),
       login,
       logout,
     }),
-    [user, loading]
+    [sessionUser, loading],
   );
 
-     
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

@@ -12,6 +12,7 @@ import {
 import type { Request, Response } from 'express';
 import type { User } from '@prisma/client';
 import { AuthService } from './auth.service';
+import { ForgotPasswordDto, ResetPasswordDto } from './dto/password.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentUser } from './current-user.decorator';
@@ -64,13 +65,13 @@ export class AuthController {
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  async forgotPassword(@Body('email') email: string) {
-    return this.authService.forgotPassword(email);
+  async forgotPassword(@Body() body: ForgotPasswordDto) {
+    return this.authService.forgotPassword(body.email);
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  async resetPassword(@Body() body: { token: string; password_hash: string }) {
+  async resetPassword(@Body() body: ResetPasswordDto) {
     // Note: The service expects (token, newPassword).
     // The frontend sends password_hash but the service might be hashing it again.
     // Let's pass what we got. Wait, let me check what the frontend sends.

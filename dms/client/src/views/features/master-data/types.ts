@@ -81,7 +81,10 @@ export const FORM_TYPE_DESCRIPTIONS: Record<FormTypeStyle, string> = {
   "OTHER-style": "ฟอร์มทั่วไป (OTHER - เอกสารอื่นๆ)",
 };
 
-export const DEFAULT_FORM_META: Record<FormTypeStyle, { formCode: string; fieldsCount: number }> = {
+export const DEFAULT_FORM_META: Record<
+  FormTypeStyle,
+  { formCode: string; fieldsCount: number }
+> = {
   "PR-style": { formCode: "PR-FRM", fieldsCount: 8 },
   "PO-style": { formCode: "PO-FRM", fieldsCount: 10 },
   "BK-style": { formCode: "BK-FRM", fieldsCount: 6 },
@@ -90,48 +93,195 @@ export const DEFAULT_FORM_META: Record<FormTypeStyle, { formCode: string; fields
 
 export const DEFAULT_FORM_FIELDS: Record<FormTypeStyle, FormFieldConfig[]> = {
   "PR-style": [
-    { id: "pr_f1", name: "เลขที่เอกสาร", type: "Text", isRequired: true, isSystem: true },
-    { id: "pr_f2", name: "วันที่เอกสาร", type: "Date", isRequired: true, isSystem: true },
-    { id: "pr_f3", name: "ผู้จัดทำ", type: "Text", isRequired: true, isSystem: true },
-    { id: "pr_f4", name: "แผนก", type: "Dropdown", isRequired: true, isSystem: true },
-    { id: "pr_f5", name: "วัตถุประสงค์การจัดซื้อ", type: "Text", isRequired: true },
-    { id: "pr_f6", name: "วันที่ต้องการสินค้า", type: "Date", isRequired: true },
-    { id: "pr_f7", name: "ตารางรายการสินค้า", type: "Table", isRequired: true, isSystem: true },
-    { id: "pr_f8", name: "ยอดรวมเงิน (ก่อน VAT)", type: "Number", isRequired: true, isSystem: true },
+    {
+      id: "pr_f1",
+      name: "เลขที่เอกสาร",
+      type: "Text",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "pr_f2",
+      name: "วันที่เอกสาร",
+      type: "Date",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "pr_f3",
+      name: "ผู้จัดทำ",
+      type: "Text",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "pr_f4",
+      name: "แผนก",
+      type: "Dropdown",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "pr_f5",
+      name: "วัตถุประสงค์การจัดซื้อ",
+      type: "Text",
+      isRequired: true,
+    },
+    {
+      id: "pr_f6",
+      name: "วันที่ต้องการสินค้า",
+      type: "Date",
+      isRequired: true,
+    },
+    {
+      id: "pr_f7",
+      name: "ตารางรายการสินค้า",
+      type: "Table",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "pr_f8",
+      name: "ยอดรวมเงิน (ก่อน VAT)",
+      type: "Number",
+      isRequired: true,
+      isSystem: true,
+    },
   ],
   "PO-style": [
-    { id: "po_f1", name: "เลขที่เอกสาร", type: "Text", isRequired: true, isSystem: true },
-    { id: "po_f2", name: "วันที่เอกสาร", type: "Date", isRequired: true, isSystem: true },
-    { id: "po_f3", name: "ชื่อผู้ขาย (Vendor)", type: "Text", isRequired: true, isSystem: true },
+    {
+      id: "po_f1",
+      name: "เลขที่เอกสาร",
+      type: "Text",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "po_f2",
+      name: "วันที่เอกสาร",
+      type: "Date",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "po_f3",
+      name: "ชื่อผู้ขาย (Vendor)",
+      type: "Text",
+      isRequired: true,
+      isSystem: true,
+    },
     { id: "po_f4", name: "ผู้ติดต่อ", type: "Text", isRequired: false },
-    { id: "po_f5", name: "ที่อยู่ผู้ขาย", type: "Long Text", isRequired: false },
+    {
+      id: "po_f5",
+      name: "ที่อยู่ผู้ขาย",
+      type: "Long Text",
+      isRequired: false,
+    },
     { id: "po_f6", name: "วันที่กำหนดส่งมอบ", type: "Date", isRequired: true },
-    { id: "po_f7", name: "เงื่อนไขการชำระเงิน", type: "Text", isRequired: false },
-    { id: "po_f8", name: "ตารางรายการสั่งซื้อ", type: "Table", isRequired: true, isSystem: true },
-    { id: "po_f9", name: "ภาษีมูลค่าเพิ่ม (VAT 7%)", type: "Number", isRequired: true, isSystem: true },
-    { id: "po_f10", name: "ยอดรวมเงินสุทธิ", type: "Number", isRequired: true, isSystem: true },
+    {
+      id: "po_f7",
+      name: "เงื่อนไขการชำระเงิน",
+      type: "Text",
+      isRequired: false,
+    },
+    {
+      id: "po_f8",
+      name: "ตารางรายการสั่งซื้อ",
+      type: "Table",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "po_f9",
+      name: "ภาษีมูลค่าเพิ่ม (VAT 7%)",
+      type: "Number",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "po_f10",
+      name: "ยอดรวมเงินสุทธิ",
+      type: "Number",
+      isRequired: true,
+      isSystem: true,
+    },
   ],
   "BK-style": [
-    { id: "memo_f1", name: "เลขที่เอกสาร", type: "Text", isRequired: true, isSystem: true },
-    { id: "memo_f2", name: "วันที่", type: "Date", isRequired: true, isSystem: true },
-    { id: "memo_f3", name: "เรื่อง", type: "Text", isRequired: true, isSystem: true },
+    {
+      id: "memo_f1",
+      name: "เลขที่เอกสาร",
+      type: "Text",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "memo_f2",
+      name: "วันที่",
+      type: "Date",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "memo_f3",
+      name: "เรื่อง",
+      type: "Text",
+      isRequired: true,
+      isSystem: true,
+    },
     { id: "memo_f4", name: "เรียน", type: "Text", isRequired: true },
     { id: "memo_f5", name: "จาก", type: "Text", isRequired: true },
-    { id: "memo_f6", name: "รายละเอียดบันทึกข้อความ", type: "Long Text", isRequired: true, isSystem: true },
+    {
+      id: "memo_f6",
+      name: "รายละเอียดบันทึกข้อความ",
+      type: "Long Text",
+      isRequired: true,
+      isSystem: true,
+    },
   ],
   "OTHER-style": [
-    { id: "other_f1", name: "เลขที่เอกสาร", type: "Text", isRequired: true, isSystem: true },
-    { id: "other_f2", name: "วันที่", type: "Date", isRequired: true, isSystem: true },
-    { id: "other_f3", name: "เรื่อง", type: "Text", isRequired: true, isSystem: true },
-    { id: "other_f4", name: "รายละเอียด", type: "Long Text", isRequired: true, isSystem: true },
-    { id: "other_f5", name: "แนบไฟล์เอกสาร", type: "File", isRequired: false, isSystem: true },
+    {
+      id: "other_f1",
+      name: "เลขที่เอกสาร",
+      type: "Text",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "other_f2",
+      name: "วันที่",
+      type: "Date",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "other_f3",
+      name: "เรื่อง",
+      type: "Text",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "other_f4",
+      name: "รายละเอียด",
+      type: "Long Text",
+      isRequired: true,
+      isSystem: true,
+    },
+    {
+      id: "other_f5",
+      name: "แนบไฟล์เอกสาร",
+      type: "File",
+      isRequired: false,
+      isSystem: true,
+    },
   ],
 };
 
 export interface FormFieldConfig {
   id: string;
   name: string;
-  type: "Text" | "Long Text" | "Number" | "Date" | "File" | "Dropdown" | "Table";
+  type:
+    "Text" | "Long Text" | "Number" | "Date" | "File" | "Dropdown" | "Table";
   isRequired: boolean;
   isSystem?: boolean;
 }
@@ -174,7 +324,7 @@ export interface MatrixWorkflowStep {
   approverName: string;
 }
 
-export type YearFormat = "be2" | "be4" | "none";
+export type YearFormat = "ce2" | "ce4" | "be2" | "be4" | "none";
 export type RunningSeparator = "-" | "/" | "none";
 export type ResetCycle = "yearly" | "monthly" | "never";
 export type RunningDigits = 3 | 4 | 5;
@@ -201,6 +351,8 @@ export const RESET_CYCLE_LABELS: Record<ResetCycle, string> = {
 };
 
 export const YEAR_FORMAT_LABELS: Record<YearFormat, string> = {
+  ce4: "ค.ศ. 4 หลัก",
+  ce2: "ค.ศ. 2 หลัก",
   be2: 'พ.ศ. 2 หลัก "69"',
   be4: 'พ.ศ. 4 หลัก "2569"',
   none: "ไม่แสดงปี",

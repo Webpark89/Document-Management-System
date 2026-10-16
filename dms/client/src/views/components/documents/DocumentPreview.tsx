@@ -1,16 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { api } from "@/lib";
-import { Download, FileText, Loader2 } from "lucide-react";
-import { downloadDocument } from '@views/features/documents/api';
-import { useAuth } from '@views/components/providers/AuthProvider';
-import { useSignatures } from '@views/components/providers/SignatureProvider';
-import { API_BASE_URL } from '@/lib';
-import { formatThaiDate } from '@/lib/format-date';
-import PRForm from '@views/components/forms/PRForm';
-import POForm from '@views/components/forms/POForm';
-import BKForm from '@views/components/forms/BKForm';
+import React from "react";
+import { Download, FileText } from "lucide-react";
+import { downloadDocument } from "@views/features/documents/api";
+import { useAuth } from "@views/components/providers/AuthProvider";
+import { useToast } from "@views/components/providers/ToastProvider";
+import PRForm from "@views/components/forms/PRForm";
+import POForm from "@views/components/forms/POForm";
+import BKForm from "@views/components/forms/BKForm";
 
 interface DocumentPreviewProps {
   doc: any;
@@ -21,490 +18,170 @@ interface DocumentPreviewProps {
   onSignClick?: () => void;
 }
 
-function SignatureDisplay({
-  src,
-  fallbackName,
-  className,
-}: {
-  src?: string | null;
-  fallbackName: string;
-  className?: string;
-}) {
-  const [hasError, setHasError] = React.useState(false);
-
-  React.useEffect(() => {
-    setHasError(false);
-  }, [src]);
-
-  if (!src || hasError) {
-    return (
-      <span className="font-['Brush_Script_MT',cursive,italic] text-xl text-slate-800 text-center leading-tight px-1 truncate max-w-[90%]">
-        {fallbackName || "Approver"}
-      </span>
-    );
-  }
-
-  let finalSrc = src;
-  if (src.startsWith('/api/')) {
-    finalSrc = API_BASE_URL.replace(/\/api\/?$/, '') + src;
-  }
-  
-  const isDataUri = finalSrc.startsWith('data:');
-
-  return (
-    <div className="relative inline-flex items-center justify-center overflow-hidden select-none">
-      <img
-        src={finalSrc}
-        alt="signature"
-        className={className || "max-h-12 max-w-[90%] object-contain pointer-events-none"}
-        {...(!isDataUri ? { crossOrigin: "use-credentials" } : {})}
-        onError={(e) => {
-          console.error('Signature load error', finalSrc, e);
-          setHasError(true);
-        }}
-      />
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center rotate-[-12deg] opacity-15 text-[8px] font-bold text-rose-500 tracking-tighter uppercase select-none whitespace-nowrap">
-        DOCUMENT E-SIGN
-      </div>
-    </div>
-  );
-}
-
-export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isViewer, tempSignature, onSignClick }: DocumentPreviewProps) {
+export function DocumentPreview({
+  doc: initialDoc,
+  versionId,
+  hideHeader,
+  isViewer,
+  tempSignature,
+  onSignClick,
+}: DocumentPreviewProps) {
   let doc = initialDoc as any;
   const rawType = doc?.type || doc?.doc_type;
-  const rawPrefix = (typeof rawType === 'object' ? rawType?.prefix : rawType) || (doc?.doc_number || doc?.id || '').split('-')[0] || 'OTHER';
+  const rawPrefix =
+    (typeof rawType === "object" ? rawType?.prefix : rawType) ||
+    (doc?.doc_number || doc?.id || "").split("-")[0] ||
+    "OTHER";
   const resolvedTypePrefix = String(rawPrefix).toUpperCase();
 
   if (versionId && doc?.versions) {
-    const version = doc.versions.find((v: any) => v.id === versionId || v.version_number?.toString() === versionId.toString());
+    const version = doc.versions.find(
+      (v: any) =>
+        v.id === versionId ||
+        v.version_number?.toString() === versionId.toString(),
+    );
     const docTypePrefix = resolvedTypePrefix;
     if (version && version.form_data) {
       doc = { ...doc };
       const vFormData = version.form_data;
-      if (docTypePrefix === 'PR') {
-        doc.pr_form = (vFormData.items && Array.isArray(vFormData.items) && vFormData.items.length > 0)
-          ? vFormData
-          : { ...vFormData, items: doc.pr_form?.items || [] };
-      } else if (docTypePrefix === 'PO') {
-        doc.po_form = (vFormData.items && Array.isArray(vFormData.items) && vFormData.items.length > 0)
-          ? vFormData
-          : { ...vFormData, items: doc.po_form?.items || [] };
-      } else if (docTypePrefix === 'BK' || docTypePrefix === 'MEMO') {
+      const meta = vFormData._meta;
+      doc = {
+        ...doc,
+        ...(meta ?? {}),
+        _meta: meta,
+        workflow: meta?.workflow ?? null,
+        creator: meta?.creator ?? doc.creator,
+        department: meta?.creator?.department?.name ?? doc.department,
+        doc_number: meta?.doc_number ?? doc.doc_number,
+        title: meta?.title ?? doc.title,
+      };
+      if (!["PR", "PO", "BK", "MEMO"].includes(docTypePrefix))
+        doc.fileUrl = version.download_url;
+      if (docTypePrefix === "PR") {
+        doc.pr_form =
+          vFormData.items &&
+          Array.isArray(vFormData.items) &&
+          vFormData.items.length > 0
+            ? vFormData
+            : { ...vFormData, items: [] };
+      } else if (docTypePrefix === "PO") {
+        doc.po_form =
+          vFormData.items &&
+          Array.isArray(vFormData.items) &&
+          vFormData.items.length > 0
+            ? vFormData
+            : { ...vFormData, items: [] };
+      } else if (docTypePrefix === "BK" || docTypePrefix === "MEMO") {
         doc.bk_form = vFormData;
       }
     }
   }
-  const { user } = useAuth();
-  const { signatures, findByApproverName } = useSignatures();
-
-  const [companySettings, setCompanySettings] = useState({
-    companyName: "",
-    companyAddress: ""
-  });
-
-  useEffect(() => {
-    api.get<any>("/api/admin/settings").then(res => { if (res.data?.companyName) setCompanySettings(res.data); }).catch(() => {});
-  }, []);
-  
-  const type = resolvedTypePrefix;
-  const isApproved = doc.status === "Approved";
-
-  // Attempt to extract approvals from workflow
-  const approvals = doc.workflow?.steps?.filter((s: any) => s.status === 'Approved') || [];
-  
-  const getSignature = (roleOrName: string) => {
-    if (approvals.length > 0) {
-       const step = approvals.find((s:any) => 
-         (s.approver?.role?.name || "").toLowerCase().includes(roleOrName.toLowerCase()) || 
-         (s.approver?.first_name || "").toLowerCase().includes(roleOrName.toLowerCase())
-       ) || approvals[approvals.length - 1];
-
-       if (step) {
-          const approverName = step.approver?.first_name 
-            ? `${step.approver.first_name} ${step.approver.last_name}` 
-            : step.approver_name || step.approver?.username || "Approver";
-
-          const sigObj = findByApproverName(approverName) || 
-            signatures.find(s => s.approverName === approverName || s.imageUrl);
-
-          return {
-             name: approverName,
-             sig: sigObj,
-             date: formatThaiDate(step.actionDate || step.action_date || step.updated_at || doc.submittedDate)
-          };
-       }
-    }
-    // Fallback if approved but no workflow step match, or just mock
-    if (isApproved) {
-       const dummyApprover = doc.sender || user?.full_name || "Administrator";
-       return {
-          name: dummyApprover,
-          sig: findByApproverName(dummyApprover) || signatures.find(s => s.imageUrl) || signatures[0],
-          date: formatThaiDate(doc.submittedDate)
-       };
-    }
-    return null;
-  };
-
   // PR Form Renderer (A4 Style)
-  const renderPRForm = () => { const form = doc.pr_form; if (!form) return <div className="text-center p-8 text-slate-500">ไม่พบข้อมูล PR Form</div>; return <div className="w-full relative"><PRForm isViewer={true} tempSignature={tempSignature} onSignClick={onSignClick} initialData={doc} currentStep={1} runningNumberPreview={doc.doc_number || doc.id} onSubmit={() => {}} onCancel={() => {}} onNext={() => {}} onBack={() => {}} /></div>; };
-
-  // PO Form Renderer (A4 Style)
-  const renderPOForm = () => { const form = doc.po_form; if (!form) return <div className="text-center p-8 text-slate-500">ไม่พบข้อมูล PO Form</div>; return <div className="w-full relative"><POForm isViewer={true} tempSignature={tempSignature} onSignClick={onSignClick} initialData={doc} currentStep={1} runningNumberPreview={doc.doc_number || doc.id} onSubmit={() => {}} onCancel={() => {}} onNext={() => {}} onBack={() => {}} /></div>; };
-
-  // BK Form Renderer (A4 Style)
-  const renderBKForm = () => { return <div className="w-full relative"><BKForm isViewer={true} tempSignature={tempSignature} onSignClick={onSignClick} initialData={doc} currentStep={1} runningNumberPreview={doc.doc_number || doc.id} onSubmit={() => {}} onCancel={() => {}} onNext={() => {}} onBack={() => {}} /></div>; };
-
-  const renderA4Template = (
-    titleTH: string, 
-    titleEN: string, 
-    typeAlias: string, 
-    meta: any, 
-    items: any[], 
-    grandTotal: number, 
-    vatAmount: number, 
-    remark: string
-  ) => {
-    const preTaxAmount = grandTotal - vatAmount;
-    
-    const approverSig = getSignature("Approver");
-    const creatorSig = {
-      name: doc.sender,
-      sig: doc.creator?.signature_url
-        ? { imageUrl: doc.creator.signature_url }
-        : signatures.find(s => s.imageUrl) || signatures[0],
-      date: doc.submittedDate
-    };
-
-    // Color Theme Logic based on document type
-    const isPO = typeAlias === "PO";
-    
-    // Industrial Standard formal borders and colors
-    const primaryText = isPO ? "text-purple-900" : "text-blue-900";
-    const primaryBorder = isPO ? "border-purple-800" : "border-blue-800";
-    const primaryBg = isPO ? "bg-purple-800 text-white" : "bg-blue-800 text-white";
-    const primaryBgLight = isPO ? "bg-purple-100 text-purple-900" : "bg-blue-100 text-blue-900";
-    const primaryBgFaint = isPO ? "bg-purple-50" : "bg-blue-50";
-
-    const A4Wrapper = isViewer ? "div" : "div";
-    const wrapperClass = isViewer 
-      ? "flex justify-center" 
-      : "bg-slate-200/50 py-10 flex justify-center overflow-auto rounded-xl border border-slate-200";
-
-    return (
-      <A4Wrapper className={wrapperClass}>
-        <div className="bg-white w-[210mm] min-h-[297mm] shadow-lg flex flex-col p-[12mm] text-[12px] text-slate-800 leading-snug font-sans relative origin-top">
-          
-          {/* Header Block (Industrial Style) */}
-          <div className={`flex justify-between items-start border-b-2 ${primaryBorder} pb-4 mb-4`}>
-            <div className="flex items-start gap-4">
-              <div>
-                <h1 className={`font-bold text-lg ${primaryText}`}>{meta.buyerName}</h1>
-                <p className="text-slate-700 mt-1 max-w-[200px] leading-tight whitespace-pre-wrap">{meta.buyerAddress}</p>
-                {meta.buyerTaxId && <p className="text-slate-700 mt-1 font-semibold">เลขประจำตัวผู้เสียภาษี: {meta.buyerTaxId}</p>}
-              </div>
-            </div>
-            
-            <div className="flex flex-col items-end">
-              <div className={`border-2 ${primaryBorder} px-4 py-2 mb-2 text-center w-64 ${primaryBgLight}`}>
-                 <h2 className="text-xl font-black">{titleTH}</h2>
-                 <p className="text-xs font-bold uppercase">{titleEN}</p>
-              </div>
-              
-              <table className="border-collapse border border-slate-800 text-left text-[11px] w-64">
-                <tbody>
-                  <tr>
-                    <th className={`border border-slate-800 px-2 py-1 ${primaryBgFaint} font-bold w-1/3`}>เลขที่ / No.</th>
-                    <td className="border border-slate-800 px-2 py-1 font-bold text-slate-900 text-center">{doc.id}</td>
-                  </tr>
-                  <tr>
-                    <th className={`border border-slate-800 px-2 py-1 ${primaryBgFaint} font-bold`}>วันที่ / Date</th>
-                    <td className="border border-slate-800 px-2 py-1 text-center font-bold text-slate-900">
-                      {formatThaiDate(doc.submittedDate || doc.created_at || doc.pr_form?.requested_date || doc.po_form?.created_at)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Parties Info */}
-          {typeAlias === "PR" ? (
-            <div className="grid grid-cols-2 gap-4 mb-4">
-               <div className="border border-slate-800 p-2">
-                  <p className={`font-bold border-b border-slate-800 pb-1 mb-2 ${primaryText}`}>ผู้เสนอขอจัดซื้อ / Requester</p>
-                  <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 text-[11px]">
-                    <span className="text-slate-600 font-bold">ชื่อ / Name:</span>
-                    <span className="font-bold text-slate-900">{doc.sender}</span>
-                    <span className="text-slate-600 font-bold">แผนก / Dept:</span>
-                    <span className="font-bold text-slate-900">{doc.department || "-"}</span>
-                    <span className="text-slate-600 font-bold">เรื่อง / โครงการ:</span>
-                    <span className="font-bold text-slate-900">{doc.title || "-"}</span>
-                  </div>
-               </div>
-               <div className="border border-slate-800 p-2">
-                  <p className={`font-bold border-b border-slate-800 pb-1 mb-2 ${primaryText}`}>วัตถุประสงค์ / Purpose</p>
-                  <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 text-[11px]">
-                    <span className="text-slate-600 font-bold">วัตถุประสงค์:</span>
-                    <span className="font-semibold text-slate-900 whitespace-pre-wrap">{doc.pr_form?.purpose || "-"}</span>
-                    <span className="text-slate-600 font-bold">วันที่ต้องการ:</span>
-                    <span className="font-bold text-slate-900">
-                      {doc.pr_form?.required_date 
-                        ? new Date(doc.pr_form.required_date).toLocaleDateString('th-TH') 
-                        : "ตามที่ระบุในรายการ"}
-                    </span>
-                  </div>
-               </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 mb-4">
-               <div className="border border-slate-800 p-2">
-                  <p className={`font-bold border-b border-slate-800 pb-1 mb-2 ${primaryText}`}>ผู้ขาย / Vendor</p>
-                  <div className="grid grid-cols-[90px_1fr] gap-x-2 gap-y-1 text-[11px]">
-                    <span className="text-slate-600 font-bold">ชื่อร้าน/บริษัท:</span>
-                    <span className="font-bold text-slate-900">{meta.vendorName || "ไม่ระบุ"}</span>
-                    <span className="text-slate-600 font-bold">ข้อมูลติดต่อ:</span>
-                    <span className="leading-tight">{meta.vendorContact || "ไม่ระบุ"}</span>
-                    <span className="text-slate-600 font-bold">วันที่ส่งมอบ:</span>
-                    <span className="font-bold text-slate-900">{meta.deliveryDate ? new Date(meta.deliveryDate).toLocaleDateString('th-TH') : "ไม่ระบุ"}</span>
-                    <span className="text-slate-600 font-bold">เงื่อนไขชำระเงิน:</span>
-                    <span className="font-bold text-slate-900">{meta.paymentTerms || "ไม่ระบุ"}</span>
-                  </div>
-               </div>
-               <div className="border border-slate-800 p-2">
-                  <p className={`font-bold border-b border-slate-800 pb-1 mb-2 ${primaryText}`}>ผู้ซื้อ / Buyer</p>
-                  <div className="grid grid-cols-[80px_1fr] gap-x-2 gap-y-1 text-[11px]">
-                    <span className="text-slate-600 font-bold">ชื่อ / Name:</span>
-                    <span className="font-bold text-slate-900">{doc.sender}</span>
-                    <span className="text-slate-600 font-bold">แผนก / Dept:</span>
-                    <span className="font-bold text-slate-900">{doc.department || "ไม่ระบุ"}</span>
-                    <span className="text-slate-600 font-bold">เรื่อง:</span>
-                    <span className="font-bold text-slate-900">{doc.title || "ไม่ระบุ"}</span>
-                  </div>
-               </div>
-            </div>
-          )}
-
-          {/* Items Table - Strict Borders */}
-          <div className="flex-1">
-            <table className="w-full border-collapse border-2 border-slate-800">
-              <thead>
-                <tr className={`${primaryBgLight} border-b-2 border-slate-800 ${primaryText}`}>
-                  <th className="border-r border-slate-800 py-2 px-2 text-center w-12 font-bold">ลำดับ<br/><span className="text-[9px] font-normal">No.</span></th>
-                  <th className="border-r border-slate-800 py-2 px-2 text-center font-bold">รายการ<br/><span className="text-[9px] font-normal">Description</span></th>
-                  <th className="border-r border-slate-800 py-2 px-2 text-center w-20 font-bold">จำนวน<br/><span className="text-[9px] font-normal">Qty</span></th>
-                  <th className="border-r border-slate-800 py-2 px-2 text-center w-24 font-bold">ราคา/หน่วย<br/><span className="text-[9px] font-normal">Unit Price</span></th>
-                  {typeAlias === "PO" && (
-                    <th className="border-r border-slate-800 py-2 px-2 text-center w-16 font-bold">VAT<br/><span className="text-[9px] font-normal">%</span></th>
-                  )}
-                  <th className="py-2 px-2 text-center w-28 font-bold">จำนวนเงิน<br/><span className="text-[9px] font-normal">Amount</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.length === 0 ? (
-                   <tr>
-                     <td colSpan={typeAlias === "PO" ? 6 : 5} className="py-8 text-center text-slate-400">ไม่มีรายการ</td>
-                   </tr>
-                ) : (
-                  items.map((item: any, idx: number) => (
-                    <tr key={idx} className="border-b border-slate-400">
-                      <td className="border-r border-slate-800 py-2 px-2 text-center align-top">{idx + 1}</td>
-                      <td className="border-r border-slate-800 py-2 px-2 align-top font-bold text-slate-900">{item.item_name}</td>
-                      <td className="border-r border-slate-800 py-2 px-2 text-center align-top">{item.quantity} {item.unit || "ชิ้น"}</td>
-                      <td className="border-r border-slate-800 py-2 px-2 text-right align-top">{Number(item.unit_price).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                      {typeAlias === "PO" && (
-                        <td className="border-r border-slate-800 py-2 px-2 text-center align-top">{item.vat || 7}%</td>
-                      )}
-                      <td className="py-2 px-2 text-right align-top font-bold text-slate-900">
-                        {(Number(item.quantity) * Number(item.unit_price)).toLocaleString(undefined, {minimumFractionDigits: 2})}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Footer Totals */}
-          <div className="mt-4 grid grid-cols-[1fr_auto] border-2 border-slate-800 items-stretch">
-             <div className="p-3 border-r-2 border-slate-800 flex flex-col justify-start min-w-0 text-left">
-                <div className="min-w-0 text-left">
-                  <span className="font-bold text-slate-900 block text-left mb-1">หมายเหตุ / Remarks:</span>
-                  <p className="text-slate-700 whitespace-pre-wrap text-[11px] break-words break-all text-left leading-relaxed">{remark || "-"}</p>
-                </div>
-             </div>
-             <div className="w-[200px]">
-                <div className="grid grid-cols-[100px_1fr] p-2 border-b border-slate-800">
-                  <span className="font-bold text-[11px]">รวมเป็นเงิน<br/><span className="text-[9px] font-normal">Subtotal</span></span>
-                  <span className="text-right font-bold self-center">{preTaxAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                </div>
-                {typeAlias === "PO" && (
-                  <div className="grid grid-cols-[100px_1fr] p-2 border-b border-slate-800">
-                    <span className="font-bold text-[11px]">ภาษีมูลค่าเพิ่ม<br/><span className="text-[9px] font-normal">VAT 7%</span></span>
-                    <span className="text-right font-bold self-center">{vatAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                  </div>
-                )}
-                <div className={`grid grid-cols-[100px_1fr] p-2 ${primaryBg} font-bold`}>
-                  <span>ยอดสุทธิ<br/><span className="text-[9px] font-normal">Grand Total</span></span>
-                  <span className="text-right self-center">{grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                </div>
-             </div>
-          </div>
-
-          {/* Signatures (Dynamic based on workflow steps) */}
-          {(() => {
-            const steps = doc.workflow?.steps || [];
-            const hasSteps = steps.length > 0;
-            const totalCols = 1 + (hasSteps ? steps.length : 1) + (typeAlias === "PO" ? 1 : 0);
-            const gridColClass = 
-              totalCols === 2 ? "grid-cols-2" : 
-              totalCols === 3 ? "grid-cols-3" : 
-              totalCols === 4 ? "grid-cols-4" : 
-              "grid-cols-3";
-
-            return (
-              <div className={`mt-6 grid ${gridColClass} gap-4 text-center page-break-inside-avoid`}>
-                {/* Issuer */}
-                <div className="border border-slate-800 p-1 flex flex-col h-28">
-                  <div className="flex-1 flex items-center justify-center relative overflow-hidden w-full">
-                    {creatorSig.sig?.imageUrl ? (
-                      <SignatureDisplay src={creatorSig.sig.imageUrl} fallbackName={creatorSig.name} className="max-h-12 max-w-[90%] object-contain" />
-                    ) : (
-                      <span className="font-['Brush_Script_MT',cursive,italic] text-xl text-slate-400 text-center leading-tight px-1">{creatorSig.name}</span>
-                    )}
-                  </div>
-                  <div className="w-full border-t border-slate-800 pt-1 shrink-0 text-center bg-white z-10">
-                    <p className="font-bold text-slate-900 text-[11px]">ผู้จัดทำ (Prepared By)</p>
-                    <p className="text-[10px] text-slate-700 mt-0.5" suppressHydrationWarning>วันที่ {formatThaiDate(creatorSig.date)}</p>
-                  </div>
-                </div>
-
-                {/* Workflow Steps Approvers */}
-                {hasSteps ? (
-                  steps.map((step: any, idx: number) => {
-                    const isStepApproved = step.status === "Approved";
-                    const isCurrentStep = step.step_order === doc.workflow?.current_step;
-                    
-                    let approverName = step.approver 
-                      ? `${step.approver.first_name} ${step.approver.last_name}` 
-                      : step.approver_name || step.approver?.username || "Approver";
-                    
-                    if ((!approverName || approverName === "ยังไม่ระบุตัวบุคคล") && isCurrentStep && user) {
-                      approverName = user.full_name || user.username || "Approver";
-                    }
-
-                    const sigObj = findByApproverName(approverName) || 
-                      signatures.find(s => s.approverName === approverName || s.imageUrl);
-
-                    const stepDate = formatThaiDate(step.actionDate || step.action_date || step.updated_at);
-                    const roleLabel = step.role || step.role_name || step.approver_role || step.approver?.role?.name || (steps.length === 1 ? "ผู้อนุมัติ" : `ผู้อนุมัติ ลำดับที่ ${step.step_order || idx + 1}`);
-
-                    const stepSigUrl = step.signature_url || step.approver?.signature_url || (step.approver?.id ? `/api/users/${step.approver.id}/signature` : null) || sigObj?.imageUrl;
-                    const currentUserSigUrl = user?.signature_url || (user?.id ? `/api/users/${user.id}/signature` : null);
-
-                    return (
-                      <div key={step.id || idx} className="border border-slate-800 p-1 flex flex-col h-28">
-                        {isStepApproved ? (
-                          <div className="flex-1 flex items-center justify-center relative overflow-hidden w-full">
-                            <SignatureDisplay src={stepSigUrl} fallbackName={approverName} className="max-h-12 max-w-[90%] object-contain" />
-                          </div>
-                        ) : isCurrentStep && tempSignature ? (
-                          <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden w-full bg-white/50">
-                            <span className="text-[8px] font-extrabold text-emerald-600 uppercase text-center leading-none mb-0.5">Signed & Approved</span>
-                            <SignatureDisplay src={currentUserSigUrl || sigObj?.imageUrl} fallbackName={user?.full_name || user?.username || approverName} className="max-h-10 max-w-[90%] object-contain" />
-                          </div>
-                        ) : isCurrentStep && onSignClick ? (
-                          <div 
-                            className="flex-1 flex flex-col items-center justify-center w-full cursor-pointer hover:bg-blue-50/50 transition-colors group"
-                            onClick={(e) => { e.stopPropagation(); onSignClick(); }}
-                          >
-                            <p className="text-[10px] text-blue-500 font-bold group-hover:underline text-center px-2">คลิกเพื่อวางลายเซ็น<br/><span className="text-[8px] font-normal text-slate-400">(Click to Sign)</span></p>
-                          </div>
-                        ) : (
-                          <div className="flex-1 flex items-center justify-center w-full">
-                            <span className="text-slate-400 font-bold text-xs">ยังไม่อนุมัติ</span>
-                          </div>
-                        )}
-
-                        <div className="w-full border-t border-slate-800 pt-1 shrink-0 text-center bg-white z-10">
-                          <p className="font-bold text-slate-900 text-[11px] truncate" title={roleLabel}>{roleLabel}</p>
-                          <p className="text-[10px] text-slate-700 mt-0.5" suppressHydrationWarning>
-                            วันที่ {isStepApproved ? stepDate : isCurrentStep && tempSignature ? formatThaiDate(new Date()) : "____/____/____"}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  /* Fallback Single Approver */
-                  <div className="border border-slate-800 p-1 flex flex-col h-28">
-                    {approverSig ? (
-                      <div className="flex-1 flex items-center justify-center relative overflow-hidden w-full">
-                        {approverSig.sig?.imageUrl ? (
-                          <SignatureDisplay src={approverSig.sig.imageUrl} fallbackName={approverSig.name} className="max-h-12 max-w-[90%] object-contain" />
-                        ) : (
-                          <span className={`font-['Brush_Script_MT',cursive,italic] text-xl text-center leading-tight px-1 ${primaryText}`}>{approverSig.name}</span>
-                        )}
-                      </div>
-                    ) : tempSignature ? (
-                      <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden w-full bg-white/50">
-                        <span className="text-[8px] font-extrabold text-emerald-600 uppercase text-center leading-none mb-0.5">Signed & Approved</span>
-                        {(() => {
-                          const displayName = user?.full_name || user?.username || "";
-                          const mySig = findByApproverName(displayName) || signatures.find(s => s.approverName === displayName || s.imageUrl);
-                          return mySig?.imageUrl ? (
-                            <SignatureDisplay src={mySig.imageUrl} fallbackName={displayName} className="max-h-10 max-w-[90%] object-contain" />
-                          ) : (
-                            <span className={`font-['Brush_Script_MT',cursive,italic] text-sm leading-tight text-center px-1 truncate max-w-[90%] ${primaryText}`}>{displayName || "Approver"}</span>
-                          );
-                        })()}
-                      </div>
-                    ) : onSignClick ? (
-                      <div 
-                        className="flex-1 flex flex-col items-center justify-center w-full cursor-pointer hover:bg-blue-50/50 transition-colors group"
-                        onClick={(e) => { e.stopPropagation(); onSignClick(); }}
-                      >
-                        <p className="text-[10px] text-blue-500 font-bold group-hover:underline text-center px-2">คลิกเพื่อวางลายเซ็น<br/><span className="text-[8px] font-normal text-slate-400">(Click to Sign)</span></p>
-                      </div>
-                    ) : (
-                      <div className="flex-1 flex items-center justify-center w-full">
-                        <span className="text-slate-400 font-bold text-xs">ยังไม่อนุมัติ</span>
-                      </div>
-                    )}
-                    
-                    <div className="w-full border-t border-slate-800 pt-1 shrink-0 text-center bg-white z-10">
-                      <p className="font-bold text-slate-900 text-[11px]">ผู้อนุมัติ (Authorized By)</p>
-                      <p className="text-[10px] text-slate-700 mt-0.5" suppressHydrationWarning>วันที่ {approverSig ? formatThaiDate(approverSig.date) : tempSignature ? formatThaiDate(new Date()) : "____/____/____"}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Vendor Accept (if PO) */}
-                {typeAlias === "PO" && (
-                  <div className="border border-slate-800 p-1 flex flex-col h-28">
-                    <div className="flex-1 w-full"></div>
-                    <div className="w-full border-t border-slate-800 pt-1 shrink-0 text-center bg-white z-10">
-                      <p className="font-bold text-slate-900 text-[11px]">ผู้ขายรับสั่งซื้อ (Accepted By)</p>
-                      <p className="text-[10px] text-slate-700 mt-0.5">วันที่ ____/____/____</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-
+  const renderPRForm = () => {
+    const form = doc.pr_form;
+    if (!form)
+      return (
+        <div className="text-center p-8 text-slate-500">
+          ไม่พบข้อมูล PR Form
         </div>
-      </A4Wrapper>
+      );
+    return (
+      <div className="w-full relative">
+        <PRForm
+          isViewer={true}
+          tempSignature={tempSignature}
+          onSignClick={onSignClick}
+          initialData={doc}
+          currentStep={1}
+          runningNumberPreview={doc.doc_number || doc.id}
+          onSubmit={() => {}}
+          onCancel={() => {}}
+          onNext={() => {}}
+          onBack={() => {}}
+        />
+      </div>
     );
   };
+
+  // PO Form Renderer (A4 Style)
+  const renderPOForm = () => {
+    const form = doc.po_form;
+    if (!form)
+      return (
+        <div className="text-center p-8 text-slate-500">
+          ไม่พบข้อมูล PO Form
+        </div>
+      );
+    return (
+      <div className="w-full relative">
+        <POForm
+          isViewer={true}
+          tempSignature={tempSignature}
+          onSignClick={onSignClick}
+          initialData={doc}
+          currentStep={1}
+          runningNumberPreview={doc.doc_number || doc.id}
+          onSubmit={() => {}}
+          onCancel={() => {}}
+          onNext={() => {}}
+          onBack={() => {}}
+        />
+      </div>
+    );
+  };
+
+  // BK Form Renderer (A4 Style)
+  const renderBKForm = () => {
+    return (
+      <div className="w-full relative">
+        <BKForm
+          isViewer={true}
+          tempSignature={tempSignature}
+          onSignClick={onSignClick}
+          initialData={doc}
+          currentStep={1}
+          runningNumberPreview={doc.doc_number || doc.id}
+          onSubmit={() => {}}
+          onCancel={() => {}}
+          onNext={() => {}}
+          onBack={() => {}}
+        />
+      </div>
+    );
+  };
+
+  const type = versionId ? "PDF" : resolvedTypePrefix;
+  const { user } = useAuth();
+  const { showToast } = useToast();
+  const canPreview = user?.permissions?.some((p) =>
+    [
+      "document.preview_document:view",
+      "approvals.open_doc_detail:view",
+    ].includes(p),
+  );
+  const canDownload = user?.permissions?.some((p) =>
+    [
+      "document.download_document:view",
+      "submissions.download_document:view",
+      "approvals.download_document:view",
+    ].includes(p),
+  );
 
   // PDF Renderer
   const renderPDF = () => {
     const docId = doc?.real_id || doc?.id;
-    const vParam = versionId ? `?v=${versionId}` : '';
-    const fileUrl = doc?.fileUrl || (docId ? `/api/documents/${docId}/download${vParam}` : null);
-    
+    const matchedVersion = doc.versions?.find(
+      (v: any) =>
+        v.id === versionId || String(v.version_number) === String(versionId),
+    );
+    const vParam = matchedVersion ? `?v=${matchedVersion.version_number}` : "";
+    const fileUrl = versionId
+      ? matchedVersion
+        ? matchedVersion.download_url ||
+          `/api/documents/${docId}/download${vParam}`
+        : null
+      : doc?.fileUrl || (docId ? `/api/documents/${docId}/download` : null);
+
     return (
       <div className="bg-slate-200/70 rounded-xl p-4 sm:p-8 border border-slate-200 min-h-[400px] flex flex-col relative overflow-hidden">
         <div className="flex justify-between items-center bg-white p-4 rounded-t-xl border-b border-slate-200">
@@ -512,15 +189,20 @@ export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isView
             <FileText className="w-5 h-5 text-rose-500" />
             <span className="font-bold text-sm">PDF Document Viewer</span>
           </div>
-          {docId && (
+          {docId && canDownload && (
             <button
               type="button"
               onClick={() => {
                 downloadDocument(
                   docId,
-                  versionId ? Number(versionId) : undefined,
-                  `${doc.doc_number || doc.id}.pdf`
-                ).catch((e) => console.error(e));
+                  matchedVersion?.version_number,
+                  `${doc.doc_number || doc.id}.pdf`,
+                ).catch((e) =>
+                  showToast(
+                    e instanceof Error ? e.message : String(e),
+                    "error",
+                  ),
+                );
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition-colors cursor-pointer"
             >
@@ -530,9 +212,11 @@ export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isView
           )}
         </div>
         <div className="flex-1 bg-white rounded-b-xl overflow-hidden relative flex flex-col items-center justify-center">
-          {fileUrl ? (
-            <iframe 
-              src={`${fileUrl}#toolbar=0`} 
+          {!canPreview ? (
+            <p className="p-8 text-slate-500">ไม่มีสิทธิ์พรีวิวเอกสาร</p>
+          ) : fileUrl ? (
+            <iframe
+              src={`${fileUrl}#toolbar=0`}
               className="w-full h-full min-h-[600px] border-none"
               title="PDF Preview"
             />
@@ -540,7 +224,9 @@ export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isView
             <div className="text-center p-12 text-slate-400">
               <FileText className="w-12 h-12 mx-auto text-slate-300 mb-3" />
               <p className="font-bold text-slate-500">ยังไม่มีไฟล์เอกสารแนบ</p>
-              <p className="text-sm mt-1">No document file uploaded for this transaction.</p>
+              <p className="text-sm mt-1">
+                No document file uploaded for this transaction.
+              </p>
             </div>
           )}
         </div>
@@ -564,8 +250,20 @@ export function DocumentPreview({ doc: initialDoc, versionId, hideHeader, isView
         </div>
       )}
 
+      {(!doc._meta || doc._meta.legacy_snapshot) && (
+        <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-800">
+          เอกสารรุ่นเดิมอาจไม่มีภาพลายเซ็นหรือข้อมูลต้นฉบับครบถ้วน
+          ระบบแสดงเฉพาะข้อมูลที่บันทึกไว้
+        </p>
+      )}
       {/* CONTENT */}
-      {type === "PR" ? renderPRForm() : type === "PO" ? renderPOForm() : (type === "บันทึก" || type === "BK") ? renderBKForm() : renderPDF()}
+      {type === "PR"
+        ? renderPRForm()
+        : type === "PO"
+          ? renderPOForm()
+          : type === "บันทึก" || type === "BK"
+            ? renderBKForm()
+            : renderPDF()}
     </div>
   );
 }

@@ -1,0 +1,1254 @@
+[
+  {
+    "relation": {
+      "name": "parent",
+      "parentModel": "Folder",
+      "optional": true,
+      "fields": [
+        "parent_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folders",
+      "parent": "folders",
+      "unique": false
+    },
+    "points": [
+      [
+        860,
+        760
+      ],
+      [
+        800,
+        760
+      ],
+      [
+        800,
+        1000
+      ],
+      [
+        860,
+        1000
+      ]
+    ],
+    "ps": -1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "permission",
+      "parentModel": "Permission",
+      "optional": false,
+      "fields": [
+        "permission_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "role_permissions",
+      "parent": "permissions",
+      "unique": false
+    },
+    "points": [
+      [
+        3140,
+        300
+      ],
+      [
+        3080,
+        300
+      ],
+      [
+        3080,
+        800
+      ],
+      [
+        3140,
+        800
+      ]
+    ],
+    "ps": -1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "department",
+      "parentModel": "Department",
+      "optional": true,
+      "fields": [
+        "department_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "users",
+      "parent": "departments",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        300
+      ],
+      [
+        1560,
+        300
+      ],
+      [
+        1560,
+        1000
+      ],
+      [
+        1620,
+        1000
+      ]
+    ],
+    "ps": -1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "required_role",
+      "parentModel": "Role",
+      "optional": false,
+      "fields": [
+        "required_role_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "approval_matrix",
+      "parent": "roles",
+      "unique": false
+    },
+    "points": [
+      [
+        2380,
+        300
+      ],
+      [
+        2320,
+        300
+      ],
+      [
+        2320,
+        880
+      ],
+      [
+        2380,
+        880
+      ]
+    ],
+    "ps": -1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "type",
+      "parentModel": "DocumentType",
+      "optional": false,
+      "fields": [
+        "type_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "documents",
+      "parent": "document_types",
+      "unique": false
+    },
+    "points": [
+      [
+        2380,
+        1680
+      ],
+      [
+        2240,
+        1680
+      ],
+      [
+        2240,
+        1800
+      ],
+      [
+        2180,
+        1800
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": false,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "pr_forms",
+      "parent": "documents",
+      "unique": true
+    },
+    "points": [
+      [
+        1620,
+        1680
+      ],
+      [
+        1480,
+        1680
+      ],
+      [
+        1480,
+        1720
+      ],
+      [
+        1420,
+        1720
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "po_form",
+      "parentModel": "POForm",
+      "optional": false,
+      "fields": [
+        "po_form_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "po_form_items",
+      "parent": "po_forms",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        2640
+      ],
+      [
+        1480,
+        2640
+      ],
+      [
+        1480,
+        2680
+      ],
+      [
+        1420,
+        2680
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "workflow",
+      "parentModel": "Workflow",
+      "optional": false,
+      "fields": [
+        "workflow_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "workflow_steps",
+      "parent": "workflows",
+      "unique": false
+    },
+    "points": [
+      [
+        2940,
+        2640
+      ],
+      [
+        3080,
+        2640
+      ],
+      [
+        3080,
+        2680
+      ],
+      [
+        3140,
+        2680
+      ]
+    ],
+    "ps": 1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "document_type",
+      "parentModel": "DocumentType",
+      "optional": false,
+      "fields": [
+        "document_type_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "running_numbers",
+      "parent": "document_types",
+      "unique": true
+    },
+    "points": [
+      [
+        2940,
+        1680
+      ],
+      [
+        3080,
+        1680
+      ],
+      [
+        3080,
+        1720
+      ],
+      [
+        3140,
+        1720
+      ]
+    ],
+    "ps": 1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "creator",
+      "parentModel": "User",
+      "optional": false,
+      "fields": [
+        "creator_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folders",
+      "parent": "users",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        760
+      ],
+      [
+        1480,
+        760
+      ],
+      [
+        1480,
+        1040
+      ],
+      [
+        1420,
+        1040
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "folder",
+      "parentModel": "Folder",
+      "optional": false,
+      "fields": [
+        "folder_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folder_permissions",
+      "parent": "folders",
+      "unique": false
+    },
+    "points": [
+      [
+        860,
+        760
+      ],
+      [
+        720,
+        760
+      ],
+      [
+        720,
+        800
+      ],
+      [
+        660,
+        800
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "creator",
+      "parentModel": "User",
+      "optional": false,
+      "fields": [
+        "creator_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "documents",
+      "parent": "users",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        760
+      ],
+      [
+        1580,
+        760
+      ],
+      [
+        1580,
+        1840
+      ],
+      [
+        1620,
+        1840
+      ]
+    ],
+    "ps": -1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "document_type",
+      "parentModel": "DocumentType",
+      "optional": false,
+      "fields": [
+        "document_type_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "approval_matrix",
+      "parent": "document_types",
+      "unique": false
+    },
+    "points": [
+      [
+        2940,
+        1680
+      ],
+      [
+        3000,
+        1680
+      ],
+      [
+        3000,
+        800
+      ],
+      [
+        2940,
+        800
+      ]
+    ],
+    "ps": 1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": false,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "po_forms",
+      "parent": "documents",
+      "unique": true
+    },
+    "points": [
+      [
+        1620,
+        1680
+      ],
+      [
+        1560,
+        1680
+      ],
+      [
+        1560,
+        2680
+      ],
+      [
+        1620,
+        2680
+      ]
+    ],
+    "ps": -1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "role",
+      "parentModel": "Role",
+      "optional": false,
+      "fields": [
+        "role_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "role_permissions",
+      "parent": "roles",
+      "unique": false
+    },
+    "points": [
+      [
+        2940,
+        300
+      ],
+      [
+        3060,
+        300
+      ],
+      [
+        3060,
+        760
+      ],
+      [
+        3140,
+        760
+      ]
+    ],
+    "ps": 1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "position",
+      "parentModel": "Position",
+      "optional": true,
+      "fields": [
+        "position_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "users",
+      "parent": "positions",
+      "unique": false
+    },
+    "points": [
+      [
+        1420,
+        300
+      ],
+      [
+        1540,
+        300
+      ],
+      [
+        1540,
+        1040
+      ],
+      [
+        1620,
+        1040
+      ]
+    ],
+    "ps": 1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "role",
+      "parentModel": "Role",
+      "optional": true,
+      "fields": [
+        "role_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "users",
+      "parent": "roles",
+      "unique": false
+    },
+    "points": [
+      [
+        2380,
+        300
+      ],
+      [
+        2240,
+        300
+      ],
+      [
+        2240,
+        1080
+      ],
+      [
+        2180,
+        1080
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "department",
+      "parentModel": "Department",
+      "optional": true,
+      "fields": [
+        "department_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folders",
+      "parent": "departments",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        300
+      ],
+      [
+        1560,
+        300
+      ],
+      [
+        1560,
+        1080
+      ],
+      [
+        1420,
+        1080
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": false,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "bk_forms",
+      "parent": "documents",
+      "unique": true
+    },
+    "points": [
+      [
+        1620,
+        1680
+      ],
+      [
+        1540,
+        1680
+      ],
+      [
+        1540,
+        1560
+      ],
+      [
+        720,
+        1560
+      ],
+      [
+        720,
+        1720
+      ],
+      [
+        660,
+        1720
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "user",
+      "parentModel": "User",
+      "optional": true,
+      "fields": [
+        "user_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folder_permissions",
+      "parent": "users",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        760
+      ],
+      [
+        1460,
+        760
+      ],
+      [
+        1460,
+        640
+      ],
+      [
+        760,
+        640
+      ],
+      [
+        760,
+        840
+      ],
+      [
+        660,
+        840
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "folder",
+      "parentModel": "Folder",
+      "optional": true,
+      "fields": [
+        "folder_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "documents",
+      "parent": "folders",
+      "unique": false
+    },
+    "points": [
+      [
+        1420,
+        760
+      ],
+      [
+        1480,
+        760
+      ],
+      [
+        1480,
+        740
+      ],
+      [
+        1520,
+        740
+      ],
+      [
+        1520,
+        2000
+      ],
+      [
+        1620,
+        2000
+      ]
+    ],
+    "ps": 1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "requester",
+      "parentModel": "User",
+      "optional": false,
+      "fields": [
+        "requester_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "pr_forms",
+      "parent": "users",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        760
+      ],
+      [
+        1580,
+        760
+      ],
+      [
+        1580,
+        1840
+      ],
+      [
+        1420,
+        1840
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "pr_form",
+      "parentModel": "PRForm",
+      "optional": false,
+      "fields": [
+        "pr_form_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "pr_form_items",
+      "parent": "pr_forms",
+      "unique": false
+    },
+    "points": [
+      [
+        860,
+        1680
+      ],
+      [
+        740,
+        1680
+      ],
+      [
+        740,
+        2680
+      ],
+      [
+        660,
+        2680
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": false,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "document_versions",
+      "parent": "documents",
+      "unique": false
+    },
+    "points": [
+      [
+        2180,
+        1680
+      ],
+      [
+        2220,
+        1680
+      ],
+      [
+        2220,
+        3440
+      ],
+      [
+        2180,
+        3440
+      ]
+    ],
+    "ps": 1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": false,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "workflows",
+      "parent": "documents",
+      "unique": true
+    },
+    "points": [
+      [
+        2180,
+        1680
+      ],
+      [
+        2220,
+        1680
+      ],
+      [
+        2220,
+        2680
+      ],
+      [
+        2380,
+        2680
+      ]
+    ],
+    "ps": 1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "department",
+      "parentModel": "Department",
+      "optional": true,
+      "fields": [
+        "department_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folder_permissions",
+      "parent": "departments",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        300
+      ],
+      [
+        1560,
+        300
+      ],
+      [
+        1560,
+        620
+      ],
+      [
+        700,
+        620
+      ],
+      [
+        700,
+        880
+      ],
+      [
+        660,
+        880
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "department",
+      "parentModel": "Department",
+      "optional": false,
+      "fields": [
+        "department_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "pr_forms",
+      "parent": "departments",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        300
+      ],
+      [
+        1560,
+        300
+      ],
+      [
+        1560,
+        1300
+      ],
+      [
+        1460,
+        1300
+      ],
+      [
+        1460,
+        1880
+      ],
+      [
+        1420,
+        1880
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": true,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "notifications",
+      "parent": "documents",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        1680
+      ],
+      [
+        1500,
+        1680
+      ],
+      [
+        1500,
+        3480
+      ],
+      [
+        1420,
+        3480
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "uploaded_by",
+      "parentModel": "User",
+      "optional": false,
+      "fields": [
+        "uploaded_by_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "document_versions",
+      "parent": "users",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        760
+      ],
+      [
+        1580,
+        760
+      ],
+      [
+        1580,
+        3680
+      ],
+      [
+        1620,
+        3680
+      ]
+    ],
+    "ps": -1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "department",
+      "parentModel": "Department",
+      "optional": false,
+      "fields": [
+        "department_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "bk_forms",
+      "parent": "departments",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        300
+      ],
+      [
+        1560,
+        300
+      ],
+      [
+        1560,
+        620
+      ],
+      [
+        700,
+        620
+      ],
+      [
+        700,
+        1840
+      ],
+      [
+        660,
+        1840
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "approver",
+      "parentModel": "User",
+      "optional": true,
+      "fields": [
+        "approver_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "workflow_steps",
+      "parent": "users",
+      "unique": false
+    },
+    "points": [
+      [
+        2180,
+        760
+      ],
+      [
+        2300,
+        760
+      ],
+      [
+        2300,
+        1560
+      ],
+      [
+        2980,
+        1560
+      ],
+      [
+        2980,
+        2760
+      ],
+      [
+        3140,
+        2760
+      ]
+    ],
+    "ps": 1,
+    "cs": -1
+  },
+  {
+    "relation": {
+      "name": "user",
+      "parentModel": "User",
+      "optional": false,
+      "fields": [
+        "user_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "notifications",
+      "parent": "users",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        760
+      ],
+      [
+        1580,
+        760
+      ],
+      [
+        1580,
+        3440
+      ],
+      [
+        1420,
+        3440
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  },
+  {
+    "relation": {
+      "name": "user",
+      "parentModel": "User",
+      "optional": true,
+      "fields": [
+        "user_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "audit_logs",
+      "parent": "users",
+      "unique": false
+    },
+    "points": [
+      [
+        1620,
+        760
+      ],
+      [
+        1580,
+        760
+      ],
+      [
+        1580,
+        3220
+      ],
+      [
+        720,
+        3220
+      ],
+      [
+        720,
+        3440
+      ],
+      [
+        660,
+        3440
+      ]
+    ],
+    "ps": -1,
+    "cs": 1
+  }
+]

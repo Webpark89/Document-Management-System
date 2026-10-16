@@ -11,10 +11,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     const res = await api.get<DashboardStats>("/api/dashboard/stats");
     return {
       ...res.data,
-      documents: [],
-      trend: [],
-      types: [],
-      goals: [],
+      documents: res.data.documents || [],
+      trend: res.data.trend || [],
+      types: res.data.types || [],
+      goals: res.data.goals || [],
     };
   } catch {
     return {
@@ -31,42 +31,32 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 }
 
-export async function getDocuments(options?: { limit?: number; status?: string }): Promise<Document[]> {
-  try {
-    const query = new URLSearchParams();
-    const limit = options?.limit || 1000;
-    query.append("limit", limit.toString());
-    if (options?.status) query.append("status", options.status);
-    
-    const qs = query.toString() ? `?${query.toString()}` : "";
-    const res = await api.get<any>(`/api/documents${qs}`);
-    
-    if (Array.isArray(res.data)) {
-      return res.data;
-    }
-    if (res.data && Array.isArray(res.data.data)) {
-      return res.data.data;
-    }
-    return [];
-  } catch (err) {
-    console.warn("[getDocuments] Failed to fetch documents", err);
-    return [];
+export async function getDocuments(options?: {
+  limit?: number;
+  status?: string;
+}): Promise<Document[]> {
+  const limit = Math.min(options?.limit || 200, 1000),
+    all: Document[] = [];
+  let page = 1;
+  while (true) {
+    const query = new URLSearchParams({
+      limit: String(limit),
+      page: String(page),
+    });
+    if (options?.status) query.set("status", options.status);
+    const res = await api.get<{
+      data: Document[];
+      meta: { totalPages: number };
+    }>(`/api/documents?${query}`);
+    all.push(...res.data.data);
+    if (options?.limit || page >= res.data.meta.totalPages) return all;
+    page++;
   }
 }
 
 export async function getDocumentById(id: string): Promise<Document | null> {
-  try {
-    const res = await api.get<Document>(`/api/documents/${id}`);
-    if (res.data) return res.data;
-  } catch (err) {
-    console.warn(`[getDocumentById] Failed to fetch ${id}`, err);
-  }
-  const docs = await getDocuments();
-  return (
-    docs.find(
-      (d) => d.id === id || (d as any).real_id === id || (d as any).doc_number === id
-    ) || null
-  );
+  return (await api.get<Document>(`/api/documents/${encodeURIComponent(id)}`))
+    .data;
 }
 
 export interface CreateDocumentPayload {
@@ -86,7 +76,9 @@ export interface CreateDocumentPayload {
   }[];
 }
 
-export async function addDocument(payload: CreateDocumentPayload): Promise<Document> {
+export async function addDocument(
+  payload: CreateDocumentPayload,
+): Promise<Document> {
   if (!payload.prefix || !payload.title) {
     throw new Error("Invalid payload: prefix and title are required.");
   }
@@ -104,21 +96,35 @@ export async function deleteDocument(id: string): Promise<boolean> {
   }
 }
 
-export async function uploadNewDocumentVersion(id: string, formData: FormData): Promise<Document> {
-  const res = await api.post<Document>(`/api/documents/${id}/upload-new-version`, formData);
+export async function uploadNewDocumentVersion(
+  id: string,
+  formData: FormData,
+): Promise<Document> {
+  const res = await api.post<Document>(
+    `/api/documents/${id}/upload-new-version`,
+    formData,
+  );
   return res.data;
 }
-export async function updateDocumentFull(id: string, payload: CreateDocumentPayload): Promise<Document> {
+export async function updateDocumentFull(
+  id: string,
+  payload: CreateDocumentPayload,
+): Promise<Document> {
   const res = await api.put<Document>(`/api/documents/${id}`, payload);
   return res.data;
 }
 
-export async function updateDocumentFullWithFile(id: string, formData: FormData): Promise<Document> {
+export async function updateDocumentFullWithFile(
+  id: string,
+  formData: FormData,
+): Promise<Document> {
   const res = await api.put<Document>(`/api/documents/${id}/upload`, formData);
   return res.data;
 }
 
-export async function uploadDocumentFile(formData: FormData): Promise<Document> {
+export async function uploadDocumentFile(
+  formData: FormData,
+): Promise<Document> {
   const res = await api.post<Document>("/api/documents/upload", formData);
   return res.data;
 }

@@ -17,13 +17,13 @@ import {
   Folder,
   Activity,
   User,
-  Send
+  Send,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
-import { useAuth } from '@views/components/providers/AuthProvider';
-import { useSidebar } from '@views/components/providers/SidebarProvider';
-import useSWR from 'swr';
-import { getApprovals } from '@views/features/workflow/api';
+import { Avatar, AvatarFallback } from "@views/components/ui/avatar";
+import { useAuth } from "@views/components/providers/AuthProvider";
+import { useSidebar } from "@views/components/providers/SidebarProvider";
+import useSWR from "swr";
+import { getApprovals } from "@views/features/workflow/api";
 
 type NavItem = {
   name: string;
@@ -48,11 +48,41 @@ type NavGroup = {
 // no permission = visible to all authenticated users
 const FLAT_NAV_ITEMS: NavItem[] = [
   { name: "แดชบอร์ด", href: "/dashboard", icon: LayoutDashboard },
-  { name: "ส่งเรื่องขออนุมัติ", href: "/submissions", icon: Send, roles: [], permission: "submissions.view_list:view" },
-  { name: "รายการรออนุมัติ", href: "/approvals", icon: CheckSquare, roles: [], permission: "approvals.view_list:view" },
-  { name: "Master Data", href: "/admin/master-data", icon: Database, roles: [], permission: "masterdata.access:view" },
-  { name: "Reports", href: "/admin/reports", icon: BarChart3, roles: [], permission: "reports.access:view" },
-  { name: "Audit Logs", href: "/admin/audit-logs", icon: Activity, roles: [], permission: "auditlog.access:view" },
+  {
+    name: "ส่งเรื่องขออนุมัติ",
+    href: "/submissions",
+    icon: Send,
+    roles: [],
+    permission: "submissions.view_list:view",
+  },
+  {
+    name: "รายการรออนุมัติ",
+    href: "/approvals",
+    icon: CheckSquare,
+    roles: [],
+    permission: "approvals.view_list:view",
+  },
+  {
+    name: "Master Data",
+    href: "/admin/master-data",
+    icon: Database,
+    roles: [],
+    permission: "masterdata.access:view",
+  },
+  {
+    name: "Reports",
+    href: "/admin/reports",
+    icon: BarChart3,
+    roles: [],
+    permission: "reports.access:view",
+  },
+  {
+    name: "Audit Logs",
+    href: "/admin/audit-logs",
+    icon: Activity,
+    roles: [],
+    permission: "auditlog.access:view",
+  },
   { name: "Profile", href: "/profile", icon: User },
 ];
 
@@ -72,13 +102,35 @@ const CONFIG_GROUP: NavGroup = {
   tablerIcon: "settings-2",
   permission: "config.access:view",
   children: [
-    { name: "General", href: "/admin/config/general", tablerIcon: "adjustments", roles: [], permission: "config.access:view" },
-    { name: "Roles", href: "/admin/config/roles", tablerIcon: "shield-lock", roles: [], permission: "config.role_management:view" },
-    { name: "Users", href: "/admin/config/users", tablerIcon: "users", roles: [], permission: "config.user_management:view" },
+    {
+      name: "General",
+      href: "/admin/config/general",
+      tablerIcon: "adjustments",
+      roles: [],
+      permission: "config.access:view",
+    },
+    {
+      name: "Roles",
+      href: "/admin/config/roles",
+      tablerIcon: "shield-lock",
+      roles: [],
+      permission: "config.role_management:view",
+    },
+    {
+      name: "Users",
+      href: "/admin/config/users",
+      tablerIcon: "users",
+      roles: [],
+      permission: "config.user_management:view",
+    },
   ],
 };
 
-function hasAccess(item: { roles?: string[]; permission?: string }, userRole?: string, permissions?: string[]) {
+function hasAccess(
+  item: { roles?: string[]; permission?: string },
+  userRole?: string,
+  permissions?: string[],
+) {
   // If item has a permission key, check it
   if (item.permission) {
     return permissions?.includes(item.permission) ?? false;
@@ -88,7 +140,12 @@ function hasAccess(item: { roles?: string[]; permission?: string }, userRole?: s
 }
 
 function isDocsRoute(pathname: string) {
-  return pathname === "/documents" || pathname.startsWith("/documents/") || pathname === "/folders" || pathname.startsWith("/folders/");
+  return (
+    pathname === "/documents" ||
+    pathname.startsWith("/documents/") ||
+    pathname === "/folders" ||
+    pathname.startsWith("/folders/")
+  );
 }
 
 function isConfigRoute(pathname: string) {
@@ -135,12 +192,21 @@ export default function Sidebar() {
   const folderId = searchParams?.get("folderId");
   const source = searchParams?.get("source");
 
-  const { data: approvals } = useSWR("approvals-sidebar", getApprovals, { refreshInterval: 15000 });
+  const { user, logout } = useAuth();
+  const { data: approvals } = useSWR(
+    user?.permissions?.includes("approvals.view_list:view")
+      ? ["approvals-sidebar", user.id]
+      : null,
+    getApprovals,
+    { refreshInterval: 15000 },
+  );
   const [lastViewed, setLastViewed] = useState(0);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setLastViewed(parseInt(localStorage.getItem("lastViewedApprovals") || "0", 10));
+      setLastViewed(
+        parseInt(localStorage.getItem("lastViewedApprovals") || "0", 10),
+      );
     }
   }, []);
 
@@ -151,10 +217,12 @@ export default function Sidebar() {
       setLastViewed(now);
     }
   }, [pathname]);
-  const { user, logout } = useAuth();
-  
-  const [configExpanded, setConfigExpanded] = useState(() => isConfigRoute(pathname));
-  const [docsExpanded, setDocsExpanded] = useState(() => isDocsRoute(pathname) && source !== "submissions");
+  const [configExpanded, setConfigExpanded] = useState(() =>
+    isConfigRoute(pathname),
+  );
+  const [docsExpanded, setDocsExpanded] = useState(
+    () => isDocsRoute(pathname) && source !== "submissions",
+  );
 
   useEffect(() => {
     if (isConfigRoute(pathname)) {
@@ -168,7 +236,8 @@ export default function Sidebar() {
   useEffect(() => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css";
+    link.href =
+      "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css";
     document.head.appendChild(link);
     return () => {
       document.head.removeChild(link);
@@ -184,12 +253,18 @@ export default function Sidebar() {
 
   const unseenCount = useMemo(() => {
     if (!approvals) return 0;
-    return approvals.filter(a => a.status === "Pending" && (a.rawSubmittedDate || 0) > lastViewed).length;
+    return approvals.filter(
+      (a) => a.status === "Pending" && (a.rawSubmittedDate || 0) > lastViewed,
+    ).length;
   }, [approvals, lastViewed]);
 
   // Highlight parent IF route matches AND (sidebar closed OR menu collapsed)
-  const isConfigActive = isConfigRoute(pathname) && (!isOpen || !configExpanded);
-  const isDocsActive = isDocsRoute(pathname) && source !== "submissions" && (!isOpen || !docsExpanded);
+  const isConfigActive =
+    isConfigRoute(pathname) && (!isOpen || !configExpanded);
+  const isDocsActive =
+    isDocsRoute(pathname) &&
+    source !== "submissions" &&
+    (!isOpen || !docsExpanded);
 
   return (
     <aside
@@ -198,7 +273,9 @@ export default function Sidebar() {
       }`}
     >
       <div className="p-6 flex-shrink-0">
-        <div className={`flex items-center ${isOpen ? "gap-3" : "justify-center"}`}>
+        <div
+          className={`flex items-center ${isOpen ? "gap-3" : "justify-center"}`}
+        >
           <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm flex-shrink-0">
             <FileBox className="w-6 h-6" />
           </div>
@@ -216,48 +293,54 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-2">
-        {FLAT_NAV_ITEMS.slice(0, 3).filter(item => hasAccess(item, user?.role, user?.permissions)).map((item) => {
-          const Icon = item.icon;
-          let isActive = isNavItemActive(pathname, item.href);
-          if (item.href === "/submissions" && source === "submissions") isActive = true;
-          if (item.href === "/approvals" && source === "submissions") isActive = false;
+        {FLAT_NAV_ITEMS.slice(0, 3)
+          .filter((item) => hasAccess(item, user?.role, user?.permissions))
+          .map((item) => {
+            const Icon = item.icon;
+            let isActive = isNavItemActive(pathname, item.href);
+            if (item.href === "/submissions" && source === "submissions")
+              isActive = true;
+            if (item.href === "/approvals" && source === "submissions")
+              isActive = false;
 
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={navItemClass(isActive, isOpen)}
-              title={!isOpen ? item.name : undefined}
-            >
-              {Icon && (
-                <div className="relative">
-                  <Icon
-                    className={`${NAV_ICON} ${
-                      isActive ? "text-blue-600" : "text-slate-400"
-                    }`}
-                  />
-                  {!isOpen && item.href === "/approvals" && unseenCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white ring-2 ring-white" />
-                  )}
-                </div>
-              )}
-              {isOpen && (
-                <div className="flex flex-1 items-center justify-between truncate">
-                  <span className="truncate">{item.name}</span>
-                  {item.href === "/approvals" && unseenCount > 0 && (
-                    <span className="ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
-                      {unseenCount}
-                    </span>
-                  )}
-                </div>
-              )}
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={navItemClass(isActive, isOpen)}
+                title={!isOpen ? item.name : undefined}
+              >
+                {Icon && (
+                  <div className="relative">
+                    <Icon
+                      className={`${NAV_ICON} ${
+                        isActive ? "text-blue-600" : "text-slate-400"
+                      }`}
+                    />
+                    {!isOpen &&
+                      item.href === "/approvals" &&
+                      unseenCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white ring-2 ring-white" />
+                      )}
+                  </div>
+                )}
+                {isOpen && (
+                  <div className="flex flex-1 items-center justify-between truncate">
+                    <span className="truncate">{item.name}</span>
+                    {item.href === "/approvals" && unseenCount > 0 && (
+                      <span className="ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                        {unseenCount}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </Link>
+            );
+          })}
 
         {hasAccess(DOCUMENTS_GROUP, user?.role, user?.permissions) && (
           <div className="space-y-2">
-            <div 
+            <div
               className={`${navItemClass(isDocsActive, isOpen)} ${isOpen ? "cursor-pointer gap-0 pr-2" : "cursor-pointer"}`}
               onClick={() => {
                 if (!isOpen) toggle();
@@ -265,7 +348,9 @@ export default function Sidebar() {
               }}
               title={!isOpen ? DOCUMENTS_GROUP.name : undefined}
             >
-              <div className={`flex min-w-0 items-center gap-3.5 ${isOpen ? "min-w-0 flex-1" : ""}`}>
+              <div
+                className={`flex min-w-0 items-center gap-3.5 ${isOpen ? "min-w-0 flex-1" : ""}`}
+              >
                 {DOCUMENTS_GROUP.icon && (
                   <DOCUMENTS_GROUP.icon
                     className={`${NAV_ICON} ${
@@ -273,7 +358,9 @@ export default function Sidebar() {
                     }`}
                   />
                 )}
-                {isOpen && <span className="truncate">{DOCUMENTS_GROUP.name}</span>}
+                {isOpen && (
+                  <span className="truncate">{DOCUMENTS_GROUP.name}</span>
+                )}
               </div>
               {isOpen && (
                 <div className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors">
@@ -288,31 +375,35 @@ export default function Sidebar() {
 
             {isOpen && docsExpanded && (
               <div className="space-y-2">
-                {DOCUMENTS_GROUP.children.filter(child => hasAccess(child, user?.role, user?.permissions)).map((child) => {
-                  let isChildActive = isChildNavActive(pathname, child.href);
-                  if (pathname === "/documents" && folderId) {
-                    if (child.href === "/folders") isChildActive = true;
-                    if (child.href === "/documents") isChildActive = false;
-                  }
-                  const ChildIcon = child.icon;
+                {DOCUMENTS_GROUP.children
+                  .filter((child) =>
+                    hasAccess(child, user?.role, user?.permissions),
+                  )
+                  .map((child) => {
+                    let isChildActive = isChildNavActive(pathname, child.href);
+                    if (pathname === "/documents" && folderId) {
+                      if (child.href === "/folders") isChildActive = true;
+                      if (child.href === "/documents") isChildActive = false;
+                    }
+                    const ChildIcon = child.icon;
 
-                  return (
-                    <Link
-                      key={child.name}
-                      href={child.href}
-                      className={navItemClass(isChildActive, isOpen, true)}
-                    >
-                      {ChildIcon && (
-                        <ChildIcon
-                          className={`${NAV_ICON} ${
-                            isChildActive ? "text-blue-600" : "text-slate-400"
-                          }`}
-                        />
-                      )}
-                      <span className="truncate">{child.name}</span>
-                    </Link>
-                  );
-                })}
+                    return (
+                      <Link
+                        key={child.name}
+                        href={child.href}
+                        className={navItemClass(isChildActive, isOpen, true)}
+                      >
+                        {ChildIcon && (
+                          <ChildIcon
+                            className={`${NAV_ICON} ${
+                              isChildActive ? "text-blue-600" : "text-slate-400"
+                            }`}
+                          />
+                        )}
+                        <span className="truncate">{child.name}</span>
+                      </Link>
+                    );
+                  })}
               </div>
             )}
           </div>
@@ -320,7 +411,7 @@ export default function Sidebar() {
 
         {hasAccess(CONFIG_GROUP, user?.role, user?.permissions) && (
           <div className="space-y-2">
-            <div 
+            <div
               className={`${navItemClass(isConfigActive, isOpen)} ${isOpen ? "cursor-pointer gap-0 pr-2" : "cursor-pointer"}`}
               onClick={() => {
                 if (!isOpen) toggle();
@@ -328,13 +419,17 @@ export default function Sidebar() {
               }}
               title={!isOpen ? CONFIG_GROUP.name : undefined}
             >
-              <div className={`flex min-w-0 items-center gap-3.5 ${isOpen ? "min-w-0 flex-1" : ""}`}>
+              <div
+                className={`flex min-w-0 items-center gap-3.5 ${isOpen ? "min-w-0 flex-1" : ""}`}
+              >
                 <i
                   className={`${TABLER_ICON} ti-${CONFIG_GROUP.tablerIcon} ${
                     isConfigActive ? "text-blue-600" : "text-slate-400"
                   }`}
                 />
-                {isOpen && <span className="truncate">{CONFIG_GROUP.name}</span>}
+                {isOpen && (
+                  <span className="truncate">{CONFIG_GROUP.name}</span>
+                )}
               </div>
               {isOpen && (
                 <div className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors">
@@ -349,67 +444,78 @@ export default function Sidebar() {
 
             {isOpen && configExpanded && (
               <div className="space-y-2">
-                {CONFIG_GROUP.children.filter(child => hasAccess(child, user?.role, user?.permissions)).map((child) => {
-                  const isChildActive = isChildNavActive(pathname, child.href);
+                {CONFIG_GROUP.children
+                  .filter((child) =>
+                    hasAccess(child, user?.role, user?.permissions),
+                  )
+                  .map((child) => {
+                    const isChildActive = isChildNavActive(
+                      pathname,
+                      child.href,
+                    );
 
-                  return (
-                    <Link
-                      key={child.name}
-                      href={child.href}
-                      className={navItemClass(isChildActive, isOpen, true)}
-                    >
-                      {child.tablerIcon && (
-                        <i
-                          className={`${TABLER_ICON} ti-${child.tablerIcon} ${
-                            isChildActive ? "text-blue-600" : "text-slate-400"
-                          }`}
-                        />
-                      )}
-                      <span className="truncate">{child.name}</span>
-                    </Link>
-                  );
-                })}
+                    return (
+                      <Link
+                        key={child.name}
+                        href={child.href}
+                        className={navItemClass(isChildActive, isOpen, true)}
+                      >
+                        {child.tablerIcon && (
+                          <i
+                            className={`${TABLER_ICON} ti-${child.tablerIcon} ${
+                              isChildActive ? "text-blue-600" : "text-slate-400"
+                            }`}
+                          />
+                        )}
+                        <span className="truncate">{child.name}</span>
+                      </Link>
+                    );
+                  })}
               </div>
             )}
           </div>
         )}
 
-        {FLAT_NAV_ITEMS.slice(3).filter(item => hasAccess(item, user?.role, user?.permissions)).map((item) => {
-          const Icon = item.icon;
-          const isActive = isNavItemActive(pathname, item.href);
+        {FLAT_NAV_ITEMS.slice(3)
+          .filter((item) => hasAccess(item, user?.role, user?.permissions))
+          .map((item) => {
+            const Icon = item.icon;
+            const isActive = isNavItemActive(pathname, item.href);
 
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={navItemClass(isActive, isOpen)}
-              title={!isOpen ? item.name : undefined}
-            >
-              {Icon && (
-                <div className="relative">
-                  <Icon
-                    className={`${NAV_ICON} ${
-                      isActive ? "text-blue-600" : "text-slate-400"
-                    }`}
-                  />
-                  {!isOpen && item.href === "/approvals" && unseenCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white ring-2 ring-white" />
-                  )}
-                </div>
-              )}
-              {isOpen && (
-                <div className="flex flex-1 items-center justify-between truncate">
-                  <span className="truncate">{item.name}</span>
-                  {item.href === "/approvals" && unseenCount > 0 && (
-                    <span className="ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
-                      {unseenCount}
-                    </span>
-                  )}
-                </div>
-              )}
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={navItemClass(isActive, isOpen)}
+                title={!isOpen ? item.name : undefined}
+              >
+                {Icon && (
+                  <div className="relative">
+                    <Icon
+                      className={`${NAV_ICON} ${
+                        isActive ? "text-blue-600" : "text-slate-400"
+                      }`}
+                    />
+                    {!isOpen &&
+                      item.href === "/approvals" &&
+                      unseenCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white ring-2 ring-white" />
+                      )}
+                  </div>
+                )}
+                {isOpen && (
+                  <div className="flex flex-1 items-center justify-between truncate">
+                    <span className="truncate">{item.name}</span>
+                    {item.href === "/approvals" && unseenCount > 0 && (
+                      <span className="ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                        {unseenCount}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </Link>
+            );
+          })}
       </nav>
 
       <div className="mt-auto flex-shrink-0 border-t border-slate-100 p-4">
@@ -425,8 +531,12 @@ export default function Sidebar() {
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1 text-left">
-                <p className="truncate text-sm font-semibold text-slate-800">{displayName}</p>
-                <p className="truncate text-xs font-medium text-slate-400">{displaySub}</p>
+                <p className="truncate text-sm font-semibold text-slate-800">
+                  {displayName}
+                </p>
+                <p className="truncate text-xs font-medium text-slate-400">
+                  {displaySub}
+                </p>
               </div>
             </Link>
             <button
@@ -467,7 +577,9 @@ export default function Sidebar() {
         className="absolute top-1/2 -right-3 z-40 h-6 w-6 -translate-y-1/2 rounded-full border border-slate-200 bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-colors"
         aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
       >
-        <ChevronLeft className={`h-3.5 w-3.5 transition-transform ${isOpen ? "" : "rotate-180"}`} />
+        <ChevronLeft
+          className={`h-3.5 w-3.5 transition-transform ${isOpen ? "" : "rotate-180"}`}
+        />
       </button>
     </aside>
   );

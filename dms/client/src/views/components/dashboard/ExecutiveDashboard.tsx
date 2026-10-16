@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { hasDashboardPermission } from '@/lib/dashboard-permissions';
 import Link from "next/link";
 import {
   FileText,
@@ -214,9 +215,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
   }, [filteredData, sortKey, sortDirection, activeStatusFilter]);
 
   const hasPerm = (key: string) => {
-    if (user?.role === "Administrator") return true;
-    if (!user?.permissions || user.permissions.length === 0) return false;
-    return user.permissions.includes(`dashboard.${key}:view`);
+    return hasDashboardPermission(user?.permissions ?? [], key);
   };
 
   const showStatCards = hasPerm("executive_stat_cards");

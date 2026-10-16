@@ -53,7 +53,11 @@ async function main() {
 
   // --- Employee permissions (basic) ---
   const employeePerms: [string, string][] = [
-    ['dashboard', 'view_employee'],
+    ['dashboard.view_employee', 'view'],
+    ['dashboard.employee_stat_cards', 'view'],
+    ['dashboard.employee_submissions_status', 'view'],
+    ['dashboard.employee_recent_docs', 'view'],
+    ['dashboard.employee_docs_status_chart', 'view'],
     // ส่งเรื่องขออนุมัติ - ดูเอกสารที่ฉันส่ง + สร้างเอกสาร
     ['submissions.view_list', 'view'],
     ['submissions.search_sort', 'view'],
@@ -98,7 +102,15 @@ async function main() {
   // --- Manager permissions (employee + approval in inbox + more) ---
   const managerPerms: [string, string][] = [
     ...employeePerms,
-    ['dashboard', 'view_executive'],
+    ['dashboard.view_executive', 'view'],
+    ['dashboard.employee_pending_approvals', 'view'],
+    ['dashboard.executive_stat_cards', 'view'],
+    ['dashboard.executive_docs_type_chart', 'view'],
+    ['dashboard.executive_docs_status_chart', 'view'],
+    ['dashboard.executive_pending_dept_chart', 'view'],
+    ['dashboard.executive_recent_activity', 'view'],
+    ['dashboard.executive_bottlenecks', 'view'],
+    ['dashboard.executive_view_scope', 'view'],
     // รายการรออนุมัติ - อนุมัติได้
     ['approvals.view_list', 'view'],
     ['approvals.search_sort', 'view'],

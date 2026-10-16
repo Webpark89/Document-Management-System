@@ -1,38 +1,22 @@
-import { IsOptional, IsString, IsNumber, Min } from 'class-validator';
-import { Type } from 'class-transformer';
-
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsInt,
+  Min,
+  Max,
+  MaxLength,
+  IsBoolean,
+} from 'class-validator';
 export class ApproveStepDto {
-  @IsOptional()
-  @IsString()
-  comment?: string;
-
-  /** พิกัด X ของลายเซ็นบน PDF (หน่วย: point) */
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  signature_x?: number;
-
-  /** พิกัด Y ของลายเซ็นบน PDF (หน่วย: point) */
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  signature_y?: number;
-
-  /** หน้าที่ต้องการวางลายเซ็น (1-based) */
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(1)
-  signature_page?: number;
-
-  /** กว้าง/สูงของลายเซ็น (default 120x60) */
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  signature_width?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  signature_height?: number;
+  @IsOptional() @IsString() @MaxLength(5000) comment?: string;
+  @IsInt() @Min(1) expected_step: number;
+  @IsInt() @Min(1) expected_version: number;
+  @IsOptional() @IsNumber() @Min(0) signature_x?: number;
+  @IsOptional() @IsNumber() @Min(0) signature_y?: number;
+  @IsOptional() @IsInt() @Min(1) signature_page?: number;
+  @IsOptional() @IsNumber() @Min(1) @Max(1000) signature_width?: number;
+  @IsOptional() @IsNumber() @Min(1) @Max(1000) signature_height?: number;
+  @IsOptional() @IsString() @MaxLength(1000) annotation_text?: string;
+  @IsOptional() @IsBoolean() date_stamp?: boolean;
 }

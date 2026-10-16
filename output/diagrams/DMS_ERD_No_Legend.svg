@@ -1,0 +1,1077 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="3800" height="4160" viewBox="0 0 3800 4160">
+<rect width="100%" height="100%" fill="white" />
+<style>text{font-family:Arial,sans-serif;fill:#353a40} .field{font-size:24px}.type{font-size:20px;fill:#60656b}.key{font-size:15px;font-weight:bold;fill:#535960}</style>
+<text x="1900.0" y="83" font-size="46" font-weight="bold" text-anchor="middle">Document Management System</text>
+<text x="1900.0" y="133" font-size="28" text-anchor="middle">ENTITY RELATIONSHIP DIAGRAM</text>
+<polyline points="860,760 800,760 800,1000 860,1000" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="860,760 800,760 800,1000 860,1000" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="3140,300 3080,300 3080,800 3140,800" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="3140,300 3080,300 3080,800 3140,800" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,300 1560,300 1560,1000 1620,1000" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,300 1560,300 1560,1000 1620,1000" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="2380,300 2320,300 2320,880 2380,880" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="2380,300 2320,300 2320,880 2380,880" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="2380,1680 2240,1680 2240,1800 2180,1800" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="2380,1680 2240,1680 2240,1800 2180,1800" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,1680 1480,1680 1480,1720 1420,1720" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,1680 1480,1680 1480,1720 1420,1720" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,2640 1480,2640 1480,2680 1420,2680" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,2640 1480,2640 1480,2680 1420,2680" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="2940,2640 3080,2640 3080,2680 3140,2680" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="2940,2640 3080,2640 3080,2680 3140,2680" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="2940,1680 3080,1680 3080,1720 3140,1720" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="2940,1680 3080,1680 3080,1720 3140,1720" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,760 1480,760 1480,1040 1420,1040" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,760 1480,760 1480,1040 1420,1040" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="860,760 720,760 720,800 660,800" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="860,760 720,760 720,800 660,800" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,760 1580,760 1580,1840 1620,1840" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,760 1580,760 1580,1840 1620,1840" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="2940,1680 3000,1680 3000,800 2940,800" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="2940,1680 3000,1680 3000,800 2940,800" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,1680 1560,1680 1560,2680 1620,2680" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,1680 1560,1680 1560,2680 1620,2680" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="2940,300 3060,300 3060,760 3140,760" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="2940,300 3060,300 3060,760 3140,760" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1420,300 1540,300 1540,1040 1620,1040" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1420,300 1540,300 1540,1040 1620,1040" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="2380,300 2240,300 2240,1080 2180,1080" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="2380,300 2240,300 2240,1080 2180,1080" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,300 1560,300 1560,1080 1420,1080" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,300 1560,300 1560,1080 1420,1080" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,1680 1540,1680 1540,1560 720,1560 720,1720 660,1720" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,1680 1540,1680 1540,1560 720,1560 720,1720 660,1720" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,760 1460,760 1460,640 760,640 760,840 660,840" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,760 1460,760 1460,640 760,640 760,840 660,840" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1420,760 1480,760 1480,740 1520,740 1520,2000 1620,2000" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1420,760 1480,760 1480,740 1520,740 1520,2000 1620,2000" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,760 1580,760 1580,1840 1420,1840" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,760 1580,760 1580,1840 1420,1840" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="860,1680 740,1680 740,2680 660,2680" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="860,1680 740,1680 740,2680 660,2680" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="2180,1680 2220,1680 2220,3440 2180,3440" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="2180,1680 2220,1680 2220,3440 2180,3440" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="2180,1680 2220,1680 2220,2680 2380,2680" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="2180,1680 2220,1680 2220,2680 2380,2680" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,300 1560,300 1560,620 700,620 700,880 660,880" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,300 1560,300 1560,620 700,620 700,880 660,880" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,300 1560,300 1560,1300 1460,1300 1460,1880 1420,1880" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,300 1560,300 1560,1300 1460,1300 1460,1880 1420,1880" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,1680 1500,1680 1500,3480 1420,3480" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,1680 1500,1680 1500,3480 1420,3480" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,760 1580,760 1580,3680 1620,3680" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,760 1580,760 1580,3680 1620,3680" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,300 1560,300 1560,620 700,620 700,1840 660,1840" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,300 1560,300 1560,620 700,620 700,1840 660,1840" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="2180,760 2300,760 2300,1560 2980,1560 2980,2760 3140,2760" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="2180,760 2300,760 2300,1560 2980,1560 2980,2760 3140,2760" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,760 1580,760 1580,3440 1420,3440" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,760 1580,760 1580,3440 1420,3440" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<polyline points="1620,760 1580,760 1580,3220 720,3220 720,3440 660,3440" fill="none" stroke="white" stroke-width="9" stroke-linejoin="round" />
+<polyline points="1620,760 1580,760 1580,3220 720,3220 720,3440 660,3440" fill="none" stroke="#5b6066" stroke-width="2.6" stroke-linejoin="round" />
+<path d="M850,749 L850,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="830" cy="760" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M860,989 L838,1000" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M860,1000 L838,1000" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M860,1011 L838,1000" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="823" cy="1000" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M3130,289 L3130,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3117,289 L3117,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3140,789 L3118,800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3140,800 L3118,800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3140,811 L3118,800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="3103" cy="800" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,289 L1610,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1590" cy="300" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1620,989 L1598,1000" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,1000 L1598,1000" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,1011 L1598,1000" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1583" cy="1000" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M2370,289 L2370,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2357,289 L2357,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2380,869 L2358,880" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2380,880 L2358,880" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2380,891 L2358,880" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="2343" cy="880" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M2370,1669 L2370,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2357,1669 L2357,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2180,1789 L2202,1800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2180,1800 L2202,1800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2180,1811 L2202,1800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="2217" cy="1800" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,1669 L1610,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1597,1669 L1597,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1430,1709 L1430,1731" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1450" cy="1720" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,2629 L1610,2651" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1597,2629 L1597,2651" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,2669 L1442,2680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,2680 L1442,2680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,2691 L1442,2680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1457" cy="2680" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M2950,2629 L2950,2651" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2963,2629 L2963,2651" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3140,2669 L3118,2680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3140,2680 L3118,2680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3140,2691 L3118,2680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="3103" cy="2680" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M2950,1669 L2950,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2963,1669 L2963,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3130,1709 L3130,1731" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="3110" cy="1720" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,749 L1610,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1597,749 L1597,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,1029 L1442,1040" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,1040 L1442,1040" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,1051 L1442,1040" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1457" cy="1040" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M850,749 L850,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M837,749 L837,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,789 L682,800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,800 L682,800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,811 L682,800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="697" cy="800" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,749 L1610,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1597,749 L1597,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,1829 L1598,1840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,1840 L1598,1840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,1851 L1598,1840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1583" cy="1840" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M2950,1669 L2950,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2963,1669 L2963,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2940,789 L2962,800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2940,800 L2962,800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2940,811 L2962,800" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="2977" cy="800" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,1669 L1610,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1597,1669 L1597,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1610,2669 L1610,2691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1590" cy="2680" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M2950,289 L2950,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2963,289 L2963,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3140,749 L3118,760" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3140,760 L3118,760" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3140,771 L3118,760" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="3103" cy="760" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1430,289 L1430,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1450" cy="300" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1620,1029 L1598,1040" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,1040 L1598,1040" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,1051 L1598,1040" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1583" cy="1040" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M2370,289 L2370,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="2350" cy="300" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M2180,1069 L2202,1080" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2180,1080 L2202,1080" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2180,1091 L2202,1080" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="2217" cy="1080" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,289 L1610,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1590" cy="300" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1420,1069 L1442,1080" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,1080 L1442,1080" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,1091 L1442,1080" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1457" cy="1080" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,1669 L1610,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1597,1669 L1597,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M670,1709 L670,1731" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="690" cy="1720" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,749 L1610,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1590" cy="760" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M660,829 L682,840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,840 L682,840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,851 L682,840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="697" cy="840" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1430,749 L1430,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1450" cy="760" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1620,1989 L1598,2000" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,2000 L1598,2000" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,2011 L1598,2000" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1583" cy="2000" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,749 L1610,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1597,749 L1597,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,1829 L1442,1840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,1840 L1442,1840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,1851 L1442,1840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1457" cy="1840" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M850,1669 L850,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M837,1669 L837,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,2669 L682,2680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,2680 L682,2680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,2691 L682,2680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="697" cy="2680" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M2190,1669 L2190,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2203,1669 L2203,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2180,3429 L2202,3440" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2180,3440 L2202,3440" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2180,3451 L2202,3440" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="2217" cy="3440" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M2190,1669 L2190,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2203,1669 L2203,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M2370,2669 L2370,2691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="2350" cy="2680" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,289 L1610,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1590" cy="300" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M660,869 L682,880" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,880 L682,880" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,891 L682,880" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="697" cy="880" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,289 L1610,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1597,289 L1597,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,1869 L1442,1880" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,1880 L1442,1880" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,1891 L1442,1880" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1457" cy="1880" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,1669 L1610,1691" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1590" cy="1680" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1420,3469 L1442,3480" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,3480 L1442,3480" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,3491 L1442,3480" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1457" cy="3480" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,749 L1610,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1597,749 L1597,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,3669 L1598,3680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,3680 L1598,3680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1620,3691 L1598,3680" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1583" cy="3680" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,289 L1610,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1597,289 L1597,311" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,1829 L682,1840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,1840 L682,1840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,1851 L682,1840" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="697" cy="1840" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M2190,749 L2190,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="2210" cy="760" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M3140,2749 L3118,2760" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3140,2760 L3118,2760" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M3140,2771 L3118,2760" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="3103" cy="2760" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,749 L1610,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1597,749 L1597,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,3429 L1442,3440" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,3440 L1442,3440" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M1420,3451 L1442,3440" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1457" cy="3440" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M1610,749 L1610,771" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="1590" cy="760" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<path d="M660,3429 L682,3440" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,3440 L682,3440" fill="none" stroke="#454b52" stroke-width="2.8" />
+<path d="M660,3451 L682,3440" fill="none" stroke="#454b52" stroke-width="2.8" />
+<circle cx="697" cy="3440" r="7" fill="white" stroke="#454b52" stroke-width="2.5" />
+<defs><clipPath id="clip_departments"><rect x="1620" y="220" width="560" height="260" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_departments)"><rect x="1620" y="220" width="560" height="260" fill="white" />
+<rect x="1620" y="220" width="560" height="60" fill="#f5c1b4" />
+<text x="1638" y="260" font-size="29" font-weight="bold" text-anchor="start">departments</text>
+<text class="key" x="1630" y="307">PK</text>
+<text class="field" x="1728" y="308">id</text>
+<text class="type" x="2168" y="308" text-anchor="end">String</text>
+<rect x="1620" y="320" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="347">UQ</text>
+<text class="field" x="1728" y="348">name</text>
+<text class="type" x="2168" y="348" text-anchor="end">String</text>
+<text class="key" x="1630" y="387" />
+<text class="field" x="1728" y="388">is_active</text>
+<text class="type" x="2168" y="388" text-anchor="end">Boolean</text>
+<rect x="1620" y="400" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="427" />
+<text class="field" x="1728" y="428">created_at</text>
+<text class="type" x="2168" y="428" text-anchor="end">DateTime</text>
+<text class="key" x="1630" y="467" />
+<text class="field" x="1728" y="468">updated_at</text>
+<text class="type" x="2168" y="468" text-anchor="end">DateTime</text>
+</g>
+<rect x="1620" y="220" width="560" height="260" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="1620" y1="280" x2="2180" y2="280" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_positions"><rect x="860" y="220" width="560" height="300" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_positions)"><rect x="860" y="220" width="560" height="300" fill="white" />
+<rect x="860" y="220" width="560" height="60" fill="#f5c1b4" />
+<text x="878" y="260" font-size="29" font-weight="bold" text-anchor="start">positions</text>
+<text class="key" x="870" y="307">PK</text>
+<text class="field" x="968" y="308">id</text>
+<text class="type" x="1408" y="308" text-anchor="end">String</text>
+<rect x="860" y="320" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="347">UQ</text>
+<text class="field" x="968" y="348">name</text>
+<text class="type" x="1408" y="348" text-anchor="end">String</text>
+<text class="key" x="870" y="387" />
+<text class="field" x="968" y="388">level</text>
+<text class="type" x="1408" y="388" text-anchor="end">String</text>
+<rect x="860" y="400" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="427" />
+<text class="field" x="968" y="428">is_active</text>
+<text class="type" x="1408" y="428" text-anchor="end">Boolean</text>
+<text class="key" x="870" y="467" />
+<text class="field" x="968" y="468">created_at</text>
+<text class="type" x="1408" y="468" text-anchor="end">DateTime</text>
+<rect x="860" y="480" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="507" />
+<text class="field" x="968" y="508">updated_at</text>
+<text class="type" x="1408" y="508" text-anchor="end">DateTime</text>
+</g>
+<rect x="860" y="220" width="560" height="300" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="860" y1="280" x2="1420" y2="280" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_document_types"><rect x="2380" y="1600" width="560" height="300" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_document_types)"><rect x="2380" y="1600" width="560" height="300" fill="white" />
+<rect x="2380" y="1600" width="560" height="60" fill="#f5c1b4" />
+<text x="2398" y="1640" font-size="29" font-weight="bold" text-anchor="start">document_types</text>
+<text class="key" x="2390" y="1687">PK</text>
+<text class="field" x="2488" y="1688">id</text>
+<text class="type" x="2928" y="1688" text-anchor="end">String</text>
+<rect x="2380" y="1700" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="2390" y="1727">UQ</text>
+<text class="field" x="2488" y="1728">type_name</text>
+<text class="type" x="2928" y="1728" text-anchor="end">String</text>
+<text class="key" x="2390" y="1767">UQ</text>
+<text class="field" x="2488" y="1768">prefix</text>
+<text class="type" x="2928" y="1768" text-anchor="end">String</text>
+<rect x="2380" y="1780" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="2390" y="1807" />
+<text class="field" x="2488" y="1808">is_active</text>
+<text class="type" x="2928" y="1808" text-anchor="end">Boolean</text>
+<text class="key" x="2390" y="1847" />
+<text class="field" x="2488" y="1848">created_at</text>
+<text class="type" x="2928" y="1848" text-anchor="end">DateTime</text>
+<rect x="2380" y="1860" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="2390" y="1887" />
+<text class="field" x="2488" y="1888">updated_at</text>
+<text class="type" x="2928" y="1888" text-anchor="end">DateTime</text>
+</g>
+<rect x="2380" y="1600" width="560" height="300" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="2380" y1="1660" x2="2940" y2="1660" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_roles"><rect x="2380" y="220" width="560" height="260" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_roles)"><rect x="2380" y="220" width="560" height="260" fill="white" />
+<rect x="2380" y="220" width="560" height="60" fill="#f5c1b4" />
+<text x="2398" y="260" font-size="29" font-weight="bold" text-anchor="start">roles</text>
+<text class="key" x="2390" y="307">PK</text>
+<text class="field" x="2488" y="308">id</text>
+<text class="type" x="2928" y="308" text-anchor="end">String</text>
+<rect x="2380" y="320" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="2390" y="347">UQ</text>
+<text class="field" x="2488" y="348">name</text>
+<text class="type" x="2928" y="348" text-anchor="end">String</text>
+<text class="key" x="2390" y="387" />
+<text class="field" x="2488" y="388">is_active</text>
+<text class="type" x="2928" y="388" text-anchor="end">Boolean</text>
+<rect x="2380" y="400" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="2390" y="427" />
+<text class="field" x="2488" y="428">created_at</text>
+<text class="type" x="2928" y="428" text-anchor="end">DateTime</text>
+<text class="key" x="2390" y="467" />
+<text class="field" x="2488" y="468">updated_at</text>
+<text class="type" x="2928" y="468" text-anchor="end">DateTime</text>
+</g>
+<rect x="2380" y="220" width="560" height="260" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="2380" y1="280" x2="2940" y2="280" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_permissions"><rect x="3140" y="220" width="560" height="300" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_permissions)"><rect x="3140" y="220" width="560" height="300" fill="white" />
+<rect x="3140" y="220" width="560" height="60" fill="#f5c1b4" />
+<text x="3158" y="260" font-size="29" font-weight="bold" text-anchor="start">permissions</text>
+<text class="key" x="3150" y="307">PK</text>
+<text class="field" x="3248" y="308">id</text>
+<text class="type" x="3688" y="308" text-anchor="end">String</text>
+<rect x="3140" y="320" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="347">U1</text>
+<text class="field" x="3248" y="348">module</text>
+<text class="type" x="3688" y="348" text-anchor="end">String</text>
+<text class="key" x="3150" y="387">U1</text>
+<text class="field" x="3248" y="388">action</text>
+<text class="type" x="3688" y="388" text-anchor="end">String</text>
+<rect x="3140" y="400" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="427" />
+<text class="field" x="3248" y="428">description</text>
+<text class="type" x="3688" y="428" text-anchor="end">String?</text>
+<text class="key" x="3150" y="467" />
+<text class="field" x="3248" y="468">created_at</text>
+<text class="type" x="3688" y="468" text-anchor="end">DateTime</text>
+<rect x="3140" y="480" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="507" />
+<text class="field" x="3248" y="508">updated_at</text>
+<text class="type" x="3688" y="508" text-anchor="end">DateTime</text>
+</g>
+<rect x="3140" y="220" width="560" height="300" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="3140" y1="280" x2="3700" y2="280" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_role_permissions"><rect x="3140" y="680" width="560" height="140" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_role_permissions)"><rect x="3140" y="680" width="560" height="140" fill="white" />
+<rect x="3140" y="680" width="560" height="60" fill="#f5c1b4" />
+<text x="3158" y="720" font-size="29" font-weight="bold" text-anchor="start">role_permissions</text>
+<text class="key" x="3150" y="767">PK,FK</text>
+<text class="field" x="3248" y="768">role_id</text>
+<text class="type" x="3688" y="768" text-anchor="end">String</text>
+<rect x="3140" y="780" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="807">PK,FK</text>
+<text class="field" x="3248" y="808">permission_id</text>
+<text class="type" x="3688" y="808" text-anchor="end">String</text>
+</g>
+<rect x="3140" y="680" width="560" height="140" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="3140" y1="740" x2="3700" y2="740" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_users"><rect x="1620" y="680" width="560" height="700" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_users)"><rect x="1620" y="680" width="560" height="700" fill="white" />
+<rect x="1620" y="680" width="560" height="60" fill="#f5c1b4" />
+<text x="1638" y="720" font-size="29" font-weight="bold" text-anchor="start">users</text>
+<text class="key" x="1630" y="767">PK</text>
+<text class="field" x="1728" y="768">id</text>
+<text class="type" x="2168" y="768" text-anchor="end">String</text>
+<rect x="1620" y="780" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="807">UQ</text>
+<text class="field" x="1728" y="808">username</text>
+<text class="type" x="2168" y="808" text-anchor="end">String</text>
+<text class="key" x="1630" y="847">UQ</text>
+<text class="field" x="1728" y="848">email</text>
+<text class="type" x="2168" y="848" text-anchor="end">String</text>
+<rect x="1620" y="860" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="887" />
+<text class="field" x="1728" y="888">password_hash</text>
+<text class="type" x="2168" y="888" text-anchor="end">String</text>
+<text class="key" x="1630" y="927" />
+<text class="field" x="1728" y="928">first_name</text>
+<text class="type" x="2168" y="928" text-anchor="end">String</text>
+<rect x="1620" y="940" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="967" />
+<text class="field" x="1728" y="968">last_name</text>
+<text class="type" x="2168" y="968" text-anchor="end">String</text>
+<text class="key" x="1630" y="1007">FK</text>
+<text class="field" x="1728" y="1008">department_id</text>
+<text class="type" x="2168" y="1008" text-anchor="end">String?</text>
+<rect x="1620" y="1020" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="1047">FK</text>
+<text class="field" x="1728" y="1048">position_id</text>
+<text class="type" x="2168" y="1048" text-anchor="end">String?</text>
+<text class="key" x="1630" y="1087">FK</text>
+<text class="field" x="1728" y="1088">role_id</text>
+<text class="type" x="2168" y="1088" text-anchor="end">String?</text>
+<rect x="1620" y="1100" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="1127" />
+<text class="field" x="1728" y="1128">signature_encrypted</text>
+<text class="type" x="2168" y="1128" text-anchor="end">String?</text>
+<text class="key" x="1630" y="1167" />
+<text class="field" x="1728" y="1168">is_active</text>
+<text class="type" x="2168" y="1168" text-anchor="end">Boolean</text>
+<rect x="1620" y="1180" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="1207" />
+<text class="field" x="1728" y="1208">is_deleted</text>
+<text class="type" x="2168" y="1208" text-anchor="end">Boolean</text>
+<text class="key" x="1630" y="1247" />
+<text class="field" x="1728" y="1248">reset_token</text>
+<text class="type" x="2168" y="1248" text-anchor="end">String?</text>
+<rect x="1620" y="1260" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="1287" />
+<text class="field" x="1728" y="1288">reset_token_expiry</text>
+<text class="type" x="2168" y="1288" text-anchor="end">DateTime?</text>
+<text class="key" x="1630" y="1327" />
+<text class="field" x="1728" y="1328">created_at</text>
+<text class="type" x="2168" y="1328" text-anchor="end">DateTime</text>
+<rect x="1620" y="1340" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="1367" />
+<text class="field" x="1728" y="1368">updated_at</text>
+<text class="type" x="2168" y="1368" text-anchor="end">DateTime</text>
+</g>
+<rect x="1620" y="680" width="560" height="700" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="1620" y1="740" x2="2180" y2="740" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_documents"><rect x="1620" y="1600" width="560" height="700" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_documents)"><rect x="1620" y="1600" width="560" height="700" fill="white" />
+<rect x="1620" y="1600" width="560" height="60" fill="#f5c1b4" />
+<text x="1638" y="1640" font-size="29" font-weight="bold" text-anchor="start">documents</text>
+<text class="key" x="1630" y="1687">PK</text>
+<text class="field" x="1728" y="1688">id</text>
+<text class="type" x="2168" y="1688" text-anchor="end">String</text>
+<rect x="1620" y="1700" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="1727">UQ</text>
+<text class="field" x="1728" y="1728">doc_number</text>
+<text class="type" x="2168" y="1728" text-anchor="end">String</text>
+<text class="key" x="1630" y="1767" />
+<text class="field" x="1728" y="1768">title</text>
+<text class="type" x="2168" y="1768" text-anchor="end">String</text>
+<rect x="1620" y="1780" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="1807">FK</text>
+<text class="field" x="1728" y="1808">type_id</text>
+<text class="type" x="2168" y="1808" text-anchor="end">String</text>
+<text class="key" x="1630" y="1847">FK</text>
+<text class="field" x="1728" y="1848">creator_id</text>
+<text class="type" x="2168" y="1848" text-anchor="end">String</text>
+<rect x="1620" y="1860" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="1887" />
+<text class="field" x="1728" y="1888">status</text>
+<text class="type" x="2168" y="1888" text-anchor="end">DocumentStatus</text>
+<text class="key" x="1630" y="1927" />
+<text class="field" x="1728" y="1928">search_text</text>
+<text class="type" x="2168" y="1928" text-anchor="end">String?</text>
+<rect x="1620" y="1940" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="1967" />
+<text class="field" x="1728" y="1968">tags</text>
+<text class="type" x="2168" y="1968" text-anchor="end">String[]</text>
+<text class="key" x="1630" y="2007">FK</text>
+<text class="field" x="1728" y="2008">folder_id</text>
+<text class="type" x="2168" y="2008" text-anchor="end">String?</text>
+<rect x="1620" y="2020" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="2047" />
+<text class="field" x="1728" y="2048">is_deleted</text>
+<text class="type" x="2168" y="2048" text-anchor="end">Boolean</text>
+<text class="key" x="1630" y="2087" />
+<text class="field" x="1728" y="2088">visibility_type</text>
+<text class="type" x="2168" y="2088" text-anchor="end">String</text>
+<rect x="1620" y="2100" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="2127" />
+<text class="field" x="1728" y="2128">visibility_departments</text>
+<text class="type" x="2168" y="2128" text-anchor="end">String[]</text>
+<text class="key" x="1630" y="2167" />
+<text class="field" x="1728" y="2168">visibility_users</text>
+<text class="type" x="2168" y="2168" text-anchor="end">String[]</text>
+<rect x="1620" y="2180" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="2207" />
+<text class="field" x="1728" y="2208">approved_at</text>
+<text class="type" x="2168" y="2208" text-anchor="end">DateTime?</text>
+<text class="key" x="1630" y="2247" />
+<text class="field" x="1728" y="2248">created_at</text>
+<text class="type" x="2168" y="2248" text-anchor="end">DateTime</text>
+<rect x="1620" y="2260" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="2287" />
+<text class="field" x="1728" y="2288">updated_at</text>
+<text class="type" x="2168" y="2288" text-anchor="end">DateTime</text>
+</g>
+<rect x="1620" y="1600" width="560" height="700" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="1620" y1="1660" x2="2180" y2="1660" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_pr_forms"><rect x="860" y="1600" width="560" height="500" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_pr_forms)"><rect x="860" y="1600" width="560" height="500" fill="white" />
+<rect x="860" y="1600" width="560" height="60" fill="#f5c1b4" />
+<text x="878" y="1640" font-size="29" font-weight="bold" text-anchor="start">pr_forms</text>
+<text class="key" x="870" y="1687">PK</text>
+<text class="field" x="968" y="1688">id</text>
+<text class="type" x="1408" y="1688" text-anchor="end">String</text>
+<rect x="860" y="1700" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="1727">FK,UQ</text>
+<text class="field" x="968" y="1728">document_id</text>
+<text class="type" x="1408" y="1728" text-anchor="end">String</text>
+<text class="key" x="870" y="1767" />
+<text class="field" x="968" y="1768">requested_date</text>
+<text class="type" x="1408" y="1768" text-anchor="end">DateTime?</text>
+<rect x="860" y="1780" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="1807" />
+<text class="field" x="968" y="1808">required_date</text>
+<text class="type" x="1408" y="1808" text-anchor="end">DateTime?</text>
+<text class="key" x="870" y="1847">FK</text>
+<text class="field" x="968" y="1848">requester_id</text>
+<text class="type" x="1408" y="1848" text-anchor="end">String</text>
+<rect x="860" y="1860" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="1887">FK</text>
+<text class="field" x="968" y="1888">department_id</text>
+<text class="type" x="1408" y="1888" text-anchor="end">String</text>
+<text class="key" x="870" y="1927" />
+<text class="field" x="968" y="1928">purpose</text>
+<text class="type" x="1408" y="1928" text-anchor="end">String?</text>
+<rect x="860" y="1940" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="1967" />
+<text class="field" x="968" y="1968">remark</text>
+<text class="type" x="1408" y="1968" text-anchor="end">String?</text>
+<text class="key" x="870" y="2007" />
+<text class="field" x="968" y="2008">total_amount</text>
+<text class="type" x="1408" y="2008" text-anchor="end">Decimal</text>
+<rect x="860" y="2020" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="2047" />
+<text class="field" x="968" y="2048">created_at</text>
+<text class="type" x="1408" y="2048" text-anchor="end">DateTime</text>
+<text class="key" x="870" y="2087" />
+<text class="field" x="968" y="2088">updated_at</text>
+<text class="type" x="1408" y="2088" text-anchor="end">DateTime</text>
+</g>
+<rect x="860" y="1600" width="560" height="500" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="860" y1="1660" x2="1420" y2="1660" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_pr_form_items"><rect x="100" y="2560" width="560" height="460" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_pr_form_items)"><rect x="100" y="2560" width="560" height="460" fill="white" />
+<rect x="100" y="2560" width="560" height="60" fill="#f5c1b4" />
+<text x="118" y="2600" font-size="29" font-weight="bold" text-anchor="start">pr_form_items</text>
+<text class="key" x="110" y="2647">PK</text>
+<text class="field" x="208" y="2648">id</text>
+<text class="type" x="648" y="2648" text-anchor="end">String</text>
+<rect x="100" y="2660" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="2687">FK</text>
+<text class="field" x="208" y="2688">pr_form_id</text>
+<text class="type" x="648" y="2688" text-anchor="end">String</text>
+<text class="key" x="110" y="2727" />
+<text class="field" x="208" y="2728">item_name</text>
+<text class="type" x="648" y="2728" text-anchor="end">String</text>
+<rect x="100" y="2740" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="2767" />
+<text class="field" x="208" y="2768">quantity</text>
+<text class="type" x="648" y="2768" text-anchor="end">Int</text>
+<text class="key" x="110" y="2807" />
+<text class="field" x="208" y="2808">unit</text>
+<text class="type" x="648" y="2808" text-anchor="end">String?</text>
+<rect x="100" y="2820" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="2847" />
+<text class="field" x="208" y="2848">unit_price</text>
+<text class="type" x="648" y="2848" text-anchor="end">Decimal</text>
+<text class="key" x="110" y="2887" />
+<text class="field" x="208" y="2888">total_price</text>
+<text class="type" x="648" y="2888" text-anchor="end">Decimal</text>
+<rect x="100" y="2900" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="2927" />
+<text class="field" x="208" y="2928">remark</text>
+<text class="type" x="648" y="2928" text-anchor="end">String?</text>
+<text class="key" x="110" y="2967" />
+<text class="field" x="208" y="2968">created_at</text>
+<text class="type" x="648" y="2968" text-anchor="end">DateTime</text>
+<rect x="100" y="2980" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="3007" />
+<text class="field" x="208" y="3008">updated_at</text>
+<text class="type" x="648" y="3008" text-anchor="end">DateTime</text>
+</g>
+<rect x="100" y="2560" width="560" height="460" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="100" y1="2620" x2="660" y2="2620" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_po_forms"><rect x="1620" y="2560" width="560" height="460" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_po_forms)"><rect x="1620" y="2560" width="560" height="460" fill="white" />
+<rect x="1620" y="2560" width="560" height="60" fill="#f5c1b4" />
+<text x="1638" y="2600" font-size="29" font-weight="bold" text-anchor="start">po_forms</text>
+<text class="key" x="1630" y="2647">PK</text>
+<text class="field" x="1728" y="2648">id</text>
+<text class="type" x="2168" y="2648" text-anchor="end">String</text>
+<rect x="1620" y="2660" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="2687">FK,UQ</text>
+<text class="field" x="1728" y="2688">document_id</text>
+<text class="type" x="2168" y="2688" text-anchor="end">String</text>
+<text class="key" x="1630" y="2727" />
+<text class="field" x="1728" y="2728">vendor_name</text>
+<text class="type" x="2168" y="2728" text-anchor="end">String</text>
+<rect x="1620" y="2740" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="2767" />
+<text class="field" x="1728" y="2768">vendor_contact</text>
+<text class="type" x="2168" y="2768" text-anchor="end">String?</text>
+<text class="key" x="1630" y="2807" />
+<text class="field" x="1728" y="2808">delivery_date</text>
+<text class="type" x="2168" y="2808" text-anchor="end">DateTime?</text>
+<rect x="1620" y="2820" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="2847" />
+<text class="field" x="1728" y="2848">payment_terms</text>
+<text class="type" x="2168" y="2848" text-anchor="end">String?</text>
+<text class="key" x="1630" y="2887" />
+<text class="field" x="1728" y="2888">total_amount</text>
+<text class="type" x="2168" y="2888" text-anchor="end">Decimal</text>
+<rect x="1620" y="2900" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="2927" />
+<text class="field" x="1728" y="2928">remark</text>
+<text class="type" x="2168" y="2928" text-anchor="end">String?</text>
+<text class="key" x="1630" y="2967" />
+<text class="field" x="1728" y="2968">created_at</text>
+<text class="type" x="2168" y="2968" text-anchor="end">DateTime</text>
+<rect x="1620" y="2980" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="3007" />
+<text class="field" x="1728" y="3008">updated_at</text>
+<text class="type" x="2168" y="3008" text-anchor="end">DateTime</text>
+</g>
+<rect x="1620" y="2560" width="560" height="460" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="1620" y1="2620" x2="2180" y2="2620" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_po_form_items"><rect x="860" y="2560" width="560" height="500" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_po_form_items)"><rect x="860" y="2560" width="560" height="500" fill="white" />
+<rect x="860" y="2560" width="560" height="60" fill="#f5c1b4" />
+<text x="878" y="2600" font-size="29" font-weight="bold" text-anchor="start">po_form_items</text>
+<text class="key" x="870" y="2647">PK</text>
+<text class="field" x="968" y="2648">id</text>
+<text class="type" x="1408" y="2648" text-anchor="end">String</text>
+<rect x="860" y="2660" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="2687">FK</text>
+<text class="field" x="968" y="2688">po_form_id</text>
+<text class="type" x="1408" y="2688" text-anchor="end">String</text>
+<text class="key" x="870" y="2727" />
+<text class="field" x="968" y="2728">item_name</text>
+<text class="type" x="1408" y="2728" text-anchor="end">String</text>
+<rect x="860" y="2740" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="2767" />
+<text class="field" x="968" y="2768">quantity</text>
+<text class="type" x="1408" y="2768" text-anchor="end">Int</text>
+<text class="key" x="870" y="2807" />
+<text class="field" x="968" y="2808">unit</text>
+<text class="type" x="1408" y="2808" text-anchor="end">String?</text>
+<rect x="860" y="2820" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="2847" />
+<text class="field" x="968" y="2848">unit_price</text>
+<text class="type" x="1408" y="2848" text-anchor="end">Decimal</text>
+<text class="key" x="870" y="2887" />
+<text class="field" x="968" y="2888">vat</text>
+<text class="type" x="1408" y="2888" text-anchor="end">Decimal</text>
+<rect x="860" y="2900" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="2927" />
+<text class="field" x="968" y="2928">total_price</text>
+<text class="type" x="1408" y="2928" text-anchor="end">Decimal</text>
+<text class="key" x="870" y="2967" />
+<text class="field" x="968" y="2968">remark</text>
+<text class="type" x="1408" y="2968" text-anchor="end">String?</text>
+<rect x="860" y="2980" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="3007" />
+<text class="field" x="968" y="3008">created_at</text>
+<text class="type" x="1408" y="3008" text-anchor="end">DateTime</text>
+<text class="key" x="870" y="3047" />
+<text class="field" x="968" y="3048">updated_at</text>
+<text class="type" x="1408" y="3048" text-anchor="end">DateTime</text>
+</g>
+<rect x="860" y="2560" width="560" height="500" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="860" y1="2620" x2="1420" y2="2620" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_bk_forms"><rect x="100" y="1600" width="560" height="340" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_bk_forms)"><rect x="100" y="1600" width="560" height="340" fill="white" />
+<rect x="100" y="1600" width="560" height="60" fill="#f5c1b4" />
+<text x="118" y="1640" font-size="29" font-weight="bold" text-anchor="start">bk_forms</text>
+<text class="key" x="110" y="1687">PK</text>
+<text class="field" x="208" y="1688">id</text>
+<text class="type" x="648" y="1688" text-anchor="end">String</text>
+<rect x="100" y="1700" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="1727">FK,UQ</text>
+<text class="field" x="208" y="1728">document_id</text>
+<text class="type" x="648" y="1728" text-anchor="end">String</text>
+<text class="key" x="110" y="1767" />
+<text class="field" x="208" y="1768">subject</text>
+<text class="type" x="648" y="1768" text-anchor="end">String</text>
+<rect x="100" y="1780" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="1807" />
+<text class="field" x="208" y="1808">detail</text>
+<text class="type" x="648" y="1808" text-anchor="end">String?</text>
+<text class="key" x="110" y="1847">FK</text>
+<text class="field" x="208" y="1848">department_id</text>
+<text class="type" x="648" y="1848" text-anchor="end">String</text>
+<rect x="100" y="1860" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="1887" />
+<text class="field" x="208" y="1888">created_at</text>
+<text class="type" x="648" y="1888" text-anchor="end">DateTime</text>
+<text class="key" x="110" y="1927" />
+<text class="field" x="208" y="1928">updated_at</text>
+<text class="type" x="648" y="1928" text-anchor="end">DateTime</text>
+</g>
+<rect x="100" y="1600" width="560" height="340" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="100" y1="1660" x2="660" y2="1660" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_document_versions"><rect x="1620" y="3320" width="560" height="500" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_document_versions)"><rect x="1620" y="3320" width="560" height="500" fill="white" />
+<rect x="1620" y="3320" width="560" height="60" fill="#f5c1b4" />
+<text x="1638" y="3360" font-size="29" font-weight="bold" text-anchor="start">document_versions</text>
+<text class="key" x="1630" y="3407">PK</text>
+<text class="field" x="1728" y="3408">id</text>
+<text class="type" x="2168" y="3408" text-anchor="end">String</text>
+<rect x="1620" y="3420" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="3447">FK</text>
+<text class="field" x="1728" y="3448">document_id</text>
+<text class="type" x="2168" y="3448" text-anchor="end">String</text>
+<text class="key" x="1630" y="3487" />
+<text class="field" x="1728" y="3488">version_number</text>
+<text class="type" x="2168" y="3488" text-anchor="end">Int</text>
+<rect x="1620" y="3500" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="3527" />
+<text class="field" x="1728" y="3528">file_data</text>
+<text class="type" x="2168" y="3528" text-anchor="end">Bytes?</text>
+<text class="key" x="1630" y="3567" />
+<text class="field" x="1728" y="3568">file_size</text>
+<text class="type" x="2168" y="3568" text-anchor="end">String?</text>
+<rect x="1620" y="3580" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="3607" />
+<text class="field" x="1728" y="3608">file_extension</text>
+<text class="type" x="2168" y="3608" text-anchor="end">String?</text>
+<text class="key" x="1630" y="3647" />
+<text class="field" x="1728" y="3648">form_data</text>
+<text class="type" x="2168" y="3648" text-anchor="end">Json?</text>
+<rect x="1620" y="3660" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="3687">FK</text>
+<text class="field" x="1728" y="3688">uploaded_by_id</text>
+<text class="type" x="2168" y="3688" text-anchor="end">String</text>
+<text class="key" x="1630" y="3727" />
+<text class="field" x="1728" y="3728">remarks</text>
+<text class="type" x="2168" y="3728" text-anchor="end">String?</text>
+<rect x="1620" y="3740" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="1630" y="3767" />
+<text class="field" x="1728" y="3768">created_at</text>
+<text class="type" x="2168" y="3768" text-anchor="end">DateTime</text>
+<text class="key" x="1630" y="3807" />
+<text class="field" x="1728" y="3808">updated_at</text>
+<text class="type" x="2168" y="3808" text-anchor="end">DateTime</text>
+</g>
+<rect x="1620" y="3320" width="560" height="500" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="1620" y1="3380" x2="2180" y2="3380" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_approval_matrix"><rect x="2380" y="680" width="560" height="300" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_approval_matrix)"><rect x="2380" y="680" width="560" height="300" fill="white" />
+<rect x="2380" y="680" width="560" height="60" fill="#f5c1b4" />
+<text x="2398" y="720" font-size="29" font-weight="bold" text-anchor="start">approval_matrix</text>
+<text class="key" x="2390" y="767">PK</text>
+<text class="field" x="2488" y="768">id</text>
+<text class="type" x="2928" y="768" text-anchor="end">String</text>
+<rect x="2380" y="780" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="2390" y="807">FK</text>
+<text class="field" x="2488" y="808">document_type_id</text>
+<text class="type" x="2928" y="808" text-anchor="end">String</text>
+<text class="key" x="2390" y="847" />
+<text class="field" x="2488" y="848">step_order</text>
+<text class="type" x="2928" y="848" text-anchor="end">Int</text>
+<rect x="2380" y="860" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="2390" y="887">FK</text>
+<text class="field" x="2488" y="888">required_role_id</text>
+<text class="type" x="2928" y="888" text-anchor="end">String</text>
+<text class="key" x="2390" y="927" />
+<text class="field" x="2488" y="928">created_at</text>
+<text class="type" x="2928" y="928" text-anchor="end">DateTime</text>
+<rect x="2380" y="940" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="2390" y="967" />
+<text class="field" x="2488" y="968">updated_at</text>
+<text class="type" x="2928" y="968" text-anchor="end">DateTime</text>
+</g>
+<rect x="2380" y="680" width="560" height="300" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="2380" y1="740" x2="2940" y2="740" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_workflows"><rect x="2380" y="2560" width="560" height="340" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_workflows)"><rect x="2380" y="2560" width="560" height="340" fill="white" />
+<rect x="2380" y="2560" width="560" height="60" fill="#f5c1b4" />
+<text x="2398" y="2600" font-size="29" font-weight="bold" text-anchor="start">workflows</text>
+<text class="key" x="2390" y="2647">PK</text>
+<text class="field" x="2488" y="2648">id</text>
+<text class="type" x="2928" y="2648" text-anchor="end">String</text>
+<rect x="2380" y="2660" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="2390" y="2687">FK,UQ</text>
+<text class="field" x="2488" y="2688">document_id</text>
+<text class="type" x="2928" y="2688" text-anchor="end">String</text>
+<text class="key" x="2390" y="2727" />
+<text class="field" x="2488" y="2728">total_steps</text>
+<text class="type" x="2928" y="2728" text-anchor="end">Int</text>
+<rect x="2380" y="2740" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="2390" y="2767" />
+<text class="field" x="2488" y="2768">current_step</text>
+<text class="type" x="2928" y="2768" text-anchor="end">Int</text>
+<text class="key" x="2390" y="2807" />
+<text class="field" x="2488" y="2808">status</text>
+<text class="type" x="2928" y="2808" text-anchor="end">WorkflowStatus</text>
+<rect x="2380" y="2820" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="2390" y="2847" />
+<text class="field" x="2488" y="2848">created_at</text>
+<text class="type" x="2928" y="2848" text-anchor="end">DateTime</text>
+<text class="key" x="2390" y="2887" />
+<text class="field" x="2488" y="2888">updated_at</text>
+<text class="type" x="2928" y="2888" text-anchor="end">DateTime</text>
+</g>
+<rect x="2380" y="2560" width="560" height="340" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="2380" y1="2620" x2="2940" y2="2620" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_workflow_steps"><rect x="3140" y="2560" width="560" height="500" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_workflow_steps)"><rect x="3140" y="2560" width="560" height="500" fill="white" />
+<rect x="3140" y="2560" width="560" height="60" fill="#f5c1b4" />
+<text x="3158" y="2600" font-size="29" font-weight="bold" text-anchor="start">workflow_steps</text>
+<text class="key" x="3150" y="2647">PK</text>
+<text class="field" x="3248" y="2648">id</text>
+<text class="type" x="3688" y="2648" text-anchor="end">String</text>
+<rect x="3140" y="2660" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="2687">FK</text>
+<text class="field" x="3248" y="2688">workflow_id</text>
+<text class="type" x="3688" y="2688" text-anchor="end">String</text>
+<text class="key" x="3150" y="2727" />
+<text class="field" x="3248" y="2728">step_order</text>
+<text class="type" x="3688" y="2728" text-anchor="end">Int</text>
+<rect x="3140" y="2740" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="2767">FK</text>
+<text class="field" x="3248" y="2768">approver_id</text>
+<text class="type" x="3688" y="2768" text-anchor="end">String?</text>
+<text class="key" x="3150" y="2807" />
+<text class="field" x="3248" y="2808">status</text>
+<text class="type" x="3688" y="2808" text-anchor="end">WorkflowStatus</text>
+<rect x="3140" y="2820" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="2847" />
+<text class="field" x="3248" y="2848">action_date</text>
+<text class="type" x="3688" y="2848" text-anchor="end">DateTime?</text>
+<text class="key" x="3150" y="2887" />
+<text class="field" x="3248" y="2888">comment</text>
+<text class="type" x="3688" y="2888" text-anchor="end">String?</text>
+<rect x="3140" y="2900" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="2927" />
+<text class="field" x="3248" y="2928">signature_applied</text>
+<text class="type" x="3688" y="2928" text-anchor="end">Boolean</text>
+<text class="key" x="3150" y="2967" />
+<text class="field" x="3248" y="2968">return_to_step</text>
+<text class="type" x="3688" y="2968" text-anchor="end">Int?</text>
+<rect x="3140" y="2980" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="3007" />
+<text class="field" x="3248" y="3008">created_at</text>
+<text class="type" x="3688" y="3008" text-anchor="end">DateTime</text>
+<text class="key" x="3150" y="3047" />
+<text class="field" x="3248" y="3048">updated_at</text>
+<text class="type" x="3688" y="3048" text-anchor="end">DateTime</text>
+</g>
+<rect x="3140" y="2560" width="560" height="500" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="3140" y1="2620" x2="3700" y2="2620" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_notifications"><rect x="860" y="3320" width="560" height="380" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_notifications)"><rect x="860" y="3320" width="560" height="380" fill="white" />
+<rect x="860" y="3320" width="560" height="60" fill="#f5c1b4" />
+<text x="878" y="3360" font-size="29" font-weight="bold" text-anchor="start">notifications</text>
+<text class="key" x="870" y="3407">PK</text>
+<text class="field" x="968" y="3408">id</text>
+<text class="type" x="1408" y="3408" text-anchor="end">String</text>
+<rect x="860" y="3420" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="3447">FK</text>
+<text class="field" x="968" y="3448">user_id</text>
+<text class="type" x="1408" y="3448" text-anchor="end">String</text>
+<text class="key" x="870" y="3487">FK</text>
+<text class="field" x="968" y="3488">document_id</text>
+<text class="type" x="1408" y="3488" text-anchor="end">String?</text>
+<rect x="860" y="3500" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="3527" />
+<text class="field" x="968" y="3528">message</text>
+<text class="type" x="1408" y="3528" text-anchor="end">String</text>
+<text class="key" x="870" y="3567" />
+<text class="field" x="968" y="3568">is_read</text>
+<text class="type" x="1408" y="3568" text-anchor="end">Boolean</text>
+<rect x="860" y="3580" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="3607" />
+<text class="field" x="968" y="3608">read_at</text>
+<text class="type" x="1408" y="3608" text-anchor="end">DateTime?</text>
+<text class="key" x="870" y="3647" />
+<text class="field" x="968" y="3648">created_at</text>
+<text class="type" x="1408" y="3648" text-anchor="end">DateTime</text>
+<rect x="860" y="3660" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="3687" />
+<text class="field" x="968" y="3688">updated_at</text>
+<text class="type" x="1408" y="3688" text-anchor="end">DateTime</text>
+</g>
+<rect x="860" y="3320" width="560" height="380" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="860" y1="3380" x2="1420" y2="3380" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_running_numbers"><rect x="3140" y="1600" width="560" height="420" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_running_numbers)"><rect x="3140" y="1600" width="560" height="420" fill="white" />
+<rect x="3140" y="1600" width="560" height="60" fill="#f5c1b4" />
+<text x="3158" y="1640" font-size="29" font-weight="bold" text-anchor="start">running_numbers</text>
+<text class="key" x="3150" y="1687">PK</text>
+<text class="field" x="3248" y="1688">id</text>
+<text class="type" x="3688" y="1688" text-anchor="end">String</text>
+<rect x="3140" y="1700" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="1727">FK,UQ</text>
+<text class="field" x="3248" y="1728">document_type_id</text>
+<text class="type" x="3688" y="1728" text-anchor="end">String</text>
+<text class="key" x="3150" y="1767" />
+<text class="field" x="3248" y="1768">prefix</text>
+<text class="type" x="3688" y="1768" text-anchor="end">String</text>
+<rect x="3140" y="1780" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="1807" />
+<text class="field" x="3248" y="1808">year_format</text>
+<text class="type" x="3688" y="1808" text-anchor="end">String</text>
+<text class="key" x="3150" y="1847" />
+<text class="field" x="3248" y="1848">current_number</text>
+<text class="type" x="3688" y="1848" text-anchor="end">Int</text>
+<rect x="3140" y="1860" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="1887" />
+<text class="field" x="3248" y="1888">padding_length</text>
+<text class="type" x="3688" y="1888" text-anchor="end">Int</text>
+<text class="key" x="3150" y="1927" />
+<text class="field" x="3248" y="1928">last_reset_year</text>
+<text class="type" x="3688" y="1928" text-anchor="end">Int?</text>
+<rect x="3140" y="1940" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="3150" y="1967" />
+<text class="field" x="3248" y="1968">created_at</text>
+<text class="type" x="3688" y="1968" text-anchor="end">DateTime</text>
+<text class="key" x="3150" y="2007" />
+<text class="field" x="3248" y="2008">updated_at</text>
+<text class="type" x="3688" y="2008" text-anchor="end">DateTime</text>
+</g>
+<rect x="3140" y="1600" width="560" height="420" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="3140" y1="1660" x2="3700" y2="1660" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_audit_logs"><rect x="100" y="3320" width="560" height="380" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_audit_logs)"><rect x="100" y="3320" width="560" height="380" fill="white" />
+<rect x="100" y="3320" width="560" height="60" fill="#f5c1b4" />
+<text x="118" y="3360" font-size="29" font-weight="bold" text-anchor="start">audit_logs</text>
+<text class="key" x="110" y="3407">PK</text>
+<text class="field" x="208" y="3408">id</text>
+<text class="type" x="648" y="3408" text-anchor="end">String</text>
+<rect x="100" y="3420" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="3447">FK</text>
+<text class="field" x="208" y="3448">user_id</text>
+<text class="type" x="648" y="3448" text-anchor="end">String?</text>
+<text class="key" x="110" y="3487" />
+<text class="field" x="208" y="3488">action</text>
+<text class="type" x="648" y="3488" text-anchor="end">AuditAction</text>
+<rect x="100" y="3500" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="3527" />
+<text class="field" x="208" y="3528">module</text>
+<text class="type" x="648" y="3528" text-anchor="end">String</text>
+<text class="key" x="110" y="3567" />
+<text class="field" x="208" y="3568">target_id</text>
+<text class="type" x="648" y="3568" text-anchor="end">String?</text>
+<rect x="100" y="3580" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="3607" />
+<text class="field" x="208" y="3608">details</text>
+<text class="type" x="648" y="3608" text-anchor="end">Json?</text>
+<text class="key" x="110" y="3647" />
+<text class="field" x="208" y="3648">ip_address</text>
+<text class="type" x="648" y="3648" text-anchor="end">String?</text>
+<rect x="100" y="3660" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="3687" />
+<text class="field" x="208" y="3688">created_at</text>
+<text class="type" x="648" y="3688" text-anchor="end">DateTime</text>
+</g>
+<rect x="100" y="3320" width="560" height="380" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="100" y1="3380" x2="660" y2="3380" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_folders"><rect x="860" y="680" width="560" height="540" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_folders)"><rect x="860" y="680" width="560" height="540" fill="white" />
+<rect x="860" y="680" width="560" height="60" fill="#f5c1b4" />
+<text x="878" y="720" font-size="29" font-weight="bold" text-anchor="start">folders</text>
+<text class="key" x="870" y="767">PK</text>
+<text class="field" x="968" y="768">id</text>
+<text class="type" x="1408" y="768" text-anchor="end">String</text>
+<rect x="860" y="780" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="807" />
+<text class="field" x="968" y="808">name</text>
+<text class="type" x="1408" y="808" text-anchor="end">String</text>
+<text class="key" x="870" y="847" />
+<text class="field" x="968" y="848">description</text>
+<text class="type" x="1408" y="848" text-anchor="end">String?</text>
+<rect x="860" y="860" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="887" />
+<text class="field" x="968" y="888">color</text>
+<text class="type" x="1408" y="888" text-anchor="end">String?</text>
+<text class="key" x="870" y="927" />
+<text class="field" x="968" y="928">icon</text>
+<text class="type" x="1408" y="928" text-anchor="end">String?</text>
+<rect x="860" y="940" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="967" />
+<text class="field" x="968" y="968">visibility</text>
+<text class="type" x="1408" y="968" text-anchor="end">FolderVisibility</text>
+<text class="key" x="870" y="1007">FK</text>
+<text class="field" x="968" y="1008">parent_id</text>
+<text class="type" x="1408" y="1008" text-anchor="end">String?</text>
+<rect x="860" y="1020" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="1047">FK</text>
+<text class="field" x="968" y="1048">creator_id</text>
+<text class="type" x="1408" y="1048" text-anchor="end">String</text>
+<text class="key" x="870" y="1087">FK</text>
+<text class="field" x="968" y="1088">department_id</text>
+<text class="type" x="1408" y="1088" text-anchor="end">String?</text>
+<rect x="860" y="1100" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="1127" />
+<text class="field" x="968" y="1128">is_deleted</text>
+<text class="type" x="1408" y="1128" text-anchor="end">Boolean</text>
+<text class="key" x="870" y="1167" />
+<text class="field" x="968" y="1168">created_at</text>
+<text class="type" x="1408" y="1168" text-anchor="end">DateTime</text>
+<rect x="860" y="1180" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="870" y="1207" />
+<text class="field" x="968" y="1208">updated_at</text>
+<text class="type" x="1408" y="1208" text-anchor="end">DateTime</text>
+</g>
+<rect x="860" y="680" width="560" height="540" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="860" y1="740" x2="1420" y2="740" stroke="#4b5057" stroke-width="2" />
+<defs><clipPath id="clip_folder_permissions"><rect x="100" y="680" width="560" height="340" rx="7" /></clipPath></defs>
+<g clip-path="url(#clip_folder_permissions)"><rect x="100" y="680" width="560" height="340" fill="white" />
+<rect x="100" y="680" width="560" height="60" fill="#f5c1b4" />
+<text x="118" y="720" font-size="29" font-weight="bold" text-anchor="start">folder_permissions</text>
+<text class="key" x="110" y="767">PK</text>
+<text class="field" x="208" y="768">id</text>
+<text class="type" x="648" y="768" text-anchor="end">String</text>
+<rect x="100" y="780" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="807">FK,U1,U2</text>
+<text class="field" x="208" y="808">folder_id</text>
+<text class="type" x="648" y="808" text-anchor="end">String</text>
+<text class="key" x="110" y="847">FK,U1</text>
+<text class="field" x="208" y="848">user_id</text>
+<text class="type" x="648" y="848" text-anchor="end">String?</text>
+<rect x="100" y="860" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="887">FK,U2</text>
+<text class="field" x="208" y="888">department_id</text>
+<text class="type" x="648" y="888" text-anchor="end">String?</text>
+<text class="key" x="110" y="927" />
+<text class="field" x="208" y="928">can_view</text>
+<text class="type" x="648" y="928" text-anchor="end">Boolean</text>
+<rect x="100" y="940" width="560" height="40" fill="#e9e9e9" />
+<text class="key" x="110" y="967" />
+<text class="field" x="208" y="968">can_edit</text>
+<text class="type" x="648" y="968" text-anchor="end">Boolean</text>
+<text class="key" x="110" y="1007" />
+<text class="field" x="208" y="1008">created_at</text>
+<text class="type" x="648" y="1008" text-anchor="end">DateTime</text>
+</g>
+<rect x="100" y="680" width="560" height="340" rx="7" fill="none" stroke="#4b5057" stroke-width="2.6" />
+<line x1="100" y1="740" x2="660" y2="740" stroke="#4b5057" stroke-width="2" />
+<text x="100" y="4055" font-size="23" font-weight="bold" text-anchor="start">22 tables  |  190 columns  |  33 foreign key relationships</text>
+<text x="100" y="4095" font-size="21" text-anchor="start">Source: dms/server/prisma/schema.prisma</text>
+</svg>

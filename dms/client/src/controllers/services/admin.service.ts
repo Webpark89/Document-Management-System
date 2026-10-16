@@ -38,6 +38,15 @@ export interface AuditLogDto {
 }
 
 export const adminService = {
+  async getUserDirectory(): Promise<unknown[]> {
+    return (await api.get<unknown[]>("/api/lookups/users")).data;
+  },
+  async getDepartmentDirectory(): Promise<DepartmentDto[]> {
+    return (await api.get<DepartmentDto[]>("/api/lookups/departments")).data;
+  },
+  async getWorkflowTemplates(): Promise<unknown[]> {
+    return (await api.get<unknown[]>("/api/lookups/workflows")).data;
+  },
   // ---- Users & Roles ----
   async getUsersList(): Promise<unknown[]> {
     const res = await api.get<unknown[]>("/api/admin/users");
@@ -53,6 +62,7 @@ export const adminService = {
     position_id?: string;
     role_id?: string;
     password?: string;
+    is_active?: boolean;
   }): Promise<unknown> {
     const res = await api.post("/api/admin/users", payload);
     return res.data;
@@ -63,21 +73,26 @@ export const adminService = {
     return res.data;
   },
 
-  async updateUser(id: string, payload: {
-    email: string;
-    first_name: string;
-    last_name: string;
-    department_id?: string;
-    position_id?: string;
-    role_id?: string;
-    is_active?: boolean;
-  }): Promise<unknown> {
+  async updateUser(
+    id: string,
+    payload: {
+      email: string;
+      first_name: string;
+      last_name: string;
+      department_id?: string;
+      position_id?: string;
+      role_id?: string;
+      is_active?: boolean;
+    },
+  ): Promise<unknown> {
     const res = await api.patch(`/api/admin/users/${id}`, payload);
     return res.data;
   },
 
   async resetUserPassword(id: string, rawPassword: string): Promise<unknown> {
-    const res = await api.post(`/api/admin/users/${id}/reset-password`, { password_hash: rawPassword });
+    const res = await api.post(`/api/admin/users/${id}/reset-password`, {
+      password_hash: rawPassword,
+    });
     return res.data;
   },
 
@@ -96,7 +111,10 @@ export const adminService = {
     return res.data;
   },
 
-  async updateRole(id: string, dto: { name?: string; permissions?: { module: string; action: string }[] }): Promise<unknown> {
+  async updateRole(
+    id: string,
+    dto: { name?: string; permissions?: { module: string; action: string }[] },
+  ): Promise<unknown> {
     const res = await api.patch<unknown>(`/api/admin/roles/${id}`, dto);
     return res.data;
   },
@@ -118,12 +136,20 @@ export const adminService = {
   },
 
   async createDepartment(name: string): Promise<DepartmentDto> {
-    const res = await api.post<DepartmentDto>("/api/admin/departments", { name });
+    const res = await api.post<DepartmentDto>("/api/admin/departments", {
+      name,
+    });
     return res.data;
   },
 
-  async updateDepartment(id: string, payload: { name?: string; is_active?: boolean }): Promise<DepartmentDto> {
-    const res = await api.patch<DepartmentDto>(`/api/admin/departments/${id}`, payload);
+  async updateDepartment(
+    id: string,
+    payload: { name?: string; is_active?: boolean },
+  ): Promise<DepartmentDto> {
+    const res = await api.patch<DepartmentDto>(
+      `/api/admin/departments/${id}`,
+      payload,
+    );
     return res.data;
   },
 
@@ -143,13 +169,22 @@ export const adminService = {
     return res.data;
   },
 
-  async createPosition(payload: { name: string; level?: string }): Promise<PositionDto> {
+  async createPosition(payload: {
+    name: string;
+    level?: string;
+  }): Promise<PositionDto> {
     const res = await api.post<PositionDto>("/api/admin/positions", payload);
     return res.data;
   },
 
-  async updatePosition(id: string, payload: { name?: string; level?: string; is_active?: boolean }): Promise<PositionDto> {
-    const res = await api.patch<PositionDto>(`/api/admin/positions/${id}`, payload);
+  async updatePosition(
+    id: string,
+    payload: { name?: string; level?: string; is_active?: boolean },
+  ): Promise<PositionDto> {
+    const res = await api.patch<PositionDto>(
+      `/api/admin/positions/${id}`,
+      payload,
+    );
     return res.data;
   },
 
@@ -164,13 +199,25 @@ export const adminService = {
     return res.data;
   },
 
-  async createDocumentType(payload: { type_name: string; prefix: string }): Promise<DocumentTypeDto> {
-    const res = await api.post<DocumentTypeDto>("/api/admin/document-types", payload);
+  async createDocumentType(payload: {
+    type_name: string;
+    prefix: string;
+  }): Promise<DocumentTypeDto> {
+    const res = await api.post<DocumentTypeDto>(
+      "/api/admin/document-types",
+      payload,
+    );
     return res.data;
   },
 
-  async updateDocumentType(id: string, payload: { type_name?: string; prefix?: string; is_active?: boolean }): Promise<DocumentTypeDto> {
-    const res = await api.patch<DocumentTypeDto>(`/api/admin/document-types/${id}`, payload);
+  async updateDocumentType(
+    id: string,
+    payload: { type_name?: string; prefix?: string; is_active?: boolean },
+  ): Promise<DocumentTypeDto> {
+    const res = await api.patch<DocumentTypeDto>(
+      `/api/admin/document-types/${id}`,
+      payload,
+    );
     return res.data;
   },
 
@@ -180,12 +227,19 @@ export const adminService = {
     return res.data;
   },
 
-  async createApprovalMatrixStep(payload: { document_type_id: string; step_order: number; approver_role_id: string }) {
+  async createApprovalMatrixStep(payload: {
+    document_type_id: string;
+    step_order: number;
+    approver_role_id: string;
+  }) {
     const res = await api.post("/api/admin/approval-matrix", payload);
     return res.data;
   },
 
-  async updateApprovalMatrixStep(id: string, payload: { step_order?: number; approver_role_id?: string }) {
+  async updateApprovalMatrixStep(
+    id: string,
+    payload: { step_order?: number; approver_role_id?: string },
+  ) {
     const res = await api.patch(`/api/admin/approval-matrix/${id}`, payload);
     return res.data;
   },
@@ -195,8 +249,14 @@ export const adminService = {
     return res.data;
   },
 
-  async updateApprovalWorkflow(documentTypeId: string, payload: { levels: number; steps: string[] }) {
-    const res = await api.patch(`/api/admin/workflows/${documentTypeId}`, payload);
+  async updateApprovalWorkflow(
+    documentTypeId: string,
+    payload: { levels: number; steps: string[] },
+  ) {
+    const res = await api.patch(
+      `/api/admin/workflows/${documentTypeId}`,
+      payload,
+    );
     return res.data;
   },
 
@@ -205,20 +265,35 @@ export const adminService = {
     return res.data;
   },
 
-  async updateRunningNumber(id: string, payload: { current_number?: number; padding_length?: number; last_reset_year?: number }) {
+  async updateRunningNumber(
+    id: string,
+    payload: {
+      current_number?: number;
+      padding_length?: number;
+      last_reset_year?: number;
+    },
+  ) {
     const res = await api.patch(`/api/admin/running-numbers/${id}`, payload);
     return res.data;
   },
 
   // ---- Audit Logs ----
-  async getAuditLogs(search?: string, action?: string, dateFrom?: string, dateTo?: string): Promise<AuditLogDto[]> {
+  async getAuditLogs(
+    search?: string,
+    action?: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<AuditLogDto[]> {
     const params = new URLSearchParams();
     if (search && search.trim()) params.append("search", search.trim());
-    if (action && action.trim() && action !== "All") params.append("action", action.trim());
+    if (action && action.trim() && action !== "All")
+      params.append("action", action.trim());
     if (dateFrom) params.append("dateFrom", dateFrom);
     if (dateTo) params.append("dateTo", dateTo);
     const query = params.toString();
-    const url = query ? `/api/admin/audit-logs?${query}` : `/api/admin/audit-logs`;
+    const url = query
+      ? `/api/admin/audit-logs?${query}`
+      : `/api/admin/audit-logs`;
     const res = await api.get<AuditLogDto[]>(url);
     return res.data;
   },

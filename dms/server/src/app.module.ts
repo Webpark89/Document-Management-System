@@ -9,6 +9,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { UsersModule } from './users/users.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { FoldersModule } from './folders/folders.module';
+import { LookupsController } from './common/lookups.controller';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { FoldersModule } from './folders/folders.module';
     DashboardModule,
     FoldersModule,
   ],
-  controllers: [],
+  controllers: [LookupsController],
   providers: [],
 })
 export class AppModule {}

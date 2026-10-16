@@ -1,9 +1,11 @@
 import { api } from "@/lib";
-import type { Document } from '@models';
+import type { Document } from "@models";
 
 export const documentsService = {
   async getDocuments(): Promise<Document[]> {
-    const res = await api.get<{ data: Document[]; meta: unknown }>("/api/documents");
+    const res = await api.get<{ data: Document[]; meta: unknown }>(
+      "/api/documents",
+    );
     return res.data?.data || [];
   },
 
@@ -33,18 +35,21 @@ export const documentsService = {
     return res.data;
   },
 
-  async updateDocument(id: string, dto: {
-    title?: string;
-    purpose?: string;
-    items?: Array<{
-      item_name: string;
-      quantity: number;
-      unit?: string;
-      unit_price: number;
-      remark?: string;
-    }>;
-  }): Promise<Document> {
-    const res = await api.patch<Document>(`/api/documents/${id}`, dto);
+  async updateDocument(
+    id: string,
+    dto: {
+      title?: string;
+      purpose?: string;
+      items?: Array<{
+        item_name: string;
+        quantity: number;
+        unit?: string;
+        unit_price: number;
+        remark?: string;
+      }>;
+    },
+  ): Promise<Document> {
+    const res = await api.put<Document>(`/api/documents/${id}`, dto);
     return res.data;
   },
 
@@ -53,9 +58,13 @@ export const documentsService = {
     return res.data;
   },
 
-  async getDocumentSignedUrl(id: string): Promise<{ url: string; expires_in: number } | null> {
+  async getDocumentSignedUrl(
+    id: string,
+  ): Promise<{ url: string; expires_in: number } | null> {
     try {
-      const res = await api.get<{ url: string; expires_in: number }>(`/api/documents/${id}/signed-url`);
+      const res = await api.get<{ url: string; expires_in: number }>(
+        `/api/documents/${id}/signed-url`,
+      );
       return res.data;
     } catch {
       return null;

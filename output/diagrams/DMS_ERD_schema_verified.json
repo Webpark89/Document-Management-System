@@ -1,0 +1,2814 @@
+{
+  "tables": 22,
+  "columns": 190,
+  "foreignKeys": 33,
+  "models": [
+    {
+      "model": "Department",
+      "table": "departments",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id          String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "name        String   @unique",
+          "fk": false
+        },
+        {
+          "name": "is_active",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "is_active   Boolean  @default(true)",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at  DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at  DateTime @default(now()) @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [],
+      "unique": []
+    },
+    {
+      "model": "Position",
+      "table": "positions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id          String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "name        String   @unique",
+          "fk": false
+        },
+        {
+          "name": "level",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "level       String   @default(\"L1\")",
+          "fk": false
+        },
+        {
+          "name": "is_active",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "is_active   Boolean  @default(true)",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at  DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at  DateTime @default(now()) @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [],
+      "unique": []
+    },
+    {
+      "model": "DocumentType",
+      "table": "document_types",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id          String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "type_name",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "type_name   String   @unique",
+          "fk": false
+        },
+        {
+          "name": "prefix",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "prefix      String   @unique",
+          "fk": false
+        },
+        {
+          "name": "is_active",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "is_active   Boolean  @default(true)",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at  DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at  DateTime @default(now()) @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [],
+      "unique": []
+    },
+    {
+      "model": "Role",
+      "table": "roles",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id          String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "name        String   @unique",
+          "fk": false
+        },
+        {
+          "name": "is_active",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "is_active   Boolean  @default(true)",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at  DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at  DateTime @default(now()) @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [],
+      "unique": []
+    },
+    {
+      "model": "Permission",
+      "table": "permissions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id          String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "module",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "module      String",
+          "fk": false
+        },
+        {
+          "name": "action",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "action      String",
+          "fk": false
+        },
+        {
+          "name": "description",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "description String?",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at  DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at  DateTime @default(now()) @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [],
+      "unique": [
+        [
+          "module",
+          "action"
+        ]
+      ]
+    },
+    {
+      "model": "RolePermission",
+      "table": "role_permissions",
+      "fields": [
+        {
+          "name": "role_id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "role_id       String",
+          "fk": true
+        },
+        {
+          "name": "permission_id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "permission_id String",
+          "fk": true
+        }
+      ],
+      "relations": [
+        {
+          "name": "role",
+          "parentModel": "Role",
+          "optional": false,
+          "fields": [
+            "role_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "permission",
+          "parentModel": "Permission",
+          "optional": false,
+          "fields": [
+            "permission_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "User",
+      "table": "users",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id                   String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "username",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "username             String   @unique",
+          "fk": false
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "email                String   @unique",
+          "fk": false
+        },
+        {
+          "name": "password_hash",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "password_hash        String",
+          "fk": false
+        },
+        {
+          "name": "first_name",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "first_name           String",
+          "fk": false
+        },
+        {
+          "name": "last_name",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "last_name            String",
+          "fk": false
+        },
+        {
+          "name": "department_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "department_id        String?",
+          "fk": true
+        },
+        {
+          "name": "position_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "position_id          String?",
+          "fk": true
+        },
+        {
+          "name": "role_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "role_id              String?",
+          "fk": true
+        },
+        {
+          "name": "signature_encrypted",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "native": "Text",
+          "raw": "signature_encrypted String?  @db.Text",
+          "fk": false
+        },
+        {
+          "name": "is_active",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "is_active            Boolean  @default(true)",
+          "fk": false
+        },
+        {
+          "name": "is_deleted",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "is_deleted           Boolean  @default(false)",
+          "fk": false
+        },
+        {
+          "name": "reset_token",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "reset_token          String?",
+          "fk": false
+        },
+        {
+          "name": "reset_token_expiry",
+          "type": "DateTime?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "reset_token_expiry   DateTime?",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at           DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at           DateTime @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "department",
+          "parentModel": "Department",
+          "optional": true,
+          "fields": [
+            "department_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "position",
+          "parentModel": "Position",
+          "optional": true,
+          "fields": [
+            "position_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "role",
+          "parentModel": "Role",
+          "optional": true,
+          "fields": [
+            "role_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "Document",
+      "table": "documents",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id          String         @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "doc_number",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "doc_number  String         @unique",
+          "fk": false
+        },
+        {
+          "name": "title",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "title       String",
+          "fk": false
+        },
+        {
+          "name": "type_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "type_id     String",
+          "fk": true
+        },
+        {
+          "name": "creator_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "creator_id  String",
+          "fk": true
+        },
+        {
+          "name": "status",
+          "type": "DocumentStatus",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "status      DocumentStatus @default(Draft)",
+          "fk": false
+        },
+        {
+          "name": "search_text",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "native": "Text",
+          "raw": "search_text String?        @db.Text",
+          "fk": false
+        },
+        {
+          "name": "tags",
+          "type": "String[]",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "tags        String[]",
+          "fk": false
+        },
+        {
+          "name": "folder_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "folder_id   String?",
+          "fk": true
+        },
+        {
+          "name": "is_deleted",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "is_deleted  Boolean        @default(false)",
+          "fk": false
+        },
+        {
+          "name": "visibility_type",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "visibility_type String @default(\"CompanyWide\")",
+          "fk": false
+        },
+        {
+          "name": "visibility_departments",
+          "type": "String[]",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "visibility_departments String[]",
+          "fk": false
+        },
+        {
+          "name": "visibility_users",
+          "type": "String[]",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "visibility_users String[]",
+          "fk": false
+        },
+        {
+          "name": "approved_at",
+          "type": "DateTime?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "approved_at DateTime?",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at  DateTime       @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at  DateTime       @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "type",
+          "parentModel": "DocumentType",
+          "optional": false,
+          "fields": [
+            "type_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "creator",
+          "parentModel": "User",
+          "optional": false,
+          "fields": [
+            "creator_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "folder",
+          "parentModel": "Folder",
+          "optional": true,
+          "fields": [
+            "folder_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "PRForm",
+      "table": "pr_forms",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id             String     @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "document_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "document_id    String     @unique",
+          "fk": true
+        },
+        {
+          "name": "requested_date",
+          "type": "DateTime?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "requested_date DateTime?",
+          "fk": false
+        },
+        {
+          "name": "required_date",
+          "type": "DateTime?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "required_date  DateTime?",
+          "fk": false
+        },
+        {
+          "name": "requester_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "requester_id   String",
+          "fk": true
+        },
+        {
+          "name": "department_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "department_id  String",
+          "fk": true
+        },
+        {
+          "name": "purpose",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "native": "Text",
+          "raw": "purpose        String?    @db.Text",
+          "fk": false
+        },
+        {
+          "name": "remark",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "native": "Text",
+          "raw": "remark         String?    @db.Text",
+          "fk": false
+        },
+        {
+          "name": "total_amount",
+          "type": "Decimal",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "native": "Decimal(10, 2)",
+          "raw": "total_amount   Decimal    @default(0) @db.Decimal(10, 2)",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at     DateTime   @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at     DateTime   @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "document",
+          "parentModel": "Document",
+          "optional": false,
+          "fields": [
+            "document_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "requester",
+          "parentModel": "User",
+          "optional": false,
+          "fields": [
+            "requester_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "department",
+          "parentModel": "Department",
+          "optional": false,
+          "fields": [
+            "department_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "PRFormItem",
+      "table": "pr_form_items",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id             String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "pr_form_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "pr_form_id     String",
+          "fk": true
+        },
+        {
+          "name": "item_name",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "item_name      String",
+          "fk": false
+        },
+        {
+          "name": "quantity",
+          "type": "Int",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "quantity       Int",
+          "fk": false
+        },
+        {
+          "name": "unit",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "unit           String?",
+          "fk": false
+        },
+        {
+          "name": "unit_price",
+          "type": "Decimal",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "native": "Decimal(10, 2)",
+          "raw": "unit_price     Decimal  @db.Decimal(10, 2)",
+          "fk": false
+        },
+        {
+          "name": "total_price",
+          "type": "Decimal",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "native": "Decimal(10, 2)",
+          "raw": "total_price    Decimal  @db.Decimal(10, 2)",
+          "fk": false
+        },
+        {
+          "name": "remark",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "native": "Text",
+          "raw": "remark         String?  @db.Text",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at     DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at     DateTime @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "pr_form",
+          "parentModel": "PRForm",
+          "optional": false,
+          "fields": [
+            "pr_form_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "POForm",
+      "table": "po_forms",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id             String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "document_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "document_id    String   @unique",
+          "fk": true
+        },
+        {
+          "name": "vendor_name",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "vendor_name    String",
+          "fk": false
+        },
+        {
+          "name": "vendor_contact",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "vendor_contact String?",
+          "fk": false
+        },
+        {
+          "name": "delivery_date",
+          "type": "DateTime?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "delivery_date  DateTime?",
+          "fk": false
+        },
+        {
+          "name": "payment_terms",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "payment_terms  String?",
+          "fk": false
+        },
+        {
+          "name": "total_amount",
+          "type": "Decimal",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "native": "Decimal(10, 2)",
+          "raw": "total_amount   Decimal  @default(0) @db.Decimal(10, 2)",
+          "fk": false
+        },
+        {
+          "name": "remark",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "native": "Text",
+          "raw": "remark         String?  @db.Text",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at     DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at     DateTime @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "document",
+          "parentModel": "Document",
+          "optional": false,
+          "fields": [
+            "document_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "POFormItem",
+      "table": "po_form_items",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id             String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "po_form_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "po_form_id     String",
+          "fk": true
+        },
+        {
+          "name": "item_name",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "item_name      String",
+          "fk": false
+        },
+        {
+          "name": "quantity",
+          "type": "Int",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "quantity       Int",
+          "fk": false
+        },
+        {
+          "name": "unit",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "unit           String?",
+          "fk": false
+        },
+        {
+          "name": "unit_price",
+          "type": "Decimal",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "native": "Decimal(10, 2)",
+          "raw": "unit_price     Decimal  @db.Decimal(10, 2)",
+          "fk": false
+        },
+        {
+          "name": "vat",
+          "type": "Decimal",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "native": "Decimal(5, 2)",
+          "raw": "vat            Decimal  @default(7) @db.Decimal(5, 2)",
+          "fk": false
+        },
+        {
+          "name": "total_price",
+          "type": "Decimal",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "native": "Decimal(10, 2)",
+          "raw": "total_price    Decimal  @db.Decimal(10, 2)",
+          "fk": false
+        },
+        {
+          "name": "remark",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "native": "Text",
+          "raw": "remark         String?  @db.Text",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at     DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at     DateTime @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "po_form",
+          "parentModel": "POForm",
+          "optional": false,
+          "fields": [
+            "po_form_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "BKForm",
+      "table": "bk_forms",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id             String     @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "document_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "document_id    String     @unique",
+          "fk": true
+        },
+        {
+          "name": "subject",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "subject        String",
+          "fk": false
+        },
+        {
+          "name": "detail",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "native": "Text",
+          "raw": "detail         String?    @db.Text",
+          "fk": false
+        },
+        {
+          "name": "department_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "department_id  String",
+          "fk": true
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at     DateTime   @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at     DateTime   @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "document",
+          "parentModel": "Document",
+          "optional": false,
+          "fields": [
+            "document_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "department",
+          "parentModel": "Department",
+          "optional": false,
+          "fields": [
+            "department_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "DocumentVersion",
+      "table": "document_versions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id               String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "document_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "document_id      String",
+          "fk": true
+        },
+        {
+          "name": "version_number",
+          "type": "Int",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "version_number   Int",
+          "fk": false
+        },
+        {
+          "name": "file_data",
+          "type": "Bytes?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "file_data        Bytes?",
+          "fk": false
+        },
+        {
+          "name": "file_size",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "file_size        String?",
+          "fk": false
+        },
+        {
+          "name": "file_extension",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "file_extension   String?",
+          "fk": false
+        },
+        {
+          "name": "form_data",
+          "type": "Json?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "form_data        Json?",
+          "fk": false
+        },
+        {
+          "name": "uploaded_by_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "uploaded_by_id   String",
+          "fk": true
+        },
+        {
+          "name": "remarks",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "native": "Text",
+          "raw": "remarks          String?  @db.Text",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at       DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at       DateTime @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "document",
+          "parentModel": "Document",
+          "optional": false,
+          "fields": [
+            "document_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "uploaded_by",
+          "parentModel": "User",
+          "optional": false,
+          "fields": [
+            "uploaded_by_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "ApprovalMatrix",
+      "table": "approval_matrix",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id               String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "document_type_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "document_type_id String",
+          "fk": true
+        },
+        {
+          "name": "step_order",
+          "type": "Int",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "step_order       Int",
+          "fk": false
+        },
+        {
+          "name": "required_role_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "required_role_id String",
+          "fk": true
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at       DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at       DateTime @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "document_type",
+          "parentModel": "DocumentType",
+          "optional": false,
+          "fields": [
+            "document_type_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "required_role",
+          "parentModel": "Role",
+          "optional": false,
+          "fields": [
+            "required_role_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "Workflow",
+      "table": "workflows",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id             String         @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "document_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "document_id    String         @unique",
+          "fk": true
+        },
+        {
+          "name": "total_steps",
+          "type": "Int",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "total_steps    Int",
+          "fk": false
+        },
+        {
+          "name": "current_step",
+          "type": "Int",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "current_step   Int            @default(1)",
+          "fk": false
+        },
+        {
+          "name": "status",
+          "type": "WorkflowStatus",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "status         WorkflowStatus @default(Pending)",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at     DateTime       @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at     DateTime       @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "document",
+          "parentModel": "Document",
+          "optional": false,
+          "fields": [
+            "document_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "WorkflowStep",
+      "table": "workflow_steps",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id                String         @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "workflow_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "workflow_id       String",
+          "fk": true
+        },
+        {
+          "name": "step_order",
+          "type": "Int",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "step_order        Int",
+          "fk": false
+        },
+        {
+          "name": "approver_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "approver_id       String?",
+          "fk": true
+        },
+        {
+          "name": "status",
+          "type": "WorkflowStatus",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "status            WorkflowStatus @default(Pending)",
+          "fk": false
+        },
+        {
+          "name": "action_date",
+          "type": "DateTime?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "action_date       DateTime?",
+          "fk": false
+        },
+        {
+          "name": "comment",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "native": "Text",
+          "raw": "comment           String?        @db.Text",
+          "fk": false
+        },
+        {
+          "name": "signature_applied",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "signature_applied Boolean        @default(false)",
+          "fk": false
+        },
+        {
+          "name": "return_to_step",
+          "type": "Int?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "return_to_step    Int?",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at        DateTime       @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at        DateTime       @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "workflow",
+          "parentModel": "Workflow",
+          "optional": false,
+          "fields": [
+            "workflow_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "approver",
+          "parentModel": "User",
+          "optional": true,
+          "fields": [
+            "approver_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "Notification",
+      "table": "notifications",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id             String    @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "user_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "user_id        String",
+          "fk": true
+        },
+        {
+          "name": "document_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "document_id    String?",
+          "fk": true
+        },
+        {
+          "name": "message",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "native": "Text",
+          "raw": "message        String    @db.Text",
+          "fk": false
+        },
+        {
+          "name": "is_read",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "is_read        Boolean   @default(false)",
+          "fk": false
+        },
+        {
+          "name": "read_at",
+          "type": "DateTime?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "read_at        DateTime?",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at     DateTime  @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at     DateTime  @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "user",
+          "parentModel": "User",
+          "optional": false,
+          "fields": [
+            "user_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "document",
+          "parentModel": "Document",
+          "optional": true,
+          "fields": [
+            "document_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "RunningNumber",
+      "table": "running_numbers",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id               String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "document_type_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": true,
+          "raw": "document_type_id String   @unique",
+          "fk": true
+        },
+        {
+          "name": "prefix",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "prefix           String",
+          "fk": false
+        },
+        {
+          "name": "year_format",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "year_format      String",
+          "fk": false
+        },
+        {
+          "name": "current_number",
+          "type": "Int",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "current_number   Int      @default(0)",
+          "fk": false
+        },
+        {
+          "name": "padding_length",
+          "type": "Int",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "padding_length   Int      @default(4)",
+          "fk": false
+        },
+        {
+          "name": "last_reset_year",
+          "type": "Int?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "last_reset_year  Int?",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at       DateTime @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at       DateTime @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "document_type",
+          "parentModel": "DocumentType",
+          "optional": false,
+          "fields": [
+            "document_type_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "AuditLog",
+      "table": "audit_logs",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id          String      @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "user_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "user_id     String?",
+          "fk": true
+        },
+        {
+          "name": "action",
+          "type": "AuditAction",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "action      AuditAction",
+          "fk": false
+        },
+        {
+          "name": "module",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "module      String",
+          "fk": false
+        },
+        {
+          "name": "target_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "target_id   String?",
+          "fk": false
+        },
+        {
+          "name": "details",
+          "type": "Json?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "details     Json?",
+          "fk": false
+        },
+        {
+          "name": "ip_address",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "ip_address  String?",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at  DateTime    @default(now())",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "user",
+          "parentModel": "User",
+          "optional": true,
+          "fields": [
+            "user_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "Folder",
+      "table": "folders",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id            String            @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "name          String",
+          "fk": false
+        },
+        {
+          "name": "description",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "description   String?",
+          "fk": false
+        },
+        {
+          "name": "color",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "color         String?",
+          "fk": false
+        },
+        {
+          "name": "icon",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "icon          String?",
+          "fk": false
+        },
+        {
+          "name": "visibility",
+          "type": "FolderVisibility",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "visibility    FolderVisibility  @default(CompanyWide)",
+          "fk": false
+        },
+        {
+          "name": "parent_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "parent_id     String?",
+          "fk": true
+        },
+        {
+          "name": "creator_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "creator_id    String",
+          "fk": true
+        },
+        {
+          "name": "department_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "department_id String?",
+          "fk": true
+        },
+        {
+          "name": "is_deleted",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "is_deleted    Boolean           @default(false)",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at    DateTime          @default(now())",
+          "fk": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "updated_at    DateTime          @updatedAt",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "parent",
+          "parentModel": "Folder",
+          "optional": true,
+          "fields": [
+            "parent_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "creator",
+          "parentModel": "User",
+          "optional": false,
+          "fields": [
+            "creator_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "department",
+          "parentModel": "Department",
+          "optional": true,
+          "fields": [
+            "department_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    {
+      "model": "FolderPermission",
+      "table": "folder_permissions",
+      "fields": [
+        {
+          "name": "id",
+          "type": "String",
+          "optional": false,
+          "pk": true,
+          "uq": false,
+          "raw": "id            String   @id @default(uuid())",
+          "fk": false
+        },
+        {
+          "name": "folder_id",
+          "type": "String",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "folder_id     String",
+          "fk": true
+        },
+        {
+          "name": "user_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "user_id       String?",
+          "fk": true
+        },
+        {
+          "name": "department_id",
+          "type": "String?",
+          "optional": true,
+          "pk": false,
+          "uq": false,
+          "raw": "department_id String?",
+          "fk": true
+        },
+        {
+          "name": "can_view",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "can_view      Boolean  @default(true)",
+          "fk": false
+        },
+        {
+          "name": "can_edit",
+          "type": "Boolean",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "can_edit      Boolean  @default(false)",
+          "fk": false
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime",
+          "optional": false,
+          "pk": false,
+          "uq": false,
+          "raw": "created_at    DateTime @default(now())",
+          "fk": false
+        }
+      ],
+      "relations": [
+        {
+          "name": "folder",
+          "parentModel": "Folder",
+          "optional": false,
+          "fields": [
+            "folder_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "user",
+          "parentModel": "User",
+          "optional": true,
+          "fields": [
+            "user_id"
+          ],
+          "references": [
+            "id"
+          ]
+        },
+        {
+          "name": "department",
+          "parentModel": "Department",
+          "optional": true,
+          "fields": [
+            "department_id"
+          ],
+          "references": [
+            "id"
+          ]
+        }
+      ],
+      "unique": [
+        [
+          "folder_id",
+          "user_id"
+        ],
+        [
+          "folder_id",
+          "department_id"
+        ]
+      ]
+    }
+  ],
+  "enums": [
+    {
+      "name": "DocumentStatus",
+      "values": [
+        "Draft",
+        "Pending",
+        "Approved",
+        "Rejected",
+        "Cancelled",
+        "Returned"
+      ]
+    },
+    {
+      "name": "WorkflowStatus",
+      "values": [
+        "Pending",
+        "Approved",
+        "Rejected"
+      ]
+    },
+    {
+      "name": "AuditAction",
+      "values": [
+        "Login",
+        "Upload",
+        "Download",
+        "View",
+        "Edit",
+        "Delete",
+        "Approve",
+        "Reject",
+        "Signature"
+      ]
+    },
+    {
+      "name": "FolderVisibility",
+      "values": [
+        "Private",
+        "Department",
+        "Shared",
+        "CompanyWide",
+        "AdminOnly"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "name": "role",
+      "parentModel": "Role",
+      "optional": false,
+      "fields": [
+        "role_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "role_permissions",
+      "parent": "roles",
+      "unique": false
+    },
+    {
+      "name": "permission",
+      "parentModel": "Permission",
+      "optional": false,
+      "fields": [
+        "permission_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "role_permissions",
+      "parent": "permissions",
+      "unique": false
+    },
+    {
+      "name": "department",
+      "parentModel": "Department",
+      "optional": true,
+      "fields": [
+        "department_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "users",
+      "parent": "departments",
+      "unique": false
+    },
+    {
+      "name": "position",
+      "parentModel": "Position",
+      "optional": true,
+      "fields": [
+        "position_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "users",
+      "parent": "positions",
+      "unique": false
+    },
+    {
+      "name": "role",
+      "parentModel": "Role",
+      "optional": true,
+      "fields": [
+        "role_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "users",
+      "parent": "roles",
+      "unique": false
+    },
+    {
+      "name": "type",
+      "parentModel": "DocumentType",
+      "optional": false,
+      "fields": [
+        "type_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "documents",
+      "parent": "document_types",
+      "unique": false
+    },
+    {
+      "name": "creator",
+      "parentModel": "User",
+      "optional": false,
+      "fields": [
+        "creator_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "documents",
+      "parent": "users",
+      "unique": false
+    },
+    {
+      "name": "folder",
+      "parentModel": "Folder",
+      "optional": true,
+      "fields": [
+        "folder_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "documents",
+      "parent": "folders",
+      "unique": false
+    },
+    {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": false,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "pr_forms",
+      "parent": "documents",
+      "unique": true
+    },
+    {
+      "name": "requester",
+      "parentModel": "User",
+      "optional": false,
+      "fields": [
+        "requester_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "pr_forms",
+      "parent": "users",
+      "unique": false
+    },
+    {
+      "name": "department",
+      "parentModel": "Department",
+      "optional": false,
+      "fields": [
+        "department_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "pr_forms",
+      "parent": "departments",
+      "unique": false
+    },
+    {
+      "name": "pr_form",
+      "parentModel": "PRForm",
+      "optional": false,
+      "fields": [
+        "pr_form_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "pr_form_items",
+      "parent": "pr_forms",
+      "unique": false
+    },
+    {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": false,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "po_forms",
+      "parent": "documents",
+      "unique": true
+    },
+    {
+      "name": "po_form",
+      "parentModel": "POForm",
+      "optional": false,
+      "fields": [
+        "po_form_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "po_form_items",
+      "parent": "po_forms",
+      "unique": false
+    },
+    {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": false,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "bk_forms",
+      "parent": "documents",
+      "unique": true
+    },
+    {
+      "name": "department",
+      "parentModel": "Department",
+      "optional": false,
+      "fields": [
+        "department_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "bk_forms",
+      "parent": "departments",
+      "unique": false
+    },
+    {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": false,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "document_versions",
+      "parent": "documents",
+      "unique": false
+    },
+    {
+      "name": "uploaded_by",
+      "parentModel": "User",
+      "optional": false,
+      "fields": [
+        "uploaded_by_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "document_versions",
+      "parent": "users",
+      "unique": false
+    },
+    {
+      "name": "document_type",
+      "parentModel": "DocumentType",
+      "optional": false,
+      "fields": [
+        "document_type_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "approval_matrix",
+      "parent": "document_types",
+      "unique": false
+    },
+    {
+      "name": "required_role",
+      "parentModel": "Role",
+      "optional": false,
+      "fields": [
+        "required_role_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "approval_matrix",
+      "parent": "roles",
+      "unique": false
+    },
+    {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": false,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "workflows",
+      "parent": "documents",
+      "unique": true
+    },
+    {
+      "name": "workflow",
+      "parentModel": "Workflow",
+      "optional": false,
+      "fields": [
+        "workflow_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "workflow_steps",
+      "parent": "workflows",
+      "unique": false
+    },
+    {
+      "name": "approver",
+      "parentModel": "User",
+      "optional": true,
+      "fields": [
+        "approver_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "workflow_steps",
+      "parent": "users",
+      "unique": false
+    },
+    {
+      "name": "user",
+      "parentModel": "User",
+      "optional": false,
+      "fields": [
+        "user_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "notifications",
+      "parent": "users",
+      "unique": false
+    },
+    {
+      "name": "document",
+      "parentModel": "Document",
+      "optional": true,
+      "fields": [
+        "document_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "notifications",
+      "parent": "documents",
+      "unique": false
+    },
+    {
+      "name": "document_type",
+      "parentModel": "DocumentType",
+      "optional": false,
+      "fields": [
+        "document_type_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "running_numbers",
+      "parent": "document_types",
+      "unique": true
+    },
+    {
+      "name": "user",
+      "parentModel": "User",
+      "optional": true,
+      "fields": [
+        "user_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "audit_logs",
+      "parent": "users",
+      "unique": false
+    },
+    {
+      "name": "parent",
+      "parentModel": "Folder",
+      "optional": true,
+      "fields": [
+        "parent_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folders",
+      "parent": "folders",
+      "unique": false
+    },
+    {
+      "name": "creator",
+      "parentModel": "User",
+      "optional": false,
+      "fields": [
+        "creator_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folders",
+      "parent": "users",
+      "unique": false
+    },
+    {
+      "name": "department",
+      "parentModel": "Department",
+      "optional": true,
+      "fields": [
+        "department_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folders",
+      "parent": "departments",
+      "unique": false
+    },
+    {
+      "name": "folder",
+      "parentModel": "Folder",
+      "optional": false,
+      "fields": [
+        "folder_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folder_permissions",
+      "parent": "folders",
+      "unique": false
+    },
+    {
+      "name": "user",
+      "parentModel": "User",
+      "optional": true,
+      "fields": [
+        "user_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folder_permissions",
+      "parent": "users",
+      "unique": false
+    },
+    {
+      "name": "department",
+      "parentModel": "Department",
+      "optional": true,
+      "fields": [
+        "department_id"
+      ],
+      "references": [
+        "id"
+      ],
+      "child": "folder_permissions",
+      "parent": "departments",
+      "unique": false
+    }
+  ]
+}

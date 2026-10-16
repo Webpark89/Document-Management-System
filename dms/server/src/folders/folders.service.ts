@@ -3,339 +3,375 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
+import { Prisma, FolderVisibility } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFolderDto } from './dto/create-folder.dto';
 import { UpdateFolderDto } from './dto/update-folder.dto';
 import { MoveDocumentDto } from './dto/move-document.dto';
-import { FolderVisibility } from '@prisma/client';
-import { FolderVisibilityEnum } from './dto/create-folder.dto';
+import {
+  Actor,
+  hasAny,
+  lockEntity,
+  permissions,
+  requireDocumentAccess,
+  requirePermission,
+  visibleDocuments,
+} from '../common/document-policy';
 
+const folderInclude = {
+  permissions: true,
+  creator: {
+    select: { id: true, first_name: true, last_name: true, username: true },
+  },
+  department: { select: { id: true, name: true } },
+} satisfies Prisma.FolderInclude;
+type Folder = Prisma.FolderGetPayload<{ include: typeof folderInclude }>;
 @Injectable()
 export class FoldersService {
   constructor(private prisma: PrismaService) {}
-
-  async findAll(
-    currentUserId: string,
-    currentUserRole: string,
-    currentUserDeptId?: string,
+  private canView(folder: Folder, user: Actor) {
+    if (folder.creator_id === user.id || hasAny(user, permissions.viewAll))
+      return true;
+    if (folder.visibility === 'CompanyWide') return true;
+    if (folder.visibility === 'Department')
+      return (
+        !!user.department_id && folder.department_id === user.department_id
+      );
+    return (
+      folder.visibility === 'Shared' &&
+      folder.permissions.some(
+        (p) =>
+          p.can_view &&
+          (p.user_id === user.id ||
+            (!!user.department_id && p.department_id === user.department_id)),
+      )
+    );
+  }
+  private canEdit(folder: Folder, user: Actor) {
+    return (
+      folder.creator_id === user.id ||
+      (hasAny(user, permissions.viewAll) &&
+        hasAny(user, ['document.manage_folders:edit'])) ||
+      folder.permissions.some(
+        (p) =>
+          p.can_edit &&
+          (p.user_id === user.id ||
+            (!!user.department_id && p.department_id === user.department_id)),
+      )
+    );
+  }
+  private async folder(
+    id: string,
+    user: Actor,
+    tx: Prisma.TransactionClient | PrismaService = this.prisma,
   ) {
-    const isAdmin =
-      currentUserRole === 'Administrator' || currentUserRole === 'Executive';
-
-    const folders = await this.prisma.folder.findMany({
+    const f = await tx.folder.findFirst({
+      where: { id, is_deleted: false },
+      include: folderInclude,
+    });
+    if (!f) throw new NotFoundException('ไม่พบโฟลเดอร์');
+    if (!this.canView(f, user))
+      throw new ForbiddenException('ไม่มีสิทธิ์เข้าถึงโฟลเดอร์');
+    return f;
+  }
+  async findAll(user: Actor) {
+    requirePermission(user, ['document.view_folders:view']);
+    const rows = await this.prisma.folder.findMany({
       where: { is_deleted: false },
       include: {
-        creator: {
-          select: {
-            id: true,
-            first_name: true,
-            last_name: true,
-            username: true,
-          },
-        },
-        department: { select: { id: true, name: true } },
-        permissions: true,
+        ...folderInclude,
         _count: {
           select: {
-            documents: { where: { is_deleted: false, status: 'Approved' } },
+            documents: {
+              where: { AND: [visibleDocuments(user), { status: 'Approved' }] },
+            },
           },
         },
       },
       orderBy: { name: 'asc' },
     });
-
-    const visibleFolders = folders.filter((folder) =>
-      this.canAccessFolder(folder, currentUserId, isAdmin, currentUserDeptId),
-    );
-
-    return visibleFolders.map((f) => ({
-      id: f.id,
-      name: f.name,
-      description: f.description,
-      color: f.color,
-      icon: f.icon,
-      visibility: f.visibility,
-      parent_id: f.parent_id,
-      department_id: f.department_id,
-      department_name: f.department?.name,
-      document_count: f._count.documents,
-      creator: {
-        id: f.creator.id,
-        full_name:
-          `${f.creator.first_name || ''} ${f.creator.last_name || ''}`.trim() ||
-          f.creator.username,
-      },
-      can_edit: isAdmin || f.creator_id === currentUserId,
-      created_at: f.created_at,
-    }));
-  }
-
-  async findOne(
-    id: string,
-    currentUserId: string,
-    currentUserRole: string,
-    currentUserDeptId?: string,
-  ) {
-    const isAdmin =
-      currentUserRole === 'Administrator' || currentUserRole === 'Executive';
-
-    const folder = await this.prisma.folder.findFirst({
-      where: { id, is_deleted: false },
-      include: {
+    return rows
+      .filter((f) => this.canView(f, user))
+      .map((f) => ({
+        ...f,
+        department_name: f.department?.name,
         creator: {
-          select: {
-            id: true,
-            first_name: true,
-            last_name: true,
-            username: true,
-          },
+          ...f.creator,
+          full_name: `${f.creator.first_name} ${f.creator.last_name}`,
         },
-        department: true,
-        permissions: true,
-        children: {
-          where: { is_deleted: false },
-          include: {
-            _count: {
-              select: {
-                documents: { where: { is_deleted: false, status: 'Approved' } },
-              },
-            },
-          },
-        },
-        documents: {
-          where: { is_deleted: false, status: 'Approved' },
-          include: {
-            type: true,
-            creator: {
-              select: {
-                id: true,
-                first_name: true,
-                last_name: true,
-                username: true,
-              },
-            },
-          },
-        },
+        document_count: f._count.documents,
+        can_edit:
+          this.canEdit(f, user) &&
+          hasAny(user, ['document.manage_folders:edit']),
+        shared_departments: f.permissions
+          .filter((p) => p.department_id)
+          .map((p) => p.department_id),
+        shared_users: f.permissions
+          .filter((p) => p.user_id)
+          .map((p) => p.user_id),
+      }));
+  }
+  async findOne(id: string, user: Actor) {
+    requirePermission(user, ['document.view_folders:view']);
+    const f = await this.folder(id, user);
+    const documents = await this.prisma.document.findMany({
+      where: {
+        folder_id: id,
+        status: 'Approved',
+        AND: [visibleDocuments(user)],
       },
+      include: {
+        type: true,
+        creator: { select: { id: true, first_name: true, last_name: true } },
+      },
+      orderBy: { created_at: 'desc' },
     });
-
-    if (!folder) throw new NotFoundException('Folder not found');
-
-    if (
-      !this.canAccessFolder(folder, currentUserId, isAdmin, currentUserDeptId)
-    ) {
-      throw new ForbiddenException('No permission to view this folder');
-    }
-
+    const children = (await this.findAll(user)).filter(
+      (child) => child.parent_id === id,
+    );
     return {
-      ...folder,
-      can_edit: isAdmin || folder.creator_id === currentUserId,
+      ...f,
+      documents,
+      children,
+      can_edit:
+        this.canEdit(f, user) && hasAny(user, ['document.manage_folders:edit']),
     };
   }
-
-  async create(dto: CreateFolderDto, creatorId: string) {
-    // Check parent depth if parent_id provided
-    if (dto.parent_id) {
-      const parent = await this.prisma.folder.findUnique({
-        where: { id: dto.parent_id },
-      });
-      if (!parent) throw new NotFoundException('Parent folder not found');
-      if (parent.parent_id) {
-        throw new BadRequestException('Max folder nesting depth is 2 levels');
-      }
-    }
-
-    // Determine default department_id if visibility === Department
-    let departmentId = dto.department_id;
-    if (dto.visibility === FolderVisibilityEnum.Department && !departmentId) {
-      const user = await this.prisma.user.findUnique({
-        where: { id: creatorId },
-        select: { department_id: true },
-      });
-      departmentId = user?.department_id || undefined;
-    }
-
-    const folder = await this.prisma.folder.create({
-      data: {
-        name: dto.name,
-        description: dto.description,
-        color: dto.color || '#4F81FF',
-        icon: dto.icon || '📁',
-        visibility:
-          (dto.visibility as FolderVisibility) || FolderVisibility.CompanyWide,
-        parent_id: dto.parent_id || null,
-        creator_id: creatorId,
-        department_id: departmentId || null,
-      },
-    });
-
-    // Handle Shared permissions
-    if (dto.visibility === FolderVisibilityEnum.Shared) {
-      if (dto.shared_departments && dto.shared_departments.length > 0) {
-        await this.prisma.folderPermission.createMany({
-          data: dto.shared_departments.map((deptId) => ({
-            folder_id: folder.id,
-            department_id: deptId,
-            can_view: true,
-            can_edit: false,
-          })),
-          skipDuplicates: true,
-        });
-      }
-      if (dto.shared_users && dto.shared_users.length > 0) {
-        await this.prisma.folderPermission.createMany({
-          data: dto.shared_users.map((userId) => ({
-            folder_id: folder.id,
-            user_id: userId,
-            can_view: true,
-            can_edit: false,
-          })),
-          skipDuplicates: true,
-        });
-      }
-    }
-
-    return folder;
-  }
-
-  async update(
-    id: string,
-    dto: UpdateFolderDto,
-    currentUserId: string,
-    currentUserRole: string,
+  private async shares(
+    tx: Prisma.TransactionClient,
+    folderId: string,
+    departments: string[] = [],
+    users: string[] = [],
   ) {
-    const isAdmin =
-      currentUserRole === 'Administrator' || currentUserRole === 'Executive';
-    const folder = await this.prisma.folder.findUnique({ where: { id } });
-    if (!folder) throw new NotFoundException('Folder not found');
-
-    if (!isAdmin && folder.creator_id !== currentUserId) {
-      throw new ForbiddenException('Only owner or Admin can update folder');
-    }
-
-    const updated = await this.prisma.folder.update({
-      where: { id },
-      data: {
-        name: dto.name,
-        description: dto.description,
-        color: dto.color,
-        icon: dto.icon,
-        visibility: dto.visibility as FolderVisibility,
-      },
+    departments = [...new Set(departments)];
+    users = [...new Set(users)];
+    if (
+      departments.length &&
+      (await tx.department.count({
+        where: { id: { in: departments }, is_active: true },
+      })) !== departments.length
+    )
+      throw new BadRequestException('แผนกที่แชร์ไม่ถูกต้อง');
+    if (
+      users.length &&
+      (await tx.user.count({
+        where: { id: { in: users }, is_active: true, is_deleted: false },
+      })) !== users.length
+    )
+      throw new BadRequestException('ผู้ใช้ที่แชร์ไม่ถูกต้อง');
+    await tx.folderPermission.deleteMany({ where: { folder_id: folderId } });
+    await tx.folderPermission.createMany({
+      data: [
+        ...departments.map((department_id) => ({
+          folder_id: folderId,
+          department_id,
+          can_view: true,
+        })),
+        ...users.map((user_id) => ({
+          folder_id: folderId,
+          user_id,
+          can_view: true,
+        })),
+      ],
     });
-
-    if (dto.visibility === FolderVisibilityEnum.Shared) {
-      await this.prisma.folderPermission.deleteMany({
-        where: { folder_id: id },
-      });
-      if (dto.shared_departments && dto.shared_departments.length > 0) {
-        await this.prisma.folderPermission.createMany({
-          data: dto.shared_departments.map((deptId) => ({
-            folder_id: id,
-            department_id: deptId,
-            can_view: true,
-          })),
-          skipDuplicates: true,
-        });
-      }
-      if (dto.shared_users && dto.shared_users.length > 0) {
-        await this.prisma.folderPermission.createMany({
-          data: dto.shared_users.map((userId) => ({
-            folder_id: id,
-            user_id: userId,
-            can_view: true,
-          })),
-          skipDuplicates: true,
-        });
-      }
-    }
-
-    return updated;
   }
-
-  async remove(id: string, currentUserId: string, currentUserRole: string) {
-    const isAdmin =
-      currentUserRole === 'Administrator' || currentUserRole === 'Executive';
-    const folder = await this.prisma.folder.findUnique({ where: { id } });
-    if (!folder) throw new NotFoundException('Folder not found');
-
-    if (!isAdmin && folder.creator_id !== currentUserId) {
-      throw new ForbiddenException('Only owner or Admin can delete folder');
-    }
-
-    // Soft delete folder and unassign documents
-    await this.prisma.$transaction([
-      this.prisma.document.updateMany({
+  async create(dto: CreateFolderDto, user: Actor) {
+    requirePermission(user, ['document.manage_folders:create']);
+    if (!dto.name.trim())
+      throw new BadRequestException('กรุณาระบุชื่อโฟลเดอร์');
+    if (dto.visibility === 'AdminOnly' && !hasAny(user, permissions.viewAll))
+      throw new ForbiddenException('ไม่มีสิทธิ์สร้างโฟลเดอร์ผู้ดูแล');
+    return this.prisma.$transaction(async (tx) => {
+      if (dto.parent_id) {
+        const parent = await this.folder(dto.parent_id, user, tx);
+        if (parent.parent_id)
+          throw new BadRequestException('รองรับโฟลเดอร์สองระดับ');
+        if (!this.canEdit(parent, user))
+          throw new ForbiddenException('ไม่มีสิทธิ์สร้างโฟลเดอร์ย่อย');
+      }
+      const dept = dto.department_id ?? user.department_id;
+      if (
+        dto.visibility === 'Department' &&
+        (!dept ||
+          !(await tx.department.findFirst({
+            where: { id: dept, is_active: true },
+          })))
+      )
+        throw new BadRequestException('ไม่พบแผนกสำหรับโฟลเดอร์');
+      const folder = await tx.folder.create({
+        data: {
+          name: dto.name.trim(),
+          description: dto.description,
+          color: dto.color ?? '#4F81FF',
+          icon: dto.icon ?? 'folder',
+          visibility: (dto.visibility as FolderVisibility) ?? 'CompanyWide',
+          parent_id: dto.parent_id ?? null,
+          creator_id: user.id,
+          department_id: dto.visibility === 'Department' ? dept : null,
+        },
+      });
+      if (dto.visibility === 'Shared')
+        await this.shares(
+          tx,
+          folder.id,
+          dto.shared_departments,
+          dto.shared_users,
+        );
+      await tx.auditLog.create({
+        data: {
+          user_id: user.id,
+          action: 'Upload',
+          module: 'Folder',
+          target_id: folder.id,
+          details: {
+            oldState: {},
+            newState: { name: folder.name, visibility: folder.visibility },
+            extra: {},
+          },
+        },
+      });
+      return folder;
+    });
+  }
+  async update(id: string, dto: UpdateFolderDto, user: Actor) {
+    requirePermission(user, ['document.manage_folders:edit']);
+    if (dto.name !== undefined && !dto.name.trim())
+      throw new BadRequestException('กรุณาระบุชื่อโฟลเดอร์');
+    return this.prisma.$transaction(async (tx) => {
+      await lockEntity(tx, `folder:${id}`);
+      const old = await this.folder(id, user, tx);
+      if (!this.canEdit(old, user))
+        throw new ForbiddenException('ไม่มีสิทธิ์แก้ไขโฟลเดอร์');
+      if (dto.visibility === 'AdminOnly' && !hasAny(user, permissions.viewAll))
+        throw new ForbiddenException('ไม่มีสิทธิ์ตั้งโฟลเดอร์ผู้ดูแล');
+      if (dto.visibility === 'Department' && !user.department_id)
+        throw new BadRequestException('ไม่พบแผนก');
+      const updated = await tx.folder.update({
+        where: { id },
+        data: {
+          name: dto.name?.trim(),
+          description: dto.description,
+          color: dto.color,
+          icon: dto.icon,
+          visibility: dto.visibility,
+          ...(dto.visibility === 'Department'
+            ? { department_id: old.department_id ?? user.department_id }
+            : {}),
+        },
+      });
+      if (
+        updated.visibility === 'Shared' &&
+        (dto.shared_departments !== undefined || dto.shared_users !== undefined)
+      )
+        await this.shares(
+          tx,
+          id,
+          dto.shared_departments ??
+            old.permissions
+              .filter((p) => p.department_id)
+              .map((p) => p.department_id!),
+          dto.shared_users ??
+            old.permissions.filter((p) => p.user_id).map((p) => p.user_id!),
+        );
+      if (updated.visibility !== 'Shared')
+        await tx.folderPermission.deleteMany({ where: { folder_id: id } });
+      await tx.auditLog.create({
+        data: {
+          user_id: user.id,
+          action: 'Edit',
+          module: 'Folder',
+          target_id: id,
+          details: {
+            oldState: { name: old.name, visibility: old.visibility },
+            newState: { name: updated.name, visibility: updated.visibility },
+            extra: {},
+          },
+        },
+      });
+      return updated;
+    });
+  }
+  async remove(id: string, user: Actor) {
+    requirePermission(user, ['document.manage_folders:delete']);
+    return this.prisma.$transaction(async (tx) => {
+      await lockEntity(tx, `folder:${id}`);
+      const old = await this.folder(id, user, tx);
+      if (!this.canEdit(old, user))
+        throw new ForbiddenException('ไม่มีสิทธิ์ลบโฟลเดอร์');
+      if (
+        await tx.folder.count({ where: { parent_id: id, is_deleted: false } })
+      )
+        throw new ConflictException('กรุณาลบโฟลเดอร์ย่อยก่อน');
+      await tx.document.updateMany({
         where: { folder_id: id },
         data: { folder_id: null },
-      }),
-      this.prisma.folder.update({
-        where: { id },
-        data: { is_deleted: true },
-      }),
-    ]);
-
-    return { message: 'Folder deleted, documents moved to Unorganized' };
+      });
+      await tx.folder.update({ where: { id }, data: { is_deleted: true } });
+      await tx.auditLog.create({
+        data: {
+          user_id: user.id,
+          action: 'Delete',
+          module: 'Folder',
+          target_id: id,
+          details: {
+            oldState: { is_deleted: false },
+            newState: { is_deleted: true },
+            extra: {},
+          },
+        },
+      });
+      return { message: 'ลบโฟลเดอร์แล้ว เอกสารยังคงอยู่ในคลัง' };
+    });
   }
-
-  async moveDocument(dto: MoveDocumentDto) {
-    const doc = await this.prisma.document.findFirst({
+  async moveDocument(dto: MoveDocumentDto, user: Actor) {
+    requirePermission(user, ['document.move_to_folder:edit']);
+    const original = await this.prisma.document.findFirst({
       where: {
-        is_deleted: false,
         OR: [{ id: dto.document_id }, { doc_number: dto.document_id }],
+        is_deleted: false,
       },
     });
-    if (!doc) throw new NotFoundException('Document not found');
-
-    if (dto.target_folder_id) {
-      const targetFolder = await this.prisma.folder.findFirst({
-        where: { id: dto.target_folder_id, is_deleted: false },
+    if (!original) throw new NotFoundException('ไม่พบเอกสาร');
+    return this.prisma.$transaction(async (tx) => {
+      await lockEntity(tx, `document:${original.id}`);
+      const doc = await tx.document.findUniqueOrThrow({
+        where: { id: original.id },
+        include: { workflow: { include: { steps: true } } },
       });
-      if (!targetFolder) throw new NotFoundException('Target folder not found');
-    }
-
-    await this.prisma.document.update({
-      where: { id: doc.id },
-      data: { folder_id: dto.target_folder_id || null },
-    });
-
-    return { message: 'Document moved successfully' };
-  }
-
-  private canAccessFolder(
-    folder: {
-      visibility: FolderVisibility;
-      creator_id: string;
-      department_id?: string | null;
-      permissions?: {
-        user_id?: string | null;
-        department_id?: string | null;
-      }[];
-    },
-    userId: string,
-    isAdmin: boolean,
-    userDeptId?: string,
-  ): boolean {
-    if (isAdmin) return true;
-    switch (folder.visibility) {
-      case FolderVisibility.CompanyWide:
-        return true;
-      case FolderVisibility.AdminOnly:
-        return false;
-      case FolderVisibility.Private:
-        return folder.creator_id === userId;
-      case FolderVisibility.Department:
-        return !!userDeptId && folder.department_id === userDeptId;
-      case FolderVisibility.Shared:
-        if (folder.creator_id === userId) return true;
-        return (folder.permissions || []).some(
-          (p) =>
-            p.user_id === userId ||
-            (userDeptId && p.department_id === userDeptId),
+      requireDocumentAccess(doc, user);
+      if (doc.status !== 'Approved')
+        throw new ConflictException('ย้ายเข้าคลังได้หลังอนุมัติครบแล้ว');
+      if (doc.creator_id !== user.id && !hasAny(user, permissions.viewAll))
+        throw new ForbiddenException(
+          'เฉพาะเจ้าของหรือผู้มีสิทธิ์จัดการทั้งหมด',
         );
-      default:
-        return true;
-    }
+      if (dto.target_folder_id) {
+        const target = await this.folder(dto.target_folder_id, user, tx);
+        if (!this.canEdit(target, user))
+          throw new ForbiddenException(
+            'ไม่มีสิทธิ์เพิ่มเอกสารในโฟลเดอร์ปลายทาง',
+          );
+      }
+      await tx.document.update({
+        where: { id: doc.id },
+        data: { folder_id: dto.target_folder_id ?? null },
+      });
+      await tx.auditLog.create({
+        data: {
+          user_id: user.id,
+          action: 'Edit',
+          module: 'Folder',
+          target_id: doc.id,
+          details: {
+            oldState: { folder_id: doc.folder_id },
+            newState: { folder_id: dto.target_folder_id ?? null },
+            extra: {},
+          },
+        },
+      });
+      return { message: 'ย้ายเอกสารแล้ว' };
+    });
   }
 }

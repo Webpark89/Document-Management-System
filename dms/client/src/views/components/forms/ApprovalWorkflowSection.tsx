@@ -21,6 +21,7 @@ interface UserItem {
   role: string;
   department: string;
   is_active: boolean;
+  can_approve?: boolean;
 }
 
 interface ApprovalWorkflowSectionProps {
@@ -37,56 +38,12 @@ export default function ApprovalWorkflowSection({
 
   useEffect(() => {
     adminService
-      .getUsersList()
+      .getUserDirectory()
       .then((res) => {
         const activeUsers = (res || [])
           .filter((u) => (u as UserItem).is_active)
           .map((u) => u as UserItem);
         setUsers(activeUsers);
-
-        // Auto-select approver if step has no approverId selected
-        if (steps && steps.length > 0 && activeUsers.length > 0) {
-          const chosenIds = new Set<string>();
-          const updated = steps.map((step) => {
-            if (step.approverId) {
-              chosenIds.add(step.approverId);
-              return step;
-            }
-            // Find best matching user for step.roleName
-            const targetRole = (step.roleName || "").trim().toLowerCase();
-            const candidates = activeUsers.filter((u) => {
-              if (chosenIds.has(u.id)) return false;
-              if (!targetRole) return true;
-              const uPos = (u.position || "").trim().toLowerCase();
-              const uRole = (u.role || "").trim().toLowerCase();
-              return (
-                uPos === targetRole ||
-                uRole === targetRole ||
-                targetRole.includes(uPos) ||
-                uPos.includes(targetRole) ||
-                targetRole.includes(uRole) ||
-                uRole.includes(targetRole)
-              );
-            });
-
-            const picked = candidates[0] || activeUsers.find((u) => !chosenIds.has(u.id));
-            if (picked) {
-              chosenIds.add(picked.id);
-              return {
-                ...step,
-                approverId: picked.id,
-                approverName: `${picked.first_name} ${picked.last_name}`.trim(),
-              };
-            }
-            return step;
-          });
-
-          // Only trigger onChange if any step was updated
-          const hasChanges = updated.some((s, i) => s.approverId !== steps[i]?.approverId);
-          if (hasChanges) {
-            onChange(updated);
-          }
-        }
       })
       .catch(() => {})
       .finally(() => setIsLoading(false));
@@ -95,14 +52,15 @@ export default function ApprovalWorkflowSection({
   const handleApproverSelect = (stepId: string, selectedUserId: string) => {
     const selectedUser = users.find((u) => u.id === selectedUserId);
     if (!selectedUser) return;
-    const fullName = `${selectedUser.first_name} ${selectedUser.last_name}`.trim();
+    const fullName =
+      `${selectedUser.first_name} ${selectedUser.last_name}`.trim();
 
     onChange(
       steps.map((s) =>
         s.id === stepId
           ? { ...s, approverId: selectedUser.id, approverName: fullName }
-          : s
-      )
+          : s,
+      ),
     );
   };
 
@@ -126,27 +84,23 @@ export default function ApprovalWorkflowSection({
               </span>
             </div>
             <p className="text-xs text-slate-400 font-semibold mt-0.5">
-              ดึงข้อมูลสายการอนุมัติตามประเภทเอกสารจาก Master Data (เลือกเปลี่ยนชื่อบุคคลได้)
+              ดึงข้อมูลสายการอนุมัติตามประเภทเอกสารจาก Master Data
+              (เลือกเปลี่ยนชื่อบุคคลได้)
             </p>
           </div>
         </div>
       </div>
 
+      {!safeSteps.length && (
+        <p role="alert" className="text-sm text-amber-700">
+          ยังไม่มีสายอนุมัติสำหรับประเภทนี้ กรุณาให้ผู้ดูแลตั้งค่า Master Data
+          ก่อนส่ง
+        </p>
+      )}
       <div className="space-y-3">
         {safeSteps.map((step) => {
-          // IDs chosen in other steps (for duplicate-guard)
-          const otherChosenIds = new Set(
-            safeSteps
-              .filter((s) => s.id !== step.id && s.approverId)
-              .map((s) => s.approverId)
-          );
-
-          // Resolve current selected user ID
           const currentSelectedUser = users.find(
-            (u) =>
-              u.id === step.approverId ||
-              `${u.first_name} ${u.last_name}`.trim().toLowerCase() ===
-                step.approverName.trim().toLowerCase()
+            (u) => u.id === step.approverId,
           );
           const currentVal = currentSelectedUser?.id || step.approverId || "";
 
@@ -177,7 +131,7 @@ export default function ApprovalWorkflowSection({
               <div className="flex items-center gap-3 w-full sm:w-auto flex-1">
                 <div className="flex-1">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
-                    ชื่อผู้อนุมัติ (Approver - ห้ามเลือกซ้ำ)
+                    ชื่อผู้อนุมัติ (Approver)
                   </label>
                   <div className="relative">
                     <select
@@ -196,33 +150,20 @@ export default function ApprovalWorkflowSection({
                       )}
                       {users
                         .filter((u) => {
-                          if (!step.roleName) return true;
-                          const userPos = (u.position || "").trim().toLowerCase();
-                          const userRole = (u.role || "").trim().toLowerCase();
-                          const targetRole = step.roleName.trim().toLowerCase();
-
-                          if (!userPos && !userRole) return true;
                           return (
-                            userPos === targetRole ||
-                            userRole === targetRole ||
-                            targetRole.includes(userPos) ||
-                            userPos.includes(targetRole) ||
-                            targetRole.includes(userRole) ||
-                            userRole.includes(targetRole)
+                            u.can_approve === true && u.role === step.roleName
                           );
                         })
                         .map((u) => {
-                          const fullName = `${u.first_name} ${u.last_name}`.trim();
-                          const posLabel = u.position && u.position !== "-" ? u.position : u.role || "N/A";
-                          const isChosenInOtherStep = otherChosenIds.has(u.id);
+                          const fullName =
+                            `${u.first_name} ${u.last_name}`.trim();
+                          const posLabel =
+                            u.position && u.position !== "-"
+                              ? u.position
+                              : u.role || "N/A";
                           return (
-                            <option
-                              key={u.id}
-                              value={u.id}
-                              disabled={isChosenInOtherStep}
-                            >
+                            <option key={u.id} value={u.id}>
                               {fullName} ({posLabel})
-                              {isChosenInOtherStep ? " — เลือกแล้วในขั้นอื่น" : ""}
                             </option>
                           );
                         })}

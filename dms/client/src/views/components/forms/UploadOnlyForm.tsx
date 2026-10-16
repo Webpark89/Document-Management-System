@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { DocumentPreview } from "@views/components/documents/DocumentPreview";
 import { Save, Send, UploadCloud, FileText, Trash2, Eye } from "lucide-react";
-import { useAuth } from '@views/components/providers/AuthProvider';
+import { useAuth } from "@views/components/providers/AuthProvider";
 import Step2Visibility, { VisibilityData } from "./Step2Visibility";
 import ApprovalWorkflowSection, {
   WorkflowStepInput,
@@ -27,6 +27,7 @@ interface UploadOnlyFormProps {
   onNext: () => void;
   onBack: () => void;
   initialData?: any;
+  documentPrefix?: string;
 }
 
 export default function UploadOnlyForm({
@@ -37,6 +38,7 @@ export default function UploadOnlyForm({
   onNext,
   onBack,
   initialData,
+  documentPrefix = "DOC",
 }: UploadOnlyFormProps) {
   const { user } = useAuth();
   const defaultRequester = user?.full_name || user?.username || "Administrator";
@@ -47,8 +49,15 @@ export default function UploadOnlyForm({
   const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
   const [showInlinePreview, setShowInlinePreview] = useState(false);
 
-  const [visibility, setVisibility] = useState<VisibilityData>({ type: "CompanyWide", departments: [], users: [] });
+  const [visibility, setVisibility] = useState<VisibilityData>({
+    type: "CompanyWide",
+    departments: [],
+    users: [],
+  });
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStepInput[]>([]);
+  React.useEffect(() => {
+    if (initialData?.visibility) setVisibility(initialData.visibility);
+  }, [initialData]);
 
   useEffect(() => {
     if (uploadedFile) {
@@ -63,47 +72,57 @@ export default function UploadOnlyForm({
   useEffect(() => {
     if (initialData) {
       if (initialData.title) setTitle(initialData.title);
-      if (initialData.purpose) setDescription(initialData.purpose);
+      setDescription(
+        initialData.purpose ?? initialData._meta?.description ?? "",
+      );
     }
   }, [initialData]);
 
   useEffect(() => {
+    let active = true;
     async function loadWorkflow() {
       try {
-        const { adminService } = await import("@/controllers/services/admin.service");
-        const workflows = (await adminService.getApprovalWorkflowsList()) as any[];
-        const docFlow = Array.isArray(workflows) ? workflows.find((w: any) => w.prefix === "OTHER" || w.prefix === "DOC") : null;
-        if (docFlow && docFlow.steps && docFlow.steps.length > 0) {
+        const { adminService } =
+          await import("@/controllers/services/admin.service");
+        const templates = (await adminService.getWorkflowTemplates()) as any[];
+        const flow = templates.find((t) => t.prefix === documentPrefix);
+        if (active)
           setWorkflowSteps(
-            docFlow.steps.map((role: string, idx: number) => ({
-              id: String(idx + 1),
-              stepOrder: idx + 1,
-              roleName: role,
-              approverName: "",
-            }))
+            (flow?.steps ?? []).map((role: string, index: number) => {
+              const old = initialData?.workflow?.steps?.find(
+                (s: any) => s.step_order === index + 1,
+              );
+              return {
+                id: String(index + 1),
+                stepOrder: index + 1,
+                roleName: role,
+                approverId: old?.approver_id,
+                approverName: old?.approver
+                  ? `${old.approver.first_name} ${old.approver.last_name}`
+                  : "",
+              };
+            }),
           );
-        } else {
-          setWorkflowSteps([
-            { id: "1", stepOrder: 1, roleName: "ผู้จัดการแผนก (Department Manager)", approverName: "" },
-            { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
-          ]);
-        }
-      } catch (err) {
-        setWorkflowSteps([
-          { id: "1", stepOrder: 1, roleName: "ผู้จัดการแผนก (Department Manager)", approverName: "" },
-          { id: "2", stepOrder: 2, roleName: "ผู้อนุมัติ / ผู้บริหาร (Executive/Director)", approverName: "" },
-        ]);
+      } catch {
+        if (active) setWorkflowSteps([]);
       }
     }
-    loadWorkflow();
-  }, []);
+    void loadWorkflow();
+    return () => {
+      active = false;
+    };
+  }, [initialData, documentPrefix]);
 
   const handleSubmit = (isDraft: boolean) => {
     if (!title.trim()) {
       alert("กรุณาระบุชื่อเรื่องเอกสาร");
       return;
     }
-    if (!uploadedFile && !initialData?.versions?.[0]?.file_data) {
+    if (
+      !uploadedFile &&
+      !initialData?.has_file &&
+      !initialData?.versions?.[0]?.has_file
+    ) {
       alert("กรุณาเลือกไฟล์ PDF ที่ต้องการอัปโหลด");
       return;
     }
@@ -182,7 +201,9 @@ export default function UploadOnlyForm({
           <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-100 space-y-4">
             <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200/60 pb-2 flex justify-between items-center">
               <span>2. แนบไฟล์ PDF (File Attachment)</span>
-              <span className="text-[11px] text-slate-400 font-normal">รองรับไฟล์ .PDF ขนาดสูงสุด 20MB</span>
+              <span className="text-[11px] text-slate-400 font-normal">
+                รองรับไฟล์ .PDF ขนาดสูงสุด 20MB
+              </span>
             </h4>
 
             {!uploadedFile ? (
@@ -192,7 +213,9 @@ export default function UploadOnlyForm({
                   คลิกเพื่อเลือกไฟล์ PDF หรือลากไฟล์มาวางที่นี่
                 </p>
                 <p className="text-xs text-slate-400 mt-1">
-                  {initialData?.versions?.[0]?.file_data ? "มีไฟล์เดิมอยู่ในระบบ สามารถเลือกไฟล์ใหม่เพื่อเปลี่ยนได้" : "เฉพาะไฟล์นามสกุล .pdf เท่านั้น"}
+                  {initialData?.versions?.[0]?.file_data
+                    ? "มีไฟล์เดิมอยู่ในระบบ สามารถเลือกไฟล์ใหม่เพื่อเปลี่ยนได้"
+                    : "เฉพาะไฟล์นามสกุล .pdf เท่านั้น"}
                 </p>
                 <input
                   type="file"
@@ -221,9 +244,12 @@ export default function UploadOnlyForm({
                       <FileText className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-800 truncate max-w-md">{uploadedFile.name}</p>
+                      <p className="text-xs font-bold text-slate-800 truncate max-w-md">
+                        {uploadedFile.name}
+                      </p>
                       <p className="text-[10px] text-slate-400 font-medium">
-                        {(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB • พร้อมสำหรับสร้างเอกสาร
+                        {(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB •
+                        พร้อมสำหรับสร้างเอกสาร
                       </p>
                     </div>
                   </div>
@@ -239,7 +265,10 @@ export default function UploadOnlyForm({
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setUploadedFile(null); setShowInlinePreview(false); }}
+                      onClick={() => {
+                        setUploadedFile(null);
+                        setShowInlinePreview(false);
+                      }}
                       className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
                       title="ลบไฟล์"
                     >
@@ -250,7 +279,11 @@ export default function UploadOnlyForm({
 
                 {showInlinePreview && filePreviewUrl && (
                   <div className="border border-slate-200 rounded-xl overflow-hidden mt-3 h-[85vh] min-h-[850px]">
-                    <iframe src={`${filePreviewUrl}#view=FitH`} className="w-full h-full border-none" title="PDF Inline Preview" />
+                    <iframe
+                      src={`${filePreviewUrl}#view=FitH`}
+                      className="w-full h-full border-none"
+                      title="PDF Inline Preview"
+                    />
                   </div>
                 )}
               </div>
@@ -277,13 +310,19 @@ export default function UploadOnlyForm({
               <button
                 type="button"
                 onClick={(e) => {
-                  const form = e.currentTarget.closest('form');
+                  const form = e.currentTarget.closest("form");
                   if (form && !form.checkValidity()) {
                     form.reportValidity();
                     return;
                   }
-                  if (!uploadedFile && !initialData?.versions?.[0]?.file_data) {
-                    alert("กรุณาเลือกไฟล์ PDF ที่ต้องการอัปโหลดก่อนดำเนินการต่อ");
+                  if (
+                    !uploadedFile &&
+                    !initialData?.has_file &&
+                    !initialData?.versions?.[0]?.has_file
+                  ) {
+                    alert(
+                      "กรุณาเลือกไฟล์ PDF ที่ต้องการอัปโหลดก่อนดำเนินการต่อ",
+                    );
                     return;
                   }
                   onNext();
@@ -301,32 +340,59 @@ export default function UploadOnlyForm({
         <div className="space-y-6">
           <Step2Visibility value={visibility} onChange={setVisibility} />
           <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <button type="button" onClick={onBack} className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer">ย้อนกลับ</button>
-            <button type="button" onClick={(e) => {
-                const form = e.currentTarget.closest('form');
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            >
+              ย้อนกลับ
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                const form = e.currentTarget.closest("form");
                 if (form && !form.checkValidity()) {
                   form.reportValidity();
                 } else {
                   onNext();
                 }
-              }} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer">ถัดไป (กำหนดสายอนุมัติ)</button>
+              }}
+              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"
+            >
+              ถัดไป (กำหนดสายอนุมัติ)
+            </button>
           </div>
         </div>
       )}
 
       {currentStep === 3 && (
         <div className="space-y-6">
-          <ApprovalWorkflowSection steps={workflowSteps} onChange={setWorkflowSteps} />
+          <ApprovalWorkflowSection
+            steps={workflowSteps}
+            onChange={setWorkflowSteps}
+          />
           <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <button type="button" onClick={onBack} className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer">ย้อนกลับ</button>
-            <button type="button" onClick={(e) => {
-                const form = e.currentTarget.closest('form');
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            >
+              ย้อนกลับ
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                const form = e.currentTarget.closest("form");
                 if (form && !form.checkValidity()) {
                   form.reportValidity();
                 } else {
                   onNext();
                 }
-              }} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer">ถัดไป (ตรวจสอบพรีวิว)</button>
+              }}
+              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"
+            >
+              ถัดไป (ตรวจสอบพรีวิว)
+            </button>
           </div>
         </div>
       )}
@@ -334,7 +400,7 @@ export default function UploadOnlyForm({
       {currentStep === 4 && (
         <div className="space-y-6">
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <DocumentPreview 
+            <DocumentPreview
               doc={{
                 type: "DOC",
                 status: "Draft",
@@ -343,17 +409,43 @@ export default function UploadOnlyForm({
                 sender: defaultRequester,
                 title: title,
                 purpose: description,
-                fileUrl: filePreviewUrl || initialData?.versions?.[0]?.file_path,
-                workflow: { steps: workflowSteps.map(s => ({ role_name: s.roleName, approver_name: s.approverName, step_order: s.stepOrder, status: "Pending" })) }
-              }} 
+                fileUrl:
+                  filePreviewUrl || initialData?.versions?.[0]?.file_path,
+                workflow: {
+                  steps: workflowSteps.map((s) => ({
+                    role_name: s.roleName,
+                    approver_name: s.approverName,
+                    step_order: s.stepOrder,
+                    status: "Pending",
+                  })),
+                },
+              }}
               tempSignature={true}
             />
           </div>
           <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <button type="button" onClick={onBack} className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer">ย้อนกลับ</button>
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            >
+              ย้อนกลับ
+            </button>
             <div className="flex gap-2">
-              <button type="button" onClick={() => handleSubmit(true)} className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"><Save className="w-3.5 h-3.5" /> บันทึกแบบร่าง (Draft)</button>
-              <button type="button" onClick={() => handleSubmit(false)} className="flex items-center gap-1.5 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"><Send className="w-3.5 h-3.5" /> ส่งขออนุมัติเอกสาร</button>
+              <button
+                type="button"
+                onClick={() => handleSubmit(true)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              >
+                <Save className="w-3.5 h-3.5" /> บันทึกแบบร่าง (Draft)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSubmit(false)}
+                className="flex items-center gap-1.5 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" /> ส่งขออนุมัติเอกสาร
+              </button>
             </div>
           </div>
         </div>

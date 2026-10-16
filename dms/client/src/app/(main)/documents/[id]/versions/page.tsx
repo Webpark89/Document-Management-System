@@ -1,19 +1,47 @@
 "use client";
 
+import { useAuth } from "@views/components/providers/AuthProvider";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, AlertCircle, Eye, Download, FileText, X, Clock, FileUp, User, UploadCloud, Loader2, Upload } from "lucide-react";
-import { getDocumentById, downloadDocument, uploadNewDocumentVersion } from '@views/features/documents/api';
-import { Document, DocumentVersion } from '@views/features/documents/types';
-import PageHeader from '@views/components/shared/PageHeader';
-import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from '@views/components/ui/design-system';
-import { useToast } from '@views/components/providers/ToastProvider';
-import { useSidebar } from '@views/components/providers/SidebarProvider';
-import { DocumentPreview } from '@views/components/documents/DocumentPreview';
+import {
+  ArrowLeft,
+  ArrowRight,
+  AlertCircle,
+  Eye,
+  Download,
+  FileText,
+  X,
+  Clock,
+  FileUp,
+  User,
+  UploadCloud,
+  Loader2,
+  Upload,
+} from "lucide-react";
+import {
+  getDocumentById,
+  downloadDocument,
+  uploadNewDocumentVersion,
+} from "@views/features/documents/api";
+import { Document, DocumentVersion } from "@views/features/documents/types";
+import PageHeader from "@views/components/shared/PageHeader";
+import {
+  APP_PAGE_CONTENT,
+  APP_PAGE_SHELL,
+} from "@views/components/ui/design-system";
+import { useToast } from "@views/components/providers/ToastProvider";
+import { useSidebar } from "@views/components/providers/SidebarProvider";
+import { DocumentPreview } from "@views/components/documents/DocumentPreview";
 
 function formatVersionDate(iso: string) {
-  return new Date(iso).toLocaleString("th-TH", { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleString("th-TH", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function getModifierName(uploaded_by: any): string {
@@ -27,7 +55,10 @@ function getModifierName(uploaded_by: any): string {
   return String(uploaded_by);
 }
 
-function buildVersionDiffFields(older: DocumentVersion, newer: DocumentVersion) {
+function buildVersionDiffFields(
+  older: DocumentVersion,
+  newer: DocumentVersion,
+) {
   const olderUser = getModifierName(older.uploaded_by);
   const newerUser = getModifierName(newer.uploaded_by);
   return [
@@ -77,24 +108,54 @@ function buildRemarkDiff(olderRemarks: string, newerRemarks: string) {
 
 function getRemarkBadge(remark: string) {
   if (!remark) return null;
-  if (remark.includes('เอกสารชุดปัจจุบัน') || remark.includes('ส่งอนุมัติ') || remark.includes('กำลังรอการอนุมัติ')) {
-    return <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10">รออนุมัติ</span>;
+  if (
+    remark.includes("เอกสารชุดปัจจุบัน") ||
+    remark.includes("ส่งอนุมัติ") ||
+    remark.includes("กำลังรอการอนุมัติ")
+  ) {
+    return (
+      <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10">
+        รออนุมัติ
+      </span>
+    );
   }
-  if (remark.includes('โดนตีกลับ') || remark.includes('Reject') || remark.includes('ตีกลับ') || remark.includes('ไม่อนุมัติ')) {
-    return <span className="inline-flex items-center rounded-md bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-700 ring-1 ring-inset ring-rose-700/10">ตีกลับ/ไม่อนุมัติ</span>;
+  if (
+    remark.includes("โดนตีกลับ") ||
+    remark.includes("Reject") ||
+    remark.includes("ตีกลับ") ||
+    remark.includes("ไม่อนุมัติ")
+  ) {
+    return (
+      <span className="inline-flex items-center rounded-md bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-700 ring-1 ring-inset ring-rose-700/10">
+        ตีกลับ/ไม่อนุมัติ
+      </span>
+    );
   }
-  if (remark.includes('approval') || remark.includes('อนุมัติเสร็จสิ้น') || remark.includes('อนุมัติสำเร็จ')) {
-    return <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-700/10">อนุมัติแล้ว</span>;
+  if (
+    remark.includes("approval") ||
+    remark.includes("อนุมัติเสร็จสิ้น") ||
+    remark.includes("อนุมัติสำเร็จ")
+  ) {
+    return (
+      <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-700/10">
+        อนุมัติแล้ว
+      </span>
+    );
   }
-  return <span className="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 ring-1 ring-inset ring-slate-500/10">แก้ไขเอกสาร</span>;
+  return (
+    <span className="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 ring-1 ring-inset ring-slate-500/10">
+      แก้ไขเอกสาร
+    </span>
+  );
 }
 
 export default function DocumentVersionsPage() {
   const params = useParams();
   const id = params.id as string;
   const { showToast } = useToast();
+  const { user } = useAuth();
   const { isOpen } = useSidebar();
-  
+
   const [doc, setDoc] = useState<Document | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -105,21 +166,33 @@ export default function DocumentVersionsPage() {
   const [viewingVersion, setViewingVersion] = useState<string | null>(null);
 
   // Version Download state
-  const [downloadingVersion, setDownloadingVersion] = useState<string | number | null>(null);
+  const [downloadingVersion, setDownloadingVersion] = useState<
+    string | number | null
+  >(null);
 
   const handleDownloadVersion = async (vNum: string | number) => {
     if (!doc) return;
     const docId = (doc as any).real_id || doc.id;
     const docNum = (doc as any).doc_number || doc.id;
-    const numericVersion = typeof vNum === "number" ? vNum : parseInt(String(vNum).replace(/\D/g, ""), 10) || 1;
+    const numericVersion =
+      typeof vNum === "number"
+        ? vNum
+        : parseInt(String(vNum).replace(/\D/g, ""), 10) || 1;
     try {
       setDownloadingVersion(vNum);
       showToast(`กำลังเริ่มดาวน์โหลดเวอร์ชัน ${vNum}...`, "info");
-      await downloadDocument(docId, numericVersion, `${docNum}_v${numericVersion}.pdf`);
+      await downloadDocument(
+        docId,
+        numericVersion,
+        `${docNum}_v${numericVersion}.pdf`,
+      );
       showToast(`ดาวน์โหลดเวอร์ชัน ${vNum} สำเร็จแล้ว`, "success");
     } catch (err: any) {
       console.error("Version download failed", err);
-      showToast(err.message || `เกิดข้อผิดพลาดในการดาวน์โหลดเวอร์ชัน ${vNum}`, "error");
+      showToast(
+        err.message || `เกิดข้อผิดพลาดในการดาวน์โหลดเวอร์ชัน ${vNum}`,
+        "error",
+      );
     } finally {
       setDownloadingVersion(null);
     }
@@ -159,21 +232,34 @@ export default function DocumentVersionsPage() {
       if (updated) setDoc(updated);
     } catch (err: any) {
       console.error("Upload version failed", err);
-      showToast(err.message || "เกิดข้อผิดพลาดในการอัปโหลดเวอร์ชันใหม่", "error");
+      showToast(
+        err.message || "เกิดข้อผิดพลาดในการอัปโหลดเวอร์ชันใหม่",
+        "error",
+      );
     } finally {
       setIsUploadingVersion(false);
     }
   };
 
   useEffect(() => {
-    getDocumentById(id).then((found) => {
-      setDoc(found || null);
-      setIsLoading(false);
-    });
+    getDocumentById(id)
+      .then((found) => {
+        setDoc(found || null);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        showToast(String(error), "error");
+        setDoc(null);
+      })
+      .finally(() => setIsLoading(false));
   }, [id]);
 
   if (isLoading) {
-    return <div className="p-8 text-center text-slate-500">Loading version history...</div>;
+    return (
+      <div className="p-8 text-center text-slate-500">
+        Loading version history...
+      </div>
+    );
   }
 
   if (!doc) {
@@ -196,18 +282,24 @@ export default function DocumentVersionsPage() {
     );
   }
 
+  if (!user?.permissions?.includes("document.view_version_history:view"))
+    return (
+      <div className="p-8 text-center text-slate-500">
+        ไม่มีสิทธิ์ดูประวัติเวอร์ชันเอกสาร
+      </div>
+    );
+
   // Load versions from document
-  const versions = (doc?.versions || [])
-    .sort((a: any, b: any) => {
-      // Sort by version_number roughly, or createdAt descending
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
+  const versions = (doc?.versions || []).sort((a: any, b: any) => {
+    // Sort by version_number roughly, or createdAt descending
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
   const handleCheckboxChange = (versionId: string) => {
-    setSelectedVersions(prev => {
+    setSelectedVersions((prev) => {
       let next: string[];
       if (prev.includes(versionId)) {
-        next = prev.filter(v => v !== versionId);
+        next = prev.filter((v) => v !== versionId);
       } else {
         if (prev.length >= 2) return prev;
         next = [...prev, versionId];
@@ -218,17 +310,33 @@ export default function DocumentVersionsPage() {
   };
 
   const selectedData = selectedVersions
-    .map(vid => versions.find(v => v.id === vid)!)
-    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()); 
-    // index 0 = older, index 1 = newer
+    .map((vid) => versions.find((v) => v.id === vid)!)
+    .sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    );
+  // index 0 = older, index 1 = newer
 
   // Helper for Diff Indicators
   const calculateDiff = (older: DocumentVersion, newer: DocumentVersion) => {
     const sizeDiff = newer.file_size_kb - older.file_size_kb;
-    const sizeStr = sizeDiff > 0 ? `+ ${sizeDiff} KB` : sizeDiff < 0 ? `- ${Math.abs(sizeDiff)} KB` : "ไม่มีการเปลี่ยนแปลง";
-    const sizeColor = sizeDiff > 0 ? "text-emerald-600 bg-emerald-50" : sizeDiff < 0 ? "text-rose-600 bg-rose-50" : "text-slate-500 bg-slate-100";
-    
-    const timeDiffMs = Math.abs(new Date(newer.created_at).getTime() - new Date(older.created_at).getTime());
+    const sizeStr =
+      sizeDiff > 0
+        ? `+ ${sizeDiff} KB`
+        : sizeDiff < 0
+          ? `- ${Math.abs(sizeDiff)} KB`
+          : "ไม่มีการเปลี่ยนแปลง";
+    const sizeColor =
+      sizeDiff > 0
+        ? "text-emerald-600 bg-emerald-50"
+        : sizeDiff < 0
+          ? "text-rose-600 bg-rose-50"
+          : "text-slate-500 bg-slate-100";
+
+    const timeDiffMs = Math.abs(
+      new Date(newer.created_at).getTime() -
+        new Date(older.created_at).getTime(),
+    );
     const days = Math.floor(timeDiffMs / (1000 * 60 * 60 * 24));
     const hours = Math.floor((timeDiffMs / (1000 * 60 * 60)) % 24);
     const timeStr = `แก้ไขห่างกัน ${days > 0 ? `${days} วัน ` : ""}${hours} ชั่วโมง`;
@@ -237,26 +345,37 @@ export default function DocumentVersionsPage() {
     const newerUser = getModifierName(newer.uploaded_by);
     const sameUser = olderUser === newerUser;
     const userStr = sameUser ? "แก้โดยคนเดียวกัน" : "แก้โดยคนละคน";
-    const userColor = sameUser ? "text-indigo-600 bg-indigo-50 border-indigo-100" : "text-amber-600 bg-amber-50 border-amber-100";
+    const userColor = sameUser
+      ? "text-indigo-600 bg-indigo-50 border-indigo-100"
+      : "text-amber-600 bg-amber-50 border-amber-100";
 
     return { sizeStr, sizeColor, timeStr, userStr, userColor };
   };
 
-  const diff = selectedData.length === 2 ? calculateDiff(selectedData[0], selectedData[1]) : null;
+  const diff =
+    selectedData.length === 2
+      ? calculateDiff(selectedData[0], selectedData[1])
+      : null;
   const compareFields =
-    selectedData.length === 2 ? buildVersionDiffFields(selectedData[0], selectedData[1]) : [];
+    selectedData.length === 2
+      ? buildVersionDiffFields(selectedData[0], selectedData[1])
+      : [];
   const remarkDiff =
     selectedData.length === 2
       ? buildRemarkDiff(selectedData[0].remarks, selectedData[1].remarks)
       : null;
   const remarksChanged =
-    selectedData.length === 2 && selectedData[0].remarks !== selectedData[1].remarks;
+    selectedData.length === 2 &&
+    selectedData[0].remarks !== selectedData[1].remarks;
   const changeCount =
     compareFields.filter((f) => f.changed).length + (remarksChanged ? 1 : 0);
 
   const showCheckboxes = versions.length > 1;
   const canCompare = selectedVersions.length === 2;
-  const docTypeStr = typeof doc?.type === 'object' ? (doc?.type as any)?.prefix : (doc?.type || "");
+  const docTypeStr =
+    typeof doc?.type === "object"
+      ? (doc?.type as any)?.prefix
+      : doc?.type || "";
   const isFormType = ["PR", "PO", "BK", "บันทึก"].includes(docTypeStr);
 
   const iconActionBtn =
@@ -267,511 +386,659 @@ export default function DocumentVersionsPage() {
   return (
     <div className={APP_PAGE_SHELL}>
       <div className={APP_PAGE_CONTENT}>
+        <div className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
+          <div className="space-y-4">
+            <Link
+              href={`/documents/${doc.id}`}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600"
+            >
+              <ArrowLeft className="size-4" />
+              กลับไปยังรายละเอียดเอกสาร (Back to Document Details)
+            </Link>
 
-      <div className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
-        <div className="space-y-4">
-        <Link
-          href={`/documents/${doc.id}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600"
-        >
-          <ArrowLeft className="size-4" />
-          กลับไปยังรายละเอียดเอกสาร (Back to Document Details)
-        </Link>
-
-        <PageHeader
-          size="compact"
-          title={`ประวัติการแก้ไข (Version History): ${doc.id}`}
-          subtitle={`ติดตามการเปลี่ยนแปลงของ "${doc.name}"`}
-          actions={
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsUploadVersionOpen(true)}
-                className="flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-blue-700 cursor-pointer"
-              >
-                <Upload className="size-3.5" />
-                อัปโหลดเวอร์ชันใหม่ (Upload Version)
-              </button>
-              {showCheckboxes && (
-                <button
-                  onClick={() => setShowCompareResult(true)}
-                  disabled={!canCompare}
-                  title={!canCompare ? "เลือก 2 เวอร์ชันเพื่อเปรียบเทียบ" : "เปรียบเทียบเวอร์ชันที่เลือก"}
-                  className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
-                    canCompare
-                      ? "bg-slate-800 text-white shadow-xs hover:bg-slate-900 cursor-pointer"
-                      : "cursor-not-allowed bg-slate-200 text-slate-500 opacity-50"
-                  }`}
-                >
-                  <FileText className="size-3.5" />
-                  Compare Selected
-                </button>
-              )}
-            </div>
-          }
-        />
-        </div>
-      </div>
-
-      <div className="mt-6 flex flex-col space-y-4">
-
-        <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
-          <table className="w-full min-w-[800px] table-fixed border-collapse text-left">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                <th className="w-24 py-4 pl-6 align-middle">Version</th>
-                <th className="w-36 py-4 align-middle">Updated Date</th>
-                <th className="w-40 py-4 align-middle">Modifier</th>
-                <th className="w-auto py-4 align-middle">Changes / Remarks</th>
-                <th className="w-32 py-4 text-center align-middle">Status</th>
-                <th className="w-28 py-4 pr-6 text-center align-middle">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {versions.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-10 text-center text-sm font-semibold text-slate-400">
-                    ไม่มีประวัติการแก้ไข
-                  </td>
-                </tr>
-              ) : versions.map((ver) => {
-                const isChecked = selectedVersions.includes(ver.id);
-                const isDisabled = !isChecked && selectedVersions.length >= 2;
-
-                return (
-                  <tr
-                    key={ver.id}
-                    className={`border-b border-slate-100 transition-colors last:border-b-0 hover:bg-slate-50 ${
-                      isChecked ? "bg-blue-50/40" : "bg-white"
-                    }`}
+            <PageHeader
+              size="compact"
+              title={`ประวัติการแก้ไข (Version History): ${doc.id}`}
+              subtitle={`ติดตามการเปลี่ยนแปลงของ "${doc.name}"`}
+              actions={
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={
+                      !doc ||
+                      !["Draft", "Returned"].includes(doc.status) ||
+                      ["PR", "PO", "BK"].includes(doc.type) ||
+                      (doc as any).creator_id !== user?.id ||
+                      !user?.permissions?.some((p) =>
+                        [
+                          "document.edit_document:edit",
+                          "submissions.edit_document:edit",
+                        ].includes(p),
+                      )
+                    }
+                    onClick={() => setIsUploadVersionOpen(true)}
+                    className="flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-blue-700 cursor-pointer"
                   >
-                    <td className="py-4 pl-6 align-middle">
-                      <div className="flex items-center gap-3">
-                        {showCheckboxes && (
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            disabled={isDisabled}
-                            onChange={() => handleCheckboxChange(ver.id)}
-                            className="size-4 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
-                          />
-                        )}
-                        <span className="text-sm font-bold tabular-nums text-slate-800">
-                          {ver.version_number}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 text-xs font-semibold text-slate-500">
-                      {formatVersionDate(ver.created_at)}
-                    </td>
-                    <td className="py-4 text-xs font-semibold text-slate-800">{getModifierName(ver.uploaded_by)}</td>
-                    <td className="py-4 pr-6 text-xs font-medium leading-relaxed text-slate-500">
-                      {ver.remarks && !['เอกสารชุดปัจจุบัน', 'กำลังรอการอนุมัติ', 'อนุมัติเสร็จสิ้น', 'อนุมัติสำเร็จแล้ว (Approved)', 'Initial upload'].includes(ver.remarks) ? (
-                        <span className="text-slate-500">{ver.remarks.replace(/^(โดนตีกลับ|ไม่อนุมัติ)\s*:\s*/, '').trim()}</span>
-                      ) : (
-                        <span className="text-slate-400 italic">ไม่มีหมายเหตุ</span>
-                      )}
-                    </td>
-                    <td className="py-4 text-center align-middle">
-                      <div className="flex flex-col items-center gap-1.5">
-                        {getRemarkBadge(ver.remarks)}
-                        {ver.is_active && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 ring-1 ring-emerald-100">
-                            <span className="size-1 shrink-0 rounded-full bg-emerald-500" aria-hidden />
-                            Current
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-4 pr-6 text-center align-middle">
-                      <div className="inline-flex items-center justify-center gap-0.5">
-                        <button
-                          type="button"
-                          onClick={() => setViewingVersion(ver.id)}
-                          className={`${iconActionBtn} hover:text-blue-600`}
-                        >
-                          <Eye className="size-4" />
-                          <span className={iconActionTooltip}>ดูเวอร์ชัน</span>
-                        </button>
-                        <button
-                          type="button"
-                          disabled={downloadingVersion === ver.version_number}
-                          onClick={() => handleDownloadVersion(ver.version_number)}
-                          className={`${iconActionBtn} hover:text-emerald-600 disabled:opacity-50`}
-                        >
-                          {downloadingVersion === ver.version_number ? (
-                            <Loader2 className="size-4 animate-spin text-blue-600" />
-                          ) : (
-                            <Download className="size-4" />
-                          )}
-                          <span className={iconActionTooltip}>ดาวน์โหลด</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {showCheckboxes && (
-          <p className="text-[11px] font-semibold text-slate-400">
-            * เลือก Checkbox 2 รายการเพื่อเปรียบเทียบ
-          </p>
-        )}
-
-        {showCompareResult && selectedData.length === 2 && (
-          <div className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
-            <div className="mb-4 flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-              <div>
-                <h3 className="text-sm font-bold text-slate-800">
-                  ผลการเปรียบเทียบเวอร์ชัน (Compare Versions)
-                </h3>
-                <p className="mt-1 text-xs font-semibold text-emerald-700">
-                  เปลี่ยนแปลง {changeCount} รายการ
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowCompareResult(false)}
-                className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-                aria-label="ปิดผลการเปรียบเทียบ"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              {[selectedData[0], selectedData[1]].map((ver, colIdx) => (
-                <div
-                  key={ver.id}
-                  className={`rounded-xl border p-4 ${
-                    colIdx === 0 ? "border-slate-200 bg-slate-50/50" : "border-blue-200 bg-blue-50/30"
-                  }`}
-                >
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <span className="text-sm font-bold text-slate-800">{ver.version_number}</span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        colIdx === 0
-                          ? "bg-white text-slate-500 ring-1 ring-slate-200"
-                          : "bg-white text-blue-600 ring-1 ring-blue-200"
+                    <Upload className="size-3.5" />
+                    อัปโหลดเวอร์ชันใหม่ (Upload Version)
+                  </button>
+                  {showCheckboxes && (
+                    <button
+                      onClick={() => setShowCompareResult(true)}
+                      disabled={!canCompare}
+                      title={
+                        !canCompare
+                          ? "เลือก 2 เวอร์ชันเพื่อเปรียบเทียบ"
+                          : "เปรียบเทียบเวอร์ชันที่เลือก"
+                      }
+                      className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+                        canCompare
+                          ? "bg-slate-800 text-white shadow-xs hover:bg-slate-900 cursor-pointer"
+                          : "cursor-not-allowed bg-slate-200 text-slate-500 opacity-50"
                       }`}
                     >
-                      {colIdx === 0 ? "Older" : "Newer"}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500">{formatVersionDate(ver.created_at)}</p>
-                  <p className="mt-0.5 text-xs font-semibold text-slate-700">{getModifierName(ver.uploaded_by)}</p>
+                      <FileText className="size-3.5" />
+                      Compare Selected
+                    </button>
+                  )}
                 </div>
-              ))}
-            </div>
+              }
+            />
+          </div>
+        </div>
 
-            <div className="mt-5 overflow-x-auto rounded-xl border border-slate-100">
-              <table className="w-full min-w-[640px] text-sm">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    <th className="px-4 py-3 text-left">ฟิลด์</th>
-                    <th className="px-4 py-3 text-left">{selectedData[0].version_number}</th>
-                    <th className="px-4 py-3 text-left">{selectedData[1].version_number}</th>
+        <div className="mt-6 flex flex-col space-y-4">
+          <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
+            <table className="w-full min-w-[800px] table-fixed border-collapse text-left">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  <th className="w-24 py-4 pl-6 align-middle">Version</th>
+                  <th className="w-36 py-4 align-middle">Updated Date</th>
+                  <th className="w-40 py-4 align-middle">Modifier</th>
+                  <th className="w-auto py-4 align-middle">
+                    Changes / Remarks
+                  </th>
+                  <th className="w-32 py-4 text-center align-middle">Status</th>
+                  <th className="w-28 py-4 pr-6 text-center align-middle">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {versions.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="py-10 text-center text-sm font-semibold text-slate-400"
+                    >
+                      ไม่มีประวัติการแก้ไข
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {compareFields.map((field) => (
-                    <tr key={field.label} className="border-b border-slate-100 last:border-b-0">
-                      <td className="px-4 py-3 text-xs font-semibold text-slate-500">{field.label}</td>
-                      <td
-                        className={`px-4 py-3 text-xs font-medium ${
-                          field.changed ? "bg-red-50 text-red-700" : "text-slate-700"
+                ) : (
+                  versions.map((ver) => {
+                    const isChecked = selectedVersions.includes(ver.id);
+                    const isDisabled =
+                      !isChecked && selectedVersions.length >= 2;
+
+                    return (
+                      <tr
+                        key={ver.id}
+                        className={`border-b border-slate-100 transition-colors last:border-b-0 hover:bg-slate-50 ${
+                          isChecked ? "bg-blue-50/40" : "bg-white"
                         }`}
                       >
-                        {field.older}
+                        <td className="py-4 pl-6 align-middle">
+                          <div className="flex items-center gap-3">
+                            {showCheckboxes && (
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                disabled={isDisabled}
+                                onChange={() => handleCheckboxChange(ver.id)}
+                                className="size-4 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+                              />
+                            )}
+                            <span className="text-sm font-bold tabular-nums text-slate-800">
+                              {ver.version_number}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 text-xs font-semibold text-slate-500">
+                          {formatVersionDate(ver.created_at)}
+                        </td>
+                        <td className="py-4 text-xs font-semibold text-slate-800">
+                          {getModifierName(ver.uploaded_by)}
+                        </td>
+                        <td className="py-4 pr-6 text-xs font-medium leading-relaxed text-slate-500">
+                          {ver.remarks &&
+                          ![
+                            "เอกสารชุดปัจจุบัน",
+                            "กำลังรอการอนุมัติ",
+                            "อนุมัติเสร็จสิ้น",
+                            "อนุมัติสำเร็จแล้ว (Approved)",
+                            "Initial upload",
+                          ].includes(ver.remarks) ? (
+                            <span className="text-slate-500">
+                              {ver.remarks
+                                .replace(/^(โดนตีกลับ|ไม่อนุมัติ)\s*:\s*/, "")
+                                .trim()}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic">
+                              ไม่มีหมายเหตุ
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 text-center align-middle">
+                          <div className="flex flex-col items-center gap-1.5">
+                            {getRemarkBadge(ver.remarks)}
+                            {ver.is_active && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 ring-1 ring-emerald-100">
+                                <span
+                                  className="size-1 shrink-0 rounded-full bg-emerald-500"
+                                  aria-hidden
+                                />
+                                Current
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-4 pr-6 text-center align-middle">
+                          <div className="inline-flex items-center justify-center gap-0.5">
+                            <button
+                              type="button"
+                              onClick={() => setViewingVersion(ver.id)}
+                              className={`${iconActionBtn} hover:text-blue-600`}
+                            >
+                              <Eye className="size-4" />
+                              <span className={iconActionTooltip}>
+                                ดูเวอร์ชัน
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              disabled={
+                                downloadingVersion === ver.version_number
+                              }
+                              onClick={() =>
+                                handleDownloadVersion(ver.version_number)
+                              }
+                              className={`${iconActionBtn} hover:text-emerald-600 disabled:opacity-50`}
+                            >
+                              {downloadingVersion === ver.version_number ? (
+                                <Loader2 className="size-4 animate-spin text-blue-600" />
+                              ) : (
+                                <Download className="size-4" />
+                              )}
+                              <span className={iconActionTooltip}>
+                                ดาวน์โหลด
+                              </span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {showCheckboxes && (
+            <p className="text-[11px] font-semibold text-slate-400">
+              * เลือก Checkbox 2 รายการเพื่อเปรียบเทียบ
+            </p>
+          )}
+
+          {showCompareResult && selectedData.length === 2 && (
+            <div className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
+              <div className="mb-4 flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">
+                    ผลการเปรียบเทียบเวอร์ชัน (Compare Versions)
+                  </h3>
+                  <p className="mt-1 text-xs font-semibold text-emerald-700">
+                    เปลี่ยนแปลง {changeCount} รายการ
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCompareResult(false)}
+                  className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                  aria-label="ปิดผลการเปรียบเทียบ"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {[selectedData[0], selectedData[1]].map((ver, colIdx) => (
+                  <div
+                    key={ver.id}
+                    className={`rounded-xl border p-4 ${
+                      colIdx === 0
+                        ? "border-slate-200 bg-slate-50/50"
+                        : "border-blue-200 bg-blue-50/30"
+                    }`}
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <span className="text-sm font-bold text-slate-800">
+                        {ver.version_number}
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          colIdx === 0
+                            ? "bg-white text-slate-500 ring-1 ring-slate-200"
+                            : "bg-white text-blue-600 ring-1 ring-blue-200"
+                        }`}
+                      >
+                        {colIdx === 0 ? "Older" : "Newer"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      {formatVersionDate(ver.created_at)}
+                    </p>
+                    <p className="mt-0.5 text-xs font-semibold text-slate-700">
+                      {getModifierName(ver.uploaded_by)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 overflow-x-auto rounded-xl border border-slate-100">
+                <table className="w-full min-w-[640px] text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      <th className="px-4 py-3 text-left">ฟิลด์</th>
+                      <th className="px-4 py-3 text-left">
+                        {selectedData[0].version_number}
+                      </th>
+                      <th className="px-4 py-3 text-left">
+                        {selectedData[1].version_number}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {compareFields.map((field) => (
+                      <tr
+                        key={field.label}
+                        className="border-b border-slate-100 last:border-b-0"
+                      >
+                        <td className="px-4 py-3 text-xs font-semibold text-slate-500">
+                          {field.label}
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-xs font-medium ${
+                            field.changed
+                              ? "bg-red-50 text-red-700"
+                              : "text-slate-700"
+                          }`}
+                        >
+                          {field.older}
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-xs font-medium ${
+                            field.changed
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "text-slate-700"
+                          }`}
+                        >
+                          {field.newer}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr>
+                      <td className="px-4 py-3 align-top text-xs font-semibold text-slate-500">
+                        หมายเหตุ
                       </td>
-                      <td
-                        className={`px-4 py-3 text-xs font-medium ${
-                          field.changed ? "bg-emerald-50 text-emerald-700" : "text-slate-700"
-                        }`}
-                      >
-                        {field.newer}
+                      <td className="px-4 py-3 align-top">
+                        <ul className="space-y-1.5">
+                          {remarkDiff?.older.map((line, i) => (
+                            <li
+                              key={`old-${i}`}
+                              className={`rounded-md px-2 py-1 text-xs leading-relaxed ${
+                                line.tone === "removed"
+                                  ? "bg-red-50 text-red-700 line-through decoration-red-300"
+                                  : "bg-white text-slate-600"
+                              }`}
+                            >
+                              {line.text}
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                      <td className="px-4 py-3 align-top">
+                        <ul className="space-y-1.5">
+                          {remarkDiff?.newer.map((line, i) => (
+                            <li
+                              key={`new-${i}`}
+                              className={`rounded-md px-2 py-1 text-xs leading-relaxed ${
+                                line.tone === "added"
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-white text-slate-600"
+                              }`}
+                            >
+                              {line.text}
+                            </li>
+                          ))}
+                        </ul>
                       </td>
                     </tr>
-                  ))}
-                  <tr>
-                    <td className="px-4 py-3 align-top text-xs font-semibold text-slate-500">
-                      หมายเหตุ
-                    </td>
-                    <td className="px-4 py-3 align-top">
-                      <ul className="space-y-1.5">
-                        {remarkDiff?.older.map((line, i) => (
-                          <li
-                            key={`old-${i}`}
-                            className={`rounded-md px-2 py-1 text-xs leading-relaxed ${
-                              line.tone === "removed"
-                                ? "bg-red-50 text-red-700 line-through decoration-red-300"
-                                : "bg-white text-slate-600"
-                            }`}
-                          >
-                            {line.text}
-                          </li>
-                        ))}
-                      </ul>
-                    </td>
-                    <td className="px-4 py-3 align-top">
-                      <ul className="space-y-1.5">
-                        {remarkDiff?.newer.map((line, i) => (
-                          <li
-                            key={`new-${i}`}
-                            className={`rounded-md px-2 py-1 text-xs leading-relaxed ${
-                              line.tone === "added"
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-white text-slate-600"
-                            }`}
-                          >
-                            {line.text}
-                          </li>
-                        ))}
-                      </ul>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* COMPARE MODAL */}
-      {showCompareModal && selectedData.length === 2 && diff && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in transition-[padding] duration-200"
-          style={{ paddingLeft: isOpen ? "calc(16rem + 1rem)" : "calc(5rem + 1rem)" }}
-        >
-          {/* Backdrop Click */}
-          <div className="absolute inset-0 cursor-pointer" onClick={() => setShowCompareModal(false)}></div>
-          
-          <div className="relative bg-white rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col max-h-[90vh]">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-[#eef2f9] rounded-t-2xl">
-              <div>
-                <h3 className="text-lg font-black text-slate-800">เปรียบเทียบเวอร์ชัน (Compare Versions)</h3>
-                <p className="text-xs font-semibold text-slate-500 mt-1">
-                  เทียบจากเวอร์ชันเก่า ไปยัง เวอร์ชันที่ใหม่กว่า
-                </p>
-              </div>
-              <button 
-                onClick={() => setShowCompareModal(false)}
-                className="p-2 rounded-xl hover:bg-slate-200 text-slate-500 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+        {/* COMPARE MODAL */}
+        {showCompareModal && selectedData.length === 2 && diff && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in transition-[padding] duration-200"
+            style={{
+              paddingLeft: isOpen ? "calc(16rem + 1rem)" : "calc(5rem + 1rem)",
+            }}
+          >
+            {/* Backdrop Click */}
+            <div
+              className="absolute inset-0 cursor-pointer"
+              onClick={() => setShowCompareModal(false)}
+            ></div>
 
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-              
-              {/* Metadata Cards */}
-              <div className="grid grid-cols-2 gap-6 relative">
-                
-                {/* Arrow indicator between columns */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full border border-slate-200 shadow-sm flex items-center justify-center text-slate-300">
-                  <ArrowRight className="w-5 h-5" />
+            <div className="relative bg-white rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-[#eef2f9] rounded-t-2xl">
+                <div>
+                  <h3 className="text-lg font-black text-slate-800">
+                    เปรียบเทียบเวอร์ชัน (Compare Versions)
+                  </h3>
+                  <p className="text-xs font-semibold text-slate-500 mt-1">
+                    เทียบจากเวอร์ชันเก่า ไปยัง เวอร์ชันที่ใหม่กว่า
+                  </p>
                 </div>
-
-                {/* Left Side (Older) */}
-                <div className="bg-white border border-slate-200 rounded-2xl flex flex-col shadow-sm">
-                  <div className="bg-slate-100/50 px-5 py-3 border-b border-slate-100 flex justify-between items-center rounded-t-2xl">
-                    <span className="font-black text-slate-700">{selectedData[0].version_number}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-white border-slate-200 text-slate-500">Older Version</span>
-                  </div>
-                  <div className="p-5 flex flex-col gap-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><User className="w-3.5 h-3.5"/> แก้ไขโดย</span>
-                        <span className="text-sm font-bold text-slate-700">{getModifierName(selectedData[0].uploaded_by)}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> วันที่แก้ไข</span>
-                        <span className="text-sm font-bold text-slate-700">{formatVersionDate(selectedData[0].created_at)}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><FileUp className="w-3.5 h-3.5"/> ขนาดไฟล์</span>
-                        <span className="text-sm font-bold text-slate-700">{selectedData[0].file_size_kb} KB</span>
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1">หมายเหตุการแก้ไข</span>
-                      <p className="text-sm font-medium text-slate-600 bg-[#eef2f9] p-3 rounded-xl border border-slate-200">
-                        {selectedData[0].remarks}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Side (Newer) */}
-                <div className="bg-white border border-blue-200 rounded-2xl flex flex-col shadow-sm ring-1 ring-blue-100">
-                  <div className="bg-blue-50/50 px-5 py-3 border-b border-blue-100 flex justify-between items-center rounded-t-2xl">
-                    <span className="font-black text-blue-800">{selectedData[1].version_number}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-white border-blue-200 text-blue-600">Newer Version</span>
-                  </div>
-                  <div className="p-5 flex flex-col gap-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><User className="w-3.5 h-3.5"/> แก้ไขโดย</span>
-                        <span className="text-sm font-bold text-slate-700">{getModifierName(selectedData[1].uploaded_by)}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> วันที่แก้ไข</span>
-                        <span className="text-sm font-bold text-slate-700">{formatVersionDate(selectedData[1].created_at)}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5"><FileUp className="w-3.5 h-3.5"/> ขนาดไฟล์</span>
-                        <span className="text-sm font-bold text-slate-700">{selectedData[1].file_size_kb} KB</span>
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1">หมายเหตุการแก้ไข</span>
-                      <p className="text-sm font-medium text-slate-600 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
-                        {selectedData[1].remarks}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
+                <button
+                  onClick={() => setShowCompareModal(false)}
+                  className="p-2 rounded-xl hover:bg-slate-200 text-slate-500 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              {/* Diff Indicators */}
-              <div className="mt-6 flex items-center justify-center gap-4">
-                <div className={`px-4 py-2 rounded-full font-bold text-xs flex items-center gap-2 ${diff.sizeColor}`}>
-                  <FileUp className="w-4 h-4" />
-                  {diff.sizeStr}
-                </div>
-                <div className="px-4 py-2 bg-white border border-slate-200 rounded-full font-bold text-xs flex items-center gap-2 text-slate-600">
-                  <Clock className="w-4 h-4 text-slate-400" />
-                  {diff.timeStr}
-                </div>
-                <div className={`px-4 py-2 rounded-full border font-bold text-xs flex items-center gap-2 ${diff.userColor}`}>
-                  <User className="w-4 h-4" />
-                  {diff.userStr}
-                </div>
-              </div>
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+                {/* Metadata Cards */}
+                <div className="grid grid-cols-2 gap-6 relative">
+                  {/* Arrow indicator between columns */}
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full border border-slate-200 shadow-sm flex items-center justify-center text-slate-300">
+                    <ArrowRight className="w-5 h-5" />
+                  </div>
 
-              {/* Level 2: Side-by-side Preview */}
-              <div className="mt-8">
-                <h4 className="text-sm font-bold text-slate-700 mb-4 px-1">File Preview</h4>
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Preview Left */}
-                  <div className="border border-slate-200 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 aspect-[1/1.2] shadow-inner relative overflow-hidden">
-                     {isFormType ? (
-                       <div className="absolute inset-0 bg-white m-2 sm:m-4 rounded shadow-sm border border-slate-200 overflow-y-auto">
-                         <div className="scale-[0.5] sm:scale-[0.6] origin-top mx-auto">
-                           <DocumentPreview doc={doc} versionId={selectedData[0].id} hideHeader isViewer />
-                         </div>
-                       </div>
-                     ) : (
-                       <iframe 
+                  {/* Left Side (Older) */}
+                  <div className="bg-white border border-slate-200 rounded-2xl flex flex-col shadow-sm">
+                    <div className="bg-slate-100/50 px-5 py-3 border-b border-slate-100 flex justify-between items-center rounded-t-2xl">
+                      <span className="font-black text-slate-700">
+                        {selectedData[0].version_number}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-white border-slate-200 text-slate-500">
+                        Older Version
+                      </span>
+                    </div>
+                    <div className="p-5 flex flex-col gap-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5">
+                            <User className="w-3.5 h-3.5" /> แก้ไขโดย
+                          </span>
+                          <span className="text-sm font-bold text-slate-700">
+                            {getModifierName(selectedData[0].uploaded_by)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" /> วันที่แก้ไข
+                          </span>
+                          <span className="text-sm font-bold text-slate-700">
+                            {formatVersionDate(selectedData[0].created_at)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5">
+                            <FileUp className="w-3.5 h-3.5" /> ขนาดไฟล์
+                          </span>
+                          <span className="text-sm font-bold text-slate-700">
+                            {selectedData[0].file_size_kb} KB
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+                          หมายเหตุการแก้ไข
+                        </span>
+                        <p className="text-sm font-medium text-slate-600 bg-[#eef2f9] p-3 rounded-xl border border-slate-200">
+                          {selectedData[0].remarks}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Side (Newer) */}
+                  <div className="bg-white border border-blue-200 rounded-2xl flex flex-col shadow-sm ring-1 ring-blue-100">
+                    <div className="bg-blue-50/50 px-5 py-3 border-b border-blue-100 flex justify-between items-center rounded-t-2xl">
+                      <span className="font-black text-blue-800">
+                        {selectedData[1].version_number}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-white border-blue-200 text-blue-600">
+                        Newer Version
+                      </span>
+                    </div>
+                    <div className="p-5 flex flex-col gap-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5">
+                            <User className="w-3.5 h-3.5" /> แก้ไขโดย
+                          </span>
+                          <span className="text-sm font-bold text-slate-700">
+                            {getModifierName(selectedData[1].uploaded_by)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" /> วันที่แก้ไข
+                          </span>
+                          <span className="text-sm font-bold text-slate-700">
+                            {formatVersionDate(selectedData[1].created_at)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1.5">
+                            <FileUp className="w-3.5 h-3.5" /> ขนาดไฟล์
+                          </span>
+                          <span className="text-sm font-bold text-slate-700">
+                            {selectedData[1].file_size_kb} KB
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+                          หมายเหตุการแก้ไข
+                        </span>
+                        <p className="text-sm font-medium text-slate-600 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+                          {selectedData[1].remarks}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Diff Indicators */}
+                <div className="mt-6 flex items-center justify-center gap-4">
+                  <div
+                    className={`px-4 py-2 rounded-full font-bold text-xs flex items-center gap-2 ${diff.sizeColor}`}
+                  >
+                    <FileUp className="w-4 h-4" />
+                    {diff.sizeStr}
+                  </div>
+                  <div className="px-4 py-2 bg-white border border-slate-200 rounded-full font-bold text-xs flex items-center gap-2 text-slate-600">
+                    <Clock className="w-4 h-4 text-slate-400" />
+                    {diff.timeStr}
+                  </div>
+                  <div
+                    className={`px-4 py-2 rounded-full border font-bold text-xs flex items-center gap-2 ${diff.userColor}`}
+                  >
+                    <User className="w-4 h-4" />
+                    {diff.userStr}
+                  </div>
+                </div>
+
+                {/* Level 2: Side-by-side Preview */}
+                <div className="mt-8">
+                  <h4 className="text-sm font-bold text-slate-700 mb-4 px-1">
+                    File Preview
+                  </h4>
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Preview Left */}
+                    <div className="border border-slate-200 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 aspect-[1/1.2] shadow-inner relative overflow-hidden">
+                      {isFormType ? (
+                        <div className="absolute inset-0 bg-white m-2 sm:m-4 rounded shadow-sm border border-slate-200 overflow-y-auto">
+                          <div className="scale-[0.5] sm:scale-[0.6] origin-top mx-auto">
+                            <DocumentPreview
+                              doc={doc}
+                              versionId={selectedData[0].id}
+                              hideHeader
+                              isViewer
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <iframe
                           src={`/api/documents/${doc?.id}/download?v=${selectedData[0].version_number}#toolbar=0`}
                           className="absolute inset-0 w-full h-full border-0"
                           title={`${selectedData[0].version_number} Preview`}
-                       />
-                     )}
-                  </div>
-                  {/* Preview Right */}
-                  <div className="border border-slate-200 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 aspect-[1/1.2] shadow-inner relative overflow-hidden">
-                     {isFormType ? (
-                       <div className="absolute inset-0 bg-white m-2 sm:m-4 rounded shadow-sm border border-slate-200 overflow-y-auto">
-                         <div className="scale-[0.5] sm:scale-[0.6] origin-top mx-auto">
-                           <DocumentPreview doc={doc} versionId={selectedData[1].id} hideHeader isViewer />
-                         </div>
-                       </div>
-                     ) : (
-                       <iframe 
+                        />
+                      )}
+                    </div>
+                    {/* Preview Right */}
+                    <div className="border border-slate-200 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 aspect-[1/1.2] shadow-inner relative overflow-hidden">
+                      {isFormType ? (
+                        <div className="absolute inset-0 bg-white m-2 sm:m-4 rounded shadow-sm border border-slate-200 overflow-y-auto">
+                          <div className="scale-[0.5] sm:scale-[0.6] origin-top mx-auto">
+                            <DocumentPreview
+                              doc={doc}
+                              versionId={selectedData[1].id}
+                              hideHeader
+                              isViewer
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <iframe
                           src={`/api/documents/${doc?.id}/download?v=${selectedData[1].version_number}#toolbar=0`}
                           className="absolute inset-0 w-full h-full border-0"
                           title={`${selectedData[1].version_number} Preview`}
-                       />
-                     )}
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
-            </div>
-
-            {/* Footer */}
-            <div className="p-4 border-t border-slate-100 bg-white rounded-b-2xl flex justify-between items-center">
-              <div className="flex gap-4">
-                <button 
-                  disabled={downloadingVersion === selectedData[0].version_number}
-                  onClick={() => handleDownloadVersion(selectedData[0].version_number)}
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
+              {/* Footer */}
+              <div className="p-4 border-t border-slate-100 bg-white rounded-b-2xl flex justify-between items-center">
+                <div className="flex gap-4">
+                  <button
+                    disabled={
+                      downloadingVersion === selectedData[0].version_number
+                    }
+                    onClick={() =>
+                      handleDownloadVersion(selectedData[0].version_number)
+                    }
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {downloadingVersion === selectedData[0].version_number ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    ) : (
+                      <Download className="w-4 h-4" />
+                    )}
+                    โหลด {selectedData[0].version_number}
+                  </button>
+                  <button
+                    disabled={
+                      downloadingVersion === selectedData[1].version_number
+                    }
+                    onClick={() =>
+                      handleDownloadVersion(selectedData[1].version_number)
+                    }
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {downloadingVersion === selectedData[1].version_number ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    ) : (
+                      <Download className="w-4 h-4" />
+                    )}
+                    โหลด {selectedData[1].version_number}
+                  </button>
+                </div>
+                <button
+                  onClick={() => setShowCompareModal(false)}
+                  className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors"
                 >
-                  {downloadingVersion === selectedData[0].version_number ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                  ) : (
-                    <Download className="w-4 h-4" />
-                  )}
-                  โหลด {selectedData[0].version_number}
-                </button>
-                <button 
-                  disabled={downloadingVersion === selectedData[1].version_number}
-                  onClick={() => handleDownloadVersion(selectedData[1].version_number)}
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  {downloadingVersion === selectedData[1].version_number ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                  ) : (
-                    <Download className="w-4 h-4" />
-                  )}
-                  โหลด {selectedData[1].version_number}
+                  Close
                 </button>
               </div>
-              <button 
-                onClick={() => setShowCompareModal(false)}
-                className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors"
-              >
-                Close
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* VIEW SINGLE VERSION MODAL */}
-      {viewingVersion && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in transition-[padding] duration-200"
-          style={{ paddingLeft: isOpen ? "calc(16rem + 1rem)" : "calc(5rem + 1rem)" }}
-        >
-          <div className="absolute inset-0 cursor-pointer" onClick={() => setViewingVersion(null)}></div>
-          
-          <div className="relative bg-white rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col h-[85vh]">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50 rounded-t-2xl">
-              <div>
-                <h3 className="text-lg font-black text-slate-800">
-                  ตัวอย่างไฟล์ (Preview) - {versions.find(v => v.id === viewingVersion)?.version_number}
-                </h3>
-                <p className="text-xs font-semibold text-slate-500 mt-1">
-                  ดูตัวอย่างไฟล์เวอร์ชันที่เลือก
-                </p>
+        {/* VIEW SINGLE VERSION MODAL */}
+        {viewingVersion && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in transition-[padding] duration-200"
+            style={{
+              paddingLeft: isOpen ? "calc(16rem + 1rem)" : "calc(5rem + 1rem)",
+            }}
+          >
+            <div
+              className="absolute inset-0 cursor-pointer"
+              onClick={() => setViewingVersion(null)}
+            ></div>
+
+            <div className="relative bg-white rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col h-[85vh]">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50 rounded-t-2xl">
+                <div>
+                  <h3 className="text-lg font-black text-slate-800">
+                    ตัวอย่างไฟล์ (Preview) -{" "}
+                    {
+                      versions.find((v) => v.id === viewingVersion)
+                        ?.version_number
+                    }
+                  </h3>
+                  <p className="text-xs font-semibold text-slate-500 mt-1">
+                    ดูตัวอย่างไฟล์เวอร์ชันที่เลือก
+                  </p>
+                </div>
+                <button
+                  onClick={() => setViewingVersion(null)}
+                  className="p-2 rounded-xl hover:bg-slate-200 text-slate-500 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button 
-                onClick={() => setViewingVersion(null)}
-                className="p-2 rounded-xl hover:bg-slate-200 text-slate-500 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
               <div className="flex-1 overflow-hidden p-6 bg-slate-100/50 flex flex-col relative">
                 {isFormType ? (
                   <div className="absolute inset-4 bg-white m-4 rounded shadow-sm border border-slate-200 overflow-y-auto">
                     <div className="scale-[0.8] origin-top mx-auto max-w-5xl">
-                      <DocumentPreview doc={doc} versionId={viewingVersion || undefined} hideHeader isViewer />
+                      <DocumentPreview
+                        doc={doc}
+                        versionId={viewingVersion || undefined}
+                        hideHeader
+                        isViewer
+                      />
                     </div>
                   </div>
                 ) : (
                   <div className="flex-1 bg-white border border-slate-200 rounded-xl flex flex-col shadow-inner relative overflow-hidden">
-                    <iframe 
-                      src={`/api/documents/${doc?.id}/download?v=${versions.find(v => v.id === viewingVersion)?.version_number}`}
+                    <iframe
+                      src={`/api/documents/${doc?.id}/download?v=${versions.find((v) => v.id === viewingVersion)?.version_number}`}
                       className="w-full h-full border-0"
                       title="PDF Preview"
                     />
@@ -779,158 +1046,182 @@ export default function DocumentVersionsPage() {
                 )}
               </div>
               <div className="p-4 border-t border-slate-100 bg-white rounded-b-2xl flex justify-between items-center">
-              <button 
-                disabled={downloadingVersion === versions.find(v => v.id === viewingVersion)?.version_number}
-                onClick={() => {
-                  const targetVer = versions.find(v => v.id === viewingVersion);
-                  if (targetVer) handleDownloadVersion(targetVer.version_number);
-                }}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
-              >
-                {downloadingVersion === versions.find(v => v.id === viewingVersion)?.version_number ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                ) : (
-                  <Download className="w-4 h-4" />
-                )}
-                โหลดเวอร์ชันนี้
-              </button>
-              <button 
-                onClick={() => setViewingVersion(null)}
-                className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors cursor-pointer"
-              >
-                Close
-              </button>
+                <button
+                  disabled={
+                    downloadingVersion ===
+                    versions.find((v) => v.id === viewingVersion)
+                      ?.version_number
+                  }
+                  onClick={() => {
+                    const targetVer = versions.find(
+                      (v) => v.id === viewingVersion,
+                    );
+                    if (targetVer)
+                      handleDownloadVersion(targetVer.version_number);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 text-slate-600 font-bold rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {downloadingVersion ===
+                  versions.find((v) => v.id === viewingVersion)
+                    ?.version_number ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  โหลดเวอร์ชันนี้
+                </button>
+                <button
+                  onClick={() => setViewingVersion(null)}
+                  className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* UPLOAD NEW VERSION MODAL */}
-      {isUploadVersionOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 sm:p-6 overflow-y-auto animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-in zoom-in-95">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
-                  <UploadCloud className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800">อัปโหลดเวอร์ชันใหม่ (Upload New Version)</h3>
-                  <p className="text-xs text-slate-400">อัปโหลดไฟล์ PDF ฉบับแก้ไขสำหรับ {doc.doc_number || doc.id}</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isUploadingVersion) {
-                    setIsUploadVersionOpen(false);
-                    setNewVersionFile(null);
-                  }
-                }}
-                className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleUploadVersionSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  ไฟล์ PDF เวอร์ชันใหม่ <span className="text-red-500">*</span>
-                </label>
-                {!newVersionFile ? (
-                  <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:bg-slate-50/50 transition-colors">
-                    <UploadCloud className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                    <p className="text-xs font-bold text-slate-700">คลิกเพื่อเลือกไฟล์ PDF</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">รองรับไฟล์ .pdf ขนาดสูงสุด 20MB</p>
-                    <input
-                      type="file"
-                      id="upload-new-ver-file"
-                      accept=".pdf"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) setNewVersionFile(f);
-                      }}
-                    />
-                    <label
-                      htmlFor="upload-new-ver-file"
-                      className="inline-flex items-center gap-1.5 mt-3 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      เลือกไฟล์
-                    </label>
+        {/* UPLOAD NEW VERSION MODAL */}
+        {isUploadVersionOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 sm:p-6 overflow-y-auto animate-in fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-in zoom-in-95">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                    <UploadCloud className="w-5 h-5" />
                   </div>
-                ) : (
-                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-blue-100/70 text-blue-600 flex items-center justify-center">
-                        <FileText className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-800 truncate max-w-[260px]">{newVersionFile.name}</p>
-                        <p className="text-[10px] text-slate-400 font-medium">
-                          {(newVersionFile.size / (1024 * 1024)).toFixed(2)} MB
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={isUploadingVersion}
-                      onClick={() => setNewVersionFile(null)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
-                      title="ยกเลิกไฟล์"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800">
+                      อัปโหลดเวอร์ชันใหม่ (Upload New Version)
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      อัปโหลดไฟล์ PDF ฉบับแก้ไขสำหรับ {doc.doc_number || doc.id}
+                    </p>
                   </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  หมายเหตุการแก้ไข (Remarks)
-                </label>
-                <textarea
-                  rows={2}
-                  value={newVersionRemarks}
-                  onChange={(e) => setNewVersionRemarks(e.target.value)}
-                  placeholder="เช่น ปรับปรุงรายละเอียดตามความเห็นของผู้จัดการ หรือ แนบเอกสารฉบับแก้ไข..."
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white resize-none"
-                />
-              </div>
-
-              <div className="flex justify-end items-center gap-2 pt-3 border-t border-slate-100">
+                </div>
                 <button
                   type="button"
-                  disabled={isUploadingVersion}
-                  onClick={() => setIsUploadVersionOpen(false)}
-                  className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                  onClick={() => {
+                    if (!isUploadingVersion) {
+                      setIsUploadVersionOpen(false);
+                      setNewVersionFile(null);
+                    }
+                  }}
+                  className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                 >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUploadingVersion || !newVersionFile}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-                >
-                  {isUploadingVersion ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      กำลังอัปโหลด...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-3.5 h-3.5" />
-                      ยืนยันอัปโหลด
-                    </>
-                  )}
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </form>
+
+              <form
+                onSubmit={handleUploadVersionSubmit}
+                className="p-6 space-y-4"
+              >
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    ไฟล์ PDF เวอร์ชันใหม่{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  {!newVersionFile ? (
+                    <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:bg-slate-50/50 transition-colors">
+                      <UploadCloud className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                      <p className="text-xs font-bold text-slate-700">
+                        คลิกเพื่อเลือกไฟล์ PDF
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        รองรับไฟล์ .pdf ขนาดสูงสุด 20MB
+                      </p>
+                      <input
+                        type="file"
+                        id="upload-new-ver-file"
+                        accept=".pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) setNewVersionFile(f);
+                        }}
+                      />
+                      <label
+                        htmlFor="upload-new-ver-file"
+                        className="inline-flex items-center gap-1.5 mt-3 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        เลือกไฟล์
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-blue-100/70 text-blue-600 flex items-center justify-center">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 truncate max-w-[260px]">
+                            {newVersionFile.name}
+                          </p>
+                          <p className="text-[10px] text-slate-400 font-medium">
+                            {(newVersionFile.size / (1024 * 1024)).toFixed(2)}{" "}
+                            MB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isUploadingVersion}
+                        onClick={() => setNewVersionFile(null)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                        title="ยกเลิกไฟล์"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    หมายเหตุการแก้ไข (Remarks)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={newVersionRemarks}
+                    onChange={(e) => setNewVersionRemarks(e.target.value)}
+                    placeholder="เช่น ปรับปรุงรายละเอียดตามความเห็นของผู้จัดการ หรือ แนบเอกสารฉบับแก้ไข..."
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white resize-none"
+                  />
+                </div>
+
+                <div className="flex justify-end items-center gap-2 pt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    disabled={isUploadingVersion}
+                    onClick={() => setIsUploadVersionOpen(false)}
+                    className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUploadingVersion || !newVersionFile}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {isUploadingVersion ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        กำลังอัปโหลด...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5" />
+                        ยืนยันอัปโหลด
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </div>
   );

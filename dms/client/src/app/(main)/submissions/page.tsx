@@ -31,6 +31,8 @@ export default function SubmissionsPage() {
   // Data States
   const [myDocsList, setMyDocsList] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   
   // Navigation & Filter States
   const [typeFilters, setTypeFilters] = useState<string[]>(["All"]);
@@ -53,8 +55,11 @@ export default function SubmissionsPage() {
       return;
     }
     // Fetch my created documents
+    let active = true;
     setIsLoading(true);
+    setLoadError(null);
     getDocuments().then((data) => {
+      if (!active) return;
       // Keep non-approved items created by me (unless user has view_all permission)
       if (data && Array.isArray(data)) {
         const canViewAll = user?.permissions?.includes('submissions.view_all:view') || user?.role === 'Administrator';
@@ -67,12 +72,14 @@ export default function SubmissionsPage() {
         setMyDocsList([]);
       }
     }).catch(err => {
-      console.error(err);
+      if (!active) return;
+      setLoadError(err instanceof Error ? err.message : "โหลดรายการเอกสารไม่สำเร็จ กรุณาลองใหม่");
       setMyDocsList([]);
     }).finally(() => {
-      setIsLoading(false);
+      if (active) setIsLoading(false);
     });
-  }, [user, router]);
+    return () => { active = false; };
+  }, [user, router, reloadKey]);
 
   const handleSort = (key: string) => {
     if (sortKey !== key) {
@@ -432,6 +439,17 @@ export default function SubmissionsPage() {
                       <div className="flex flex-col items-center justify-center gap-3">
                         <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-blue-600 animate-spin"></div>
                         <span className="text-xs font-bold text-slate-500">กำลังโหลดข้อมูลเอกสาร...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : loadError ? (
+                  <tr>
+                    <td colSpan={9} className="text-center py-16 px-4">
+                      <div role="alert" className="flex flex-col items-center gap-3">
+                        <p className="text-sm text-rose-600">{loadError}</p>
+                        <button type="button" onClick={() => setReloadKey(key => key + 1)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700">
+                          โหลดรายการอีกครั้ง
+                        </button>
                       </div>
                     </td>
                   </tr>

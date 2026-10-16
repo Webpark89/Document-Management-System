@@ -1,9 +1,19 @@
-import { IsString, IsOptional, IsEnum, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsArray,
+  IsUUID,
+  IsNotEmpty,
+  MaxLength,
+} from 'class-validator';
 import { FolderVisibilityEnum } from './create-folder.dto';
 
 export class UpdateFolderDto {
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
   name?: string;
 
   @IsOptional()
@@ -24,9 +34,11 @@ export class UpdateFolderDto {
 
   @IsOptional()
   @IsArray()
+  @IsUUID('all', { each: true })
   shared_departments?: string[];
 
   @IsOptional()
   @IsArray()
+  @IsUUID('all', { each: true })
   shared_users?: string[];
 }

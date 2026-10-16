@@ -1,0 +1,107 @@
+=== PAGE 1 ===\nระบบจัดการเอกสาร (Document Management System - DMS) 
+บริษัท อมากาซากิ ไพพ (ประเทศไทย) จ ากัด 
+1. บทน า (Introduction) 
+เอกสารฉบับนี้จัดท าขึ้นเพื่อเสนอแนวทางการพัฒนาและติดตั้งระบบบริหารจัดการเอกสาร (Document 
+Management System: DMS) แบบ On-Premise ส าหรับองค์กร เพื่อเพิ่มประสิทธิภาพในการจัดเก็บ ควบคุม
+สิทธิ์  และตรวจสอบการใช้งานเอกสารภายในองค์กร โดยรองรับไฟล์งานประเภท Engineering เช่น 
+SolidWorks, AutoCAD และ PDF 
+ 
+2. วัตถุประสงค์ (Objectives) 
+• เพื่อจัดเก็บเอกสารในระบบศูนย์กลาง (Centralized Storage) 
+• เพื่อควบคุมสิทธิ์ การเข้าถึงไฟล์และโฟลเดอร์อย่างละเอียด 
+• เพื่อรองรับ Version Control แบบอัตโนมัติ 
+• เพื่อสามารถตรวจสอบ Audit Log ได้ย้อนหลัง 
+• เพื่อเพิ่มความปลอดภัยของข้อมูลในองค์กร 
+ 
+3. ขอบเขตการท างาน (Scope of Work) 
+3.1 ระบบจัดเก็บเอกสาร 
+• ติดตั้งบน Server ของลูกค้า (On-Premise) 
+• รองรับไฟล์:  
+o SolidWorks 
+o AutoCAD 
+o PDF 
+• ขนาดไฟล์: 5–10 MB / ไฟล์ 
+• รองรับการอัปโหลด: 200–300 ไฟล์/เดือน 
+• รองรับชื่อไฟล์ 20–50 ตัวอักษร \n\n=== PAGE 2 ===\n 
+3.2 ระบบจัดการ User และสิทธิ์ (User & Permission Management) 
+3.3 ระบบ Version Control 
+• Auto Version ทุกครั้งที่มีการแก้ไขไฟล์ 
+• เก็บย้อนหลัง ≥ 3 ปี 
+• ไม่ลบอัตโนมัติ (Admin ควบคุมเอง) 
+ 
+3.4 ระบบ Audit Log 
+บันทึกข้อมูลดังนี้: 
+• เป ิ ดไฟล์ (View) 
+• สร้าง (Create) 
+• แก้ไข (Edit) 
+• ลบ (Delete) 
+• คัดลอก (Copy) 
+• ย้าย (Move) 
+3.5 ระบบ Dashboard 
+แสดงข้อมูล: 
+• จ านวนไฟล์ทั้งหมด 
+• ประเภทไฟล์ 
+• เจ้าของไฟล์ 
+• กิจกรรมล่าสุด 
+•  
+ \n\n=== PAGE 3 ===\n3.6 ระบบแจ้งเตือน (Notification) 
+• แจ้งเตือน Email เมื่อ:  
+o มีการ Delete 
+o มีการ Copy 
+• แจ้งเตือนวันหมดอายุไฟล์ (Alert เท่านั้น ไม่ลบ) 
+ 
+3.7 ระบบจัดการอายุไฟล์ 
+• ตั้งอายุไฟล์ได้ เช่น 1 ปี 
+• แจ้งเตือนก่อนครบก าหนด 
+• Admin เป็นผู้จัดการ Delete/Move เอง 
+ 
+4. สถาปัตยกรรมระบบ (System Architecture) 
+[User] → Web Browser → DMS Application Server → File Storage (NAS / Server) 
+                                  ↓ 
+                            Database (Metadata + Log) 
+                                  ↓ 
+                            Active Directory (Authentication) 
+ 
+5. เทคโนโลยีที่แนะน า (Suggested Technology Stack) 
+ส่วน เทคโนโลยี 
+Backend .NET / Java / Node.js 
+Frontend Web Application 
+Database PostgreSQL / MS SQL 
+Storage File Server / NAS 
+Authentication Active Directory \n\n=== PAGE 4 ===\n 
+6. สเปค Server (Recommended Server Specification) 
+Minimum 
+• CPU: 4 Core 
+• RAM: 16 GB 
+• Storage: 2 TB (RAID 1/5) 
+• OS: Windows Server / Linux 
+Recommended 
+• CPU: 8 Core 
+• RAM: 32 GB 
+• Storage: 4 TB SSD + Backup 
+• Network: 1 Gbps 
+ 
+ 
+7. แผนการด าเนินงาน (Timeline) 
+Phase รายละเอียด 
+Week 1–2 วิเคราะห์ระบบ + Design 
+Week 3–6 พัฒนา Core System 
+Week 7–8 พัฒนา Feature เพิ่มเติม 
+Week 9–10 Testing 
+Week 11–12 Deployment + Training 
+รวมเวลา: ไม่เกิน 3 เดือน 
+ 
+ \n\n=== PAGE 5 ===\n 
+8. Deliverables 
+• ระบบ DMS (On-Premise) 
+• Demo System 
+• System Flow Diagram 
+• เอกสารคู่มือการใช้งาน 
+• Training ผู้ใช้งาน 
+ 
+9. ความเสี่ยงและข้อจ ากัด 
+• ต้องมีระบบ Server พร้อมใช้งาน 
+• ต้องมี Active Directory 
+• Network ภายในต้องเสถียร 
+• กรณี edit ตัว file จะท าการ edit ข้างนอกแล้วจึงท าการ upload ใหม่ 
+ 

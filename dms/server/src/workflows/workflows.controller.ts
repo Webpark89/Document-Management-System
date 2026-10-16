@@ -1,62 +1,53 @@
-import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { WorkflowsService } from './workflows.service';
-import { ApproveStepDto } from './dto/approve-step.dto';
-import { RejectStepDto } from './dto/reject-step.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
-import type { User } from '@prisma/client';
+import { ApproveStepDto } from './dto/approve-step.dto';
+import { RejectStepDto } from './dto/reject-step.dto';
+import { SubmitWorkflowDto } from '../documents/dto/create-document.dto';
+import type { Actor } from '../common/document-policy';
 
 @Controller()
+@UseGuards(JwtAuthGuard)
 export class WorkflowsController {
   constructor(private readonly workflowsService: WorkflowsService) {}
-
-  @UseGuards(JwtAuthGuard)
   @Post('workflows/:documentId/submit')
-  async submitWorkflow(
-    @Param('documentId') documentId: string,
-    @Body()
-    body: {
-      workflow_steps?: Array<{ step_order: number; approver_id?: string }>;
-    },
-    @CurrentUser() user: User,
+  submit(
+    @Param('documentId') id: string,
+    @Body() body: SubmitWorkflowDto,
+    @CurrentUser() user: Actor,
   ) {
     return this.workflowsService.submitWorkflow(
-      documentId,
+      id,
       user.id,
       body.workflow_steps,
     );
   }
-
-  @UseGuards(JwtAuthGuard)
   @Get('approvals')
-  async getApprovals(@CurrentUser() user: any) {
-    const permissions = user.permissions || [];
-    const canViewAll = permissions.includes('approvals.view_all:view');
-    return this.workflowsService.getApprovalsForUser(user.id, canViewAll);
+  approvals(@CurrentUser() user: Actor) {
+    return this.workflowsService.getApprovalsForUser(
+      user.id,
+      user.permissions?.includes('approvals.view_all:view'),
+    );
   }
-
   @Get('workflows/:documentId')
-  async getWorkflow(@Param('documentId') documentId: string) {
-    return this.workflowsService.getWorkflowByDoc(documentId);
+  workflow(@Param('documentId') id: string, @CurrentUser() user: Actor) {
+    return this.workflowsService.getWorkflowByDoc(id, user);
   }
-
-  @UseGuards(JwtAuthGuard)
   @Post('workflows/:documentId/approve')
-  async approve(
-    @Param('documentId') documentId: string,
+  approve(
+    @Param('documentId') id: string,
     @Body() dto: ApproveStepDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: Actor,
   ) {
-    return this.workflowsService.approveStep(documentId, user.id, dto);
+    return this.workflowsService.approveStep(id, user.id, dto);
   }
-
-  @UseGuards(JwtAuthGuard)
   @Post('workflows/:documentId/reject')
-  async reject(
-    @Param('documentId') documentId: string,
+  reject(
+    @Param('documentId') id: string,
     @Body() dto: RejectStepDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: Actor,
   ) {
-    return this.workflowsService.rejectStep(documentId, user.id, dto);
+    return this.workflowsService.rejectStep(id, user.id, dto);
   }
 }

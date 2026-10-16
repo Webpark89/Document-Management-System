@@ -1,43 +1,52 @@
 import {
   Controller,
-  Post,
   Get,
   Param,
+  Post,
   Res,
-  UseInterceptors,
   UploadedFile,
   UseGuards,
-  Request,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UsersService } from './users.service';
+import { requirePermission } from '../common/document-policy';
+import type { Actor } from '../common/document-policy';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @UseGuards(JwtAuthGuard)
-  @Get('me/signature-url')
-  async getMySignatureUrl(@Request() req: Request & { user: { id: string } }) {
-    return this.usersService.getMySignatureUrl(req.user.id);
+  @Get('me/signature-url') getMySignature(@CurrentUser() user: Actor) {
+    return this.usersService.getMySignatureUrl(user.id);
   }
-
   @Get(':id/signature')
-  async getSignatureImage(@Param('id') id: string, @Res() res: Response) {
-    const { buffer, mimeType } = await this.usersService.getSignatureBuffer(id);
-    res.setHeader('Content-Type', mimeType);
-    res.send(buffer);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('me/signature')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadSignature(
-    @Request() req: Request & { user: { id: string } },
-    @UploadedFile() file: Express.Multer.File,
+  async signature(
+    @Param('id') id: string,
+    @CurrentUser() user: Actor,
+    @Res() response: Response,
   ) {
-    return this.usersService.uploadSignature(req.user.id, file);
+    const image = await this.usersService.getSignatureBuffer(id, user);
+    response.setHeader('Content-Type', image.mimeType);
+    response.setHeader('Cache-Control', 'private, no-store');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.send(image.buffer);
+  }
+  @Post('me/signature')
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 2 * 1024 * 1024 } }),
+  )
+  upload(
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: Actor,
+  ) {
+    requirePermission(user, [
+      'profile.upload_signature:edit',
+      'approvals.place_signature:approve',
+    ]);
+    return this.usersService.uploadSignature(user.id, file);
   }
 }

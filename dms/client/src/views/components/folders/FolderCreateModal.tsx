@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Folder, FolderVisibility, CreateFolderPayload } from "@views/features/folders/types";
-   
-   
-   
-   
+import {
+  Folder,
+  FolderVisibility,
+  CreateFolderPayload,
+} from "@views/features/folders/types";
+
 import { X, FolderPlus } from "lucide-react";
 
 interface FolderCreateModalProps {
@@ -17,8 +18,28 @@ interface FolderCreateModalProps {
   parentFolderId?: string | null;
 }
 
-const PRESET_ICONS = ["📁", "📢", "📑", "📂", "💼", "🔒", "📊", "📝", "📌", "⭐"];
-const PRESET_COLORS = ["#4F81FF", "#22C55E", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#64748B"];
+const PRESET_ICONS = [
+  "📁",
+  "📢",
+  "📑",
+  "📂",
+  "💼",
+  "🔒",
+  "📊",
+  "📝",
+  "📌",
+  "⭐",
+];
+const PRESET_COLORS = [
+  "#4F81FF",
+  "#22C55E",
+  "#F59E0B",
+  "#EF4444",
+  "#8B5CF6",
+  "#EC4899",
+  "#06B6D4",
+  "#64748B",
+];
 
 export function FolderCreateModal({
   isOpen,
@@ -36,7 +57,6 @@ export function FolderCreateModal({
   const [sharedDepartments, setSharedDepartments] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-   
   useEffect(() => {
     if (editingFolder) {
       setName(editingFolder.name);
@@ -44,6 +64,10 @@ export function FolderCreateModal({
       setIcon(editingFolder.icon || "📁");
       setColor(editingFolder.color || "#4F81FF");
       setVisibility(editingFolder.visibility);
+      setSharedDepartments(
+        (editingFolder as Folder & { shared_departments?: string[] })
+          .shared_departments || [],
+      );
     } else {
       setName("");
       setDescription("");
@@ -69,7 +93,8 @@ export function FolderCreateModal({
         color,
         visibility,
         parent_id: parentFolderId || null,
-        shared_departments: visibility === "Shared" ? sharedDepartments : undefined,
+        shared_departments:
+          visibility === "Shared" ? sharedDepartments : undefined,
       });
       onClose();
     } catch (err) {
@@ -98,14 +123,18 @@ export function FolderCreateModal({
             <h2 className="text-base font-bold text-slate-800">
               {editingFolder ? "แก้ไขโฟลเดอร์" : "สร้างโฟลเดอร์ใหม่"}
             </h2>
-            <p className="text-xs text-slate-400">จัดระเบียบเอกสารสำหรับการทำงานร่วมกัน</p>
+            <p className="text-xs text-slate-400">
+              จัดระเบียบเอกสารสำหรับการทำงานร่วมกัน
+            </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name & Icon */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">ชื่อโฟลเดอร์ *</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              ชื่อโฟลเดอร์ *
+            </label>
             <div className="flex items-center gap-2">
               {/* Icon selector */}
               <select
@@ -133,7 +162,9 @@ export function FolderCreateModal({
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">รายละเอียด (ถ้ามี)</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              รายละเอียด (ถ้ามี)
+            </label>
             <textarea
               rows={2}
               value={description}
@@ -145,7 +176,9 @@ export function FolderCreateModal({
 
           {/* Preset Color Picker */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">สีไอคอน</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              สีไอคอน
+            </label>
             <div className="flex items-center gap-2">
               {PRESET_COLORS.map((c) => (
                 <button
@@ -153,7 +186,9 @@ export function FolderCreateModal({
                   type="button"
                   onClick={() => setColor(c)}
                   className={`w-6 h-6 rounded-full transition-transform ${
-                    color === c ? "scale-125 ring-2 ring-blue-500 ring-offset-2" : "hover:scale-110"
+                    color === c
+                      ? "scale-125 ring-2 ring-blue-500 ring-offset-2"
+                      : "hover:scale-110"
                   }`}
                   style={{ backgroundColor: c }}
                 />
@@ -175,7 +210,11 @@ export function FolderCreateModal({
               disabled={isSubmitting}
               className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer"
             >
-              {isSubmitting ? "กำลังบันทึก..." : editingFolder ? "อัปเดตโฟลเดอร์" : "สร้างโฟลเดอร์"}
+              {isSubmitting
+                ? "กำลังบันทึก..."
+                : editingFolder
+                  ? "อัปเดตโฟลเดอร์"
+                  : "สร้างโฟลเดอร์"}
             </button>
           </div>
         </form>

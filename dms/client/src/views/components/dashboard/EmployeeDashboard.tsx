@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { hasDashboardPermission } from '@/lib/dashboard-permissions';
 import Link from "next/link";
 import {
   FileText,
@@ -115,9 +116,7 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
 
 
   const hasPerm = (key: string) => {
-    if (user?.role === "Administrator") return true;
-    if (!user?.permissions || user.permissions.length === 0) return false;
-    return user.permissions.includes(`dashboard.${key}:view`);
+    return hasDashboardPermission(user?.permissions ?? [], key);
   };
 
   const showStatCards = hasPerm("employee_stat_cards");

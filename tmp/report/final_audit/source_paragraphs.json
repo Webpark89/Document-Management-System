@@ -1,0 +1,9818 @@
+[
+  {
+    "index": 1,
+    "text": " ",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 0
+  },
+  {
+    "index": 3,
+    "text": "รายงานการปฏิบัติงานสหกิจศึกษา",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 4
+  },
+  {
+    "index": 4,
+    "text": " ",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 34
+  },
+  {
+    "index": 5,
+    "text": "เรื่อง",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 36
+  },
+  {
+    "index": 6,
+    "text": " ",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 43
+  },
+  {
+    "index": 7,
+    "text": "Document Management System (DMS)",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 45
+  },
+  {
+    "index": 8,
+    "text": "ระบบจัดการเอกสารและอนุมัติเอกสารอิเล็กทรอนิกส์",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 78
+  },
+  {
+    "index": 9,
+    "text": " ",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 125
+  },
+  {
+    "index": 10,
+    "text": "นายธนภัทร ชูสุวรรณ",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 127
+  },
+  {
+    "index": 11,
+    "text": "รหัสนิสิต 6521601857",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 146
+  },
+  {
+    "index": 12,
+    "text": " ",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 167
+  },
+  {
+    "index": 13,
+    "text": "สาขาวิชาวิทยาการคอมพิวเตอร์ คณะศิลปศาสตร์และวิทยาศาสตร์",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 169
+  },
+  {
+    "index": 14,
+    "text": "มหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน ปีการศึกษา 2569",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 225
+  },
+  {
+    "index": 15,
+    "text": "\f",
+    "page": 1,
+    "physical": 1,
+    "inTable": false,
+    "start": 281
+  },
+  {
+    "index": 16,
+    "text": " ",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 283
+  },
+  {
+    "index": 17,
+    "text": "รายงานการปฏิบัติงานสหกิจศึกษา",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 285
+  },
+  {
+    "index": 18,
+    "text": " ",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 315
+  },
+  {
+    "index": 19,
+    "text": "เรื่อง",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 317
+  },
+  {
+    "index": 20,
+    "text": " ",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 324
+  },
+  {
+    "index": 21,
+    "text": "Document Management System (DMS)",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 326
+  },
+  {
+    "index": 22,
+    "text": "ระบบจัดการเอกสารและอนุมัติเอกสารอิเล็กทรอนิกส์",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 359
+  },
+  {
+    "index": 23,
+    "text": " ",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 406
+  },
+  {
+    "index": 24,
+    "text": "โดย",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 408
+  },
+  {
+    "index": 25,
+    "text": " ",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 412
+  },
+  {
+    "index": 26,
+    "text": "นายธนภัทร ชูสุวรรณ",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 414
+  },
+  {
+    "index": 27,
+    "text": "รหัสนิสิต 6521601857",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 433
+  },
+  {
+    "index": 28,
+    "text": " ",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 454
+  },
+  {
+    "index": 29,
+    "text": "สาขาวิชาวิทยาการคอมพิวเตอร์ คณะศิลปศาสตร์และวิทยาศาสตร์",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 456
+  },
+  {
+    "index": 30,
+    "text": "มหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน ปีการศึกษา 2569",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 512
+  },
+  {
+    "index": 31,
+    "text": "\f",
+    "page": 2,
+    "physical": 2,
+    "inTable": false,
+    "start": 568
+  },
+  {
+    "index": 32,
+    "text": "ก",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 570
+  },
+  {
+    "index": 33,
+    "text": "สถานที่ 528/89 ซอยลาดพร้าว 126 ",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 572
+  },
+  {
+    "index": 34,
+    "text": "แขวงพลับพลา เขตวังทองหลาง ",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 604
+  },
+  {
+    "index": 35,
+    "text": "กรุงเทพมหานคร 10310",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 631
+  },
+  {
+    "index": 36,
+    "text": "วันที่ 15 ตุลาคม 2569",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 651
+  },
+  {
+    "index": 37,
+    "text": "เรื่อง ขอส่งรายงานการปฏิบัติงานสหกิจศึกษา",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 673
+  },
+  {
+    "index": 38,
+    "text": "เรียน อาจารย์ที่ปรึกษาสหกิจศึกษา สาขาวิชาวิทยาการคอมพิวเตอร์",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 715
+  },
+  {
+    "index": 39,
+    "text": "ข้าพเจ้า นายธนภัทร ชูสุวรรณ รหัสนิสิต 6521601857 สาขาวิชาวิทยาการคอมพิวเตอร์ คณะศิลปศาสตร์และวิทยาศาสตร์ มหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน ได้ปฏิบัติงานสหกิจศึกษา ณ บริษัท webpark ในตำแหน่ง Dev ระหว่างวันที่ 22 มิถุนายน 2569 ถึงวันที่ 16 ตุลาคม 2569 โดยได้รับมอบหมายงานเกี่ยวกับโครงการ Document Management System (DMS) สำหรับจัดการเอกสารและกระบวนการอนุมัติภายในองค์กร",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 776
+  },
+  {
+    "index": 40,
+    "text": "บัดนี้ขอส่งรายงานการปฏิบัติงานสหกิจศึกษาเพื่อให้อาจารย์ตรวจพิจารณา จำนวน 1 เล่ม พร้อมรายละเอียดการวิเคราะห์ ออกแบบ พัฒนา และตรวจสอบระบบตามหลักฐานที่มี",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 1150
+  },
+  {
+    "index": 41,
+    "text": "จึงเรียนมาเพื่อโปรดพิจารณา",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 1301
+  },
+  {
+    "index": 42,
+    "text": " ",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 1328
+  },
+  {
+    "index": 43,
+    "text": "ขอแสดงความนับถือ",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 1330
+  },
+  {
+    "index": 44,
+    "text": " ",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 1347
+  },
+  {
+    "index": 45,
+    "text": "(ลงชื่อ........................................................)",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 1349
+  },
+  {
+    "index": 46,
+    "text": "(นายธนภัทร ชูสุวรรณ)",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 1414
+  },
+  {
+    "index": 47,
+    "text": "นิสิตสหกิจศึกษา",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 1435
+  },
+  {
+    "index": 48,
+    "text": "\f",
+    "page": 3,
+    "physical": 3,
+    "inTable": false,
+    "start": 1451
+  },
+  {
+    "index": 49,
+    "text": "ข",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 1453
+  },
+  {
+    "index": 50,
+    "text": "บทคัดย่อ",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 1455
+  },
+  {
+    "index": 51,
+    "text": "ธนภัทร ชูสุวรรณ: Document Management System (DMS)",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 1464
+  },
+  {
+    "index": 52,
+    "text": "ปริญญาวิทยาศาสตรบัณฑิต (วิทยาการคอมพิวเตอร์) สาขาวิชาวิทยาการคอมพิวเตอร์",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 1514
+  },
+  {
+    "index": 53,
+    "text": "อาจารย์ที่ปรึกษาโครงการ: อาจารย์พิชยภรณ์ พงศกรรังศิลป์",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 1587
+  },
+  {
+    "index": 54,
+    "text": "รายงานนี้นำเสนอการพัฒนาระบบจัดการเอกสารและอนุมัติเอกสารอิเล็กทรอนิกส์สำหรับบริษัท นิสซุย (ประเทศไทย) จำกัด ภายใต้การปฏิบัติงานสหกิจศึกษาที่บริษัท webpark ระบบมีเป้าหมายให้สร้างและจัดเก็บเอกสาร PR, PO, บันทึกข้อความ และ PDF กำหนดผู้อนุมัติเป็นลำดับ ติดตามสถานะ จัดเก็บเวอร์ชัน ค้นหาเอกสาร และตรวจสอบการทำงานย้อนหลังได้",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 1642
+  },
+  {
+    "index": 55,
+    "text": "ส่วนติดต่อผู้ใช้พัฒนาด้วย Next.js และ TypeScript ส่วนบริการใช้ NestJS เชื่อมต่อ PostgreSQL ผ่าน Prisma ระบบประกอบด้วยการสร้างเอกสารร่าง การออกเลขเอกสาร การจัดเก็บเวอร์ชัน การส่งอนุมัติตามลำดับ การลงลายเซ็นบน PDF การแจ้งเตือน และการค้นหาเอกสารตามสิทธิ์ของผู้ใช้",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 1960
+  },
+  {
+    "index": 56,
+    "text": "ผลการปฏิบัติงานได้ระบบ DMS พร้อมโครงสร้างข้อมูล หน้าจอ และบริการ API ตามขอบเขตโครงการ ผู้จัดทำตรวจสอบการทำงานของกระบวนการหลักและจัดทำเอกสารประกอบการใช้งานและการพัฒนาระบบ",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 2221
+  },
+  {
+    "index": 57,
+    "text": " ",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 2391
+  },
+  {
+    "index": 58,
+    "text": "________________________     ________________________     16/10/2569",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 2393
+  },
+  {
+    "index": 59,
+    "text": "ลายมือนิสิต                         ลายมืออาจารย์ที่ปรึกษา                 วันที่",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 2462
+  },
+  {
+    "index": 60,
+    "text": "\f",
+    "page": 4,
+    "physical": 4,
+    "inTable": false,
+    "start": 2544
+  },
+  {
+    "index": 61,
+    "text": "ค",
+    "page": 5,
+    "physical": 5,
+    "inTable": false,
+    "start": 2546
+  },
+  {
+    "index": 62,
+    "text": "กิตติกรรมประกาศ",
+    "page": 5,
+    "physical": 5,
+    "inTable": false,
+    "start": 2548
+  },
+  {
+    "index": 63,
+    "text": "การจัดทำโครงการ Document Management System (DMS) และรายงานการปฏิบัติงานสหกิจศึกษาฉบับนี้ได้รับโอกาสในการเรียนรู้กระบวนการพัฒนาระบบงานจริงจากบริษัท webpark ผู้จัดทำขอขอบคุณผู้บริหารและพนักงานที่ให้คำแนะนำเกี่ยวกับการวิเคราะห์ความต้องการ การออกแบบ การพัฒนา และการตรวจสอบระบบ",
+    "page": 5,
+    "physical": 5,
+    "inTable": false,
+    "start": 2564
+  },
+  {
+    "index": 64,
+    "text": "ขอขอบคุณอาจารย์พิชยภรณ์ พงศกรรังศิลป์ อาจารย์ที่ปรึกษาโครงการ ที่ให้คำปรึกษาและตรวจทานรายงาน ตลอดจนผู้เกี่ยวข้องทุกท่านที่สนับสนุนการปฏิบัติงานสหกิจศึกษา",
+    "page": 5,
+    "physical": 5,
+    "inTable": false,
+    "start": 2837
+  },
+  {
+    "index": 65,
+    "text": "นายธนภัทร ชูสุวรรณ",
+    "page": 5,
+    "physical": 5,
+    "inTable": false,
+    "start": 2991
+  },
+  {
+    "index": 66,
+    "text": "16 ตุลาคม 2569",
+    "page": 5,
+    "physical": 5,
+    "inTable": false,
+    "start": 3010
+  },
+  {
+    "index": 67,
+    "text": "\f",
+    "page": 5,
+    "physical": 5,
+    "inTable": false,
+    "start": 3025
+  },
+  {
+    "index": 68,
+    "text": "ง",
+    "page": 6,
+    "physical": 6,
+    "inTable": false,
+    "start": 3027
+  },
+  {
+    "index": 69,
+    "text": "สารบัญ",
+    "page": 6,
+    "physical": 6,
+    "inTable": false,
+    "start": 3029
+  },
+  {
+    "index": 70,
+    "text": "หน้า",
+    "page": 6,
+    "physical": 6,
+    "inTable": false,
+    "start": 3036
+  },
+  {
+    "index": 71,
+    "text": "จดหมายขอส่งรายงานการปฏิบัติงานสหกิจศึกษา",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3041
+  },
+  {
+    "index": 72,
+    "text": "ก",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3082
+  },
+  {
+    "index": 74,
+    "text": "บทคัดย่อ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3085
+  },
+  {
+    "index": 75,
+    "text": "ข",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3094
+  },
+  {
+    "index": 77,
+    "text": "กิตติกรรมประกาศ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3097
+  },
+  {
+    "index": 78,
+    "text": "ค",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3113
+  },
+  {
+    "index": 80,
+    "text": "สารบัญ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3116
+  },
+  {
+    "index": 81,
+    "text": "ง",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3123
+  },
+  {
+    "index": 83,
+    "text": "สารบัญตาราง",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3126
+  },
+  {
+    "index": 84,
+    "text": "ฉ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3138
+  },
+  {
+    "index": 86,
+    "text": "สารบัญภาพ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3141
+  },
+  {
+    "index": 87,
+    "text": "ช",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3151
+  },
+  {
+    "index": 89,
+    "text": "สารบัญภาพภาคผนวก",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3154
+  },
+  {
+    "index": 90,
+    "text": "ซ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3171
+  },
+  {
+    "index": 92,
+    "text": "บทที่ 1 บทนำ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3174
+  },
+  {
+    "index": 93,
+    "text": "1",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3187
+  },
+  {
+    "index": 95,
+    "text": "    1. ที่มาและความสำคัญ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3190
+  },
+  {
+    "index": 96,
+    "text": "1",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3215
+  },
+  {
+    "index": 98,
+    "text": "    2. วัตถุประสงค์",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3218
+  },
+  {
+    "index": 99,
+    "text": "1",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3238
+  },
+  {
+    "index": 101,
+    "text": "    3. รายละเอียดเกี่ยวกับองค์กรหรือหน่วยงาน",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3241
+  },
+  {
+    "index": 102,
+    "text": "1",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3286
+  },
+  {
+    "index": 104,
+    "text": "    4. ขอบเขตของระบบ",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3289
+  },
+  {
+    "index": 105,
+    "text": "1",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3310
+  },
+  {
+    "index": 107,
+    "text": "    5. ตำแหน่งและลักษณะงานที่ได้รับมอบหมาย",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3313
+  },
+  {
+    "index": 108,
+    "text": "2",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3356
+  },
+  {
+    "index": 110,
+    "text": "    6. อุปกรณ์และเครื่องมือที่ใช้ในการพัฒนา",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3359
+  },
+  {
+    "index": 111,
+    "text": "2",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3403
+  },
+  {
+    "index": 113,
+    "text": "บทที่ 2 ตรวจสอบเอกสาร",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3406
+  },
+  {
+    "index": 114,
+    "text": "3",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3428
+  },
+  {
+    "index": 116,
+    "text": "    1. ระบบจัดการเอกสารและเวอร์ชัน",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3431
+  },
+  {
+    "index": 117,
+    "text": "3",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3466
+  },
+  {
+    "index": 119,
+    "text": "    2. ระบบอนุมัติและลายเซ็นอิเล็กทรอนิกส์",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3469
+  },
+  {
+    "index": 120,
+    "text": "3",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3512
+  },
+  {
+    "index": 122,
+    "text": "    3. เทคโนโลยีส่วนติดต่อผู้ใช้",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3515
+  },
+  {
+    "index": 123,
+    "text": "3",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3548
+  },
+  {
+    "index": 125,
+    "text": "    4. เทคโนโลยีบริการและฐานข้อมูล",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3551
+  },
+  {
+    "index": 126,
+    "text": "3",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3586
+  },
+  {
+    "index": 128,
+    "text": "    5. การควบคุมสิทธิ์และประวัติการใช้งาน",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3589
+  },
+  {
+    "index": 129,
+    "text": "3",
+    "page": 6,
+    "physical": 6,
+    "inTable": true,
+    "start": 3631
+  },
+  {
+    "index": 131,
+    "text": "\f",
+    "page": 6,
+    "physical": 6,
+    "inTable": false,
+    "start": 3634
+  },
+  {
+    "index": 132,
+    "text": "จ",
+    "page": 7,
+    "physical": 7,
+    "inTable": false,
+    "start": 3636
+  },
+  {
+    "index": 133,
+    "text": "สารบัญ (ต่อ)",
+    "page": 7,
+    "physical": 7,
+    "inTable": false,
+    "start": 3638
+  },
+  {
+    "index": 134,
+    "text": "หน้า",
+    "page": 7,
+    "physical": 7,
+    "inTable": false,
+    "start": 3651
+  },
+  {
+    "index": 135,
+    "text": "บทที่ 3 รายละเอียดของงานที่ปฏิบัติ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3656
+  },
+  {
+    "index": 136,
+    "text": "4",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3691
+  },
+  {
+    "index": 138,
+    "text": "    1. ศึกษาความต้องการและระบบงานเดิม",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3694
+  },
+  {
+    "index": 139,
+    "text": "4",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3732
+  },
+  {
+    "index": 141,
+    "text": "    2. วิเคราะห์ขอบเขตและผู้ใช้งาน",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3735
+  },
+  {
+    "index": 142,
+    "text": "5",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3770
+  },
+  {
+    "index": 144,
+    "text": "    3. ออกแบบสถาปัตยกรรมและกระบวนการ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3773
+  },
+  {
+    "index": 145,
+    "text": "6",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3810
+  },
+  {
+    "index": 147,
+    "text": "    4. ออกแบบกรณีใช้งาน",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3813
+  },
+  {
+    "index": 148,
+    "text": "9",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3837
+  },
+  {
+    "index": 150,
+    "text": "    5. ออกแบบฐานข้อมูล",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3840
+  },
+  {
+    "index": 151,
+    "text": "10",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3863
+  },
+  {
+    "index": 153,
+    "text": "    6. พัฒนาระบบ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3867
+  },
+  {
+    "index": 154,
+    "text": "21",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3884
+  },
+  {
+    "index": 156,
+    "text": "    7. การทดสอบและตรวจสอบ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3888
+  },
+  {
+    "index": 157,
+    "text": "21",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3914
+  },
+  {
+    "index": 159,
+    "text": "บทที่ 4 ผลการดำเนินงาน",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3918
+  },
+  {
+    "index": 160,
+    "text": "22",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3941
+  },
+  {
+    "index": 162,
+    "text": "    1. ผลงานตามโมดูล",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3945
+  },
+  {
+    "index": 163,
+    "text": "22",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3966
+  },
+  {
+    "index": 165,
+    "text": "    2. ผลการตรวจสอบระบบ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3970
+  },
+  {
+    "index": 166,
+    "text": "25",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3994
+  },
+  {
+    "index": 168,
+    "text": "    3. การประเมินการใช้งาน",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 3998
+  },
+  {
+    "index": 169,
+    "text": "25",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4025
+  },
+  {
+    "index": 171,
+    "text": "บทที่ 5 สรุปผลการปฏิบัติงาน ประโยชน์ที่ได้รับ และข้อเสนอแนะ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4029
+  },
+  {
+    "index": 172,
+    "text": "26",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4089
+  },
+  {
+    "index": 174,
+    "text": "    1. สรุปผลการดำเนินงาน",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4093
+  },
+  {
+    "index": 175,
+    "text": "26",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4119
+  },
+  {
+    "index": 177,
+    "text": "    2. ผลสำเร็จตามวัตถุประสงค์",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4123
+  },
+  {
+    "index": 178,
+    "text": "26",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4154
+  },
+  {
+    "index": 180,
+    "text": "    3. ประโยชน์ที่ได้รับ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4158
+  },
+  {
+    "index": 181,
+    "text": "26",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4183
+  },
+  {
+    "index": 183,
+    "text": "    4. ข้อเสนอแนะ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4187
+  },
+  {
+    "index": 184,
+    "text": "26",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4205
+  },
+  {
+    "index": 186,
+    "text": "เอกสารอ้างอิง",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4209
+  },
+  {
+    "index": 187,
+    "text": "27",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4223
+  },
+  {
+    "index": 189,
+    "text": "ภาคผนวก ก การติดตั้งโปรแกรมที่เกี่ยวข้อง",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4227
+  },
+  {
+    "index": 190,
+    "text": "29",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4268
+  },
+  {
+    "index": 192,
+    "text": "ภาคผนวก ข หลักฐานการทดสอบและแบบฟอร์มสหกิจ",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4272
+  },
+  {
+    "index": 193,
+    "text": "37",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4314
+  },
+  {
+    "index": 195,
+    "text": "ประวัติการศึกษา",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4318
+  },
+  {
+    "index": 196,
+    "text": "45",
+    "page": 7,
+    "physical": 7,
+    "inTable": true,
+    "start": 4334
+  },
+  {
+    "index": 198,
+    "text": "ฉ",
+    "page": 8,
+    "physical": 8,
+    "inTable": false,
+    "start": 4338
+  },
+  {
+    "index": 199,
+    "text": "สารบัญตาราง",
+    "page": 8,
+    "physical": 8,
+    "inTable": false,
+    "start": 4340
+  },
+  {
+    "index": 200,
+    "text": "หน้า",
+    "page": 8,
+    "physical": 8,
+    "inTable": false,
+    "start": 4352
+  },
+  {
+    "index": 201,
+    "text": "ตารางที่ 1 ขอบเขตการทำงานตามบทบาท",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4357
+  },
+  {
+    "index": 202,
+    "text": "2",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4391
+  },
+  {
+    "index": 204,
+    "text": "ตารางที่ 2 แผนงานการปฏิบัติงาน",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4394
+  },
+  {
+    "index": 205,
+    "text": "2",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4425
+  },
+  {
+    "index": 207,
+    "text": "ตารางที่ 3 กรณีใช้งานหลักของระบบ",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4428
+  },
+  {
+    "index": 208,
+    "text": "9",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4461
+  },
+  {
+    "index": 210,
+    "text": "ตารางที่ 4 Data Dictionary ตาราง departments",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4464
+  },
+  {
+    "index": 211,
+    "text": "11",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4509
+  },
+  {
+    "index": 213,
+    "text": "ตารางที่ 5 Data Dictionary ตาราง positions",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4513
+  },
+  {
+    "index": 214,
+    "text": "11",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4556
+  },
+  {
+    "index": 216,
+    "text": "ตารางที่ 6 Data Dictionary ตาราง document_types",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4560
+  },
+  {
+    "index": 217,
+    "text": "11",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4608
+  },
+  {
+    "index": 219,
+    "text": "ตารางที่ 7 Data Dictionary ตาราง roles",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4612
+  },
+  {
+    "index": 220,
+    "text": "12",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4651
+  },
+  {
+    "index": 222,
+    "text": "ตารางที่ 8 Data Dictionary ตาราง permissions",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4655
+  },
+  {
+    "index": 223,
+    "text": "12",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4700
+  },
+  {
+    "index": 225,
+    "text": "ตารางที่ 9 Data Dictionary ตาราง role_permissions",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4704
+  },
+  {
+    "index": 226,
+    "text": "12",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4754
+  },
+  {
+    "index": 228,
+    "text": "ตารางที่ 10 Data Dictionary ตาราง users",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4758
+  },
+  {
+    "index": 229,
+    "text": "12",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4798
+  },
+  {
+    "index": 231,
+    "text": "ตารางที่ 11 Data Dictionary ตาราง documents",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4802
+  },
+  {
+    "index": 232,
+    "text": "13",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4846
+  },
+  {
+    "index": 234,
+    "text": "ตารางที่ 12 Data Dictionary ตาราง pr_forms",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4850
+  },
+  {
+    "index": 235,
+    "text": "14",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4893
+  },
+  {
+    "index": 237,
+    "text": "ตารางที่ 13 Data Dictionary ตาราง pr_form_items",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4897
+  },
+  {
+    "index": 238,
+    "text": "14",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4945
+  },
+  {
+    "index": 240,
+    "text": "ตารางที่ 14 Data Dictionary ตาราง po_forms",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4949
+  },
+  {
+    "index": 241,
+    "text": "15",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4992
+  },
+  {
+    "index": 243,
+    "text": "ตารางที่ 15 Data Dictionary ตาราง po_form_items",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 4996
+  },
+  {
+    "index": 244,
+    "text": "15",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5044
+  },
+  {
+    "index": 246,
+    "text": "ตารางที่ 16 Data Dictionary ตาราง bk_forms",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5048
+  },
+  {
+    "index": 247,
+    "text": "16",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5091
+  },
+  {
+    "index": 249,
+    "text": "ตารางที่ 17 Data Dictionary ตาราง document_versions",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5095
+  },
+  {
+    "index": 250,
+    "text": "16",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5147
+  },
+  {
+    "index": 252,
+    "text": "ตารางที่ 18 Data Dictionary ตาราง approval_matrix",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5151
+  },
+  {
+    "index": 253,
+    "text": "17",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5201
+  },
+  {
+    "index": 255,
+    "text": "ตารางที่ 19 Data Dictionary ตาราง workflows",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5205
+  },
+  {
+    "index": 256,
+    "text": "17",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5249
+  },
+  {
+    "index": 258,
+    "text": "ตารางที่ 20 Data Dictionary ตาราง workflow_steps",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5253
+  },
+  {
+    "index": 259,
+    "text": "18",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5302
+  },
+  {
+    "index": 261,
+    "text": "ตารางที่ 21 Data Dictionary ตาราง notifications",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5306
+  },
+  {
+    "index": 262,
+    "text": "18",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5354
+  },
+  {
+    "index": 264,
+    "text": "ตารางที่ 22 Data Dictionary ตาราง running_numbers",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5358
+  },
+  {
+    "index": 265,
+    "text": "19",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5408
+  },
+  {
+    "index": 267,
+    "text": "ตารางที่ 23 Data Dictionary ตาราง audit_logs",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5412
+  },
+  {
+    "index": 268,
+    "text": "19",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5457
+  },
+  {
+    "index": 270,
+    "text": "ตารางที่ 24 Data Dictionary ตาราง folders",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5461
+  },
+  {
+    "index": 271,
+    "text": "20",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5503
+  },
+  {
+    "index": 273,
+    "text": "ตารางที่ 25 Data Dictionary ตาราง folder_permissions",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5507
+  },
+  {
+    "index": 274,
+    "text": "20",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5560
+  },
+  {
+    "index": 276,
+    "text": "ตารางที่ 26 รายการตรวจสอบการทำงานของระบบ",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5564
+  },
+  {
+    "index": 277,
+    "text": "21",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5605
+  },
+  {
+    "index": 279,
+    "text": "ตารางที่ 27 ผลลัพธ์ตามหน้าที่หลักของระบบ",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5609
+  },
+  {
+    "index": 280,
+    "text": "25",
+    "page": 8,
+    "physical": 8,
+    "inTable": true,
+    "start": 5650
+  },
+  {
+    "index": 282,
+    "text": "ช",
+    "page": 9,
+    "physical": 9,
+    "inTable": false,
+    "start": 5654
+  },
+  {
+    "index": 283,
+    "text": "สารบัญภาพ",
+    "page": 9,
+    "physical": 9,
+    "inTable": false,
+    "start": 5656
+  },
+  {
+    "index": 284,
+    "text": "หน้า",
+    "page": 9,
+    "physical": 9,
+    "inTable": false,
+    "start": 5666
+  },
+  {
+    "index": 285,
+    "text": "ภาพที่ 1 ภาพรวมกระบวนการเดิมและกระบวนการใหม่",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5671
+  },
+  {
+    "index": 286,
+    "text": "4",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5716
+  },
+  {
+    "index": 288,
+    "text": "ภาพที่ 2 แผนภาพกรณีใช้งานระบบ DMS",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5719
+  },
+  {
+    "index": 289,
+    "text": "5",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5753
+  },
+  {
+    "index": 291,
+    "text": "ภาพที่ 3 สถาปัตยกรรมระบบ",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5756
+  },
+  {
+    "index": 292,
+    "text": "6",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5781
+  },
+  {
+    "index": 294,
+    "text": "ภาพที่ 4 ผังขั้นตอนการสร้างและส่งอนุมัติเอกสาร",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5784
+  },
+  {
+    "index": 295,
+    "text": "7",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5831
+  },
+  {
+    "index": 297,
+    "text": "ภาพที่ 5 ผังขั้นตอนการพิจารณาอนุมัติ",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5834
+  },
+  {
+    "index": 298,
+    "text": "8",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5871
+  },
+  {
+    "index": 300,
+    "text": "ภาพที่ 6 Sequence Diagram การสร้างเอกสาร",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5874
+  },
+  {
+    "index": 301,
+    "text": "9",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5915
+  },
+  {
+    "index": 303,
+    "text": "ภาพที่ 7 Sequence Diagram การอนุมัติและลงลายเซ็น",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5918
+  },
+  {
+    "index": 304,
+    "text": "10",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5967
+  },
+  {
+    "index": 306,
+    "text": "ภาพที่ 8 ER Diagram ระบบ DMS",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 5971
+  },
+  {
+    "index": 307,
+    "text": "10",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6000
+  },
+  {
+    "index": 309,
+    "text": "ภาพที่ 9 หน้าเข้าสู่ระบบ",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6004
+  },
+  {
+    "index": 310,
+    "text": "22",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6029
+  },
+  {
+    "index": 312,
+    "text": "ภาพที่ 10 หน้าแดชบอร์ด",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6033
+  },
+  {
+    "index": 313,
+    "text": "22",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6056
+  },
+  {
+    "index": 315,
+    "text": "ภาพที่ 11 หน้าศูนย์เอกสาร",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6060
+  },
+  {
+    "index": 316,
+    "text": "23",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6086
+  },
+  {
+    "index": 318,
+    "text": "ภาพที่ 12 หน้าสร้างแบบฟอร์ม PR",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6090
+  },
+  {
+    "index": 319,
+    "text": "23",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6121
+  },
+  {
+    "index": 321,
+    "text": "ภาพที่ 13 หน้าสร้างแบบฟอร์ม PO",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6125
+  },
+  {
+    "index": 322,
+    "text": "23",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6156
+  },
+  {
+    "index": 324,
+    "text": "ภาพที่ 14 หน้าสร้างบันทึกข้อความ BK",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6160
+  },
+  {
+    "index": 325,
+    "text": "24",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6196
+  },
+  {
+    "index": 327,
+    "text": "ภาพที่ 15 หน้ารายละเอียดเอกสารและเวอร์ชัน",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6200
+  },
+  {
+    "index": 328,
+    "text": "24",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6242
+  },
+  {
+    "index": 330,
+    "text": "ภาพที่ 16 หน้ารายการอนุมัติ",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6246
+  },
+  {
+    "index": 331,
+    "text": "24",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6274
+  },
+  {
+    "index": 333,
+    "text": "ภาพที่ 17 หน้าจัดการข้อมูลหลัก",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6278
+  },
+  {
+    "index": 334,
+    "text": "25",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6309
+  },
+  {
+    "index": 336,
+    "text": "ภาพที่ 18 ตัวอย่างหลักฐานการทดสอบระบบ",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6313
+  },
+  {
+    "index": 337,
+    "text": "25",
+    "page": 9,
+    "physical": 9,
+    "inTable": true,
+    "start": 6351
+  },
+  {
+    "index": 339,
+    "text": "ซ",
+    "page": 10,
+    "physical": 10,
+    "inTable": false,
+    "start": 6355
+  },
+  {
+    "index": 340,
+    "text": "สารบัญภาพภาคผนวก",
+    "page": 10,
+    "physical": 10,
+    "inTable": false,
+    "start": 6357
+  },
+  {
+    "index": 341,
+    "text": "หน้า",
+    "page": 10,
+    "physical": 10,
+    "inTable": false,
+    "start": 6374
+  },
+  {
+    "index": 342,
+    "text": "ภาพภาคผนวกที่ ก1 หน้าดาวน์โหลด Visual Studio Code",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6379
+  },
+  {
+    "index": 343,
+    "text": "30",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6429
+  },
+  {
+    "index": 345,
+    "text": "ภาพภาคผนวกที่ ก2 การยอมรับข้อตกลงการติดตั้ง Visual Studio Code",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6433
+  },
+  {
+    "index": 346,
+    "text": "30",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6496
+  },
+  {
+    "index": 348,
+    "text": "ภาพภาคผนวกที่ ก3 การเลือกตัวเลือกเพิ่มเติมของ Visual Studio Code",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6500
+  },
+  {
+    "index": 349,
+    "text": "31",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6565
+  },
+  {
+    "index": 351,
+    "text": "ภาพภาคผนวกที่ ก4 การติดตั้ง Visual Studio Code เสร็จสมบูรณ์",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6569
+  },
+  {
+    "index": 352,
+    "text": "31",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6629
+  },
+  {
+    "index": 354,
+    "text": "ภาพภาคผนวกที่ ก5 ตัวเลือก Windows Installer สำหรับ Node.js",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6633
+  },
+  {
+    "index": 355,
+    "text": "32",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6692
+  },
+  {
+    "index": 357,
+    "text": "ภาพภาคผนวกที่ ก6 ลำดับการติดตั้งและตรวจสอบ Node.js และ npm",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6696
+  },
+  {
+    "index": 358,
+    "text": "32",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6755
+  },
+  {
+    "index": 360,
+    "text": "ภาพภาคผนวกที่ ก7 หน้าดาวน์โหลดตัวติดตั้ง PostgreSQL",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6759
+  },
+  {
+    "index": 361,
+    "text": "33",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6811
+  },
+  {
+    "index": 363,
+    "text": "ภาพภาคผนวกที่ ก8 การเลือกส่วนประกอบของ PostgreSQL",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6815
+  },
+  {
+    "index": 364,
+    "text": "33",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6865
+  },
+  {
+    "index": 366,
+    "text": "ภาพภาคผนวกที่ ก9 การกำหนดรหัสผ่านผู้ดูแล PostgreSQL",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6869
+  },
+  {
+    "index": 367,
+    "text": "34",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6921
+  },
+  {
+    "index": 369,
+    "text": "ภาพภาคผนวกที่ ก10 การกำหนดพอร์ตของ PostgreSQL",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6925
+  },
+  {
+    "index": 370,
+    "text": "34",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6971
+  },
+  {
+    "index": 372,
+    "text": "ภาพภาคผนวกที่ ก11 การติดตั้ง PostgreSQL เสร็จสมบูรณ์",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 6975
+  },
+  {
+    "index": 373,
+    "text": "35",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 7028
+  },
+  {
+    "index": 375,
+    "text": "ภาพภาคผนวกที่ ก12 ตัวอย่างค่าการเชื่อมต่อ PostgreSQL ใน pgAdmin",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 7032
+  },
+  {
+    "index": 376,
+    "text": "35",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 7096
+  },
+  {
+    "index": 378,
+    "text": "ภาพภาคผนวกที่ ก13 ตัวอย่างการสร้างฐานข้อมูลและตั้งค่าไฟล์สภาพแวดล้อม",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 7100
+  },
+  {
+    "index": 379,
+    "text": "36",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 7169
+  },
+  {
+    "index": 381,
+    "text": "ภาพภาคผนวกที่ ก14 คำสั่งติดตั้งแพ็กเกจที่ใช้พัฒนาระบบ DMS",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 7173
+  },
+  {
+    "index": 382,
+    "text": "36",
+    "page": 10,
+    "physical": 10,
+    "inTable": true,
+    "start": 7231
+  },
+  {
+    "index": 384,
+    "text": "\f",
+    "page": 10,
+    "physical": 10,
+    "inTable": false,
+    "start": 7235
+  },
+  {
+    "index": 385,
+    "text": "บทที่ 1",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7236
+  },
+  {
+    "index": 386,
+    "text": "บทนำ",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7244
+  },
+  {
+    "index": 387,
+    "text": "1. ที่มาและความสำคัญ",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7249
+  },
+  {
+    "index": 388,
+    "text": "การจัดการเอกสารด้วยไฟล์และขั้นตอนอนุมัติที่แยกจากกันทำให้ผู้เกี่ยวข้องค้นหาเอกสาร ติดตามสถานะ และตรวจสอบประวัติการเปลี่ยนแปลงได้ยาก เอกสารความต้องการของบริษัท นิสซุย (ประเทศไทย) จำกัด จึงกำหนดให้มีระบบกลางสำหรับสร้าง จัดเก็บ ค้นหา และอนุมัติเอกสารอิเล็กทรอนิกส์ พร้อมควบคุมสิทธิ์และเก็บประวัติการใช้งาน",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7270
+  },
+  {
+    "index": 389,
+    "text": "โครงการ Document Management System (DMS) พัฒนาเป็นเว็บแอปพลิเคชันสำหรับ เอกสารคำขอซื้อ (PR) ใบสั่งซื้อ (PO) บันทึกข้อความ (BK) และ PDF ทั่วไป ผู้ใช้สามารถจัดทำร่าง ส่งอนุมัติ ติดตามผล และเรียกดูเวอร์ชันย้อนหลังได้ภายในระบบเดียว",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7573
+  },
+  {
+    "index": 390,
+    "text": "2. วัตถุประสงค์",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7801
+  },
+  {
+    "index": 391,
+    "text": "- จัดเก็บเอกสารและข้อมูลกำกับในระบบกลางที่ค้นหาและติดตามได้",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7817
+  },
+  {
+    "index": 392,
+    "text": "- รองรับการสร้างเอกสาร PR, PO, BK และ PDF พร้อมเลขที่เอกสารอัตโนมัติ",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7877
+  },
+  {
+    "index": 393,
+    "text": "- กำหนดลำดับผู้อนุมัติและแจ้งผลในแต่ละขั้น",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7946
+  },
+  {
+    "index": 394,
+    "text": "- รักษาประวัติเวอร์ชัน ลายเซ็น และการกระทำที่ตรวจสอบย้อนหลังได้",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 7989
+  },
+  {
+    "index": 395,
+    "text": "- กำหนดสิทธิ์ตามบทบาทและขอบเขตการมองเห็นเอกสาร",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 8053
+  },
+  {
+    "index": 396,
+    "text": "3. รายละเอียดเกี่ยวกับองค์กรหรือหน่วยงาน",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 8100
+  },
+  {
+    "index": 397,
+    "text": "ผู้จัดทำปฏิบัติงานสหกิจศึกษาที่บริษัท webpark ในตำแหน่ง Dev ระหว่างวันที่ 22 มิถุนายน ถึง 16 ตุลาคม 2569 โดยทำงานเกี่ยวกับระบบ DMS ซึ่งมีบริษัท นิสซุย (ประเทศไทย) จำกัด เป็นหน่วยงาน ผู้ว่าจ้างตามเอกสารความต้องการโครงการ",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 8141
+  },
+  {
+    "index": 398,
+    "text": "ชื่อและที่ตั้งหน่วยงาน: บริษัท webpark, 528/89 ซอยลาดพร้าว 126 แขวงพลับพลา เขตวังทองหลาง กรุงเทพมหานคร 10310",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 8361
+  },
+  {
+    "index": 399,
+    "text": "พนักงานที่ปรึกษา: นางสาวปิยพร เรืองฤทธ์ ตำแหน่ง Software Co.",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 8470
+  },
+  {
+    "index": 400,
+    "text": "4. ขอบเขตของระบบ",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 8531
+  },
+  {
+    "index": 401,
+    "text": "ขอบเขตหลักประกอบด้วยการจัดการเอกสารและโฟลเดอร์ แบบฟอร์ม PR/PO/BK การอัปโหลด PDF การอนุมัติหลายขั้น การลงลายเซ็นใน PDF เวอร์ชันเอกสาร การค้นหา การแจ้งเตือน แดชบอร์ด การจัดการผู้ใช้และข้อมูลหลัก โดยผลการพัฒนาแสดงในบทที่ 4",
+    "page": 1,
+    "physical": 11,
+    "inTable": false,
+    "start": 8548
+  },
+  {
+    "index": 403,
+    "text": "ตารางที่ 1 ขอบเขตการทำงานตามบทบาท",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 8769
+  },
+  {
+    "index": 404,
+    "text": "บทบาท",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 8803
+  },
+  {
+    "index": 405,
+    "text": "การทำงานหลัก",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 8809
+  },
+  {
+    "index": 407,
+    "text": "พนักงาน",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 8823
+  },
+  {
+    "index": 408,
+    "text": "สร้างและติดตามเอกสารที่เกี่ยวข้องกับตน",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 8831
+  },
+  {
+    "index": 410,
+    "text": "ผู้อนุมัติ",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 8871
+  },
+  {
+    "index": 411,
+    "text": "พิจารณาเอกสารตามขั้นที่ได้รับมอบหมาย",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 8882
+  },
+  {
+    "index": 413,
+    "text": "ผู้บริหาร",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 8920
+  },
+  {
+    "index": 414,
+    "text": "ติดตามสถานะและข้อมูลสรุปตามสิทธิ์",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 8930
+  },
+  {
+    "index": 416,
+    "text": "ผู้ดูแลระบบ",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 8965
+  },
+  {
+    "index": 417,
+    "text": "จัดการผู้ใช้ สิทธิ์ ประเภทเอกสาร และลำดับอนุมัติ",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 8977
+  },
+  {
+    "index": 419,
+    "text": "5. ตำแหน่งและลักษณะงานที่ได้รับมอบหมาย",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 9027
+  },
+  {
+    "index": 420,
+    "text": "ตำแหน่ง: FullStack Developer",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 9066
+  },
+  {
+    "index": 421,
+    "text": "ลักษณะงานในรายงานนี้ครอบคลุมการศึกษาเอกสารความต้องการ การออกแบบโครงสร้างข้อมูล และลำดับงาน การพัฒนาส่วนติดต่อและบริการ การเชื่อมฐานข้อมูล และการตรวจสอบผลตามหลักฐาน ของโครงการ DMS",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 9095
+  },
+  {
+    "index": 422,
+    "text": "ระยะเวลาปฏิบัติงาน: 22 มิถุนายน – 16 ตุลาคม 2569",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 9274
+  },
+  {
+    "index": 423,
+    "text": "ตารางที่ 2 แผนงานการปฏิบัติงาน",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 9323
+  },
+  {
+    "index": 424,
+    "text": "งาน",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9354
+  },
+  {
+    "index": 425,
+    "text": "ช่วงดำเนินงาน",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9358
+  },
+  {
+    "index": 426,
+    "text": "หลักฐาน",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9372
+  },
+  {
+    "index": 428,
+    "text": "ศึกษาความต้องการและออกแบบ",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9381
+  },
+  {
+    "index": 429,
+    "text": "22 มิ.ย. – 10 ก.ค. 2569",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9407
+  },
+  {
+    "index": 430,
+    "text": "Requirement, ผังระบบ",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9431
+  },
+  {
+    "index": 432,
+    "text": "พัฒนาหน้าจอและ API",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9453
+  },
+  {
+    "index": 433,
+    "text": "13 ก.ค. – 21 ส.ค. 2569",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9472
+  },
+  {
+    "index": 434,
+    "text": "ซอร์สโค้ด, หน้าจอ",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9495
+  },
+  {
+    "index": 436,
+    "text": "เชื่อมฐานข้อมูลและทดสอบ",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9514
+  },
+  {
+    "index": 437,
+    "text": "24 ส.ค. – 25 ก.ย. 2569",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9538
+  },
+  {
+    "index": 438,
+    "text": "Schema, ผลทดสอบ",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9561
+  },
+  {
+    "index": 440,
+    "text": "จัดทำรายงาน",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9578
+  },
+  {
+    "index": 441,
+    "text": "28 ก.ย. – 16 ต.ค. 2569",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9590
+  },
+  {
+    "index": 442,
+    "text": "รูปเล่มฉบับนี้",
+    "page": 2,
+    "physical": 12,
+    "inTable": true,
+    "start": 9613
+  },
+  {
+    "index": 444,
+    "text": "6. อุปกรณ์และเครื่องมือที่ใช้ในการพัฒนา",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 9629
+  },
+  {
+    "index": 445,
+    "text": "ส่วนติดต่อผู้ใช้ใช้ Next.js 16, React 19, TypeScript และ Tailwind CSS 4 ส่วนบริการใช้ NestJS 11, Prisma 5 และ PostgreSQL การจัดการ PDF ใช้ pdf-lib และการทดสอบ API/โค้ดใช้เครื่องมือที่ กำหนดในโครงการ ข้อมูลเครื่องคอมพิวเตอร์และระบบปฏิบัติการของผู้จัดทำให้เติมตามอุปกรณ์ที่ใช้จริง",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 9669
+  },
+  {
+    "index": 446,
+    "text": "ฮาร์ดแวร์: Lenovo ThinkPad P52 Mobile Workstation",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 9948
+  },
+  {
+    "index": 447,
+    "text": "\f",
+    "page": 2,
+    "physical": 12,
+    "inTable": false,
+    "start": 9998
+  },
+  {
+    "index": 448,
+    "text": "บทที่ 2",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10000
+  },
+  {
+    "index": 449,
+    "text": "ตรวจสอบเอกสาร",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10008
+  },
+  {
+    "index": 450,
+    "text": "1. ระบบจัดการเอกสารและเวอร์ชัน",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10022
+  },
+  {
+    "index": 451,
+    "text": "ระบบจัดการเอกสารเก็บไฟล์และข้อมูลกำกับ เช่น เลขเอกสาร ชื่อ ประเภท ผู้จัดทำ สถานะ และวันที่ เอกสารความต้องการระบุการค้นหา การจัดหมวดหมู่ การดูตัวอย่าง และการดาวน์โหลด พร้อมประวัติเวอร์ชันเพื่อย้อนดูการเปลี่ยนแปลง โครงสร้างข้อมูลของโครงการปัจจุบันใช้ตาราง Document และ DocumentVersion เชื่อมกันแบบหนึ่งต่อหลาย",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10053
+  },
+  {
+    "index": 452,
+    "text": "2. ระบบอนุมัติและลายเซ็นอิเล็กทรอนิกส์",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10361
+  },
+  {
+    "index": 453,
+    "text": "กระบวนการอนุมัติกำหนดลำดับขั้นจาก Approval Matrix ของประเภทเอกสาร เมื่อส่งร่าง ระบบสร้าง Workflow และ WorkflowStep สำหรับผู้อนุมัติแต่ละขั้น การลงลายเซ็นใช้ภาพลายเซ็นวางบน PDF ภายใน ระบบ ซึ่งต่างจากลายมือชื่อดิจิทัลที่อาศัยใบรับรอง CA เอกสารความต้องการไม่ได้รวมการลงนามชนิด CA",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10400
+  },
+  {
+    "index": 454,
+    "text": "3. เทคโนโลยีส่วนติดต่อผู้ใช้",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10677
+  },
+  {
+    "index": 455,
+    "text": "Next.js และ React ใช้แสดงหน้าสร้างเอกสาร ศูนย์เอกสาร รายการอนุมัติ และหน้าจัดการระบบ TypeScript ช่วยกำหนดรูปแบบข้อมูลระหว่างหน้าจอและบริการ ส่วน Tailwind CSS ใช้จัดรูปแบบและ รองรับขนาดจอต่าง ๆ แพ็กเกจของโครงการยืนยันเทคโนโลยีเหล่านี้",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10706
+  },
+  {
+    "index": 456,
+    "text": "4. เทคโนโลยีบริการและฐานข้อมูล",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10940
+  },
+  {
+    "index": 457,
+    "text": "NestJS รับคำขอจากเว็บ ตรวจข้อมูลและสิทธิ์ แล้วเรียก Prisma เพื่ออ่านหรือเขียน PostgreSQL ฐานข้อมูลแยกข้อมูลผู้ใช้ บทบาท ประเภทเอกสาร เอกสาร เวอร์ชัน ลำดับอนุมัติ การแจ้งเตือน และประวัติ การกระทำ ปัจจุบันไฟล์ PDF บางส่วนเก็บเป็นข้อมูลไบนารีในฐานข้อมูล จึงต้องวางแผนสำรองและกู้คืน ทั้งข้อมูลและไฟล์ร่วมกัน",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 10971
+  },
+  {
+    "index": 458,
+    "text": "5. การควบคุมสิทธิ์และประวัติการใช้งาน",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 11275
+  },
+  {
+    "index": 459,
+    "text": "ผู้ใช้เข้าสู่ระบบด้วยบัญชีและรหัสผ่าน ระบบใช้ JWT และกำหนดบทบาท Employee, Manager, Executive และ Administrator การควบคุมสิทธิ์ครอบคลุมหน้ารายละเอียด การดูตัวอย่าง การดาวน์โหลด การอนุมัติ และการเรียกดูเวอร์ชัน พร้อมบันทึกประวัติการกระทำเพื่อการตรวจสอบย้อนหลัง",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 11313
+  },
+  {
+    "index": 460,
+    "text": "\f",
+    "page": 3,
+    "physical": 13,
+    "inTable": false,
+    "start": 11572
+  },
+  {
+    "index": 461,
+    "text": "บทที่ 3",
+    "page": 4,
+    "physical": 14,
+    "inTable": false,
+    "start": 11574
+  },
+  {
+    "index": 462,
+    "text": "รายละเอียดของงานที่ปฏิบัติ",
+    "page": 4,
+    "physical": 14,
+    "inTable": false,
+    "start": 11582
+  },
+  {
+    "index": 463,
+    "text": "1. ศึกษาความต้องการและระบบงานเดิม",
+    "page": 4,
+    "physical": 14,
+    "inTable": false,
+    "start": 11609
+  },
+  {
+    "index": 464,
+    "text": "ผู้จัดทำศึกษาข้อกำหนดระบบ DMS ของบริษัท นิสซุย (ประเทศไทย) จำกัด ซึ่งต้องการ ลดการใช้กระดาษ เพิ่มความเร็วในการค้นหาและอนุมัติเอกสาร และติดตามสถานะได้จากระบบกลาง ข้อกำหนดครอบคลุมเอกสาร PR, PO, บันทึกข้อความ และ PDF รวมถึงผู้ใช้ราว 100 คนและ การติดตั้งภายในองค์กร",
+    "page": 4,
+    "physical": 14,
+    "inTable": false,
+    "start": 11643
+  },
+  {
+    "index": 465,
+    "text": "/",
+    "page": 4,
+    "physical": 14,
+    "inTable": false,
+    "start": 11905
+  },
+  {
+    "index": 466,
+    "text": "ภาพที่ 1 ภาพรวมกระบวนการเดิมและกระบวนการใหม่",
+    "page": 4,
+    "physical": 14,
+    "inTable": false,
+    "start": 11907
+  },
+  {
+    "index": 470,
+    "text": "2. วิเคราะห์ขอบเขตและผู้ใช้งาน",
+    "page": 5,
+    "physical": 15,
+    "inTable": false,
+    "start": 11955
+  },
+  {
+    "index": 471,
+    "text": "กำหนดกลุ่มผู้ใช้เป็นผู้สร้างเอกสาร ผู้อนุมัติ และผู้ดูแลระบบ โดยความสามารถในการเห็น หรือเปลี่ยนข้อมูลขึ้นกับบทบาทและความเกี่ยวข้องกับเอกสาร ขอบเขตเอกสารมีสถานะ Draft, Pending, Approved, Rejected, Cancelled และ Returned ตามแบบจำลองข้อมูลปัจจุบัน",
+    "page": 5,
+    "physical": 15,
+    "inTable": false,
+    "start": 11986
+  },
+  {
+    "index": 472,
+    "text": "/",
+    "page": 5,
+    "physical": 15,
+    "inTable": false,
+    "start": 12231
+  },
+  {
+    "index": 473,
+    "text": "ภาพที่ 2 แผนภาพกรณีใช้งานระบบ DMS",
+    "page": 5,
+    "physical": 15,
+    "inTable": false,
+    "start": 12233
+  },
+  {
+    "index": 480,
+    "text": "3. ออกแบบสถาปัตยกรรมและกระบวนการ",
+    "page": 6,
+    "physical": 16,
+    "inTable": false,
+    "start": 12273
+  },
+  {
+    "index": 481,
+    "text": "โครงสร้างระบบแบ่งเป็นเว็บส่วนหน้า บริการ API และฐานข้อมูล PostgreSQL ผู้ใช้ส่งข้อมูล ผ่านหน้าจอ Next.js ไปยัง NestJS ซึ่งตรวจข้อมูลและเรียก Prisma เมื่อสร้างเอกสาร ระบบออกเลขเอกสาร สร้างร่างและเวอร์ชัน จากนั้นเมื่อส่งอนุมัติจึงสร้างลำดับผู้อนุมัติจาก Approval Matrix และ แจ้งผู้รับผิดชอบขั้นแรก",
+    "page": 6,
+    "physical": 16,
+    "inTable": false,
+    "start": 12306
+  },
+  {
+    "index": 482,
+    "text": "/",
+    "page": 6,
+    "physical": 16,
+    "inTable": false,
+    "start": 12601
+  },
+  {
+    "index": 483,
+    "text": "ภาพที่ 3 สถาปัตยกรรมระบบ",
+    "page": 6,
+    "physical": 16,
+    "inTable": false,
+    "start": 12603
+  },
+  {
+    "index": 484,
+    "text": "/",
+    "page": 7,
+    "physical": 17,
+    "inTable": false,
+    "start": 12628
+  },
+  {
+    "index": 485,
+    "text": "ภาพที่ 4 ผังขั้นตอนการสร้างและส่งอนุมัติเอกสาร",
+    "page": 7,
+    "physical": 17,
+    "inTable": false,
+    "start": 12630
+  },
+  {
+    "index": 486,
+    "text": "เมื่อผู้อนุมัติพิจารณา ระบบต้องยืนยันว่าบุคคลนั้นเป็นผู้รับผิดชอบขั้นปัจจุบัน แล้วบันทึกผล พร้อมความคิดเห็น เวลา และเวอร์ชันเอกสาร หากปฏิเสธหรือส่งกลับแก้ไข ต้องรักษาหลักฐานของรอบก่อน ส่วนการอนุมัติครบทุกขั้นจึงเปลี่ยนสถานะเอกสารเป็น Approved",
+    "page": 7,
+    "physical": 17,
+    "inTable": false,
+    "start": 12677
+  },
+  {
+    "index": 487,
+    "text": "/",
+    "page": 8,
+    "physical": 18,
+    "inTable": false,
+    "start": 12920
+  },
+  {
+    "index": 488,
+    "text": "ภาพที่ 5 ผังขั้นตอนการพิจารณาอนุมัติ",
+    "page": 8,
+    "physical": 18,
+    "inTable": false,
+    "start": 12922
+  },
+  {
+    "index": 491,
+    "text": "4. ออกแบบกรณีใช้งาน",
+    "page": 9,
+    "physical": 19,
+    "inTable": false,
+    "start": 12961
+  },
+  {
+    "index": 492,
+    "text": "กรณีใช้งานหลักใช้รูปแบบเดียวกับตัวอย่าง ได้แก่ รหัส ชื่อ ผู้เกี่ยวข้อง จุดประสงค์ เงื่อนไขก่อนและหลัง ขั้นตอนหลัก และกรณีทางเลือก ตารางต่อไปสรุปกรณีที่สำคัญต่อกระบวนการเอกสาร",
+    "page": 9,
+    "physical": 19,
+    "inTable": false,
+    "start": 12981
+  },
+  {
+    "index": 493,
+    "text": "ตารางที่ 3 กรณีใช้งานหลักของระบบ",
+    "page": 9,
+    "physical": 19,
+    "inTable": false,
+    "start": 13156
+  },
+  {
+    "index": 494,
+    "text": "รหัสและชื่อ",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13189
+  },
+  {
+    "index": 495,
+    "text": "ผู้เกี่ยวข้อง",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13201
+  },
+  {
+    "index": 496,
+    "text": "ขั้นตอนหลัก / ผลลัพธ์",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13215
+  },
+  {
+    "index": 498,
+    "text": "UC01 เข้าสู่ระบบ",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13238
+  },
+  {
+    "index": 499,
+    "text": "ผู้ใช้ทุกบทบาท",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13255
+  },
+  {
+    "index": 500,
+    "text": "กรอกบัญชี ระบบตรวจข้อมูลและเข้าสู่หน้าตามสิทธิ์",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13270
+  },
+  {
+    "index": 502,
+    "text": "UC02 สร้างเอกสาร",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13319
+  },
+  {
+    "index": 503,
+    "text": "ผู้สร้าง",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13336
+  },
+  {
+    "index": 504,
+    "text": "เลือกประเภท กรอกข้อมูลหรืออัปโหลด PDF แล้วบันทึก Draft",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13345
+  },
+  {
+    "index": 506,
+    "text": "UC03 ส่งอนุมัติ",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13401
+  },
+  {
+    "index": 507,
+    "text": "ผู้สร้าง",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13417
+  },
+  {
+    "index": 508,
+    "text": "เลือกผู้อนุมัติตาม matrix แล้วเปลี่ยนเป็น Pending",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13426
+  },
+  {
+    "index": 510,
+    "text": "UC04 อนุมัติ/ปฏิเสธ",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13477
+  },
+  {
+    "index": 511,
+    "text": "ผู้อนุมัติ",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13497
+  },
+  {
+    "index": 512,
+    "text": "ตรวจเอกสาร แสดงผล ติดตามขั้นถัดไปหรือจบงาน",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13508
+  },
+  {
+    "index": 514,
+    "text": "UC05 ค้นหาและดูเวอร์ชัน",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13552
+  },
+  {
+    "index": 515,
+    "text": "ผู้มีสิทธิ์",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13576
+  },
+  {
+    "index": 516,
+    "text": "ค้นตามข้อมูลกำกับ เปิดเอกสารและประวัติเวอร์ชัน",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13588
+  },
+  {
+    "index": 518,
+    "text": "UC06 จัดการข้อมูลหลัก",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13636
+  },
+  {
+    "index": 519,
+    "text": "ผู้ดูแลระบบ",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13658
+  },
+  {
+    "index": 520,
+    "text": "ตั้งค่าประเภทเอกสาร ผู้ใช้ สิทธิ์ และ Approval Matrix",
+    "page": 9,
+    "physical": 19,
+    "inTable": true,
+    "start": 13670
+  },
+  {
+    "index": 522,
+    "text": "กรณีทางเลือก: ข้อมูลไม่ครบ สิทธิ์ไม่พอ ผู้อนุมัติไม่ตรงขั้น ไฟล์ผิดชนิด หรือการบันทึกล้มเหลว ระบบต้องแสดงข้อผิดพลาดและไม่รายงานว่าสำเร็จ",
+    "page": 9,
+    "physical": 19,
+    "inTable": false,
+    "start": 13725
+  },
+  {
+    "index": 523,
+    "text": "/",
+    "page": 9,
+    "physical": 19,
+    "inTable": false,
+    "start": 13862
+  },
+  {
+    "index": 524,
+    "text": "ภาพที่ 6 Sequence Diagram การสร้างเอกสาร",
+    "page": 9,
+    "physical": 19,
+    "inTable": false,
+    "start": 13864
+  },
+  {
+    "index": 525,
+    "text": "/",
+    "page": 10,
+    "physical": 20,
+    "inTable": false,
+    "start": 13905
+  },
+  {
+    "index": 526,
+    "text": "ภาพที่ 7 Sequence Diagram การอนุมัติและลงลายเซ็น",
+    "page": 10,
+    "physical": 20,
+    "inTable": false,
+    "start": 13907
+  },
+  {
+    "index": 528,
+    "text": "5. ออกแบบฐานข้อมูล",
+    "page": 10,
+    "physical": 20,
+    "inTable": false,
+    "start": 13957
+  },
+  {
+    "index": 529,
+    "text": "Prisma Schema แบ่งข้อมูลเป็นข้อมูลหลัก ผู้ใช้และสิทธิ์ เอกสารและเวอร์ชัน กระบวนการอนุมัติ การแจ้งเตือน และ Audit Log ทุกตารางหลักใช้ UUID เป็นคีย์ เอกสารหนึ่งฉบับมีหลายเวอร์ชันและมี workflow ได้หนึ่งชุด ซึ่ง workflow มีหลายขั้น",
+    "page": 10,
+    "physical": 20,
+    "inTable": false,
+    "start": 13976
+  },
+  {
+    "index": 535,
+    "text": " ",
+    "page": 11,
+    "physical": 21,
+    "inTable": false,
+    "start": 14209
+  },
+  {
+    "index": 537,
+    "text": "ภาพที่ 8 ER Diagram ระบบ DMS",
+    "page": 11,
+    "physical": 21,
+    "inTable": false,
+    "start": 14214
+  },
+  {
+    "index": 540,
+    "text": "ตารางที่ 4 Data Dictionary ตาราง departments (แผนก)",
+    "page": 12,
+    "physical": 22,
+    "inTable": false,
+    "start": 14245
+  },
+  {
+    "index": 541,
+    "text": "Attribute",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14297
+  },
+  {
+    "index": 542,
+    "text": "ชนิด",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14307
+  },
+  {
+    "index": 543,
+    "text": "คำอธิบาย",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14312
+  },
+  {
+    "index": 545,
+    "text": "id",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14322
+  },
+  {
+    "index": 546,
+    "text": "String UUID",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14325
+  },
+  {
+    "index": 547,
+    "text": "PK; รหัสแผนก",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14337
+  },
+  {
+    "index": 549,
+    "text": "name",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14351
+  },
+  {
+    "index": 550,
+    "text": "String",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14356
+  },
+  {
+    "index": 551,
+    "text": "ไม่ซ้ำ; ชื่อแผนก",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14363
+  },
+  {
+    "index": 553,
+    "text": "is_active",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14381
+  },
+  {
+    "index": 554,
+    "text": "Boolean",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14391
+  },
+  {
+    "index": 555,
+    "text": "สถานะเปิดใช้งาน",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14399
+  },
+  {
+    "index": 557,
+    "text": "created_at",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14416
+  },
+  {
+    "index": 558,
+    "text": "DateTime",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14427
+  },
+  {
+    "index": 559,
+    "text": "วันเวลาที่สร้าง",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14436
+  },
+  {
+    "index": 561,
+    "text": "updated_at",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14453
+  },
+  {
+    "index": 562,
+    "text": "DateTime",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14464
+  },
+  {
+    "index": 563,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14473
+  },
+  {
+    "index": 565,
+    "text": "ตารางที่ 5 Data Dictionary ตาราง positions (ตำแหน่ง)",
+    "page": 12,
+    "physical": 22,
+    "inTable": false,
+    "start": 14499
+  },
+  {
+    "index": 566,
+    "text": "Attribute",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14552
+  },
+  {
+    "index": 567,
+    "text": "ชนิด",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14562
+  },
+  {
+    "index": 568,
+    "text": "คำอธิบาย",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14567
+  },
+  {
+    "index": 570,
+    "text": "id",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14577
+  },
+  {
+    "index": 571,
+    "text": "String UUID",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14580
+  },
+  {
+    "index": 572,
+    "text": "PK; รหัสตำแหน่ง",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14592
+  },
+  {
+    "index": 574,
+    "text": "name",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14609
+  },
+  {
+    "index": 575,
+    "text": "String",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14614
+  },
+  {
+    "index": 576,
+    "text": "ไม่ซ้ำ; ชื่อตำแหน่ง",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14621
+  },
+  {
+    "index": 578,
+    "text": "level",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14642
+  },
+  {
+    "index": 579,
+    "text": "String",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14648
+  },
+  {
+    "index": 580,
+    "text": "ระดับตำแหน่ง",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14655
+  },
+  {
+    "index": 582,
+    "text": "is_active",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14669
+  },
+  {
+    "index": 583,
+    "text": "Boolean",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14679
+  },
+  {
+    "index": 584,
+    "text": "สถานะเปิดใช้งาน",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14687
+  },
+  {
+    "index": 586,
+    "text": "created_at",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14704
+  },
+  {
+    "index": 587,
+    "text": "DateTime",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14715
+  },
+  {
+    "index": 588,
+    "text": "วันเวลาที่สร้าง",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14724
+  },
+  {
+    "index": 590,
+    "text": "updated_at",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14741
+  },
+  {
+    "index": 591,
+    "text": "DateTime",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14752
+  },
+  {
+    "index": 592,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14761
+  },
+  {
+    "index": 594,
+    "text": "ตารางที่ 6 Data Dictionary ตาราง document_types (ประเภทเอกสาร)",
+    "page": 12,
+    "physical": 22,
+    "inTable": false,
+    "start": 14787
+  },
+  {
+    "index": 595,
+    "text": "Attribute",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14850
+  },
+  {
+    "index": 596,
+    "text": "ชนิด",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14860
+  },
+  {
+    "index": 597,
+    "text": "คำอธิบาย",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14865
+  },
+  {
+    "index": 599,
+    "text": "id",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14875
+  },
+  {
+    "index": 600,
+    "text": "String UUID",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14878
+  },
+  {
+    "index": 601,
+    "text": "PK; รหัสประเภทเอกสาร",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14890
+  },
+  {
+    "index": 603,
+    "text": "type_name",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14912
+  },
+  {
+    "index": 604,
+    "text": "String",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14922
+  },
+  {
+    "index": 605,
+    "text": "ไม่ซ้ำ; ชื่อประเภทเอกสาร",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14929
+  },
+  {
+    "index": 607,
+    "text": "prefix",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14955
+  },
+  {
+    "index": 608,
+    "text": "String",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14962
+  },
+  {
+    "index": 609,
+    "text": "ไม่ซ้ำ; รหัสนำหน้าเลขเอกสาร",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14969
+  },
+  {
+    "index": 611,
+    "text": "is_active",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 14998
+  },
+  {
+    "index": 612,
+    "text": "Boolean",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 15008
+  },
+  {
+    "index": 613,
+    "text": "สถานะเปิดใช้งาน",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 15016
+  },
+  {
+    "index": 615,
+    "text": "created_at",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 15033
+  },
+  {
+    "index": 616,
+    "text": "DateTime",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 15044
+  },
+  {
+    "index": 617,
+    "text": "วันเวลาที่สร้าง",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 15053
+  },
+  {
+    "index": 619,
+    "text": "updated_at",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 15070
+  },
+  {
+    "index": 620,
+    "text": "DateTime",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 15081
+  },
+  {
+    "index": 621,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 12,
+    "physical": 22,
+    "inTable": true,
+    "start": 15090
+  },
+  {
+    "index": 624,
+    "text": "ตารางที่ 7 Data Dictionary ตาราง roles (บทบาท)",
+    "page": 13,
+    "physical": 23,
+    "inTable": false,
+    "start": 15117
+  },
+  {
+    "index": 625,
+    "text": "Attribute",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15164
+  },
+  {
+    "index": 626,
+    "text": "ชนิด",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15174
+  },
+  {
+    "index": 627,
+    "text": "คำอธิบาย",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15179
+  },
+  {
+    "index": 629,
+    "text": "id",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15189
+  },
+  {
+    "index": 630,
+    "text": "String UUID",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15192
+  },
+  {
+    "index": 631,
+    "text": "PK; รหัสบทบาท",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15204
+  },
+  {
+    "index": 633,
+    "text": "name",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15219
+  },
+  {
+    "index": 634,
+    "text": "String",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15224
+  },
+  {
+    "index": 635,
+    "text": "ไม่ซ้ำ; ชื่อบทบาท",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15231
+  },
+  {
+    "index": 637,
+    "text": "is_active",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15250
+  },
+  {
+    "index": 638,
+    "text": "Boolean",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15260
+  },
+  {
+    "index": 639,
+    "text": "สถานะเปิดใช้งาน",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15268
+  },
+  {
+    "index": 641,
+    "text": "created_at",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15285
+  },
+  {
+    "index": 642,
+    "text": "DateTime",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15296
+  },
+  {
+    "index": 643,
+    "text": "วันเวลาที่สร้าง",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15305
+  },
+  {
+    "index": 645,
+    "text": "updated_at",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15322
+  },
+  {
+    "index": 646,
+    "text": "DateTime",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15333
+  },
+  {
+    "index": 647,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15342
+  },
+  {
+    "index": 649,
+    "text": "ตารางที่ 8 Data Dictionary ตาราง permissions (สิทธิ์การใช้งาน)",
+    "page": 13,
+    "physical": 23,
+    "inTable": false,
+    "start": 15368
+  },
+  {
+    "index": 650,
+    "text": "Attribute",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15431
+  },
+  {
+    "index": 651,
+    "text": "ชนิด",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15441
+  },
+  {
+    "index": 652,
+    "text": "คำอธิบาย",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15446
+  },
+  {
+    "index": 654,
+    "text": "id",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15456
+  },
+  {
+    "index": 655,
+    "text": "String UUID",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15459
+  },
+  {
+    "index": 656,
+    "text": "PK; รหัสสิทธิ์การใช้งาน",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15471
+  },
+  {
+    "index": 658,
+    "text": "module",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15496
+  },
+  {
+    "index": 659,
+    "text": "String",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15503
+  },
+  {
+    "index": 660,
+    "text": "หมวดงานที่กำหนดสิทธิ์",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15510
+  },
+  {
+    "index": 662,
+    "text": "action",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15533
+  },
+  {
+    "index": 663,
+    "text": "String",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15540
+  },
+  {
+    "index": 664,
+    "text": "การกระทำที่อนุญาต",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15547
+  },
+  {
+    "index": 666,
+    "text": "description",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15566
+  },
+  {
+    "index": 667,
+    "text": "String?",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15578
+  },
+  {
+    "index": 668,
+    "text": "คำอธิบาย",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15586
+  },
+  {
+    "index": 670,
+    "text": "created_at",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15596
+  },
+  {
+    "index": 671,
+    "text": "DateTime",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15607
+  },
+  {
+    "index": 672,
+    "text": "วันเวลาที่สร้าง",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15616
+  },
+  {
+    "index": 674,
+    "text": "updated_at",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15633
+  },
+  {
+    "index": 675,
+    "text": "DateTime",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15644
+  },
+  {
+    "index": 676,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15653
+  },
+  {
+    "index": 678,
+    "text": "ตารางที่ 9 Data Dictionary ตาราง role_permissions (สิทธิ์ตามบทบาท)",
+    "page": 13,
+    "physical": 23,
+    "inTable": false,
+    "start": 15679
+  },
+  {
+    "index": 679,
+    "text": "Attribute",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15746
+  },
+  {
+    "index": 680,
+    "text": "ชนิด",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15756
+  },
+  {
+    "index": 681,
+    "text": "คำอธิบาย",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15761
+  },
+  {
+    "index": 683,
+    "text": "role_id",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15771
+  },
+  {
+    "index": 684,
+    "text": "String UUID",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15779
+  },
+  {
+    "index": 685,
+    "text": "PK; FK → roles; รหัสบทบาท",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15791
+  },
+  {
+    "index": 687,
+    "text": "permission_id",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15818
+  },
+  {
+    "index": 688,
+    "text": "String UUID",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15832
+  },
+  {
+    "index": 689,
+    "text": "PK; FK → permissions; รหัสสิทธิ์",
+    "page": 13,
+    "physical": 23,
+    "inTable": true,
+    "start": 15844
+  },
+  {
+    "index": 691,
+    "text": "ตารางที่ 10 Data Dictionary ตาราง users (ผู้ใช้งาน)",
+    "page": 14,
+    "physical": 24,
+    "inTable": false,
+    "start": 15878
+  },
+  {
+    "index": 692,
+    "text": "Attribute",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 15930
+  },
+  {
+    "index": 693,
+    "text": "ชนิด",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 15940
+  },
+  {
+    "index": 694,
+    "text": "คำอธิบาย",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 15945
+  },
+  {
+    "index": 696,
+    "text": "id",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 15955
+  },
+  {
+    "index": 697,
+    "text": "String UUID",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 15958
+  },
+  {
+    "index": 698,
+    "text": "PK; รหัสผู้ใช้งาน",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 15970
+  },
+  {
+    "index": 700,
+    "text": "username",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 15989
+  },
+  {
+    "index": 701,
+    "text": "String",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 15998
+  },
+  {
+    "index": 702,
+    "text": "ไม่ซ้ำ; ชื่อบัญชีผู้ใช้งาน",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16005
+  },
+  {
+    "index": 704,
+    "text": "email",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16033
+  },
+  {
+    "index": 705,
+    "text": "String",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16039
+  },
+  {
+    "index": 706,
+    "text": "ไม่ซ้ำ; อีเมลผู้ใช้งาน",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16046
+  },
+  {
+    "index": 708,
+    "text": "password_hash",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16070
+  },
+  {
+    "index": 709,
+    "text": "String",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16084
+  },
+  {
+    "index": 710,
+    "text": "ค่าแฮชรหัสผ่าน",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16091
+  },
+  {
+    "index": 712,
+    "text": "first_name",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16107
+  },
+  {
+    "index": 713,
+    "text": "String",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16118
+  },
+  {
+    "index": 714,
+    "text": "ชื่อจริง",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16125
+  },
+  {
+    "index": 716,
+    "text": "last_name",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16135
+  },
+  {
+    "index": 717,
+    "text": "String",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16145
+  },
+  {
+    "index": 718,
+    "text": "นามสกุล",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16152
+  },
+  {
+    "index": 720,
+    "text": "department_id",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16161
+  },
+  {
+    "index": 721,
+    "text": "String UUID?",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16175
+  },
+  {
+    "index": 722,
+    "text": "FK → departments; รหัสแผนก",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16188
+  },
+  {
+    "index": 724,
+    "text": "position_id",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16216
+  },
+  {
+    "index": 725,
+    "text": "String UUID?",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16228
+  },
+  {
+    "index": 726,
+    "text": "FK → positions; รหัสตำแหน่ง",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16241
+  },
+  {
+    "index": 728,
+    "text": "role_id",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16270
+  },
+  {
+    "index": 729,
+    "text": "String UUID?",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16278
+  },
+  {
+    "index": 730,
+    "text": "FK → roles; รหัสบทบาท",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16291
+  },
+  {
+    "index": 732,
+    "text": "signature_encrypted",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16314
+  },
+  {
+    "index": 733,
+    "text": "String?",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16334
+  },
+  {
+    "index": 734,
+    "text": "ข้อมูลลายเซ็นที่เข้ารหัส",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16342
+  },
+  {
+    "index": 736,
+    "text": "is_active",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16368
+  },
+  {
+    "index": 737,
+    "text": "Boolean",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16378
+  },
+  {
+    "index": 738,
+    "text": "สถานะเปิดใช้งาน",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16386
+  },
+  {
+    "index": 740,
+    "text": "is_deleted",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16403
+  },
+  {
+    "index": 741,
+    "text": "Boolean",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16414
+  },
+  {
+    "index": 742,
+    "text": "สถานะลบเชิงตรรกะ",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16422
+  },
+  {
+    "index": 744,
+    "text": "reset_token",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16440
+  },
+  {
+    "index": 745,
+    "text": "String?",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16452
+  },
+  {
+    "index": 746,
+    "text": "โทเค็นรีเซ็ตรหัสผ่าน",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16460
+  },
+  {
+    "index": 748,
+    "text": "reset_token_expiry",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16482
+  },
+  {
+    "index": 749,
+    "text": "DateTime?",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16501
+  },
+  {
+    "index": 750,
+    "text": "เวลาหมดอายุของโทเค็นรีเซ็ต",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16511
+  },
+  {
+    "index": 752,
+    "text": "created_at",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16539
+  },
+  {
+    "index": 753,
+    "text": "DateTime",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16550
+  },
+  {
+    "index": 754,
+    "text": "วันเวลาที่สร้าง",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16559
+  },
+  {
+    "index": 756,
+    "text": "updated_at",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16576
+  },
+  {
+    "index": 757,
+    "text": "DateTime",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16587
+  },
+  {
+    "index": 758,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16596
+  },
+  {
+    "index": 760,
+    "text": "ตารางที่ 11 Data Dictionary ตาราง documents (เอกสาร)",
+    "page": 14,
+    "physical": 24,
+    "inTable": false,
+    "start": 16622
+  },
+  {
+    "index": 761,
+    "text": "Attribute",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16675
+  },
+  {
+    "index": 762,
+    "text": "ชนิด",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16685
+  },
+  {
+    "index": 763,
+    "text": "คำอธิบาย",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16690
+  },
+  {
+    "index": 765,
+    "text": "id",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16700
+  },
+  {
+    "index": 766,
+    "text": "String UUID",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16703
+  },
+  {
+    "index": 767,
+    "text": "PK; รหัสเอกสาร",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16715
+  },
+  {
+    "index": 769,
+    "text": "doc_number",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16731
+  },
+  {
+    "index": 770,
+    "text": "String",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16742
+  },
+  {
+    "index": 771,
+    "text": "ไม่ซ้ำ; เลขเอกสารที่ไม่ซ้ำ",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16749
+  },
+  {
+    "index": 773,
+    "text": "title",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16777
+  },
+  {
+    "index": 774,
+    "text": "String",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16783
+  },
+  {
+    "index": 775,
+    "text": "ชื่อเรื่องเอกสาร",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16790
+  },
+  {
+    "index": 777,
+    "text": "type_id",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16808
+  },
+  {
+    "index": 778,
+    "text": "String UUID",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16816
+  },
+  {
+    "index": 779,
+    "text": "FK → document_types; รหัสประเภทเอกสาร",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16828
+  },
+  {
+    "index": 781,
+    "text": "creator_id",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16867
+  },
+  {
+    "index": 782,
+    "text": "String UUID",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16878
+  },
+  {
+    "index": 783,
+    "text": "FK → users; รหัสผู้สร้าง",
+    "page": 14,
+    "physical": 24,
+    "inTable": true,
+    "start": 16890
+  },
+  {
+    "index": 785,
+    "text": "status",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 16916
+  },
+  {
+    "index": 786,
+    "text": "Enum(DocumentStatus)",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 16923
+  },
+  {
+    "index": 787,
+    "text": "สถานะเอกสาร",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 16944
+  },
+  {
+    "index": 789,
+    "text": "search_text",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 16957
+  },
+  {
+    "index": 790,
+    "text": "String?",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 16969
+  },
+  {
+    "index": 791,
+    "text": "ข้อความสำหรับค้นหา",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 16977
+  },
+  {
+    "index": 793,
+    "text": "tags",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 16997
+  },
+  {
+    "index": 794,
+    "text": "String[]",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17002
+  },
+  {
+    "index": 795,
+    "text": "ป้ายกำกับเอกสาร",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17011
+  },
+  {
+    "index": 797,
+    "text": "folder_id",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17028
+  },
+  {
+    "index": 798,
+    "text": "String UUID?",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17038
+  },
+  {
+    "index": 799,
+    "text": "FK → folders; รหัสโฟลเดอร์",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17051
+  },
+  {
+    "index": 801,
+    "text": "is_deleted",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17079
+  },
+  {
+    "index": 802,
+    "text": "Boolean",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17090
+  },
+  {
+    "index": 803,
+    "text": "สถานะลบเชิงตรรกะ",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17098
+  },
+  {
+    "index": 805,
+    "text": "visibility_type",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17116
+  },
+  {
+    "index": 806,
+    "text": "String",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17132
+  },
+  {
+    "index": 807,
+    "text": "ขอบเขตการมองเห็น",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17139
+  },
+  {
+    "index": 809,
+    "text": "visibility_departments",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17157
+  },
+  {
+    "index": 810,
+    "text": "String[]",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17180
+  },
+  {
+    "index": 811,
+    "text": "รหัสแผนกที่มองเห็นได้",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17189
+  },
+  {
+    "index": 813,
+    "text": "visibility_users",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17212
+  },
+  {
+    "index": 814,
+    "text": "String[]",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17229
+  },
+  {
+    "index": 815,
+    "text": "รหัสผู้ใช้ที่มองเห็นได้",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17238
+  },
+  {
+    "index": 817,
+    "text": "approved_at",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17263
+  },
+  {
+    "index": 818,
+    "text": "DateTime?",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17275
+  },
+  {
+    "index": 819,
+    "text": "วันเวลาอนุมัติเอกสาร",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17285
+  },
+  {
+    "index": 821,
+    "text": "created_at",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17307
+  },
+  {
+    "index": 822,
+    "text": "DateTime",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17318
+  },
+  {
+    "index": 823,
+    "text": "วันเวลาที่สร้าง",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17327
+  },
+  {
+    "index": 825,
+    "text": "updated_at",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17344
+  },
+  {
+    "index": 826,
+    "text": "DateTime",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17355
+  },
+  {
+    "index": 827,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17364
+  },
+  {
+    "index": 829,
+    "text": "ตารางที่ 12 Data Dictionary ตาราง pr_forms (ใบขอซื้อ)",
+    "page": 15,
+    "physical": 25,
+    "inTable": false,
+    "start": 17390
+  },
+  {
+    "index": 830,
+    "text": "Attribute",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17444
+  },
+  {
+    "index": 831,
+    "text": "ชนิด",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17454
+  },
+  {
+    "index": 832,
+    "text": "คำอธิบาย",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17459
+  },
+  {
+    "index": 834,
+    "text": "id",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17469
+  },
+  {
+    "index": 835,
+    "text": "String UUID",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17472
+  },
+  {
+    "index": 836,
+    "text": "PK; รหัสใบขอซื้อ",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17484
+  },
+  {
+    "index": 838,
+    "text": "document_id",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17502
+  },
+  {
+    "index": 839,
+    "text": "String UUID",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17514
+  },
+  {
+    "index": 840,
+    "text": "FK → documents; ไม่ซ้ำ; รหัสเอกสาร",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17526
+  },
+  {
+    "index": 842,
+    "text": "requested_date",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17562
+  },
+  {
+    "index": 843,
+    "text": "DateTime?",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17577
+  },
+  {
+    "index": 844,
+    "text": "วันที่ขอซื้อ",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17587
+  },
+  {
+    "index": 846,
+    "text": "required_date",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17601
+  },
+  {
+    "index": 847,
+    "text": "DateTime?",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17615
+  },
+  {
+    "index": 848,
+    "text": "วันที่ต้องการใช้",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17625
+  },
+  {
+    "index": 850,
+    "text": "requester_id",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17643
+  },
+  {
+    "index": 851,
+    "text": "String UUID",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17656
+  },
+  {
+    "index": 852,
+    "text": "FK → users; รหัสผู้ขอซื้อ",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17668
+  },
+  {
+    "index": 854,
+    "text": "department_id",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17695
+  },
+  {
+    "index": 855,
+    "text": "String UUID",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17709
+  },
+  {
+    "index": 856,
+    "text": "FK → departments; รหัสแผนก",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17721
+  },
+  {
+    "index": 858,
+    "text": "purpose",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17749
+  },
+  {
+    "index": 859,
+    "text": "String?",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17757
+  },
+  {
+    "index": 860,
+    "text": "วัตถุประสงค์การขอซื้อ",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17765
+  },
+  {
+    "index": 862,
+    "text": "remark",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17788
+  },
+  {
+    "index": 863,
+    "text": "String?",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17795
+  },
+  {
+    "index": 864,
+    "text": "หมายเหตุ",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17803
+  },
+  {
+    "index": 866,
+    "text": "total_amount",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17813
+  },
+  {
+    "index": 867,
+    "text": "Decimal(10,2)",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17826
+  },
+  {
+    "index": 868,
+    "text": "ยอดเงินรวม",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17840
+  },
+  {
+    "index": 870,
+    "text": "created_at",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17852
+  },
+  {
+    "index": 871,
+    "text": "DateTime",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17863
+  },
+  {
+    "index": 872,
+    "text": "วันเวลาที่สร้าง",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17872
+  },
+  {
+    "index": 874,
+    "text": "updated_at",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17889
+  },
+  {
+    "index": 875,
+    "text": "DateTime",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17900
+  },
+  {
+    "index": 876,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 15,
+    "physical": 25,
+    "inTable": true,
+    "start": 17909
+  },
+  {
+    "index": 881,
+    "text": "ตารางที่ 13 Data Dictionary ตาราง pr_form_items (รายการใบขอซื้อ)",
+    "page": 16,
+    "physical": 26,
+    "inTable": false,
+    "start": 17938
+  },
+  {
+    "index": 882,
+    "text": "Attribute",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18003
+  },
+  {
+    "index": 883,
+    "text": "ชนิด",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18013
+  },
+  {
+    "index": 884,
+    "text": "คำอธิบาย",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18018
+  },
+  {
+    "index": 886,
+    "text": "id",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18028
+  },
+  {
+    "index": 887,
+    "text": "String UUID",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18031
+  },
+  {
+    "index": 888,
+    "text": "PK; รหัสรายการใบขอซื้อ",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18043
+  },
+  {
+    "index": 890,
+    "text": "pr_form_id",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18067
+  },
+  {
+    "index": 891,
+    "text": "String UUID",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18078
+  },
+  {
+    "index": 892,
+    "text": "FK → pr_forms; รหัสใบขอซื้อ",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18090
+  },
+  {
+    "index": 894,
+    "text": "item_name",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18119
+  },
+  {
+    "index": 895,
+    "text": "String",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18129
+  },
+  {
+    "index": 896,
+    "text": "ชื่อรายการสินค้า",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18136
+  },
+  {
+    "index": 898,
+    "text": "quantity",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18154
+  },
+  {
+    "index": 899,
+    "text": "Int",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18163
+  },
+  {
+    "index": 900,
+    "text": "จำนวน",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18167
+  },
+  {
+    "index": 902,
+    "text": "unit",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18174
+  },
+  {
+    "index": 903,
+    "text": "String?",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18179
+  },
+  {
+    "index": 904,
+    "text": "หน่วยนับ",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18187
+  },
+  {
+    "index": 906,
+    "text": "unit_price",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18197
+  },
+  {
+    "index": 907,
+    "text": "Decimal(10,2)",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18208
+  },
+  {
+    "index": 908,
+    "text": "ราคาต่อหน่วย",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18222
+  },
+  {
+    "index": 910,
+    "text": "total_price",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18236
+  },
+  {
+    "index": 911,
+    "text": "Decimal(10,2)",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18248
+  },
+  {
+    "index": 912,
+    "text": "ราคารวมรายการ",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18262
+  },
+  {
+    "index": 914,
+    "text": "remark",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18277
+  },
+  {
+    "index": 915,
+    "text": "String?",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18284
+  },
+  {
+    "index": 916,
+    "text": "หมายเหตุ",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18292
+  },
+  {
+    "index": 918,
+    "text": "created_at",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18302
+  },
+  {
+    "index": 919,
+    "text": "DateTime",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18313
+  },
+  {
+    "index": 920,
+    "text": "วันเวลาที่สร้าง",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18322
+  },
+  {
+    "index": 922,
+    "text": "updated_at",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18339
+  },
+  {
+    "index": 923,
+    "text": "DateTime",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18350
+  },
+  {
+    "index": 924,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18359
+  },
+  {
+    "index": 926,
+    "text": "ตารางที่ 14 Data Dictionary ตาราง po_forms (ใบสั่งซื้อ)",
+    "page": 16,
+    "physical": 26,
+    "inTable": false,
+    "start": 18385
+  },
+  {
+    "index": 927,
+    "text": "Attribute",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18441
+  },
+  {
+    "index": 928,
+    "text": "ชนิด",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18451
+  },
+  {
+    "index": 929,
+    "text": "คำอธิบาย",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18456
+  },
+  {
+    "index": 931,
+    "text": "id",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18466
+  },
+  {
+    "index": 932,
+    "text": "String UUID",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18469
+  },
+  {
+    "index": 933,
+    "text": "PK; รหัสใบสั่งซื้อ",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18481
+  },
+  {
+    "index": 935,
+    "text": "document_id",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18501
+  },
+  {
+    "index": 936,
+    "text": "String UUID",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18513
+  },
+  {
+    "index": 937,
+    "text": "FK → documents; ไม่ซ้ำ; รหัสเอกสาร",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18525
+  },
+  {
+    "index": 939,
+    "text": "vendor_name",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18561
+  },
+  {
+    "index": 940,
+    "text": "String",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18573
+  },
+  {
+    "index": 941,
+    "text": "ชื่อผู้ขาย",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18580
+  },
+  {
+    "index": 943,
+    "text": "vendor_contact",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18592
+  },
+  {
+    "index": 944,
+    "text": "String?",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18607
+  },
+  {
+    "index": 945,
+    "text": "ข้อมูลติดต่อผู้ขาย",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18615
+  },
+  {
+    "index": 947,
+    "text": "delivery_date",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18635
+  },
+  {
+    "index": 948,
+    "text": "DateTime?",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18649
+  },
+  {
+    "index": 949,
+    "text": "วันที่ส่งมอบ",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18659
+  },
+  {
+    "index": 951,
+    "text": "payment_terms",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18673
+  },
+  {
+    "index": 952,
+    "text": "String?",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18687
+  },
+  {
+    "index": 953,
+    "text": "เงื่อนไขการชำระเงิน",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18695
+  },
+  {
+    "index": 955,
+    "text": "total_amount",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18716
+  },
+  {
+    "index": 956,
+    "text": "Decimal(10,2)",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18729
+  },
+  {
+    "index": 957,
+    "text": "ยอดเงินรวม",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18743
+  },
+  {
+    "index": 959,
+    "text": "remark",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18755
+  },
+  {
+    "index": 960,
+    "text": "String?",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18762
+  },
+  {
+    "index": 961,
+    "text": "หมายเหตุ",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18770
+  },
+  {
+    "index": 963,
+    "text": "created_at",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18780
+  },
+  {
+    "index": 964,
+    "text": "DateTime",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18791
+  },
+  {
+    "index": 965,
+    "text": "วันเวลาที่สร้าง",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18800
+  },
+  {
+    "index": 967,
+    "text": "updated_at",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18817
+  },
+  {
+    "index": 968,
+    "text": "DateTime",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18828
+  },
+  {
+    "index": 969,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 16,
+    "physical": 26,
+    "inTable": true,
+    "start": 18837
+  },
+  {
+    "index": 972,
+    "text": "ตารางที่ 15 Data Dictionary ตาราง po_form_items (รายการใบสั่งซื้อ)",
+    "page": 17,
+    "physical": 27,
+    "inTable": false,
+    "start": 18864
+  },
+  {
+    "index": 973,
+    "text": "Attribute",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 18931
+  },
+  {
+    "index": 974,
+    "text": "ชนิด",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 18941
+  },
+  {
+    "index": 975,
+    "text": "คำอธิบาย",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 18946
+  },
+  {
+    "index": 977,
+    "text": "id",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 18956
+  },
+  {
+    "index": 978,
+    "text": "String UUID",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 18959
+  },
+  {
+    "index": 979,
+    "text": "PK; รหัสรายการใบสั่งซื้อ",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 18971
+  },
+  {
+    "index": 981,
+    "text": "po_form_id",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 18997
+  },
+  {
+    "index": 982,
+    "text": "String UUID",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19008
+  },
+  {
+    "index": 983,
+    "text": "FK → po_forms; รหัสใบสั่งซื้อ",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19020
+  },
+  {
+    "index": 985,
+    "text": "item_name",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19051
+  },
+  {
+    "index": 986,
+    "text": "String",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19061
+  },
+  {
+    "index": 987,
+    "text": "ชื่อรายการสินค้า",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19068
+  },
+  {
+    "index": 989,
+    "text": "quantity",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19086
+  },
+  {
+    "index": 990,
+    "text": "Int",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19095
+  },
+  {
+    "index": 991,
+    "text": "จำนวน",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19099
+  },
+  {
+    "index": 993,
+    "text": "unit",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19106
+  },
+  {
+    "index": 994,
+    "text": "String?",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19111
+  },
+  {
+    "index": 995,
+    "text": "หน่วยนับ",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19119
+  },
+  {
+    "index": 997,
+    "text": "unit_price",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19129
+  },
+  {
+    "index": 998,
+    "text": "Decimal(10,2)",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19140
+  },
+  {
+    "index": 999,
+    "text": "ราคาต่อหน่วย",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19154
+  },
+  {
+    "index": 1001,
+    "text": "vat",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19168
+  },
+  {
+    "index": 1002,
+    "text": "Decimal(5,2)",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19172
+  },
+  {
+    "index": 1003,
+    "text": "อัตราภาษีมูลค่าเพิ่ม",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19185
+  },
+  {
+    "index": 1005,
+    "text": "total_price",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19207
+  },
+  {
+    "index": 1006,
+    "text": "Decimal(10,2)",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19219
+  },
+  {
+    "index": 1007,
+    "text": "ราคารวมรายการ",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19233
+  },
+  {
+    "index": 1009,
+    "text": "remark",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19248
+  },
+  {
+    "index": 1010,
+    "text": "String?",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19255
+  },
+  {
+    "index": 1011,
+    "text": "หมายเหตุ",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19263
+  },
+  {
+    "index": 1013,
+    "text": "created_at",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19273
+  },
+  {
+    "index": 1014,
+    "text": "DateTime",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19284
+  },
+  {
+    "index": 1015,
+    "text": "วันเวลาที่สร้าง",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19293
+  },
+  {
+    "index": 1017,
+    "text": "updated_at",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19310
+  },
+  {
+    "index": 1018,
+    "text": "DateTime",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19321
+  },
+  {
+    "index": 1019,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19330
+  },
+  {
+    "index": 1021,
+    "text": "ตารางที่ 16 Data Dictionary ตาราง bk_forms (บันทึกข้อความ)",
+    "page": 17,
+    "physical": 27,
+    "inTable": false,
+    "start": 19356
+  },
+  {
+    "index": 1022,
+    "text": "Attribute",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19415
+  },
+  {
+    "index": 1023,
+    "text": "ชนิด",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19425
+  },
+  {
+    "index": 1024,
+    "text": "คำอธิบาย",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19430
+  },
+  {
+    "index": 1026,
+    "text": "id",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19440
+  },
+  {
+    "index": 1027,
+    "text": "String UUID",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19443
+  },
+  {
+    "index": 1028,
+    "text": "PK; รหัสบันทึกข้อความ",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19455
+  },
+  {
+    "index": 1030,
+    "text": "document_id",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19478
+  },
+  {
+    "index": 1031,
+    "text": "String UUID",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19490
+  },
+  {
+    "index": 1032,
+    "text": "FK → documents; ไม่ซ้ำ; รหัสเอกสาร",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19502
+  },
+  {
+    "index": 1034,
+    "text": "subject",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19538
+  },
+  {
+    "index": 1035,
+    "text": "String",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19546
+  },
+  {
+    "index": 1036,
+    "text": "เรื่องของบันทึกข้อความ",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19553
+  },
+  {
+    "index": 1038,
+    "text": "detail",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19577
+  },
+  {
+    "index": 1039,
+    "text": "String?",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19584
+  },
+  {
+    "index": 1040,
+    "text": "รายละเอียดบันทึกข้อความ",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19592
+  },
+  {
+    "index": 1042,
+    "text": "department_id",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19617
+  },
+  {
+    "index": 1043,
+    "text": "String UUID",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19631
+  },
+  {
+    "index": 1044,
+    "text": "FK → departments; รหัสแผนก",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19643
+  },
+  {
+    "index": 1046,
+    "text": "created_at",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19671
+  },
+  {
+    "index": 1047,
+    "text": "DateTime",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19682
+  },
+  {
+    "index": 1048,
+    "text": "วันเวลาที่สร้าง",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19691
+  },
+  {
+    "index": 1050,
+    "text": "updated_at",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19708
+  },
+  {
+    "index": 1051,
+    "text": "DateTime",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19719
+  },
+  {
+    "index": 1052,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 17,
+    "physical": 27,
+    "inTable": true,
+    "start": 19728
+  },
+  {
+    "index": 1054,
+    "text": "ตารางที่ 17 Data Dictionary ตาราง document_versions (เวอร์ชันเอกสาร)",
+    "page": 18,
+    "physical": 28,
+    "inTable": false,
+    "start": 19754
+  },
+  {
+    "index": 1055,
+    "text": "Attribute",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19823
+  },
+  {
+    "index": 1056,
+    "text": "ชนิด",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19833
+  },
+  {
+    "index": 1057,
+    "text": "คำอธิบาย",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19838
+  },
+  {
+    "index": 1059,
+    "text": "id",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19848
+  },
+  {
+    "index": 1060,
+    "text": "String UUID",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19851
+  },
+  {
+    "index": 1061,
+    "text": "PK; รหัสเวอร์ชันเอกสาร",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19863
+  },
+  {
+    "index": 1063,
+    "text": "document_id",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19887
+  },
+  {
+    "index": 1064,
+    "text": "String UUID",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19899
+  },
+  {
+    "index": 1065,
+    "text": "FK → documents; รหัสเอกสาร",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19911
+  },
+  {
+    "index": 1067,
+    "text": "version_number",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19939
+  },
+  {
+    "index": 1068,
+    "text": "Int",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19954
+  },
+  {
+    "index": 1069,
+    "text": "ลำดับเวอร์ชัน",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19958
+  },
+  {
+    "index": 1071,
+    "text": "file_data",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19973
+  },
+  {
+    "index": 1072,
+    "text": "Bytes?",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19983
+  },
+  {
+    "index": 1073,
+    "text": "ข้อมูลไฟล์แนบ",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 19990
+  },
+  {
+    "index": 1075,
+    "text": "file_size",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20005
+  },
+  {
+    "index": 1076,
+    "text": "String?",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20015
+  },
+  {
+    "index": 1077,
+    "text": "ขนาดไฟล์",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20023
+  },
+  {
+    "index": 1079,
+    "text": "file_extension",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20033
+  },
+  {
+    "index": 1080,
+    "text": "String?",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20048
+  },
+  {
+    "index": 1081,
+    "text": "นามสกุลไฟล์",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20056
+  },
+  {
+    "index": 1083,
+    "text": "form_data",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20069
+  },
+  {
+    "index": 1084,
+    "text": "Json?",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20079
+  },
+  {
+    "index": 1085,
+    "text": "ข้อมูลแบบฟอร์ม ณ เวอร์ชันนั้น",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20085
+  },
+  {
+    "index": 1087,
+    "text": "uploaded_by_id",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20116
+  },
+  {
+    "index": 1088,
+    "text": "String UUID",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20131
+  },
+  {
+    "index": 1089,
+    "text": "FK → users; รหัสผู้บันทึกเวอร์ชัน",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20143
+  },
+  {
+    "index": 1091,
+    "text": "remarks",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20178
+  },
+  {
+    "index": 1092,
+    "text": "String?",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20186
+  },
+  {
+    "index": 1093,
+    "text": "หมายเหตุ",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20194
+  },
+  {
+    "index": 1095,
+    "text": "created_at",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20204
+  },
+  {
+    "index": 1096,
+    "text": "DateTime",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20215
+  },
+  {
+    "index": 1097,
+    "text": "วันเวลาที่สร้าง",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20224
+  },
+  {
+    "index": 1099,
+    "text": "updated_at",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20241
+  },
+  {
+    "index": 1100,
+    "text": "DateTime",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20252
+  },
+  {
+    "index": 1101,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20261
+  },
+  {
+    "index": 1103,
+    "text": "ตารางที่ 18 Data Dictionary ตาราง approval_matrix (กฎลำดับอนุมัติ)",
+    "page": 18,
+    "physical": 28,
+    "inTable": false,
+    "start": 20287
+  },
+  {
+    "index": 1104,
+    "text": "Attribute",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20354
+  },
+  {
+    "index": 1105,
+    "text": "ชนิด",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20364
+  },
+  {
+    "index": 1106,
+    "text": "คำอธิบาย",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20369
+  },
+  {
+    "index": 1108,
+    "text": "id",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20379
+  },
+  {
+    "index": 1109,
+    "text": "String UUID",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20382
+  },
+  {
+    "index": 1110,
+    "text": "PK; รหัสกฎลำดับอนุมัติ",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20394
+  },
+  {
+    "index": 1112,
+    "text": "document_type_id",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20418
+  },
+  {
+    "index": 1113,
+    "text": "String UUID",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20435
+  },
+  {
+    "index": 1114,
+    "text": "FK → document_types; รหัสประเภทเอกสาร",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20447
+  },
+  {
+    "index": 1116,
+    "text": "step_order",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20486
+  },
+  {
+    "index": 1117,
+    "text": "Int",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20497
+  },
+  {
+    "index": 1118,
+    "text": "ลำดับขั้นอนุมัติ",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20501
+  },
+  {
+    "index": 1120,
+    "text": "required_role_id",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20519
+  },
+  {
+    "index": 1121,
+    "text": "String UUID",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20536
+  },
+  {
+    "index": 1122,
+    "text": "FK → roles; รหัสบทบาทผู้อนุมัติ",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20548
+  },
+  {
+    "index": 1124,
+    "text": "created_at",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20581
+  },
+  {
+    "index": 1125,
+    "text": "DateTime",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20592
+  },
+  {
+    "index": 1126,
+    "text": "วันเวลาที่สร้าง",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20601
+  },
+  {
+    "index": 1128,
+    "text": "updated_at",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20618
+  },
+  {
+    "index": 1129,
+    "text": "DateTime",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20629
+  },
+  {
+    "index": 1130,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 18,
+    "physical": 28,
+    "inTable": true,
+    "start": 20638
+  },
+  {
+    "index": 1134,
+    "text": "ตารางที่ 19 Data Dictionary ตาราง workflows (กระบวนการอนุมัติ)",
+    "page": 19,
+    "physical": 29,
+    "inTable": false,
+    "start": 20666
+  },
+  {
+    "index": 1135,
+    "text": "Attribute",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20729
+  },
+  {
+    "index": 1136,
+    "text": "ชนิด",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20739
+  },
+  {
+    "index": 1137,
+    "text": "คำอธิบาย",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20744
+  },
+  {
+    "index": 1139,
+    "text": "id",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20754
+  },
+  {
+    "index": 1140,
+    "text": "String UUID",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20757
+  },
+  {
+    "index": 1141,
+    "text": "PK; รหัสกระบวนการอนุมัติ",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20769
+  },
+  {
+    "index": 1143,
+    "text": "document_id",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20795
+  },
+  {
+    "index": 1144,
+    "text": "String UUID",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20807
+  },
+  {
+    "index": 1145,
+    "text": "FK → documents; ไม่ซ้ำ; รหัสเอกสาร",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20819
+  },
+  {
+    "index": 1147,
+    "text": "total_steps",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20855
+  },
+  {
+    "index": 1148,
+    "text": "Int",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20867
+  },
+  {
+    "index": 1149,
+    "text": "จำนวนขั้นอนุมัติทั้งหมด",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20871
+  },
+  {
+    "index": 1151,
+    "text": "current_step",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20896
+  },
+  {
+    "index": 1152,
+    "text": "Int",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20909
+  },
+  {
+    "index": 1153,
+    "text": "ขั้นอนุมัติปัจจุบัน",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20913
+  },
+  {
+    "index": 1155,
+    "text": "status",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20934
+  },
+  {
+    "index": 1156,
+    "text": "Enum(WorkflowStatus)",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20941
+  },
+  {
+    "index": 1157,
+    "text": "สถานะกระบวนการอนุมัติ",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20962
+  },
+  {
+    "index": 1159,
+    "text": "created_at",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20985
+  },
+  {
+    "index": 1160,
+    "text": "DateTime",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 20996
+  },
+  {
+    "index": 1161,
+    "text": "วันเวลาที่สร้าง",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21005
+  },
+  {
+    "index": 1163,
+    "text": "updated_at",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21022
+  },
+  {
+    "index": 1164,
+    "text": "DateTime",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21033
+  },
+  {
+    "index": 1165,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21042
+  },
+  {
+    "index": 1167,
+    "text": "ตารางที่ 20 Data Dictionary ตาราง workflow_steps (ขั้นตอนอนุมัติ)",
+    "page": 19,
+    "physical": 29,
+    "inTable": false,
+    "start": 21068
+  },
+  {
+    "index": 1168,
+    "text": "Attribute",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21134
+  },
+  {
+    "index": 1169,
+    "text": "ชนิด",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21144
+  },
+  {
+    "index": 1170,
+    "text": "คำอธิบาย",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21149
+  },
+  {
+    "index": 1172,
+    "text": "id",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21159
+  },
+  {
+    "index": 1173,
+    "text": "String UUID",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21162
+  },
+  {
+    "index": 1174,
+    "text": "PK; รหัสขั้นตอนอนุมัติ",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21174
+  },
+  {
+    "index": 1176,
+    "text": "workflow_id",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21198
+  },
+  {
+    "index": 1177,
+    "text": "String UUID",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21210
+  },
+  {
+    "index": 1178,
+    "text": "FK → workflows; รหัสกระบวนการอนุมัติ",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21222
+  },
+  {
+    "index": 1180,
+    "text": "step_order",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21260
+  },
+  {
+    "index": 1181,
+    "text": "Int",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21271
+  },
+  {
+    "index": 1182,
+    "text": "ลำดับขั้นอนุมัติ",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21275
+  },
+  {
+    "index": 1184,
+    "text": "approver_id",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21293
+  },
+  {
+    "index": 1185,
+    "text": "String UUID?",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21305
+  },
+  {
+    "index": 1186,
+    "text": "FK → users; รหัสผู้อนุมัติ",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21318
+  },
+  {
+    "index": 1188,
+    "text": "status",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21346
+  },
+  {
+    "index": 1189,
+    "text": "Enum(WorkflowStatus)",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21353
+  },
+  {
+    "index": 1190,
+    "text": "ผลของขั้นอนุมัติ",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21374
+  },
+  {
+    "index": 1192,
+    "text": "action_date",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21392
+  },
+  {
+    "index": 1193,
+    "text": "DateTime?",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21404
+  },
+  {
+    "index": 1194,
+    "text": "วันเวลาที่ดำเนินการ",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21414
+  },
+  {
+    "index": 1196,
+    "text": "comment",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21435
+  },
+  {
+    "index": 1197,
+    "text": "String?",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21443
+  },
+  {
+    "index": 1198,
+    "text": "ความเห็นของผู้อนุมัติ",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21451
+  },
+  {
+    "index": 1200,
+    "text": "signature_applied",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21474
+  },
+  {
+    "index": 1201,
+    "text": "Boolean",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21492
+  },
+  {
+    "index": 1202,
+    "text": "สถานะการลงลายเซ็น",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21500
+  },
+  {
+    "index": 1204,
+    "text": "return_to_step",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21519
+  },
+  {
+    "index": 1205,
+    "text": "Int?",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21534
+  },
+  {
+    "index": 1206,
+    "text": "ขั้นที่ส่งกลับให้แก้ไข",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21539
+  },
+  {
+    "index": 1208,
+    "text": "created_at",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21563
+  },
+  {
+    "index": 1209,
+    "text": "DateTime",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21574
+  },
+  {
+    "index": 1210,
+    "text": "วันเวลาที่สร้าง",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21583
+  },
+  {
+    "index": 1212,
+    "text": "updated_at",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21600
+  },
+  {
+    "index": 1213,
+    "text": "DateTime",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21611
+  },
+  {
+    "index": 1214,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 19,
+    "physical": 29,
+    "inTable": true,
+    "start": 21620
+  },
+  {
+    "index": 1216,
+    "text": "ตารางที่ 21 Data Dictionary ตาราง notifications (การแจ้งเตือน)",
+    "page": 20,
+    "physical": 30,
+    "inTable": false,
+    "start": 21646
+  },
+  {
+    "index": 1217,
+    "text": "Attribute",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21709
+  },
+  {
+    "index": 1218,
+    "text": "ชนิด",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21719
+  },
+  {
+    "index": 1219,
+    "text": "คำอธิบาย",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21724
+  },
+  {
+    "index": 1221,
+    "text": "id",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21734
+  },
+  {
+    "index": 1222,
+    "text": "String UUID",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21737
+  },
+  {
+    "index": 1223,
+    "text": "PK; รหัสการแจ้งเตือน",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21749
+  },
+  {
+    "index": 1225,
+    "text": "user_id",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21771
+  },
+  {
+    "index": 1226,
+    "text": "String UUID",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21779
+  },
+  {
+    "index": 1227,
+    "text": "FK → users; รหัสผู้ใช้งาน",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21791
+  },
+  {
+    "index": 1229,
+    "text": "document_id",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21818
+  },
+  {
+    "index": 1230,
+    "text": "String UUID?",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21830
+  },
+  {
+    "index": 1231,
+    "text": "FK → documents; รหัสเอกสาร",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21843
+  },
+  {
+    "index": 1233,
+    "text": "message",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21871
+  },
+  {
+    "index": 1234,
+    "text": "String",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21879
+  },
+  {
+    "index": 1235,
+    "text": "ข้อความแจ้งเตือน",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21886
+  },
+  {
+    "index": 1237,
+    "text": "is_read",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21904
+  },
+  {
+    "index": 1238,
+    "text": "Boolean",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21912
+  },
+  {
+    "index": 1239,
+    "text": "สถานะการอ่าน",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21920
+  },
+  {
+    "index": 1241,
+    "text": "read_at",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21934
+  },
+  {
+    "index": 1242,
+    "text": "DateTime?",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21942
+  },
+  {
+    "index": 1243,
+    "text": "วันเวลาที่อ่าน",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21952
+  },
+  {
+    "index": 1245,
+    "text": "created_at",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21968
+  },
+  {
+    "index": 1246,
+    "text": "DateTime",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21979
+  },
+  {
+    "index": 1247,
+    "text": "วันเวลาที่สร้าง",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 21988
+  },
+  {
+    "index": 1249,
+    "text": "updated_at",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22005
+  },
+  {
+    "index": 1250,
+    "text": "DateTime",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22016
+  },
+  {
+    "index": 1251,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22025
+  },
+  {
+    "index": 1253,
+    "text": "ตารางที่ 22 Data Dictionary ตาราง running_numbers (เลขเอกสารต่อเนื่อง)",
+    "page": 20,
+    "physical": 30,
+    "inTable": false,
+    "start": 22051
+  },
+  {
+    "index": 1254,
+    "text": "Attribute",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22122
+  },
+  {
+    "index": 1255,
+    "text": "ชนิด",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22132
+  },
+  {
+    "index": 1256,
+    "text": "คำอธิบาย",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22137
+  },
+  {
+    "index": 1258,
+    "text": "id",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22147
+  },
+  {
+    "index": 1259,
+    "text": "String UUID",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22150
+  },
+  {
+    "index": 1260,
+    "text": "PK; รหัสเลขเอกสารต่อเนื่อง",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22162
+  },
+  {
+    "index": 1262,
+    "text": "document_type_id",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22190
+  },
+  {
+    "index": 1263,
+    "text": "String UUID",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22207
+  },
+  {
+    "index": 1264,
+    "text": "FK → document_types; ไม่ซ้ำ; รหัสประเภทเอกสาร",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22219
+  },
+  {
+    "index": 1266,
+    "text": "prefix",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22266
+  },
+  {
+    "index": 1267,
+    "text": "String",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22273
+  },
+  {
+    "index": 1268,
+    "text": "คำนำหน้าเลขเอกสาร",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22280
+  },
+  {
+    "index": 1270,
+    "text": "year_format",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22299
+  },
+  {
+    "index": 1271,
+    "text": "String",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22311
+  },
+  {
+    "index": 1272,
+    "text": "รูปแบบปีในเลขเอกสาร",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22318
+  },
+  {
+    "index": 1274,
+    "text": "current_number",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22339
+  },
+  {
+    "index": 1275,
+    "text": "Int",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22354
+  },
+  {
+    "index": 1276,
+    "text": "เลขลำดับล่าสุด",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22358
+  },
+  {
+    "index": 1278,
+    "text": "padding_length",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22374
+  },
+  {
+    "index": 1279,
+    "text": "Int",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22389
+  },
+  {
+    "index": 1280,
+    "text": "จำนวนหลักของเลขลำดับ",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22393
+  },
+  {
+    "index": 1282,
+    "text": "last_reset_year",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22415
+  },
+  {
+    "index": 1283,
+    "text": "Int?",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22431
+  },
+  {
+    "index": 1284,
+    "text": "ปีที่รีเซ็ตลำดับล่าสุด",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22436
+  },
+  {
+    "index": 1286,
+    "text": "created_at",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22460
+  },
+  {
+    "index": 1287,
+    "text": "DateTime",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22471
+  },
+  {
+    "index": 1288,
+    "text": "วันเวลาที่สร้าง",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22480
+  },
+  {
+    "index": 1290,
+    "text": "updated_at",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22497
+  },
+  {
+    "index": 1291,
+    "text": "DateTime",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22508
+  },
+  {
+    "index": 1292,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 20,
+    "physical": 30,
+    "inTable": true,
+    "start": 22517
+  },
+  {
+    "index": 1296,
+    "text": "ตารางที่ 23 Data Dictionary ตาราง audit_logs (ประวัติกิจกรรม)",
+    "page": 21,
+    "physical": 31,
+    "inTable": false,
+    "start": 22545
+  },
+  {
+    "index": 1297,
+    "text": "Attribute",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22607
+  },
+  {
+    "index": 1298,
+    "text": "ชนิด",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22617
+  },
+  {
+    "index": 1299,
+    "text": "คำอธิบาย",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22622
+  },
+  {
+    "index": 1301,
+    "text": "id",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22632
+  },
+  {
+    "index": 1302,
+    "text": "String UUID",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22635
+  },
+  {
+    "index": 1303,
+    "text": "PK; รหัสประวัติกิจกรรม",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22647
+  },
+  {
+    "index": 1305,
+    "text": "user_id",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22671
+  },
+  {
+    "index": 1306,
+    "text": "String UUID?",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22679
+  },
+  {
+    "index": 1307,
+    "text": "FK → users; รหัสผู้ใช้งาน",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22692
+  },
+  {
+    "index": 1309,
+    "text": "action",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22719
+  },
+  {
+    "index": 1310,
+    "text": "Enum(AuditAction)",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22726
+  },
+  {
+    "index": 1311,
+    "text": "ประเภทกิจกรรม",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22744
+  },
+  {
+    "index": 1313,
+    "text": "module",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22759
+  },
+  {
+    "index": 1314,
+    "text": "String",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22766
+  },
+  {
+    "index": 1315,
+    "text": "ส่วนงานที่เกิดกิจกรรม",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22773
+  },
+  {
+    "index": 1317,
+    "text": "target_id",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22796
+  },
+  {
+    "index": 1318,
+    "text": "String UUID?",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22806
+  },
+  {
+    "index": 1319,
+    "text": "รหัสรายการที่ถูกดำเนินการ",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22819
+  },
+  {
+    "index": 1321,
+    "text": "details",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22846
+  },
+  {
+    "index": 1322,
+    "text": "Json?",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22854
+  },
+  {
+    "index": 1323,
+    "text": "รายละเอียดการเปลี่ยนแปลง",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22860
+  },
+  {
+    "index": 1325,
+    "text": "ip_address",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22886
+  },
+  {
+    "index": 1326,
+    "text": "String?",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22897
+  },
+  {
+    "index": 1327,
+    "text": "ที่อยู่ IP ของผู้ใช้งาน",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22905
+  },
+  {
+    "index": 1329,
+    "text": "created_at",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22930
+  },
+  {
+    "index": 1330,
+    "text": "DateTime",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22941
+  },
+  {
+    "index": 1331,
+    "text": "วันเวลาที่สร้าง",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 22950
+  },
+  {
+    "index": 1333,
+    "text": "ตารางที่ 24 Data Dictionary ตาราง folders (โฟลเดอร์)",
+    "page": 21,
+    "physical": 31,
+    "inTable": false,
+    "start": 22967
+  },
+  {
+    "index": 1334,
+    "text": "Attribute",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23020
+  },
+  {
+    "index": 1335,
+    "text": "ชนิด",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23030
+  },
+  {
+    "index": 1336,
+    "text": "คำอธิบาย",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23035
+  },
+  {
+    "index": 1338,
+    "text": "id",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23045
+  },
+  {
+    "index": 1339,
+    "text": "String UUID",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23048
+  },
+  {
+    "index": 1340,
+    "text": "PK; รหัสโฟลเดอร์",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23060
+  },
+  {
+    "index": 1342,
+    "text": "name",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23078
+  },
+  {
+    "index": 1343,
+    "text": "String",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23083
+  },
+  {
+    "index": 1344,
+    "text": "ชื่อโฟลเดอร์",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23090
+  },
+  {
+    "index": 1346,
+    "text": "description",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23104
+  },
+  {
+    "index": 1347,
+    "text": "String?",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23116
+  },
+  {
+    "index": 1348,
+    "text": "คำอธิบาย",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23124
+  },
+  {
+    "index": 1350,
+    "text": "color",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23134
+  },
+  {
+    "index": 1351,
+    "text": "String?",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23140
+  },
+  {
+    "index": 1352,
+    "text": "สีที่ใช้แสดงโฟลเดอร์",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23148
+  },
+  {
+    "index": 1354,
+    "text": "icon",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23170
+  },
+  {
+    "index": 1355,
+    "text": "String?",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23175
+  },
+  {
+    "index": 1356,
+    "text": "ไอคอนโฟลเดอร์",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23183
+  },
+  {
+    "index": 1358,
+    "text": "visibility",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23198
+  },
+  {
+    "index": 1359,
+    "text": "Enum(FolderVisibility)",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23209
+  },
+  {
+    "index": 1360,
+    "text": "ขอบเขตการมองเห็น",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23232
+  },
+  {
+    "index": 1362,
+    "text": "parent_id",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23250
+  },
+  {
+    "index": 1363,
+    "text": "String UUID?",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23260
+  },
+  {
+    "index": 1364,
+    "text": "FK → folders; รหัสโฟลเดอร์แม่",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23273
+  },
+  {
+    "index": 1366,
+    "text": "creator_id",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23304
+  },
+  {
+    "index": 1367,
+    "text": "String UUID",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23315
+  },
+  {
+    "index": 1368,
+    "text": "FK → users; รหัสผู้สร้าง",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23327
+  },
+  {
+    "index": 1370,
+    "text": "department_id",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23353
+  },
+  {
+    "index": 1371,
+    "text": "String UUID?",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23367
+  },
+  {
+    "index": 1372,
+    "text": "FK → departments; รหัสแผนก",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23380
+  },
+  {
+    "index": 1374,
+    "text": "is_deleted",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23408
+  },
+  {
+    "index": 1375,
+    "text": "Boolean",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23419
+  },
+  {
+    "index": 1376,
+    "text": "สถานะลบเชิงตรรกะ",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23427
+  },
+  {
+    "index": 1378,
+    "text": "created_at",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23445
+  },
+  {
+    "index": 1379,
+    "text": "DateTime",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23456
+  },
+  {
+    "index": 1380,
+    "text": "วันเวลาที่สร้าง",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23465
+  },
+  {
+    "index": 1382,
+    "text": "updated_at",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23482
+  },
+  {
+    "index": 1383,
+    "text": "DateTime",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23493
+  },
+  {
+    "index": 1384,
+    "text": "วันเวลาที่ปรับปรุงล่าสุด",
+    "page": 21,
+    "physical": 31,
+    "inTable": true,
+    "start": 23502
+  },
+  {
+    "index": 1386,
+    "text": "ตารางที่ 25 Data Dictionary ตาราง folder_permissions (สิทธิ์โฟลเดอร์)",
+    "page": 22,
+    "physical": 32,
+    "inTable": false,
+    "start": 23528
+  },
+  {
+    "index": 1387,
+    "text": "Attribute",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23598
+  },
+  {
+    "index": 1388,
+    "text": "ชนิด",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23608
+  },
+  {
+    "index": 1389,
+    "text": "คำอธิบาย",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23613
+  },
+  {
+    "index": 1391,
+    "text": "id",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23623
+  },
+  {
+    "index": 1392,
+    "text": "String UUID",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23626
+  },
+  {
+    "index": 1393,
+    "text": "PK; รหัสสิทธิ์โฟลเดอร์",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23638
+  },
+  {
+    "index": 1395,
+    "text": "folder_id",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23662
+  },
+  {
+    "index": 1396,
+    "text": "String UUID",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23672
+  },
+  {
+    "index": 1397,
+    "text": "FK → folders; รหัสโฟลเดอร์",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23684
+  },
+  {
+    "index": 1399,
+    "text": "user_id",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23712
+  },
+  {
+    "index": 1400,
+    "text": "String UUID?",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23720
+  },
+  {
+    "index": 1401,
+    "text": "FK → users; รหัสผู้ใช้งาน",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23733
+  },
+  {
+    "index": 1403,
+    "text": "department_id",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23760
+  },
+  {
+    "index": 1404,
+    "text": "String UUID?",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23774
+  },
+  {
+    "index": 1405,
+    "text": "FK → departments; รหัสแผนก",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23787
+  },
+  {
+    "index": 1407,
+    "text": "can_view",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23815
+  },
+  {
+    "index": 1408,
+    "text": "Boolean",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23824
+  },
+  {
+    "index": 1409,
+    "text": "อนุญาตให้ดู",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23832
+  },
+  {
+    "index": 1411,
+    "text": "can_edit",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23845
+  },
+  {
+    "index": 1412,
+    "text": "Boolean",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23854
+  },
+  {
+    "index": 1413,
+    "text": "อนุญาตให้แก้ไข",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23862
+  },
+  {
+    "index": 1415,
+    "text": "created_at",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23878
+  },
+  {
+    "index": 1416,
+    "text": "DateTime",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23889
+  },
+  {
+    "index": 1417,
+    "text": "วันเวลาที่สร้าง",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 23898
+  },
+  {
+    "index": 1419,
+    "text": "6. พัฒนาระบบ",
+    "page": 22,
+    "physical": 32,
+    "inTable": false,
+    "start": 23915
+  },
+  {
+    "index": 1420,
+    "text": "ส่วนหน้าแบ่งหน้าจอเป็นเข้าสู่ระบบ แดชบอร์ด ศูนย์เอกสาร สร้างเอกสาร รายการอนุมัติ โฟลเดอร์ การแจ้งเตือน ประวัติเวอร์ชัน และหน้าจัดการผู้ใช้หรือข้อมูลหลัก ส่วนหลังแบ่งบริการเป็น auth, documents, workflows, folders, notifications, dashboard, admin และ users",
+    "page": 22,
+    "physical": 32,
+    "inTable": false,
+    "start": 23928
+  },
+  {
+    "index": 1421,
+    "text": "การสร้าง PR, PO, BK และ PDF บันทึกเอกสารร่างพร้อมเวอร์ชันเริ่มต้น ส่วน Approval Matrix กำหนดจำนวนขั้นตามประเภทเอกสารและปรับแก้ได้ โดยข้อมูลตัวอย่างของโครงการกำหนด PR 3 ขั้น, PO 2 ขั้น, BK 1 ขั้น และ DOC 1 ขั้น",
+    "page": 22,
+    "physical": 32,
+    "inTable": false,
+    "start": 24183
+  },
+  {
+    "index": 1422,
+    "text": "7. การทดสอบและตรวจสอบ",
+    "page": 22,
+    "physical": 32,
+    "inTable": false,
+    "start": 24393
+  },
+  {
+    "index": 1423,
+    "text": "การตรวจสอบในช่วงวันที่ 28 กันยายน – 16 ตุลาคม 2569 ครอบคลุมการสร้างเอกสาร การบันทึกร่าง การส่งอนุมัติ การพิจารณาตามลำดับ การค้นหา และการดูเวอร์ชัน โดยตรวจความสอดคล้องระหว่างหน้าจอ บริการ API และข้อมูลในฐานข้อมูล รวมทั้งตรวจการคอมไพล์และการสร้างโปรแกรมของส่วนหน้าและส่วนหลัง",
+    "page": 22,
+    "physical": 32,
+    "inTable": false,
+    "start": 24415
+  },
+  {
+    "index": 1424,
+    "text": "ตารางที่ 26 รายการตรวจสอบการทำงานของระบบ",
+    "page": 22,
+    "physical": 32,
+    "inTable": false,
+    "start": 24689
+  },
+  {
+    "index": 1425,
+    "text": "รายการ",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24730
+  },
+  {
+    "index": 1426,
+    "text": "สิ่งที่ตรวจสอบ",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24737
+  },
+  {
+    "index": 1428,
+    "text": "การสร้างเอกสาร",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24753
+  },
+  {
+    "index": 1429,
+    "text": "ข้อมูลแบบฟอร์ม เลขเอกสาร และเวอร์ชันเริ่มต้น",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24768
+  },
+  {
+    "index": 1431,
+    "text": "การส่งอนุมัติ",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24814
+  },
+  {
+    "index": 1432,
+    "text": "ลำดับผู้อนุมัติ สถานะ และการแจ้งเตือน",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24828
+  },
+  {
+    "index": 1434,
+    "text": "การพิจารณา",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24867
+  },
+  {
+    "index": 1435,
+    "text": "ผลอนุมัติ ความคิดเห็น และลายเซ็นบน PDF",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24878
+  },
+  {
+    "index": 1437,
+    "text": "การจัดเก็บและค้นหา",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24918
+  },
+  {
+    "index": 1438,
+    "text": "สิทธิ์การเข้าถึง ตัวกรอง และประวัติเวอร์ชัน",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24937
+  },
+  {
+    "index": 1440,
+    "text": "การสร้างโปรแกรม",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24982
+  },
+  {
+    "index": 1441,
+    "text": "การตรวจ TypeScript และ build ของส่วนหน้าและส่วนหลัง",
+    "page": 22,
+    "physical": 32,
+    "inTable": true,
+    "start": 24998
+  },
+  {
+    "index": 1443,
+    "text": "บทที่ 4",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 25051
+  },
+  {
+    "index": 1444,
+    "text": "ผลการดำเนินงาน",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 25059
+  },
+  {
+    "index": 1445,
+    "text": "1. ผลงานตามโมดูล",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 25074
+  },
+  {
+    "index": 1446,
+    "text": "ระบบส่วนหน้ามีหน้าสร้างเอกสาร PR, PO, BK และ PDF หน้าศูนย์เอกสาร หน้ารายละเอียดเอกสาร ประวัติเวอร์ชัน รายการอนุมัติ แดชบอร์ด การแจ้งเตือน โฟลเดอร์ และหน้าจัดการข้อมูลหลัก ภาพประกอบ ในส่วนนี้ให้ใช้ภาพจากระบบปัจจุบันหลังตรวจข้อมูลส่วนบุคคลและเลขเอกสารที่แสดง",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 25091
+  },
+  {
+    "index": 1447,
+    "text": "/",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 25348
+  },
+  {
+    "index": 1448,
+    "text": "ภาพที่ 9 หน้าเข้าสู่ระบบ",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 25350
+  },
+  {
+    "index": 1449,
+    "text": "/",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 25375
+  },
+  {
+    "index": 1450,
+    "text": "ภาพที่ 10 หน้าแดชบอร์ด",
+    "page": 23,
+    "physical": 33,
+    "inTable": false,
+    "start": 25377
+  },
+  {
+    "index": 1451,
+    "text": "/",
+    "page": 24,
+    "physical": 34,
+    "inTable": false,
+    "start": 25400
+  },
+  {
+    "index": 1452,
+    "text": "ภาพที่ 11 หน้าศูนย์เอกสาร",
+    "page": 24,
+    "physical": 34,
+    "inTable": false,
+    "start": 25402
+  },
+  {
+    "index": 1453,
+    "text": "/",
+    "page": 24,
+    "physical": 34,
+    "inTable": false,
+    "start": 25428
+  },
+  {
+    "index": 1454,
+    "text": "ภาพที่ 12 หน้าสร้างแบบฟอร์ม PR",
+    "page": 24,
+    "physical": 34,
+    "inTable": false,
+    "start": 25430
+  },
+  {
+    "index": 1455,
+    "text": "/",
+    "page": 24,
+    "physical": 34,
+    "inTable": false,
+    "start": 25461
+  },
+  {
+    "index": 1456,
+    "text": "ภาพที่ 13 หน้าสร้างแบบฟอร์ม PO",
+    "page": 24,
+    "physical": 34,
+    "inTable": false,
+    "start": 25463
+  },
+  {
+    "index": 1457,
+    "text": "/",
+    "page": 25,
+    "physical": 35,
+    "inTable": false,
+    "start": 25494
+  },
+  {
+    "index": 1458,
+    "text": "ภาพที่ 14 หน้าสร้างบันทึกข้อความ BK",
+    "page": 25,
+    "physical": 35,
+    "inTable": false,
+    "start": 25496
+  },
+  {
+    "index": 1459,
+    "text": "/",
+    "page": 25,
+    "physical": 35,
+    "inTable": false,
+    "start": 25532
+  },
+  {
+    "index": 1460,
+    "text": "ภาพที่ 15 หน้ารายละเอียดเอกสารและเวอร์ชัน",
+    "page": 25,
+    "physical": 35,
+    "inTable": false,
+    "start": 25534
+  },
+  {
+    "index": 1461,
+    "text": "/",
+    "page": 25,
+    "physical": 35,
+    "inTable": false,
+    "start": 25576
+  },
+  {
+    "index": 1462,
+    "text": "ภาพที่ 16 หน้ารายการอนุมัติ",
+    "page": 25,
+    "physical": 35,
+    "inTable": false,
+    "start": 25578
+  },
+  {
+    "index": 1463,
+    "text": "/",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 25606
+  },
+  {
+    "index": 1464,
+    "text": "ภาพที่ 17 หน้าจัดการข้อมูลหลัก",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 25608
+  },
+  {
+    "index": 1465,
+    "text": "2. ผลการตรวจสอบระบบ",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 25639
+  },
+  {
+    "index": 1466,
+    "text": "ผลการพัฒนาจัดแสดงการทำงานของหน้าสร้างเอกสาร ศูนย์เอกสาร รายการอนุมัติ และหน้าจัดการข้อมูลหลัก การตรวจสอบกระบวนการหลักใช้ข้อมูลตัวอย่างเพื่อเปรียบเทียบผลที่แสดงบนหน้าจอกับสถานะและเวอร์ชันที่จัดเก็บในระบบ",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 25659
+  },
+  {
+    "index": 1467,
+    "text": "ตารางที่ 27 ผลลัพธ์ตามหน้าที่หลักของระบบ",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 25862
+  },
+  {
+    "index": 1468,
+    "text": "ด้าน",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 25903
+  },
+  {
+    "index": 1469,
+    "text": "ผลลัพธ์",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 25908
+  },
+  {
+    "index": 1471,
+    "text": "การสร้างเอกสาร",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 25917
+  },
+  {
+    "index": 1472,
+    "text": "รองรับแบบฟอร์ม PR, PO, BK และไฟล์ PDF พร้อมข้อมูลกำกับ",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 25932
+  },
+  {
+    "index": 1474,
+    "text": "การอนุมัติ",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 25988
+  },
+  {
+    "index": 1475,
+    "text": "กำหนดลำดับผู้พิจารณาตามประเภทเอกสารและแสดงสถานะ",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 25999
+  },
+  {
+    "index": 1477,
+    "text": "เวอร์ชันและลายเซ็น",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 26048
+  },
+  {
+    "index": 1478,
+    "text": "จัดเก็บเวอร์ชันและแสดงข้อมูลการลงลายเซ็นในเอกสาร",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 26067
+  },
+  {
+    "index": 1480,
+    "text": "การค้นหา",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 26117
+  },
+  {
+    "index": 1481,
+    "text": "ค้นเอกสารด้วยข้อมูลกำกับและเปิดดูรายละเอียดตามสิทธิ์",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 26126
+  },
+  {
+    "index": 1483,
+    "text": "การจัดการข้อมูลหลัก",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 26180
+  },
+  {
+    "index": 1484,
+    "text": "จัดการผู้ใช้ ประเภทเอกสาร และ Approval Matrix",
+    "page": 26,
+    "physical": 36,
+    "inTable": true,
+    "start": 26200
+  },
+  {
+    "index": 1486,
+    "text": "(นำภาพภาพผลทดสอบที่แสดงรหัสกรณี ผลที่คาดหวัง และผลจริงมาติด)",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 26247
+  },
+  {
+    "index": 1487,
+    "text": "ภาพที่ 18 ตัวอย่างหลักฐานการทดสอบระบบ",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 26308
+  },
+  {
+    "index": 1488,
+    "text": "3. การประเมินการใช้งาน",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 26346
+  },
+  {
+    "index": 1489,
+    "text": "ระบบ DMS ช่วยรวมงานสร้าง จัดเก็บ อนุมัติ และติดตามเอกสารไว้ในจุดเดียว ผู้ใช้สามารถค้นหาข้อมูลตามประเภท สถานะ และผู้เกี่ยวข้อง ขณะที่ผู้ดูแลระบบกำหนดข้อมูลหลักและลำดับอนุมัติได้จากหน้าจัดการ การจัดเก็บเวอร์ชันและประวัติการกระทำช่วยให้ตรวจสอบเส้นทางของเอกสารได้ชัดเจน",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 26369
+  },
+  {
+    "index": 1490,
+    "text": "\fบทที่ 5",
+    "page": 26,
+    "physical": 36,
+    "inTable": false,
+    "start": 26635
+  },
+  {
+    "index": 1491,
+    "text": "สรุปผลการปฏิบัติงาน ประโยชน์ที่ได้รับ และข้อเสนอแนะ",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 26644
+  },
+  {
+    "index": 1492,
+    "text": "1. สรุปผลการดำเนินงาน",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 26696
+  },
+  {
+    "index": 1493,
+    "text": "การปฏิบัติงานสหกิจศึกษาระหว่างวันที่ 22 มิถุนายน – 16 ตุลาคม 2569 ได้พัฒนาระบบ DMS สำหรับจัดการเอกสารหลายประเภทและกระบวนการอนุมัติ โดยมีโครงสร้างฐานข้อมูล หน้าจอ และ API รองรับการสร้างเอกสาร การส่งอนุมัติ การติดตามสถานะ และการเรียกดูประวัติย้อนหลัง",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 26718
+  },
+  {
+    "index": 1494,
+    "text": "2. ผลสำเร็จตามวัตถุประสงค์",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 26967
+  },
+  {
+    "index": 1495,
+    "text": "ระบบรวมข้อมูลเอกสารไว้ในศูนย์กลางเดียว รองรับแบบฟอร์มและ PDF พร้อมเลขเอกสารและเวอร์ชัน กำหนดผู้อนุมัติเป็นลำดับ แสดงสถานะงาน และจัดเก็บข้อมูลสำหรับตรวจสอบย้อนหลัง ผลงานที่ส่งมอบประกอบด้วยซอร์สโค้ด โครงสร้างฐานข้อมูล ภาพหน้าจอ และคู่มืออธิบายกระบวนการหลัก",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 26994
+  },
+  {
+    "index": 1496,
+    "text": "3. ประโยชน์ที่ได้รับ",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27249
+  },
+  {
+    "index": 1497,
+    "text": "3.1 ด้านหน่วยงาน",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27270
+  },
+  {
+    "index": 1498,
+    "text": "หน่วยงานได้ระบบกลางสำหรับจัดการเอกสารและลำดับอนุมัติ ช่วยให้ค้นหา ติดตามสถานะ และตรวจสอบประวัติเอกสารได้สะดวกขึ้น",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27287
+  },
+  {
+    "index": 1499,
+    "text": "3.2 ด้านมหาวิทยาลัย",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27401
+  },
+  {
+    "index": 1500,
+    "text": "รายงานแสดงการประยุกต์ความรู้ด้านการวิเคราะห์ระบบ ฐานข้อมูล เว็บแอปพลิเคชัน และการทดสอบซอฟต์แวร์กับงานองค์กร",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27421
+  },
+  {
+    "index": 1501,
+    "text": "3.3 ด้านนิสิต",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27529
+  },
+  {
+    "index": 1502,
+    "text": "ผู้จัดทำได้ฝึกวิเคราะห์ความต้องการ ออกแบบฐานข้อมูลและลำดับงาน พัฒนาส่วนหน้าและ API และจัดทำเอกสารสรุปผลการพัฒนาอย่างเป็นระบบ",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27543
+  },
+  {
+    "index": 1503,
+    "text": "4. ข้อเสนอแนะ",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27668
+  },
+  {
+    "index": 1504,
+    "text": "- เพิ่มการค้นหาแบบเต็มข้อความเพื่อช่วยค้นเนื้อหาในเอกสารจำนวนมาก",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27682
+  },
+  {
+    "index": 1505,
+    "text": "- พัฒนารายงานสรุประยะเวลาการอนุมัติและปริมาณเอกสารรายประเภท",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27747
+  },
+  {
+    "index": 1506,
+    "text": "- เพิ่มการแจ้งเตือนผ่านช่องทางที่เหมาะกับการใช้งานขององค์กร",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27807
+  },
+  {
+    "index": 1507,
+    "text": "- ขยายรูปแบบเอกสารและแม่แบบให้รองรับหน่วยงานอื่น",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27867
+  },
+  {
+    "index": 1508,
+    "text": "- กำหนดรอบทบทวนสิทธิ์และสำรองข้อมูลอย่างสม่ำเสมอ",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27916
+  },
+  {
+    "index": 1509,
+    "text": "\f",
+    "page": 27,
+    "physical": 37,
+    "inTable": false,
+    "start": 27965
+  },
+  {
+    "index": 1510,
+    "text": "เอกสารอ้างอิง",
+    "page": 28,
+    "physical": 38,
+    "inTable": false,
+    "start": 27967
+  },
+  {
+    "index": 1511,
+    "text": "[1] บริษัท นิสซุย (ประเทศไทย) จำกัด. (2569). เอกสารสรุปความต้องการของการพัฒนาระบบจัดการเอกสารและระบบอนุมัติเอกสารอิเล็กทรอนิกส์. 26 มิถุนายน 2569.",
+    "page": 28,
+    "physical": 38,
+    "inTable": false,
+    "start": 27981
+  },
+  {
+    "index": 1512,
+    "text": "[2] โครงการ Document Management System. (2569). ข้อกำหนดทางเทคนิคของโครงการ DMS (dms-tech-spec/SKILL.md).",
+    "page": 28,
+    "physical": 38,
+    "inTable": false,
+    "start": 28128
+  },
+  {
+    "index": 1513,
+    "text": "[3] โครงการ Document Management System. (2569). Prisma Schema, รายการแพ็กเกจและซอร์สโค้ดในโฟลเดอร์ dms.",
+    "page": 28,
+    "physical": 38,
+    "inTable": false,
+    "start": 28234
+  },
+  {
+    "index": 1514,
+    "text": "\f",
+    "page": 28,
+    "physical": 38,
+    "inTable": false,
+    "start": 28338
+  },
+  {
+    "index": 1529,
+    "text": "ภาคผนวก",
+    "page": 29,
+    "physical": 39,
+    "inTable": false,
+    "start": 28354
+  },
+  {
+    "index": 1530,
+    "text": " ",
+    "page": 29,
+    "physical": 39,
+    "inTable": false,
+    "start": 28362
+  },
+  {
+    "index": 1560,
+    "text": "ภาคผนวก ก",
+    "page": 30,
+    "physical": 40,
+    "inTable": false,
+    "start": 28393
+  },
+  {
+    "index": 1561,
+    "text": "การติดตั้งโปรแกรมที่เกี่ยวข้อง",
+    "page": 30,
+    "physical": 40,
+    "inTable": false,
+    "start": 28403
+  },
+  {
+    "index": 1562,
+    "text": "\f",
+    "page": 30,
+    "physical": 40,
+    "inTable": false,
+    "start": 28434
+  },
+  {
+    "index": 1563,
+    "text": "1. การติดตั้งโปรแกรม Visual Studio Code (ระบบปฏิบัติการ Windows)",
+    "page": 31,
+    "physical": 41,
+    "inTable": false,
+    "start": 28436
+  },
+  {
+    "index": 1564,
+    "text": "1.1 เข้าเว็บไซต์ https://code.visualstudio.com/download เลือก Windows และดาวน์โหลด User Installer ให้ตรงกับสถาปัตยกรรมของเครื่อง",
+    "page": 31,
+    "physical": 41,
+    "inTable": false,
+    "start": 28501
+  },
+  {
+    "index": 1565,
+    "text": "/",
+    "page": 31,
+    "physical": 41,
+    "inTable": false,
+    "start": 28630
+  },
+  {
+    "index": 1566,
+    "text": "ภาพภาคผนวกที่ ก1 หน้าดาวน์โหลด Visual Studio Code",
+    "page": 31,
+    "physical": 41,
+    "inTable": false,
+    "start": 28632
+  },
+  {
+    "index": 1567,
+    "text": "1.2 เปิดไฟล์ VSCodeUserSetup ที่ดาวน์โหลด อ่านข้อตกลง เลือก “I accept the agreement” แล้วคลิก “Next”",
+    "page": 31,
+    "physical": 41,
+    "inTable": false,
+    "start": 28682
+  },
+  {
+    "index": 1568,
+    "text": "/",
+    "page": 31,
+    "physical": 41,
+    "inTable": false,
+    "start": 28783
+  },
+  {
+    "index": 1569,
+    "text": "ภาพภาคผนวกที่ ก2 การยอมรับข้อตกลงการติดตั้ง Visual Studio Code",
+    "page": 31,
+    "physical": 41,
+    "inTable": false,
+    "start": 28785
+  },
+  {
+    "index": 1570,
+    "text": "1. การติดตั้งโปรแกรม Visual Studio Code (ต่อ)",
+    "page": 32,
+    "physical": 42,
+    "inTable": false,
+    "start": 28848
+  },
+  {
+    "index": 1571,
+    "text": "1.3 เลือกตำแหน่งติดตั้งและตัวเลือกเพิ่มเติม โดยเปิดใช้ “Add to PATH” และตัวเลือกเปิดโฟลเดอร์ด้วย Code จากนั้นคลิก “Next”",
+    "page": 32,
+    "physical": 42,
+    "inTable": false,
+    "start": 28894
+  },
+  {
+    "index": 1572,
+    "text": "/",
+    "page": 32,
+    "physical": 42,
+    "inTable": false,
+    "start": 29015
+  },
+  {
+    "index": 1573,
+    "text": "ภาพภาคผนวกที่ ก3 การเลือกตัวเลือกเพิ่มเติมของ Visual Studio Code",
+    "page": 32,
+    "physical": 42,
+    "inTable": false,
+    "start": 29017
+  },
+  {
+    "index": 1574,
+    "text": "1.4 คลิก “Install” รอให้การติดตั้งเสร็จ แล้วคลิก “Finish” เพื่อเปิด Visual Studio Code ใช้งาน",
+    "page": 32,
+    "physical": 42,
+    "inTable": false,
+    "start": 29082
+  },
+  {
+    "index": 1575,
+    "text": "/",
+    "page": 32,
+    "physical": 42,
+    "inTable": false,
+    "start": 29176
+  },
+  {
+    "index": 1576,
+    "text": "ภาพภาคผนวกที่ ก4 การติดตั้ง Visual Studio Code เสร็จสมบูรณ์",
+    "page": 32,
+    "physical": 42,
+    "inTable": false,
+    "start": 29178
+  },
+  {
+    "index": 1577,
+    "text": "2. การติดตั้ง Node.js และ npm (ระบบปฏิบัติการ Windows)",
+    "page": 33,
+    "physical": 43,
+    "inTable": false,
+    "start": 29238
+  },
+  {
+    "index": 1578,
+    "text": "2.1 เข้าเว็บไซต์ https://nodejs.org/en/download เลือกรุ่น LTS ที่รองรับโปรเจกต์ เลือก Windows และ x64 จากนั้นคลิก “Windows Installer (.msi)”",
+    "page": 33,
+    "physical": 43,
+    "inTable": false,
+    "start": 29293
+  },
+  {
+    "index": 1579,
+    "text": "/",
+    "page": 33,
+    "physical": 43,
+    "inTable": false,
+    "start": 29434
+  },
+  {
+    "index": 1580,
+    "text": "ภาพภาคผนวกที่ ก5 ตัวเลือก Windows Installer สำหรับ Node.js",
+    "page": 33,
+    "physical": 43,
+    "inTable": false,
+    "start": 29436
+  },
+  {
+    "index": 1581,
+    "text": "2.2 เปิดไฟล์ .msi คลิก “Next” ยอมรับข้อตกลงและเลือกตำแหน่งติดตั้ง คงส่วนประกอบ Node.js runtime, npm package manager และ Add to PATH แล้วเลือก “Install” และ “Finish” ตามลำดับ",
+    "page": 33,
+    "physical": 43,
+    "inTable": false,
+    "start": 29495
+  },
+  {
+    "index": 1582,
+    "text": "/",
+    "page": 33,
+    "physical": 43,
+    "inTable": false,
+    "start": 29669
+  },
+  {
+    "index": 1583,
+    "text": "ภาพภาคผนวกที่ ก6 ลำดับการติดตั้งและตรวจสอบ Node.js และ npm",
+    "page": 33,
+    "physical": 43,
+    "inTable": false,
+    "start": 29671
+  },
+  {
+    "index": 1584,
+    "text": "2.3 เปิด Terminal ใหม่ แล้วใช้คำสั่ง node --version และ npm --version เพื่อตรวจสอบว่าระบบเรียกใช้งาน Node.js และ npm ได้",
+    "page": 33,
+    "physical": 43,
+    "inTable": false,
+    "start": 29730
+  },
+  {
+    "index": 1585,
+    "text": "3. การติดตั้ง PostgreSQL และ pgAdmin (ระบบปฏิบัติการ Windows)",
+    "page": 34,
+    "physical": 44,
+    "inTable": false,
+    "start": 29851
+  },
+  {
+    "index": 1586,
+    "text": "3.1 เข้าเว็บไซต์ https://www.postgresql.org/download/windows/ แล้วเลือกตัวติดตั้งจาก EDB ดาวน์โหลดรุ่น Windows x86-64 และเปิดไฟล์ติดตั้ง",
+    "page": 34,
+    "physical": 44,
+    "inTable": false,
+    "start": 29913
+  },
+  {
+    "index": 1587,
+    "text": "/",
+    "page": 34,
+    "physical": 44,
+    "inTable": false,
+    "start": 30050
+  },
+  {
+    "index": 1588,
+    "text": "ภาพภาคผนวกที่ ก7 หน้าดาวน์โหลดตัวติดตั้ง PostgreSQL",
+    "page": 34,
+    "physical": 44,
+    "inTable": false,
+    "start": 30052
+  },
+  {
+    "index": 1589,
+    "text": "3.2 เลือกตำแหน่งติดตั้ง จากนั้นเลือก PostgreSQL Server, pgAdmin 4 และ Command Line Tools เพื่อให้มีทั้งฐานข้อมูลและเครื่องมือจัดการ แล้วคลิก “Next”",
+    "page": 34,
+    "physical": 44,
+    "inTable": false,
+    "start": 30104
+  },
+  {
+    "index": 1590,
+    "text": "/",
+    "page": 34,
+    "physical": 44,
+    "inTable": false,
+    "start": 30252
+  },
+  {
+    "index": 1591,
+    "text": "ภาพภาคผนวกที่ ก8 การเลือกส่วนประกอบของ PostgreSQL",
+    "page": 34,
+    "physical": 44,
+    "inTable": false,
+    "start": 30254
+  },
+  {
+    "index": 1592,
+    "text": "3. การติดตั้ง PostgreSQL และ pgAdmin (ต่อ)",
+    "page": 35,
+    "physical": 45,
+    "inTable": false,
+    "start": 30304
+  },
+  {
+    "index": 1593,
+    "text": "3.3 เลือกโฟลเดอร์เก็บข้อมูล กำหนดรหัสผ่านสำหรับผู้ใช้ postgres และยืนยันรหัสผ่าน แล้วคลิก “Next”",
+    "page": 35,
+    "physical": 45,
+    "inTable": false,
+    "start": 30347
+  },
+  {
+    "index": 1594,
+    "text": "/",
+    "page": 35,
+    "physical": 45,
+    "inTable": false,
+    "start": 30444
+  },
+  {
+    "index": 1595,
+    "text": "ภาพภาคผนวกที่ ก9 การกำหนดรหัสผ่านผู้ดูแล PostgreSQL",
+    "page": 35,
+    "physical": 45,
+    "inTable": false,
+    "start": 30446
+  },
+  {
+    "index": 1596,
+    "text": "3.4 ระบุพอร์ตที่ใช้เชื่อมต่อฐานข้อมูล โดยค่าปกติคือ 5432 หากเครื่องใช้พอร์ตอื่นให้จดค่าไว้สำหรับตั้งค่าโปรเจกต์ จากนั้นคลิก “Next”",
+    "page": 35,
+    "physical": 45,
+    "inTable": false,
+    "start": 30498
+  },
+  {
+    "index": 1597,
+    "text": "/",
+    "page": 35,
+    "physical": 45,
+    "inTable": false,
+    "start": 30629
+  },
+  {
+    "index": 1598,
+    "text": "ภาพภาคผนวกที่ ก10 การกำหนดพอร์ตของ PostgreSQL",
+    "page": 35,
+    "physical": 45,
+    "inTable": false,
+    "start": 30631
+  },
+  {
+    "index": 1599,
+    "text": "3. การติดตั้ง PostgreSQL และ pgAdmin (ต่อ)",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 30677
+  },
+  {
+    "index": 1600,
+    "text": "3.5 เลือก Locale และตรวจสอบสรุปการตั้งค่า คลิก “Next” เพื่อเริ่มติดตั้ง เมื่อเสร็จให้ยกเลิกการเปิด Stack Builder หากไม่ต้องใช้ส่วนเสริม แล้วคลิก “Finish”",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 30720
+  },
+  {
+    "index": 1601,
+    "text": "/",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 30874
+  },
+  {
+    "index": 1602,
+    "text": "ภาพภาคผนวกที่ ก11 การติดตั้ง PostgreSQL เสร็จสมบูรณ์",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 30876
+  },
+  {
+    "index": 1603,
+    "text": "4. การเชื่อมต่อฐานข้อมูลด้วย pgAdmin",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 30929
+  },
+  {
+    "index": 1604,
+    "text": "4.1 เปิด pgAdmin เลือก “Register > Server” ตั้งชื่อการเชื่อมต่อ แล้วกรอก Host, Port และผู้ใช้ตามที่ติดตั้ง ระบุรหัสผ่านของตนเอง จากนั้นคลิก “Save”",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 30966
+  },
+  {
+    "index": 1605,
+    "text": "/",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 31113
+  },
+  {
+    "index": 1606,
+    "text": "ภาพภาคผนวกที่ ก12 ตัวอย่างค่าการเชื่อมต่อ PostgreSQL ใน pgAdmin",
+    "page": 36,
+    "physical": 46,
+    "inTable": false,
+    "start": 31115
+  },
+  {
+    "index": 1607,
+    "text": "5. การติดตั้งแพ็กเกจและเตรียมโปรเจกต์ DMS",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 31179
+  },
+  {
+    "index": 1608,
+    "text": "5.1 สร้างฐานข้อมูลใหม่สำหรับ DMS ผ่าน Query Tool ของ pgAdmin แล้วตั้งค่าไฟล์ server/.env ให้ตรงกับฐานข้อมูล ระบุ JWT_SECRET และ ENCRYPTION_KEY ของระบบ โดยค่าภายในวงเล็บเป็นช่องสำหรับแทนค่าของเครื่องติดตั้ง",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 31221
+  },
+  {
+    "index": 1609,
+    "text": "/",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 31427
+  },
+  {
+    "index": 1610,
+    "text": "ภาพภาคผนวกที่ ก13 ตัวอย่างการสร้างฐานข้อมูลและตั้งค่าไฟล์สภาพแวดล้อม",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 31429
+  },
+  {
+    "index": 1611,
+    "text": "5.2 เปิดโฟลเดอร์โปรเจกต์ใน Visual Studio Code แล้วติดตั้งแพ็กเกจแยกใน dms/server และ dms/client ตามไฟล์ package-lock.json จากนั้นสร้าง Prisma Client และสร้างตารางในฐานข้อมูลใหม่",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 31498
+  },
+  {
+    "index": 1612,
+    "text": "/",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 31676
+  },
+  {
+    "index": 1613,
+    "text": "ภาพภาคผนวกที่ ก14 คำสั่งติดตั้งแพ็กเกจที่ใช้พัฒนาระบบ DMS",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 31678
+  },
+  {
+    "index": 1614,
+    "text": "5.3 Next.js, NestJS, TypeScript และ Prisma ติดตั้งผ่านแพ็กเกจของโปรเจกต์ จึงไม่ต้องติดตั้งแยกเป็นโปรแกรมบน Windows สำหรับการสร้าง PDF ให้มี Microsoft Edge หรือ Chromium และกำหนด PDF_BROWSER_PATH เมื่อต้องระบุไฟล์เบราว์เซอร์",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 31736
+  },
+  {
+    "index": 1615,
+    "text": "แหล่งภาพ: ก1–ก4 และ ก7 จากเล่มตัวอย่าง; ก5 จาก nodejs.org; ก8–ก11 จากคู่มือ EDB; ก6 และ ก12–ก14 เป็นภาพอธิบายขั้นตอนที่จัดทำประกอบรายงาน",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 31960
+  },
+  {
+    "index": 1616,
+    "text": "คู่มืออ้างอิง: code.visualstudio.com/docs/setup/windows | nodejs.org/en/download | enterprisedb.com/docs/supported-open-source/postgresql/installing/windows/ | pgadmin.org/docs/pgadmin4/latest/server_dialog.html",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 32097
+  },
+  {
+    "index": 1617,
+    "text": "\f",
+    "page": 37,
+    "physical": 47,
+    "inTable": false,
+    "start": 32309
+  },
+  {
+    "index": 1631,
+    "text": "ภาคผนวก ข",
+    "page": 38,
+    "physical": 48,
+    "inTable": false,
+    "start": 32324
+  },
+  {
+    "index": 1632,
+    "text": "หลักฐานการทดสอบและแบบฟอร์มสหกิจศึกษา",
+    "page": 38,
+    "physical": 48,
+    "inTable": false,
+    "start": 32334
+  },
+  {
+    "index": 1633,
+    "text": "\f",
+    "page": 38,
+    "physical": 48,
+    "inTable": false,
+    "start": 32371
+  },
+  {
+    "index": 1634,
+    "text": "ภาคผนวก ข แบบฟอร์มสหกิจศึกษา",
+    "page": 39,
+    "physical": 49,
+    "inTable": false,
+    "start": 32373
+  },
+  {
+    "index": 1635,
+    "text": "เอกสารแบบฟอร์มสหกิจศึกษาที่เกี่ยวข้อง เพื่อประกอบการพิจารณารายงาน",
+    "page": 39,
+    "physical": 49,
+    "inTable": false,
+    "start": 32402
+  },
+  {
+    "index": 1636,
+    "text": "/",
+    "page": 39,
+    "physical": 49,
+    "inTable": false,
+    "start": 32468
+  },
+  {
+    "index": 1637,
+    "text": "/",
+    "page": 40,
+    "physical": 50,
+    "inTable": false,
+    "start": 32470
+  },
+  {
+    "index": 1638,
+    "text": "\f",
+    "page": 40,
+    "physical": 50,
+    "inTable": false,
+    "start": 32472
+  },
+  {
+    "index": 1639,
+    "text": "/",
+    "page": 41,
+    "physical": 51,
+    "inTable": false,
+    "start": 32474
+  },
+  {
+    "index": 1642,
+    "text": "//",
+    "page": 42,
+    "physical": 52,
+    "inTable": false,
+    "start": 32478
+  },
+  {
+    "index": 1643,
+    "text": "//",
+    "page": 44,
+    "physical": 54,
+    "inTable": false,
+    "start": 32481
+  },
+  {
+    "index": 1644,
+    "text": "/",
+    "page": 46,
+    "physical": 56,
+    "inTable": false,
+    "start": 32484
+  },
+  {
+    "index": 1645,
+    "text": "/",
+    "page": 46,
+    "physical": 56,
+    "inTable": false,
+    "start": 32486
+  },
+  {
+    "index": 1648,
+    "text": "/",
+    "page": 47,
+    "physical": 57,
+    "inTable": false,
+    "start": 32490
+  },
+  {
+    "index": 1649,
+    "text": "/",
+    "page": 47,
+    "physical": 57,
+    "inTable": false,
+    "start": 32492
+  },
+  {
+    "index": 1650,
+    "text": "/",
+    "page": 48,
+    "physical": 58,
+    "inTable": false,
+    "start": 32494
+  },
+  {
+    "index": 1651,
+    "text": "/",
+    "page": 48,
+    "physical": 58,
+    "inTable": false,
+    "start": 32496
+  },
+  {
+    "index": 1655,
+    "text": "ประวัติการศึกษา",
+    "page": 49,
+    "physical": 59,
+    "inTable": false,
+    "start": 32501
+  },
+  {
+    "index": 1656,
+    "text": "ชื่อ                         นายธนภัทร ชูสุวรรณ",
+    "page": 49,
+    "physical": 59,
+    "inTable": false,
+    "start": 32517
+  },
+  {
+    "index": 1657,
+    "text": "รหัสนิสิต                   6521601857",
+    "page": 49,
+    "physical": 59,
+    "inTable": false,
+    "start": 32565
+  },
+  {
+    "index": 1658,
+    "text": "วันเดือนปีเกิด            28 ตุลาคม 2546",
+    "page": 49,
+    "physical": 59,
+    "inTable": false,
+    "start": 32604
+  },
+  {
+    "index": 1659,
+    "text": "ประวัติการศึกษา         โรงเรียนวังไกลกังวล ในพระบรมราชูปถัมภ์",
+    "page": 49,
+    "physical": 59,
+    "inTable": false,
+    "start": 32645
+  },
+  {
+    "index": 1660,
+    "text": "ปัจจุบัน                    นิสิตสาขาวิชาวิทยาการคอมพิวเตอร์",
+    "page": 49,
+    "physical": 59,
+    "inTable": false,
+    "start": 32708
+  },
+  {
+    "index": 1661,
+    "text": "                              คณะศิลปศาสตร์และวิทยาศาสตร์",
+    "page": 49,
+    "physical": 59,
+    "inTable": false,
+    "start": 32769
+  },
+  {
+    "index": 1662,
+    "text": "                              มหาวิทยาลัยเกษตรศาสตร์ วิทยาเขตกำแพงแสน",
+    "page": 49,
+    "physical": 59,
+    "inTable": false,
+    "start": 32827
+  }
+]

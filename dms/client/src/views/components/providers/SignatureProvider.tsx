@@ -1,9 +1,15 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from "react";
-   
-   
-import { type SignatureRecord } from '@views/features/master-data';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
+
+import { type SignatureRecord } from "@views/features/master-data";
 
 type AddSignatureInput = {
   approverName: string;
@@ -27,7 +33,8 @@ const globalForSignature = globalThis as unknown as {
 };
 
 const SignatureContext =
-  globalForSignature.SignatureContext || createContext<SignatureContextValue | undefined>(undefined);
+  globalForSignature.SignatureContext ||
+  createContext<SignatureContextValue | undefined>(undefined);
 
 if (process.env.NODE_ENV !== "production") {
   globalForSignature.SignatureContext = SignatureContext;
@@ -40,8 +47,16 @@ export function SignatureProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user?.role === "Administrator" || user?.permissions?.includes("masterdata.access:view")) {
-      adminService.getSignaturesList().then(data => setSignatures(data as SignatureRecord[])).catch(() => {});
+    setSignatures([]);
+    if (
+      user?.permissions?.some((p) =>
+        ["masterdata.access:view", "masterdata.signatures:view"].includes(p),
+      )
+    ) {
+      adminService
+        .getSignaturesList()
+        .then((data) => setSignatures(data as SignatureRecord[]))
+        .catch(() => {});
     }
   }, [user]);
 
@@ -61,15 +76,17 @@ export function SignatureProvider({ children }: { children: React.ReactNode }) {
   const updateSignature = useCallback(
     (id: string, patch: Partial<SignatureRecord>) => {
       setSignatures((prev) =>
-        prev.map((row) => (row.id === id ? { ...row, ...patch } : row))
+        prev.map((row) => (row.id === id ? { ...row, ...patch } : row)),
       );
     },
-    []
+    [],
   );
 
   const toggleSignatureActive = useCallback((id: string) => {
     setSignatures((prev) =>
-      prev.map((row) => (row.id === id ? { ...row, isActive: !row.isActive } : row))
+      prev.map((row) =>
+        row.id === id ? { ...row, isActive: !row.isActive } : row,
+      ),
     );
   }, []);
 
@@ -87,7 +104,7 @@ export function SignatureProvider({ children }: { children: React.ReactNode }) {
 
   const findByApproverName = useCallback(
     (name: string) => signatures.find((row) => row.approverName === name),
-    [signatures]
+    [signatures],
   );
 
   const value = useMemo(
@@ -99,10 +116,21 @@ export function SignatureProvider({ children }: { children: React.ReactNode }) {
       saveSignatureRecord,
       findByApproverName,
     }),
-    [signatures, addSignature, updateSignature, toggleSignatureActive, saveSignatureRecord, findByApproverName]
+    [
+      signatures,
+      addSignature,
+      updateSignature,
+      toggleSignatureActive,
+      saveSignatureRecord,
+      findByApproverName,
+    ],
   );
 
-  return <SignatureContext.Provider value={value}>{children}</SignatureContext.Provider>;
+  return (
+    <SignatureContext.Provider value={value}>
+      {children}
+    </SignatureContext.Provider>
+  );
 }
 
 export function useSignatures() {

@@ -3,85 +3,83 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  ConflictException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
-
-import { Prisma, AuditAction } from '@prisma/client';
+import { Prisma, AuditAction, DocumentStatus } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as crypto from 'crypto';
 import puppeteer from 'puppeteer-core';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import fontkit from '@pdf-lib/fontkit';
+import { EncryptionService } from '../common/encryption/encryption.service';
+import {
+  Actor,
+  hasAny,
+  jsonSnapshot,
+  loadActor,
+  lockEntity,
+  permissions,
+  requireDocumentAccess,
+  requireDocumentOwner,
+  requirePermission,
+  safeUserSelect,
+  visibleDocuments,
+} from '../common/document-policy';
 
-export interface DocumentResponsePayload {
-  id: string;
-  real_id?: string;
-  doc_number?: string | null;
-  folder_id?: string | null;
-  title: string;
-  type?: { prefix: string; type_name: string } | null;
-  created_at: Date;
-  approved_at?: Date | null;
-  status: string;
-  creator_id: string;
-  creator?: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-    signature_encrypted?: string | null;
-    department?: { name: string } | null;
-    position?: { name: string } | null;
-    role?: { name: string } | null;
-  } | null;
-  pr_form?:
-    | any
-    | {
-        total_amount: number | string;
-        [key: string]: unknown;
-      }
-    | null;
-  po_form?:
-    | any
-    | {
-        total_amount: number | string;
-        [key: string]: unknown;
-      }
-    | null;
-  bk_form?: unknown;
-  versions?:
-    | {
-        id: string;
-        version_number: number;
-        file_size?: string | null;
-        file_extension?: string | null;
-        created_at: Date;
-        uploaded_by?: {
-          first_name: string;
-          last_name: string;
-        } | null;
-        remarks?: string | null;
-      }[]
-    | null;
-  workflow?: {
-    steps?:
-      | {
-          approver?: {
-            id: string;
-            first_name: string;
-            last_name: string;
-            signature_encrypted?: string | null;
-          } | null;
-          [key: string]: unknown;
-        }[]
-      | null;
-    [key: string]: unknown;
-  } | null;
-  [key: string]: unknown;
-}
-
+const documentInclude = {
+  type: true,
+  creator: { include: { department: true, position: true, role: true } },
+  pr_form: { include: { items: true, department: true } },
+  po_form: { include: { items: true } },
+  bk_form: { include: { department: true } },
+  versions: {
+    include: { uploaded_by: { select: { first_name: true, last_name: true } } },
+    orderBy: { version_number: 'desc' as const },
+  },
+  workflow: {
+    include: {
+      steps: {
+        include: { approver: { include: { role: true } } },
+        orderBy: { step_order: 'asc' as const },
+      },
+    },
+  },
+} satisfies Prisma.DocumentInclude;
+type FullDocument = Prisma.DocumentGetPayload<{
+  include: typeof documentInclude;
+}>;
+// Lists must not duplicate multi-megabyte signatures, PDF bytes or snapshots.
+const documentListInclude = {
+  ...documentInclude,
+  creator: { select: safeUserSelect },
+  versions: {
+    select: {
+      id: true,
+      version_number: true,
+      file_size: true,
+      file_extension: true,
+      created_at: true,
+      updated_at: true,
+      uploaded_by_id: true,
+      remarks: true,
+      uploaded_by: { select: { first_name: true, last_name: true } },
+    },
+    orderBy: { version_number: 'desc' as const },
+  },
+  workflow: {
+    include: {
+      steps: {
+        include: { approver: { select: safeUserSelect } },
+        orderBy: { step_order: 'asc' as const },
+      },
+    },
+  },
+} satisfies Prisma.DocumentInclude;
+type ListDocument = Prisma.DocumentGetPayload<{
+  include: typeof documentListInclude;
+}>;
+type ResponseDocument = FullDocument | ListDocument;
 export interface FindAllOptions {
   status?: string;
   type?: string;
@@ -95,451 +93,717 @@ export interface FindAllOptions {
 
 @Injectable()
 export class DocumentsService {
+  constructor(
+    private prisma: PrismaService,
+    private encryption: EncryptionService,
+  ) {}
 
-  private processVisibility(visibility: any, creatorId: string, workflowSteps: any[]) {
-    let visibilityType = 'CompanyWide';
-    let visibilityDepts: string[] = [];
-    let visibilityUsers: string[] = [];
-
-    if (visibility) {
-      if (typeof visibility === 'string') {
-        try { visibility = JSON.parse(visibility); } catch (e) {}
-      }
-      visibilityType = visibility.type || 'CompanyWide';
-      visibilityDepts = visibility.departments || [];
-      visibilityUsers = visibility.users || [];
-    }
-
-    if (visibilityType !== 'CompanyWide') {
-      visibilityUsers.push(creatorId);
-      if (workflowSteps) {
-        for (const step of workflowSteps) {
-          let stepData = step;
-          if (typeof step === 'string') {
-            try { stepData = JSON.parse(step); } catch (e) {}
-          }
-          if (stepData && stepData.approver_id) {
-            visibilityUsers.push(stepData.approver_id);
-          }
-        }
-      }
-      visibilityUsers = [...new Set(visibilityUsers)];
-    }
-
-    return { visibility_type: visibilityType, visibility_departments: visibilityDepts, visibility_users: visibilityUsers };
+  async actor(user: Actor | string): Promise<Actor> {
+    return typeof user === 'string' ? loadActor(this.prisma, user) : user;
   }
 
-  constructor(private prisma: PrismaService) {}
-
-  logAction(
+  async logAction(
     userId: string,
     action: AuditAction,
     targetId: string,
     ipAddress: string,
     docNumber?: string,
   ) {
-    // Fire and forget audit log
-    this.prisma.auditLog
-      .create({
-        data: {
-          user_id: userId,
-          action,
-          module: 'Document',
-          target_id: targetId,
-          ip_address: ipAddress,
-          details: {
-            extra: {
-              comment: `User ${action.toLowerCase()}ed document`,
-              doc_number: docNumber,
-            },
-          },
+    await this.prisma.auditLog.create({
+      data: {
+        user_id: userId,
+        action,
+        module: 'Document',
+        target_id: targetId,
+        ip_address: ipAddress,
+        details: {
+          oldState: {},
+          newState: {},
+          extra: { doc_number: docNumber },
         },
-      })
-      .catch((e) => console.error('AuditLog error:', e));
+      },
+    });
   }
 
   async findAll(options: FindAllOptions) {
-    const {
-      status,
-      type,
-      search,
-      page = 1,
-      limit = 20,
-      currentUserId,
-      currentUserRole,
-      permissions = [],
-    } = options;
-
-    const take = Math.min(Math.max(Number(limit), 1), 1000);
-    const skip = (Math.max(Number(page), 1) - 1) * take;
-
-    const where: Prisma.DocumentWhereInput = { is_deleted: false };
-
-    const canViewAll = permissions.includes('submissions.view_all:view') || permissions.includes('document.view_all:view');
-
-    if (!canViewAll && currentUserId) {
-      const userObj = await this.prisma.user.findUnique({ where: { id: currentUserId } });
-      const deptId = userObj?.department_id;
-      
-      const visibilityConditions: any[] = [
-        { creator_id: currentUserId }, // Creator can always see their own doc
-        { visibility_type: 'CompanyWide' },
-        { visibility_users: { has: currentUserId } }
-      ];
-      if (deptId) {
-        visibilityConditions.push({ visibility_departments: { has: deptId } });
-      }
-      
-      where.AND = [
-        { OR: visibilityConditions }
-      ];
-    }
-
-    if (status && status !== 'All') {
-      where.status = status as any;
-    }
-
-    if (type && type !== 'All') {
-      where.type = { prefix: type };
-    }
-
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { doc_number: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
+    if (!options.currentUserId)
+      throw new ForbiddenException('กรุณาเข้าสู่ระบบ');
+    const actor = await loadActor(this.prisma, options.currentUserId);
+    requirePermission(actor, permissions.view);
+    const page = Number(options.page ?? 1),
+      take = Number(options.limit ?? 20);
+    if (
+      !Number.isInteger(page) ||
+      page < 1 ||
+      !Number.isInteger(take) ||
+      take < 1 ||
+      take > 1000
+    )
+      throw new BadRequestException('page/limit ไม่ถูกต้อง');
+    if (
+      options.status &&
+      options.status !== 'All' &&
+      !Object.values(DocumentStatus).includes(options.status as DocumentStatus)
+    )
+      throw new BadRequestException('สถานะไม่ถูกต้อง');
+    const where: Prisma.DocumentWhereInput = {
+      AND: [
+        visibleDocuments(actor),
+        ...(options.status && options.status !== 'All'
+          ? [{ status: options.status as DocumentStatus }]
+          : []),
+        ...(options.type && options.type !== 'All'
+          ? [
+              {
+                type: {
+                  prefix: options.type === 'OTHER' ? 'DOC' : options.type,
+                },
+              },
+            ]
+          : []),
+        ...(options.search
+          ? [
+              {
+                OR: [
+                  {
+                    title: {
+                      contains: options.search,
+                      mode: 'insensitive' as const,
+                    },
+                  },
+                  {
+                    doc_number: {
+                      contains: options.search,
+                      mode: 'insensitive' as const,
+                    },
+                  },
+                  {
+                    search_text: {
+                      contains: options.search,
+                      mode: 'insensitive' as const,
+                    },
+                  },
+                ],
+              },
+            ]
+          : []),
+      ],
+    };
     const [total, docs] = await Promise.all([
       this.prisma.document.count({ where }),
       this.prisma.document.findMany({
         where,
-        include: {
-          type: { select: { id: true, prefix: true, type_name: true } },
-          creator: {
-            select: {
-              id: true,
-              first_name: true,
-              last_name: true,
-              email: true,
-              department: { select: { id: true, name: true } },
-              position: { select: { id: true, name: true } },
-              role: { select: { id: true, name: true } },
-            },
-          },
-          pr_form: { select: { id: true, total_amount: true, purpose: true, remark: true } },
-          po_form: { select: { id: true, total_amount: true, remark: true } },
-          bk_form: { select: { id: true, subject: true, detail: true } },
-          versions: {
-            select: {
-              id: true,
-              document_id: true,
-              version_number: true,
-              file_size: true,
-              file_extension: true,
-              uploaded_by_id: true,
-              remarks: true,
-              created_at: true,
-              updated_at: true,
-            },
-            orderBy: { version_number: 'desc' },
-            take: 1,
-          },
-          workflow: {
-            select: {
-              id: true,
-              current_step: true,
-              total_steps: true,
-              status: true,
-              steps: {
-                select: {
-                  id: true,
-                  step_order: true,
-                  status: true,
-                  approver: {
-                    select: {
-                      id: true,
-                      first_name: true,
-                      last_name: true,
-                    },
-                  },
-                },
-                orderBy: { step_order: 'asc' },
-              },
-            },
-          },
-        },
+        include: documentListInclude,
         orderBy: { created_at: 'desc' },
-        skip,
         take,
+        skip: (page - 1) * take,
       }),
     ]);
-
+    const files = docs.length
+      ? await this.prisma.$queryRaw<{ id: string; has_file: boolean }[]>`
+          SELECT id, COALESCE(octet_length(file_data), 0) > 0 AS has_file
+          FROM document_versions
+          WHERE document_id IN (${Prisma.join(docs.map((doc) => doc.id))})
+        `
+      : [];
+    const filePresence = new Map(files.map((file) => [file.id, file.has_file]));
     return {
-      data: docs.map((d) => this.mapDocumentToResponse(d)),
-      meta: {
-        total,
-        page: Number(page),
-        limit: take,
-        totalPages: Math.ceil(total / take),
-      },
+      data: docs.map((d) => this.mapDocumentToResponse(d, actor, filePresence)),
+      meta: { total, page, limit: take, totalPages: Math.ceil(total / take) },
     };
   }
 
-  async findOne(id: string, user?: { id: string; role: string; department_id?: string }) {
-    const isUuid =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-        id,
-      );
-    const doc = await this.prisma.document.findFirst({
-      where: {
-        OR: isUuid ? [{ id }, { doc_number: id }] : [{ doc_number: id }],
-        is_deleted: false,
-      },
-      include: {
-        type: true,
-        creator: {
-          include: { department: true, position: true, role: true },
-        },
-        pr_form: { include: { items: true, department: true } },
-        po_form: { include: { items: true } },
-        bk_form: { include: { department: true } },
-        versions: { select: {
-              id: true, document_id: true, version_number: true, file_size: true, file_extension: true, form_data: true, uploaded_by_id: true, remarks: true, created_at: true, updated_at: true,
-              uploaded_by: true
-            }, orderBy: { version_number: 'desc' } },
-        workflow: {
-          include: {
-            steps: {
-              include: { approver: { include: { role: true } } },
-              orderBy: { step_order: 'asc' },
-            },
-          },
-        },
-      },
+  async getDocument(
+    id: string,
+    database: Prisma.TransactionClient | PrismaService = this.prisma,
+  ) {
+    const doc = await database.document.findFirst({
+      where: { OR: [{ id }, { doc_number: id }], is_deleted: false },
+      include: documentInclude,
     });
-
-    if (!doc) {
-      throw new NotFoundException(`ไม่พบเอกสารรหัส ${id}`);
-    }
-
-    if (doc && user && user.role !== 'Administrator') {
-      const isCreator = doc.creator_id === user.id;
-      const isVisibleType = doc.visibility_type === 'CompanyWide';
-      const isVisibleDept = doc.visibility_departments && user.department_id && doc.visibility_departments.includes(user.department_id);
-      const isVisibleUser = doc.visibility_users && doc.visibility_users.includes(user.id);
-      
-      if (!isCreator && !isVisibleType && !isVisibleDept && !isVisibleUser) {
-        throw new ForbiddenException('คุณไม่มีสิทธิ์เข้าถึงเอกสารนี้');
-      }
-    }
-    return this.mapDocumentToResponse(doc);
+    if (!doc) throw new NotFoundException('ไม่พบเอกสาร');
+    return doc;
   }
 
-  async create(dto: CreateDocumentDto, creatorId: string) {
-    const creator = await this.prisma.user.findUnique({
-      where: { id: creatorId },
+  async findOne(id: string, user: Actor | string) {
+    const actor = await this.actor(user),
+      doc = await this.getDocument(id);
+    requirePermission(actor, permissions.detail);
+    requireDocumentAccess(doc, actor);
+    return this.mapDocumentToResponse(doc, actor);
+  }
+
+  private async visibility(
+    dto: CreateDocumentDto,
+    actor: Actor,
+    tx: Prisma.TransactionClient,
+  ) {
+    const value = dto.visibility ?? {
+      type: 'CompanyWide',
+      departments: [],
+      users: [],
+    };
+    const departments = [...new Set(value.departments ?? [])],
+      users = [...new Set(value.users ?? [])];
+    if (value.type === 'Department' && !departments.length)
+      throw new BadRequestException('กรุณาเลือกแผนกที่เข้าถึงเอกสาร');
+    if (value.type === 'SpecificUsers' && !users.length)
+      throw new BadRequestException('กรุณาเลือกผู้ใช้ที่เข้าถึงเอกสาร');
+    if (
+      departments.length &&
+      (await tx.department.count({
+        where: { id: { in: departments }, is_active: true },
+      })) !== departments.length
+    )
+      throw new BadRequestException('แผนกที่เลือกไม่ถูกต้อง');
+    if (
+      users.length &&
+      (await tx.user.count({
+        where: { id: { in: users }, is_active: true, is_deleted: false },
+      })) !== users.length
+    )
+      throw new BadRequestException('ผู้ใช้ที่เลือกไม่ถูกต้อง');
+    return {
+      visibility_type: value.type,
+      visibility_departments: value.type === 'Department' ? departments : [],
+      visibility_users:
+        value.type === 'SpecificUsers'
+          ? [...new Set([...users, actor.id])]
+          : [],
+    };
+  }
+
+  private items(dto: CreateDocumentDto, prefix: string) {
+    let total = 0;
+    const items = (dto.items ?? []).map((item) => {
+      const price = new Prisma.Decimal(item.unit_price).mul(item.quantity);
+      const vat = prefix === 'PO' ? (item.vat ?? 7) : 0;
+      const gross = price
+        .mul(new Prisma.Decimal(1).add(new Prisma.Decimal(vat).div(100)))
+        .toDecimalPlaces(2);
+      total += Number(gross);
+      return {
+        item_name: item.item_name.trim(),
+        quantity: item.quantity,
+        unit: item.unit ?? 'ชิ้น',
+        unit_price: item.unit_price,
+        total_price: gross,
+        remark: item.remark,
+        ...(prefix === 'PO' ? { vat } : {}),
+      };
     });
-    if (!creator || !creator.is_active) {
-      throw new BadRequestException('ไม่พบข้อมูลผู้สร้างเอกสาร');
-    }
+    if ((prefix === 'PR' || prefix === 'PO') && !items.length)
+      throw new BadRequestException(
+        'กรุณาเพิ่มรายการสินค้าอย่างน้อยหนึ่งรายการ',
+      );
+    if (total > 99999999.99)
+      throw new BadRequestException('ยอดรวมเกินขอบเขตที่ระบบรองรับ');
+    return { items, total: Math.round(total * 100) / 100 };
+  }
 
-    const deptId =
-      creator.department_id ||
-      (() => {
-        throw new BadRequestException('ผู้ใช้ยังไม่ได้กำหนดแผนก');
-      })();
-
-    let prefix = (dto.prefix || 'PR').toUpperCase();
-    if (prefix === 'MEMO') prefix = 'BK';
-
-    const docType = await this.prisma.documentType.findFirst({
-      where: { prefix },
+  private async runningNumber(
+    tx: Prisma.TransactionClient,
+    type: { id: string; prefix: string },
+  ) {
+    await lockEntity(tx, `number:${type.id}`);
+    let running = await tx.runningNumber.findUnique({
+      where: { document_type_id: type.id },
     });
-    if (!docType) {
-      throw new BadRequestException(`ไม่พบประเภทเอกสาร prefix="${prefix}"`);
-    }
-
-    const docNumber = await this.prisma.$transaction(async (tx) => {
-      let running = await tx.runningNumber.findUnique({
-        where: { document_type_id: docType.id },
+    const now = new Date(),
+      year = now.getFullYear();
+    if (!running)
+      running = await tx.runningNumber.create({
+        data: {
+          document_type_id: type.id,
+          prefix: type.prefix,
+          year_format: 'YYYY',
+          last_reset_year: year,
+        },
       });
+    let config = { yearFormat: 'ce4', separator: '-', resetCycle: 'yearly' };
+    try {
+      if (running.year_format.startsWith('{'))
+        config = { ...config, ...JSON.parse(running.year_format) };
+      else if (running.year_format === 'YY') config.yearFormat = 'ce2';
+    } catch {
+      throw new BadRequestException('รูปแบบเลขเอกสารไม่ถูกต้อง');
+    }
+    if ((config as typeof config & { isActive?: boolean }).isActive === false)
+      throw new BadRequestException('รูปแบบเลขเอกสารนี้ถูกปิดใช้งาน');
+    const resetKey =
+      config.resetCycle === 'never'
+        ? 0
+        : config.resetCycle === 'monthly'
+          ? year * 100 + now.getMonth() + 1
+          : year;
+    const first = running.last_reset_year !== resetKey;
+    let next = first ? 1 : running.current_number + 1;
+    const formattedYear =
+      config.yearFormat === 'none'
+        ? ''
+        : String(year + (config.yearFormat.startsWith('be') ? 543 : 0)).slice(
+            config.yearFormat.endsWith('2') ? -2 : 0,
+          );
+    const separator = config.separator === 'none' ? '' : config.separator;
+    const month =
+      config.resetCycle === 'monthly'
+        ? String(now.getMonth() + 1).padStart(2, '0')
+        : '';
+    const format = (n: number) =>
+      [
+        running.prefix,
+        formattedYear,
+        month,
+        String(n).padStart(running.padding_length, '0'),
+      ]
+        .filter(Boolean)
+        .join(separator);
+    // Existing records may predate the current counter or format. Never reuse their numbers.
+    while (
+      await tx.document.findUnique({
+        where: { doc_number: format(next) },
+        select: { id: true },
+      })
+    )
+      next++;
+    await tx.runningNumber.update({
+      where: { id: running.id },
+      data: { current_number: next, last_reset_year: resetKey },
+    });
+    return format(next);
+  }
 
-      const currentYear = new Date().getFullYear();
+  snapshotDocument(
+    doc: FullDocument,
+    description?: string,
+    previous?: any,
+  ): Prisma.InputJsonValue {
+    const form = doc.pr_form ?? doc.po_form ?? doc.bk_form ?? {};
+    let company = {
+      companyName: 'บริษัท นิสซุย (ประเทศไทย) จำกัด',
+      companyAddress: '',
+    };
+    try {
+      company = {
+        ...company,
+        ...JSON.parse(
+          fs.readFileSync(
+            path.join(process.cwd(), 'uploads/settings.json'),
+            'utf8',
+          ),
+        ),
+      };
+    } catch {
+      /* Defaults apply before settings are saved. */
+    }
+    const signer = (user: any) =>
+      user
+        ? {
+            id: user.id,
+            username: user.username,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            department: user.department,
+            position: user.position,
+            role: { id: user.role?.id, name: user.role?.name },
+            signature_encrypted: user.signature_encrypted,
+          }
+        : null;
+    const workflow = doc.workflow
+      ? {
+          ...doc.workflow,
+          steps: doc.workflow.steps.map((step) => {
+            const signed = previous?._meta?.workflow?.steps?.find(
+              (old: { id: string; status: string }) =>
+                old.id === step.id && old.status === 'Approved',
+            );
+            return {
+              ...step,
+              approver:
+                step.status === 'Approved' && signed
+                  ? signed.approver
+                  : signer(step.approver),
+            };
+          }),
+        }
+      : null;
+    return jsonSnapshot({
+      ...form,
+      _meta: {
+        id: doc.id,
+        doc_number: doc.doc_number,
+        title: doc.title,
+        type: doc.type,
+        created_at: doc.created_at,
+        updated_at: doc.updated_at,
+        approved_at: doc.approved_at,
+        status: doc.status,
+        creator_id: doc.creator_id,
+        creator:
+          doc.status !== 'Draft' && previous?._meta?.creator
+            ? previous._meta.creator
+            : signer(doc.creator),
+        workflow,
+        description:
+          description ?? previous?._meta?.description ?? doc.search_text ?? '',
+        company:
+          doc.status !== 'Draft' && previous?._meta?.company
+            ? previous._meta.company
+            : company,
+        visibility: {
+          type: doc.visibility_type,
+          departments: doc.visibility_departments,
+          users: doc.visibility_users,
+        },
+        workflow_history: previous?._meta?.workflow_history ?? [],
+        annotations: previous?._meta?.annotations ?? [],
+      },
+    });
+  }
 
-      if (!running) {
-        running = await tx.runningNumber.create({
+  async preserveLegacyVersion(tx: Prisma.TransactionClient, doc: FullDocument) {
+    const latest = doc.versions[0];
+    if (!latest || (latest.form_data as any)?._meta) return;
+    const metadata = (
+      this.snapshotDocument(doc, undefined, latest.form_data) as any
+    )._meta;
+    metadata.legacy_snapshot = true;
+    if (metadata.creator) metadata.creator.signature_encrypted = null;
+    for (const step of metadata.workflow?.steps ?? []) {
+      if (step.approver) step.approver.signature_encrypted = null;
+    }
+    const legacy =
+      latest.form_data &&
+      typeof latest.form_data === 'object' &&
+      !Array.isArray(latest.form_data)
+        ? latest.form_data
+        : (doc.pr_form ?? doc.po_form ?? doc.bk_form ?? {});
+    const snapshot = jsonSnapshot({ ...legacy, _meta: metadata });
+    const bytes = latest.file_data?.length
+      ? Buffer.from(latest.file_data)
+      : await this.generateFallbackPdf(doc, { ...latest, form_data: snapshot });
+    await tx.documentVersion.update({
+      where: { id: latest.id },
+      data: {
+        form_data: snapshot,
+        file_data: bytes,
+        file_size: String(bytes.length),
+        file_extension: 'pdf',
+      },
+    });
+    latest.form_data = snapshot as Prisma.JsonValue;
+    latest.file_data = bytes;
+  }
+
+  async appendVersion(
+    tx: Prisma.TransactionClient,
+    doc: FullDocument,
+    userId: string,
+    remarks: string,
+    buffer?: Buffer,
+    description?: string,
+    previous?: any,
+  ) {
+    const latest = await tx.documentVersion.findFirst({
+      where: { document_id: doc.id },
+      orderBy: { version_number: 'desc' },
+    });
+    const snapshot = this.snapshotDocument(
+      doc,
+      description,
+      previous ?? latest?.form_data,
+    );
+    const bytes =
+      buffer ?? (await this.generateFallbackPdf(doc, { form_data: snapshot }));
+    return tx.documentVersion.create({
+      data: {
+        document_id: doc.id,
+        version_number: (latest?.version_number ?? 0) + 1,
+        uploaded_by_id: userId,
+        remarks,
+        form_data: snapshot,
+        file_data: bytes,
+        file_size: String(bytes.length),
+        file_extension: 'pdf',
+      },
+    });
+  }
+
+  async create(
+    dto: CreateDocumentDto,
+    creatorId: string,
+    file?: Express.Multer.File,
+  ) {
+    if (!dto.title?.trim())
+      throw new BadRequestException('กรุณาระบุชื่อเอกสาร');
+    const actor = await loadActor(this.prisma, creatorId);
+    requirePermission(actor, permissions.create);
+    if (!actor.department_id)
+      throw new BadRequestException('ผู้ใช้ยังไม่ได้กำหนดแผนก');
+    const prefix =
+      dto.prefix === 'MEMO'
+        ? 'BK'
+        : dto.prefix === 'OTHER'
+          ? 'DOC'
+          : dto.prefix.toUpperCase();
+    const data = this.items(dto, prefix);
+    if (!['PR', 'PO', 'BK'].includes(prefix) && !file)
+      throw new BadRequestException('กรุณาแนบไฟล์ PDF');
+    if (prefix === 'PO' && !dto.vendor_name?.trim())
+      throw new BadRequestException('กรุณาระบุผู้ขาย');
+    return this.prisma.$transaction(
+      async (tx) => {
+        if (dto.client_request_id) {
+          await lockEntity(tx, `create-request:${dto.client_request_id}`);
+          const existing = await tx.document.findUnique({
+            where: { id: dto.client_request_id },
+            select: {
+              id: true,
+              creator_id: true,
+              is_deleted: true,
+              type: { select: { prefix: true } },
+            },
+          });
+          if (existing) {
+            if (
+              existing.creator_id !== creatorId ||
+              existing.is_deleted ||
+              existing.type.prefix !== prefix
+            )
+              throw new ConflictException(
+                'คำขอบันทึกนี้ถูกใช้กับเอกสารอื่นแล้ว กรุณาเปิดฟอร์มใหม่',
+              );
+            return this.mapDocumentToResponse(
+              await this.getDocument(existing.id, tx),
+              actor,
+            );
+          }
+        }
+        const type = await tx.documentType.findFirst({
+          where: { prefix, is_active: true },
+        });
+        if (!type)
+          throw new BadRequestException('ประเภทเอกสารถูกปิดใช้งานหรือไม่พบ');
+        const docNumber = await this.runningNumber(tx, type);
+        const doc = await tx.document.create({
           data: {
-            document_type_id: docType.id,
-            prefix: docType.prefix,
-            year_format: 'YYYY',
-            current_number: 0,
-            padding_length: 4,
-            last_reset_year: currentYear,
+            ...(dto.client_request_id ? { id: dto.client_request_id } : {}),
+            doc_number: docNumber,
+            title: dto.title.trim(),
+            type_id: type.id,
+            creator_id: creatorId,
+            status: 'Draft',
+            search_text: dto.purpose ?? '',
+            ...(await this.visibility(dto, actor, tx)),
+            ...(prefix === 'PR'
+              ? {
+                  pr_form: {
+                    create: {
+                      requester_id: creatorId,
+                      department_id: actor.department_id!,
+                      purpose: dto.purpose,
+                      remark: dto.remark,
+                      requested_date: dto.requested_date
+                        ? new Date(dto.requested_date)
+                        : new Date(),
+                      required_date: dto.required_date
+                        ? new Date(dto.required_date)
+                        : null,
+                      total_amount: data.total,
+                      items: { create: data.items },
+                    },
+                  },
+                }
+              : {}),
+            ...(prefix === 'PO'
+              ? {
+                  po_form: {
+                    create: {
+                      vendor_name: dto.vendor_name!,
+                      vendor_contact: dto.vendor_contact,
+                      delivery_date: dto.delivery_date
+                        ? new Date(dto.delivery_date)
+                        : null,
+                      payment_terms: dto.payment_terms,
+                      remark: dto.remark,
+                      total_amount: data.total,
+                      items: { create: data.items },
+                    },
+                  },
+                }
+              : {}),
+            ...(prefix === 'BK'
+              ? {
+                  bk_form: {
+                    create: {
+                      subject: dto.title,
+                      detail: dto.purpose,
+                      department_id: actor.department_id!,
+                    },
+                  },
+                }
+              : {}),
+          },
+          include: documentInclude,
+        });
+        await this.appendVersion(
+          tx,
+          doc,
+          actor.id,
+          'สร้างเอกสาร (ร่าง)',
+          file?.buffer,
+          dto.purpose,
+        );
+        await tx.auditLog.create({
+          data: {
+            user_id: actor.id,
+            action: 'Upload',
+            module: 'Document',
+            target_id: doc.id,
+            details: {
+              oldState: {},
+              newState: { status: 'Draft', doc_number: doc.doc_number },
+              extra: {},
+            },
           },
         });
-      }
-
-      let nextNum = running.current_number + 1;
-      let lastResetYear = running.last_reset_year;
-
-      if (running.last_reset_year !== currentYear) {
-        nextNum = 1;
-        lastResetYear = currentYear;
-      }
-
-      await tx.runningNumber.update({
-        where: { id: running.id },
-        data: { current_number: nextNum, last_reset_year: lastResetYear },
-      });
-
-      const paddedStr = String(nextNum).padStart(running.padding_length, '0');
-      return `${docType.prefix}-${currentYear}-${paddedStr}`;
-    });
-
-    let totalAmount = 0;
-    const itemsData = (dto.items || []).map((item) => {
-      const itemTotal =
-        Number(item.quantity || 1) * Number(item.unit_price || 0);
-      const vatRate = item.vat !== undefined ? Number(item.vat) : ((prefix === 'PO' || prefix === 'PO_FORM') ? 7 : 0);
-      totalAmount += itemTotal * (1 + (vatRate / 100));
-      return {
-        item_name: item.item_name,
-        quantity: item.quantity,
-        unit: item.unit || 'ชิ้น',
-        unit_price: item.unit_price,
-        total_price: itemTotal,
-        remark: item.remark,
-      };
-    });
-
-    const docData: Prisma.DocumentUncheckedCreateInput = {
-      doc_number: docNumber,
-      title: dto.title,
-      type_id: docType.id,
-      creator_id: creatorId,
-      status: 'Draft',
-    };
-
-    if (prefix === 'PR') {
-      docData.pr_form = {
-        create: {
-          requester_id: creatorId,
-          department_id: deptId,
-          purpose: dto.purpose || '',
-          remark: dto.remark || '',
-          total_amount: totalAmount,
-          requested_date: new Date(),
-          items: { create: itemsData },
-        },
-      };
-    } else if (prefix === 'PO') {
-        docData.po_form = {
-          create: {
-            vendor_name: dto.vendor_name || dto.purpose || 'Vendor',
-            vendor_contact: dto.vendor_contact || '',
-            delivery_date: dto.delivery_date ? new Date(dto.delivery_date) : null,
-            payment_terms: dto.payment_terms || '',
-            total_amount: totalAmount,
-            remark: dto.remark || '',
-            items: { create: itemsData.map((it) => ({ ...it, vat: 7 })) },
-          },
-        };
-    } else if (prefix === 'BK') {
-      docData.bk_form = {
-        create: {
-          subject: dto.title,
-          detail: dto.purpose || '',
-          department_id: deptId,
-        },
-      };
-    }
-
-    const createdDoc = await this.prisma.document.create({
-      data: docData,
-      include: {
-        type: true,
-        creator: true,
-        pr_form: { include: { items: true, department: true } },
-        po_form: { include: { items: true } },
-        bk_form: { include: { department: true } },
-        workflow: {
-          include: {
-            steps: {
-              include: { approver: { include: { role: true } } },
-              orderBy: { step_order: 'asc' },
-            },
-          },
-        },
+        return this.mapDocumentToResponse(
+          await this.getDocument(doc.id, tx),
+          actor,
+        );
       },
-    });
-
-    let formDataToKeep: any = undefined;
-    if (createdDoc.pr_form) formDataToKeep = createdDoc.pr_form;
-    else if (createdDoc.po_form) formDataToKeep = createdDoc.po_form;
-    else if (createdDoc.bk_form) formDataToKeep = createdDoc.bk_form;
-
-    await this.prisma.documentVersion.create({
-      data: {
-        document_id: createdDoc.id,
-        version_number: 1,
-        uploaded_by_id: creatorId,
-        remarks: 'สร้างเอกสาร (ร่าง)',
-        form_data: formDataToKeep,
-      },
-    });
-
-    await this.prisma.auditLog.create({
-      data: {
-        user_id: creatorId,
-        action: 'Upload',
-        module: 'Document',
-        target_id: createdDoc.id,
-        details: {
-          newState: {
-            id: createdDoc.id,
-            doc_number: createdDoc.doc_number,
-            title: createdDoc.title,
-            status: createdDoc.status,
-          },
-        },
-      },
-    });
-
-    return this.mapDocumentToResponse(createdDoc);
+      { timeout: 60000, maxWait: 30000 },
+    );
   }
 
   async createWithFile(
     dto: CreateDocumentDto,
     creatorId: string,
     file: Express.Multer.File,
-    approverIds: string[] = [], // eslint-disable-line @typescript-eslint/no-unused-vars
   ) {
-    const doc = await this.create(dto, creatorId);
+    return this.create(dto, creatorId, file);
+  }
 
-    try {
-      const fileSizeKb = `${(file.size / 1024).toFixed(1)} KB`;
-      // Update version 1 with the uploaded PDF buffer
-      await this.prisma.documentVersion.updateMany({
-        where: {
-          document_id: doc.real_id,
-          version_number: 1,
-        },
-        data: {
-          file_data: file.buffer,
-          file_size: fileSizeKb,
-          file_extension: 'pdf',
-          remarks: 'อัปโหลดไฟล์เอกสาร',
-        },
-      });
+  async updateDocumentFull(
+    id: string,
+    dto: CreateDocumentDto,
+    userId: string,
+    file?: Express.Multer.File,
+  ) {
+    const actor = await loadActor(this.prisma, userId);
+    requirePermission(actor, permissions.edit);
+    const original = await this.getDocument(id);
+    return this.prisma.$transaction(
+      async (tx) => {
+        await lockEntity(tx, `document:${original.id}`);
+        const doc = await this.getDocument(original.id, tx);
+        requireDocumentOwner(doc, actor);
+        if (!['Draft', 'Returned'].includes(doc.status))
+          throw new ConflictException(
+            'แก้ไขได้เฉพาะร่างหรือเอกสารที่ส่งกลับแก้ไข',
+          );
+        const prefix = doc.type.prefix,
+          data = this.items(dto, prefix);
+        if (
+          (dto.prefix === 'MEMO'
+            ? 'BK'
+            : dto.prefix === 'OTHER'
+              ? 'DOC'
+              : dto.prefix.toUpperCase()) !== prefix
+        )
+          throw new BadRequestException('ไม่สามารถเปลี่ยนประเภทเอกสารเดิม');
+        if (!doc.type.is_active)
+          throw new BadRequestException('ประเภทเอกสารถูกปิดใช้งาน');
+        await this.preserveLegacyVersion(tx, doc);
+        const update: Prisma.DocumentUncheckedUpdateInput = {
+          title: dto.title.trim(),
+          search_text: dto.purpose ?? '',
+          status: 'Draft',
+          approved_at: null,
+        };
+        if (dto.visibility)
+          Object.assign(update, await this.visibility(dto, actor, tx));
+        await tx.document.update({ where: { id: doc.id }, data: update });
+        if (doc.pr_form)
+          await tx.pRForm.update({
+            where: { id: doc.pr_form.id },
+            data: {
+              purpose: dto.purpose,
+              remark: dto.remark,
+              requested_date: dto.requested_date
+                ? new Date(dto.requested_date)
+                : doc.pr_form.requested_date,
+              required_date: dto.required_date
+                ? new Date(dto.required_date)
+                : null,
+              total_amount: data.total,
+              items: { deleteMany: {}, create: data.items },
+            },
+          });
+        if (doc.po_form)
+          await tx.pOForm.update({
+            where: { id: doc.po_form.id },
+            data: {
+              vendor_name: dto.vendor_name ?? doc.po_form.vendor_name,
+              vendor_contact: dto.vendor_contact,
+              delivery_date: dto.delivery_date
+                ? new Date(dto.delivery_date)
+                : null,
+              payment_terms: dto.payment_terms,
+              remark: dto.remark,
+              total_amount: data.total,
+              items: { deleteMany: {}, create: data.items },
+            },
+          });
+        if (doc.bk_form)
+          await tx.bKForm.update({
+            where: { id: doc.bk_form.id },
+            data: { subject: dto.title, detail: dto.purpose },
+          });
+        const updated = await this.getDocument(doc.id, tx);
+        // An uploaded PDF can be reused only for DOC; generated forms always render the new snapshot.
+        const buffer =
+          file?.buffer ??
+          (!['PR', 'PO', 'BK'].includes(prefix) && doc.versions[0]?.file_data
+            ? Buffer.from(doc.versions[0].file_data)
+            : undefined);
+        await this.appendVersion(
+          tx,
+          updated,
+          actor.id,
+          'แก้ไขเอกสาร (ร่าง)',
+          buffer,
+          dto.purpose,
+        );
+        await tx.auditLog.create({
+          data: {
+            user_id: actor.id,
+            action: 'Edit',
+            module: 'Document',
+            target_id: doc.id,
+            details: {
+              oldState: { title: doc.title, status: doc.status },
+              newState: { title: dto.title, status: 'Draft' },
+              extra: {},
+            },
+          },
+        });
+        return this.mapDocumentToResponse(
+          await this.getDocument(doc.id, tx),
+          actor,
+        );
+      },
+      { timeout: 60000, maxWait: 30000 },
+    );
+  }
 
-      return { ...doc, version_number: 1 };
-    } catch (err) {
-      await this.prisma.document
-        .delete({ where: { id: doc.real_id } })
-        .catch(() => {});
-      throw err;
-    }
+  async updateDocumentFullWithFile(
+    id: string,
+    dto: CreateDocumentDto,
+    userId: string,
+    file: Express.Multer.File,
+  ) {
+    return this.updateDocumentFull(id, dto, userId, file);
   }
 
   async uploadNewVersion(
@@ -548,198 +812,309 @@ export class DocumentsService {
     file: Express.Multer.File,
     title?: string,
     remarks?: string,
-    userRole?: string,
   ) {
-    const doc = await this.prisma.document.findFirst({
-      where: {
-        OR: [{ id }, { doc_number: id }],
-        is_deleted: false,
-      },
-      include: {
-        versions: {
-          select: {
-            id: true,
-            document_id: true,
-            version_number: true,
-            file_size: true,
-            file_extension: true,
-            form_data: true,
-            uploaded_by_id: true,
-            remarks: true,
-            created_at: true,
-            updated_at: true,
-            uploaded_by: true,
-          },
-          orderBy: { version_number: 'desc' },
-          take: 1,
+    const actor = await loadActor(this.prisma, userId);
+    requirePermission(actor, permissions.edit);
+    const original = await this.getDocument(id);
+    return this.prisma.$transaction(async (tx) => {
+      await lockEntity(tx, `document:${original.id}`);
+      const doc = await this.getDocument(original.id, tx);
+      requireDocumentOwner(doc, actor);
+      if (!['Draft', 'Returned'].includes(doc.status))
+        throw new ConflictException(
+          'ต้องเป็นร่างหรือส่งกลับแก้ไขก่อนอัปโหลดฉบับใหม่',
+        );
+      if (['PR', 'PO', 'BK'].includes(doc.type.prefix))
+        throw new BadRequestException(
+          'กรุณาแก้ไขข้อมูลแบบฟอร์มเพื่อสร้างฉบับใหม่',
+        );
+      await this.preserveLegacyVersion(tx, doc);
+      await tx.document.update({
+        where: { id: doc.id },
+        data: {
+          title: title?.trim() || doc.title,
+          status: 'Draft',
+          approved_at: null,
         },
-      },
-    });
-
-    if (!doc) throw new NotFoundException('ไม่พบเอกสาร');
-    if (doc.creator_id !== userId && userRole !== 'Administrator') {
-      throw new ForbiddenException(
-        'เฉพาะผู้สร้างเอกสารหรือผู้ดูแลระบบเท่านั้นที่สามารถอัปโหลดเวอร์ชันใหม่ได้',
+      });
+      await this.appendVersion(
+        tx,
+        await this.getDocument(doc.id, tx),
+        actor.id,
+        remarks || 'อัปโหลดฉบับแก้ไข',
+        file.buffer,
       );
-    }
-
-    const nextVersion =
-      doc.versions.length > 0 ? doc.versions[0].version_number + 1 : 2;
-
-    const versionRemarks = remarks || 'อัปโหลดเวอร์ชันใหม่เพื่อแก้ไข';
-    const fileSizeKb = `${(file.size / 1024).toFixed(1)} KB`;
-
-    await this.prisma.documentVersion.create({
-      data: {
-        document_id: doc.id,
-        version_number: nextVersion,
-        file_data: file.buffer,
-        file_size: fileSizeKb,
-        file_extension: 'pdf',
-        uploaded_by_id: userId,
-        remarks: versionRemarks,
-      },
-    });
-
-    const updatedDoc = await this.prisma.document.update({
-      where: { id: doc.id },
-      data: {
-        ...(title ? { title } : {}),
-      },
-      include: {
-        type: true,
-        creator: true,
-        pr_form: true,
-        po_form: true,
-        bk_form: true,
-        versions: {
-          select: {
-            id: true,
-            document_id: true,
-            version_number: true,
-            file_size: true,
-            file_extension: true,
-            form_data: true,
-            uploaded_by_id: true,
-            remarks: true,
-            created_at: true,
-            updated_at: true,
-            uploaded_by: true,
-          },
-          orderBy: { version_number: 'desc' },
-        },
-      },
-    });
-
-    await this.prisma.auditLog.create({
-      data: {
-        user_id: userId,
-        action: 'Upload',
-        module: 'Document',
-        target_id: doc.id,
-        details: {
-          newState: {
-            id: doc.id,
-            version: nextVersion,
-            remarks: versionRemarks,
+      await tx.auditLog.create({
+        data: {
+          user_id: actor.id,
+          action: 'Upload',
+          module: 'Document',
+          target_id: doc.id,
+          details: {
+            oldState: { status: doc.status },
+            newState: { status: 'Draft' },
+            extra: { version: (doc.versions[0]?.version_number ?? 0) + 1 },
           },
         },
-      },
+      });
+      return this.mapDocumentToResponse(
+        await this.getDocument(doc.id, tx),
+        actor,
+      );
     });
-
-    return this.mapDocumentToResponse(updatedDoc);
   }
 
-  async getLatestVersionDownloadUrl(id: string): Promise<{ url: string }> {
-    const doc = await this.findOne(id);
-    return { url: `/api/documents/${doc.real_id || doc.id}/download` };
+  async cancel(id: string, actor: Actor, reason: string) {
+    requirePermission(actor, [
+      ...permissions.delete,
+      'submissions.cancel_document:delete',
+      'document.recall_document:edit',
+    ]);
+    const original = await this.getDocument(id);
+    return this.prisma.$transaction(async (tx) => {
+      await lockEntity(tx, `document:${original.id}`);
+      const doc = await this.getDocument(original.id, tx);
+      requireDocumentOwner(doc, actor);
+      if (!['Draft', 'Pending', 'Returned'].includes(doc.status))
+        throw new ConflictException('ไม่สามารถยกเลิกเอกสารที่สิ้นสุดแล้ว');
+      await this.preserveLegacyVersion(tx, doc);
+      if (doc.workflow)
+        await tx.workflow.update({
+          where: { id: doc.workflow.id },
+          data: { status: 'Rejected' },
+        });
+      await tx.document.update({
+        where: { id: doc.id },
+        data: { status: 'Cancelled' },
+      });
+      const current = await this.getDocument(doc.id, tx);
+      const prior = doc.versions[0];
+      await this.appendVersion(
+        tx,
+        current,
+        actor.id,
+        `ยกเลิกเอกสาร: ${reason}`,
+        prior?.file_data ? Buffer.from(prior.file_data) : undefined,
+      );
+      await tx.notification.createMany({
+        data: [
+          ...new Set(
+            (doc.workflow?.steps ?? [])
+              .filter((s) => s.status === 'Pending' && s.approver_id)
+              .map((s) => s.approver_id!),
+          ),
+        ].map((user_id) => ({
+          user_id,
+          document_id: doc.id,
+          message: `เอกสาร ${doc.doc_number} ถูกยกเลิกโดยผู้สร้าง`,
+        })),
+      });
+      await tx.auditLog.create({
+        data: {
+          user_id: actor.id,
+          action: 'Edit',
+          module: 'Document',
+          target_id: doc.id,
+          details: {
+            oldState: { status: doc.status },
+            newState: { status: 'Cancelled' },
+            extra: { reason },
+          },
+        },
+      });
+      return { success: true };
+    });
+  }
+
+  async softDelete(id: string, actor: Actor) {
+    requirePermission(actor, permissions.delete);
+    const original = await this.getDocument(id);
+    return this.prisma.$transaction(async (tx) => {
+      await lockEntity(tx, `document:${original.id}`);
+      const doc = await this.getDocument(original.id, tx);
+      requireDocumentOwner(doc, actor);
+      if (doc.status === 'Pending' || doc.status === 'Approved')
+        throw new ConflictException(
+          'ต้องยกเลิกเอกสารก่อนลบ; เอกสารอนุมัติแล้วเก็บไว้เป็นหลักฐาน',
+        );
+      await tx.document.update({
+        where: { id: doc.id },
+        data: { is_deleted: true },
+      });
+      await tx.auditLog.create({
+        data: {
+          user_id: actor.id,
+          action: 'Delete',
+          module: 'Document',
+          target_id: doc.id,
+          details: {
+            oldState: { is_deleted: false },
+            newState: { is_deleted: true },
+            extra: {},
+          },
+        },
+      });
+      return { success: true };
+    });
+  }
+
+  async getLatestVersionDownloadUrl(id: string, user: Actor) {
+    const doc = await this.findOne(id, user);
+    return { url: `/api/documents/${doc.real_id}/download` };
   }
 
   async getFileBuffer(
-    documentId: string,
+    id: string,
     versionNumber?: number,
-  ): Promise<{ buffer: Buffer; filename: string }> {
-    const isUuid =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-        documentId,
+    user?: Actor,
+    preview = false,
+  ) {
+    const doc = await this.getDocument(id);
+    if (user) {
+      requirePermission(
+        user,
+        preview ? permissions.preview : permissions.download,
       );
-
-    const doc = await this.prisma.document.findFirst({
-      where: {
-        OR: isUuid
-          ? [{ id: documentId }, { doc_number: documentId }]
-          : [{ doc_number: documentId }],
-        is_deleted: false,
-      },
-      include: {
-        type: true,
-        creator: {
-          include: { department: true, position: true, role: true },
-        },
-        pr_form: { include: { items: true, department: true } },
-        po_form: { include: { items: true } },
-        bk_form: { include: { department: true } },
-        workflow: {
-          include: {
-            steps: {
-              include: { approver: { include: { role: true } } },
-              orderBy: { step_order: 'asc' },
-            },
-          },
-        },
-        versions: {
-          orderBy: { version_number: 'desc' },
-        },
-      },
-    });
-
-    if (!doc) {
-      throw new NotFoundException('ไม่พบเอกสาร');
+      requireDocumentAccess(doc, user);
     }
-
-    let version = doc.versions[0];
-    if (versionNumber) {
-      const found = doc.versions.find(
-        (v) => v.version_number === Number(versionNumber),
+    if (
+      user &&
+      versionNumber !== undefined &&
+      versionNumber !== doc.versions[0]?.version_number
+    )
+      requirePermission(user, permissions.history);
+    const version =
+      versionNumber === undefined
+        ? doc.versions[0]
+        : doc.versions.find((v) => v.version_number === versionNumber);
+    if (
+      !version ||
+      (versionNumber !== undefined &&
+        (!Number.isInteger(versionNumber) || versionNumber < 1))
+    )
+      throw new NotFoundException('ไม่พบเวอร์ชันเอกสาร');
+    if (
+      version.version_number !== doc.versions[0]?.version_number &&
+      !version.file_data?.length &&
+      (!version.form_data ||
+        typeof version.form_data !== 'object' ||
+        !Object.keys(version.form_data).length)
+    ) {
+      throw new ConflictException(
+        'เวอร์ชันเดิมไม่มีไฟล์หรือข้อมูลต้นฉบับที่บันทึกไว้ ไม่สามารถสร้างเอกสารย้อนหลังแทนได้',
       );
-      if (found) version = found;
     }
+    const buffer = version.file_data?.length
+      ? Buffer.from(version.file_data)
+      : await this.generateFallbackPdf(doc, version);
+    return {
+      buffer,
+      filename: `${doc.doc_number}_v${version.version_number}.pdf`,
+    };
+  }
 
-    const vNum = version?.version_number || 1;
-    const filename = `${doc.doc_number || doc.id}_v${vNum}.pdf`;
-
-    if (version && version.file_data && version.file_data.length > 0) {
-      return { buffer: Buffer.from(version.file_data), filename };
-    }
-
-    const generatedBuffer = await this.generateFallbackPdf(doc, version);
-    return { buffer: generatedBuffer, filename };
+  async getVersionSignature(
+    id: string,
+    number: number,
+    step: number,
+    user: Actor,
+  ) {
+    const doc = await this.getDocument(id);
+    requireDocumentAccess(doc, user);
+    requirePermission(user, permissions.view);
+    if (number !== doc.versions[0]?.version_number)
+      requirePermission(user, permissions.history);
+    const version = doc.versions.find((v) => v.version_number === number);
+    const meta = (version?.form_data as any)?._meta;
+    const signer =
+      step === 0
+        ? meta?.creator
+        : meta?.workflow?.steps?.find(
+            (s: any) => s.step_order === step && s.status === 'Approved',
+          )?.approver;
+    const uri = this.decryptSignature(signer?.signature_encrypted);
+    if (!uri) throw new NotFoundException('ไม่พบลายเซ็นในเวอร์ชันนี้');
+    const match = uri.match(/^data:(image\/(?:png|jpeg));base64,(.+)$/);
+    if (!match) throw new NotFoundException('รูปแบบลายเซ็นไม่รองรับ');
+    return { buffer: Buffer.from(match[2], 'base64'), mimeType: match[1] };
   }
 
   private decryptSignature(cipherText?: string | null): string | null {
     if (!cipherText) return null;
     try {
-      const parts = cipherText.split(':');
-      if (parts.length !== 3) return null;
-      const [ivHex, authTagHex, encryptedHex] = parts;
-      const rawKey = process.env.ENCRYPTION_KEY || 'default_secret_key_32bytes_len!!';
-      const key = crypto.createHash('sha256').update(rawKey).digest();
-      const iv = Buffer.from(ivHex, 'hex');
-      const authTag = Buffer.from(authTagHex, 'hex');
-      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
-      decipher.setAuthTag(authTag);
-      let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
-      decrypted += decipher.final('utf8');
-      return decrypted;
+      return this.encryption.decrypt(cipherText);
     } catch {
       return null;
     }
   }
 
   private buildDocumentHtml(doc: any, version?: any): string {
+    const snapshot = version?.form_data;
+    const meta = snapshot?._meta;
+    if (snapshot) {
+      doc = { ...doc, ...(meta ?? {}) };
+      const prefix = doc.type?.prefix;
+      if (prefix === 'PR') doc.pr_form = snapshot;
+      if (prefix === 'PO') doc.po_form = snapshot;
+      if (prefix === 'BK') doc.bk_form = snapshot;
+      if (!meta && version.version_number !== doc.versions?.[0]?.version_number)
+        doc.workflow = null;
+    }
+    if (version && !meta) {
+      doc = {
+        ...doc,
+        creator: doc.creator
+          ? { ...doc.creator, signature_encrypted: null }
+          : null,
+        workflow: doc.workflow
+          ? {
+              ...doc.workflow,
+              steps: doc.workflow.steps.map((step: any) => ({
+                ...step,
+                approver: step.approver
+                  ? { ...step.approver, signature_encrypted: null }
+                  : null,
+              })),
+            }
+          : null,
+      };
+    }
+    const legacyWarning =
+      version && (!meta || meta.legacy_snapshot)
+        ? '<div style="font-size:10px;color:#92400e;margin-bottom:8px;">เอกสารรุ่นเดิม: ไม่ได้บันทึกภาพลายเซ็นต้นฉบับของเวอร์ชันนี้</div>'
+        : '';
+    // Only text from trusted templates is markup; all stored user input is escaped.
+    const escape = (value: any): any => {
+      if (typeof value === 'string')
+        return value.replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              '&': '&amp;',
+              '<': '&lt;',
+              '>': '&gt;',
+              '"': '&quot;',
+              "'": '&#39;',
+            })[c]!,
+        );
+      if (
+        value instanceof Date ||
+        value instanceof Prisma.Decimal ||
+        value === null ||
+        typeof value !== 'object'
+      )
+        return value;
+      if (Array.isArray(value)) return value.map(escape);
+      return Object.fromEntries(
+        Object.entries(value).map(([key, item]) => [key, escape(item)]),
+      );
+    };
+    doc = escape(doc);
+    version = escape(version);
     // 1. Company Settings
-    let companyName = 'บริษัท ฮาฮา';
-    let companyAddress = 'เลขที่ 282 (หรือ 2086) ถนนรามคำแหง แขวงหัวหมาก เขตบางกะปิ กรุงเทพมหานคร 10240';
+    let companyName = 'บริษัท นิสซุย (ประเทศไทย) จำกัด';
+    let companyAddress =
+      'เลขที่ 282 (หรือ 2086) ถนนรามคำแหง แขวงหัวหมาก เขตบางกะปิ กรุงเทพมหานคร 10240';
     try {
       const settingsPath = path.join(process.cwd(), 'uploads', 'settings.json');
       if (fs.existsSync(settingsPath)) {
@@ -747,9 +1122,18 @@ export class DocumentsService {
         if (s.companyName) companyName = s.companyName;
         if (s.companyAddress) companyAddress = s.companyAddress;
       }
-    } catch {}
+    } catch {
+      /* Company defaults apply if no saved settings exist. */
+    }
 
-    const rawPrefix = doc.type?.prefix || (doc.doc_number || doc.id || '').split('-')[0] || 'DOC';
+    if (version?.form_data?._meta?.company) {
+      companyName = version.form_data._meta.company.companyName;
+      companyAddress = version.form_data._meta.company.companyAddress;
+    }
+    const rawPrefix =
+      doc.type?.prefix ||
+      (doc.doc_number || doc.id || '').split('-')[0] ||
+      'DOC';
     const prefix = rawPrefix.toUpperCase();
     const docNumber = doc.doc_number || doc.id;
     const vFormData = version?.form_data || {};
@@ -761,9 +1145,15 @@ export class DocumentsService {
     const docDate = `${thaiDay}/${thaiMonth}/${thaiYear}`;
 
     const requesterName = doc.creator
-      ? `${doc.creator.first_name || ''} ${doc.creator.last_name || ''}`.trim() || doc.creator.username || 'วิภา รักดี'
+      ? `${doc.creator.first_name || ''} ${doc.creator.last_name || ''}`.trim() ||
+        doc.creator.username ||
+        'วิภา รักดี'
       : 'วิภา รักดี';
-    const department = doc.creator?.department?.name || doc.pr_form?.department?.name || doc.bk_form?.department?.name || 'แผนกจัดซื้อ';
+    const department =
+      doc.creator?.department?.name ||
+      doc.pr_form?.department?.name ||
+      doc.bk_form?.department?.name ||
+      'แผนกจัดซื้อ';
     const title = doc.title || '-';
 
     const isPO = prefix === 'PO';
@@ -774,14 +1164,24 @@ export class DocumentsService {
     const primaryText = isPO ? '#581c87' : '#1e3a8a';
     const highlightBanner = isPO ? '#7e22ce' : '#1d4ed8';
 
-    const titleTH = isPO ? 'ใบสั่งซื้อ/สั่งจ้าง' : isBK ? 'บันทึกข้อความ' : 'ใบขออนุมัติจัดซื้อ/จัดจ้าง';
-    const titleEN = isPO ? 'PURCHASE ORDER' : isBK ? 'MEMORANDUM' : 'PURCHASE REQUEST';
+    const titleTH = isPO
+      ? 'ใบสั่งซื้อ/สั่งจ้าง'
+      : isBK
+        ? 'บันทึกข้อความ'
+        : 'ใบขออนุมัติจัดซื้อ/จัดจ้าง';
+    const titleEN = isPO
+      ? 'PURCHASE ORDER'
+      : isBK
+        ? 'MEMORANDUM'
+        : 'PURCHASE REQUEST';
 
     // Signatures resolution
     const creatorSig = this.decryptSignature(doc.creator?.signature_encrypted);
-    const approvedSteps = (doc.workflow?.steps || []).filter((s: any) => s.status === 'Approved');
+    const approvedSteps = (doc.workflow?.steps || []).filter(
+      (s: any) => s.status === 'Approved',
+    );
 
-    let signatures = [
+    const signatures = [
       {
         role: 'ผู้จัดทำ (Prepared By)',
         name: requesterName,
@@ -794,37 +1194,28 @@ export class DocumentsService {
     if (approvedSteps.length > 0) {
       approvedSteps.forEach((s: any, idx: number) => {
         const stepName = s.approver
-          ? `${s.approver.first_name || ''} ${s.approver.last_name || ''}`.trim() || 'ผู้อนุมัติ'
+          ? `${s.approver.first_name || ''} ${s.approver.last_name || ''}`.trim() ||
+            'ผู้อนุมัติ'
           : s.approver_name || 'ผู้อนุมัติ';
-        const stepRole = s.approver?.role?.name || (idx === 0 ? 'Manager' : 'Executive');
+        const stepRole =
+          s.approver?.role?.name || (idx === 0 ? 'Manager' : 'Executive');
         const sigImg = this.decryptSignature(s.approver?.signature_encrypted);
         signatures.push({
           role: stepRole,
           name: stepName,
-          date: docDate,
+          date: s.action_date
+            ? new Date(s.action_date).toLocaleString('th-TH', {
+                timeZone: 'Asia/Bangkok',
+              })
+            : '',
           isApproved: true,
           sigImage: sigImg,
         });
       });
-    } else if (doc.status === 'Approved' || doc.status === 'Pending') {
-      signatures.push({
-        role: 'Manager',
-        name: requesterName,
-        date: docDate,
-        isApproved: true,
-        sigImage: null,
-      });
-      signatures.push({
-        role: 'Executive',
-        name: 'ประเสริฐ มีสุข',
-        date: docDate,
-        isApproved: doc.status === 'Approved',
-        sigImage: null,
-      });
     }
 
     if (isBK) {
-      const detail = doc.bk_form?.detail || vFormData.detail || doc.title || '';
+      const detail = vFormData.detail ?? doc.bk_form?.detail ?? doc.title ?? '';
       return `
       <!DOCTYPE html>
       <html>
@@ -847,6 +1238,7 @@ export class DocumentsService {
         </style>
       </head>
       <body>
+        ${legacyWarning}
         <div class="memo-title">บันทึกข้อความ</div>
         <div class="memo-grid">
           <span class="label">ส่วนราชการ</span>
@@ -866,56 +1258,96 @@ export class DocumentsService {
           <span class="label">เรียน</span>
           <span class="dotted">ผู้บริหาร / ผู้เกี่ยวข้อง</span>
         </div>
-        <div class="memo-content">${detail}</div>
+        <div class="memo-content" style="white-space: pre-wrap; overflow-wrap: anywhere;">${detail}</div>
         <div class="signatures-area">
-          ${signatures.map(s => `
+          ${signatures
+            .map(
+              (s) => `
             <div class="sig-col">
               <div class="sig-box">
-                ${s.sigImage ? `<img src="${s.sigImage}" />` : `
-                  <svg width="100" height="35" viewBox="0 0 100 35">
-                    <path d="M10 25 Q 30 5, 50 20 T 90 15" fill="none" stroke="#2563eb" stroke-width="2" />
-                  </svg>
-                `}
+                ${
+                  s.sigImage
+                    ? `<img src="${s.sigImage}" />`
+                    : `
+
+                `
+                }
               </div>
               <div style="border-top: 1px dotted #94a3b8; padding-top: 4px; font-weight: bold;">( ${s.name} )</div>
               <div style="font-size: 11px; color: #475569;">${s.role}</div>
               <div style="font-size: 10px; color: #64748b;">${s.date || docDate}</div>
             </div>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </div>
-      </body>
+        ${(version?.form_data?._meta?.annotations ?? []).map((entry: any) => `<p style="font-size: 11px; white-space: pre-wrap;">${entry.text || ''} ${entry.date ? new Date(entry.date).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }) : ''}</p>`).join('')}
+    </body>
       </html>
       `;
     }
 
     // PR / PO Data
-    let items = (isPO ? doc.po_form?.items : doc.pr_form?.items) || vFormData.items || [];
+    let items =
+      vFormData.items ?? (isPO ? doc.po_form?.items : doc.pr_form?.items) ?? [];
     if (!Array.isArray(items) || items.length === 0) {
-      items = [{ item_name: 'Item Reference 1', remark: 'หมายเหตุ...', quantity: 1, unit: 'ชิ้น', unit_price: doc.pr_form?.total_amount || 0 }];
+      items = [
+        {
+          item_name: 'Item Reference 1',
+          remark: 'หมายเหตุ...',
+          quantity: 1,
+          unit: 'ชิ้น',
+          unit_price: doc.pr_form?.total_amount || 0,
+        },
+      ];
     }
 
     let subTotal = 0;
     items.forEach((it: any) => {
-      subTotal += Number(it.quantity || 1) * Number(it.unit_price || it.unitPrice || 0);
+      subTotal +=
+        Number(it.quantity || 1) * Number(it.unit_price || it.unitPrice || 0);
     });
-    if (subTotal === 0 && (doc.pr_form?.total_amount || doc.po_form?.total_amount)) {
+    if (
+      subTotal === 0 &&
+      (doc.pr_form?.total_amount || doc.po_form?.total_amount)
+    ) {
       subTotal = Number(doc.pr_form?.total_amount || doc.po_form?.total_amount);
     }
-    const vatAmount = subTotal * 0.07;
+    const vatAmount = isPO
+      ? items.reduce(
+          (sum: number, item: any) =>
+            sum +
+            (Number(item.quantity) *
+              Number(item.unit_price) *
+              Number(item.vat ?? 7)) /
+              100,
+          0,
+        )
+      : 0;
     const grandTotal = subTotal + vatAmount;
 
     const purpose = doc.pr_form?.purpose || vFormData.purpose || title;
     let requiredDate = 'ตามที่ระบุในรายการ';
     if (doc.pr_form?.required_date || vFormData.required_date) {
-      const rd = new Date(doc.pr_form?.required_date || vFormData.required_date);
+      const rd = new Date(
+        doc.pr_form?.required_date || vFormData.required_date,
+      );
       requiredDate = `${rd.getDate()} / ${rd.getMonth() + 1} / ${rd.getFullYear()}`;
     }
 
-    const vendorName = vFormData.vendorName || doc.po_form?.vendor_name || 'ไม่ระบุ';
-    const vendorContact = vFormData.vendorContact || doc.po_form?.vendor_contact || 'ไม่ระบุ';
-    const remark = doc.pr_form?.remark || doc.po_form?.remark || vFormData.remark || 'เอกสารใบขอซื้อฉบับนี้ใช้สำหรับขออนุมัติภายในก่อนดำเนินการจัดซื้อ';
+    const vendorName =
+      vFormData.vendorName || doc.po_form?.vendor_name || 'ไม่ระบุ';
+    const vendorContact =
+      vFormData.vendorContact || doc.po_form?.vendor_contact || 'ไม่ระบุ';
+    const remark =
+      doc.pr_form?.remark ||
+      doc.po_form?.remark ||
+      vFormData.remark ||
+      'เอกสารใบขอซื้อฉบับนี้ใช้สำหรับขออนุมัติภายในก่อนดำเนินการจัดซื้อ';
 
-    const itemsRows = items.map((item: any, idx: number) => `
+    const itemsRows = items
+      .map(
+        (item: any, idx: number) => `
       <tr style="border-bottom: 1px solid #cbd5e1;">
         <td style="border-right: 1px solid #1e293b; padding: 6px 4px; text-align: center;">${idx + 1}</td>
         <td style="border-right: 1px solid #1e293b; padding: 6px 8px;">
@@ -927,7 +1359,9 @@ export class DocumentsService {
         <td style="border-right: 1px solid #1e293b; padding: 6px 8px; text-align: right;">${Number(item.unit_price || item.unitPrice || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
         <td style="padding: 6px 8px; text-align: right; font-weight: bold;">${(Number(item.quantity || 1) * Number(item.unit_price || item.unitPrice || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     return `
     <!DOCTYPE html>
@@ -1146,6 +1580,7 @@ export class DocumentsService {
       </style>
     </head>
     <body>
+        ${legacyWarning}
       <div class="header-block">
         <div class="company-info">
           <div class="company-name">${companyName}</div>
@@ -1169,7 +1604,9 @@ export class DocumentsService {
         </div>
       </div>
 
-      ${isPO ? `
+      ${
+        isPO
+          ? `
         <div class="two-boxes">
           <div class="info-box">
             <div class="box-title">ผู้ขาย / Vendor</div>
@@ -1183,7 +1620,8 @@ export class DocumentsService {
             <div class="info-row"><span class="info-label">เรื่อง:</span><span class="info-val">${title}</span></div>
           </div>
         </div>
-      ` : `
+      `
+          : `
         <div class="two-boxes">
           <div class="info-box">
             <div class="box-title">ผู้เสนอขอจัดซื้อ / Requester</div>
@@ -1197,7 +1635,8 @@ export class DocumentsService {
             <div class="info-row"><span class="info-label">วันที่ต้องการ:</span><span class="info-val">${requiredDate}</span></div>
           </div>
         </div>
-      `}
+      `
+      }
 
       <table class="items-table">
         <thead>
@@ -1226,7 +1665,7 @@ export class DocumentsService {
             <span style="font-weight: bold;">${Number(subTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
           </div>
           <div class="total-row">
-            <span>ภาษีมูลค่าเพิ่ม 7%<br><small>VAT 7%</small></span>
+            <span>${isPO ? 'ภาษีมูลค่าเพิ่มตามรายการ' : 'ยังไม่คิดภาษีในใบขอซื้อ'}<br><small>${isPO ? 'VAT' : 'VAT not included'}</small></span>
             <span style="font-weight: bold;">${Number(vatAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
           </div>
           <div class="grand-total-row">
@@ -1237,16 +1676,20 @@ export class DocumentsService {
       </div>
 
       <div class="signatures-row">
-        ${signatures.map(s => `
+        ${signatures
+          .map(
+            (s) => `
           <div class="sig-card">
             <div>
               ${s.isApproved ? `<div class="sig-badge">SIGNED & APPROVED</div>` : ''}
               <div class="sig-img-container">
-                ${s.sigImage ? `<img src="${s.sigImage}" />` : `
-                  <svg width="100" height="35" viewBox="0 0 100 35">
-                    <path d="M10 25 Q 30 5, 50 20 T 90 15" fill="none" stroke="#2563eb" stroke-width="2" />
-                  </svg>
-                `}
+                ${
+                  s.sigImage
+                    ? `<img src="${s.sigImage}" />`
+                    : `
+
+                `
+                }
               </div>
             </div>
             <div>
@@ -1256,399 +1699,249 @@ export class DocumentsService {
               <div class="sig-date">${s.date ? `วันที่ ${s.date}` : ''}</div>
             </div>
           </div>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </div>
+      ${(version?.form_data?._meta?.annotations ?? []).map((entry: any) => `<p style="font-size: 11px; white-space: pre-wrap;">${entry.text || ''} ${entry.date ? new Date(entry.date).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }) : ''}</p>`).join('')}
     </body>
     </html>
     `;
   }
 
   async generateFallbackPdf(doc: any, version?: any): Promise<Buffer> {
-    // 1. High-fidelity PDF generation via Chromium/Edge (100% matches browser preview)
-    try {
-      const chromePaths = [
-        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-      ];
-      const executablePath = chromePaths.find((p) => fs.existsSync(p));
-
-      if (executablePath) {
-        const html = this.buildDocumentHtml(doc, version);
-        const browser = await puppeteer.launch({
-          executablePath,
+    const paths = [
+      ...new Set(
+        [
+          ...(process.env.PDF_BROWSER_PATH
+            ? [process.env.PDF_BROWSER_PATH]
+            : []),
+          '/usr/bin/chromium',
+          '/usr/bin/google-chrome',
+          'C:/Program Files/Google/Chrome/Application/chrome.exe',
+          'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+        ].filter((candidate) => fs.existsSync(candidate)),
+      ),
+    ];
+    const html = this.buildDocumentHtml(doc, version);
+    for (
+      let attempt = 0;
+      paths.length && attempt < Math.max(2, paths.length);
+      attempt++
+    ) {
+      let browser: Awaited<ReturnType<typeof puppeteer.launch>> | undefined;
+      try {
+        browser = await puppeteer.launch({
+          executablePath: paths[attempt % paths.length],
           headless: true,
-          args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
+          timeout: 10000,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-gpu',
+            '--disable-dev-shm-usage',
+          ],
         });
-        try {
-          const page = await browser.newPage();
-          await page.setContent(html, { waitUntil: 'load' });
-          const pdfBuffer = await page.pdf({
+        const page = await browser.newPage();
+        await page.setJavaScriptEnabled(false);
+        await page.setRequestInterception(true);
+        page.on('request', (request) => {
+          if (
+            request.url().startsWith('data:') ||
+            request.url() === 'about:blank'
+          )
+            void request.continue();
+          else void request.abort();
+        });
+        await page.setContent(html, { waitUntil: 'load', timeout: 15000 });
+        return Buffer.from(
+          await page.pdf({
             format: 'A4',
             printBackground: true,
+            timeout: 15000,
             margin: { top: '0mm', right: '0mm', bottom: '0mm', left: '0mm' },
-          });
-          return Buffer.from(pdfBuffer);
-        } finally {
-          await browser.close();
-        }
+          }),
+        );
+      } catch (error) {
+        console.warn(
+          'PDF renderer attempt failed:',
+          error instanceof Error ? error.message : 'Unknown renderer error',
+        );
+      } finally {
+        await browser?.close().catch(() => undefined);
       }
-    } catch (err) {
-      console.warn('Chromium PDF rendering error, falling back to pdf-lib:', err);
     }
-
-    // 2. Secondary fallback using pdf-lib
-    const pdfDoc = await PDFDocument.create();
-    let customFont: any = null;
-    const fontPath = 'C:/Windows/Fonts/tahoma.ttf';
-    try {
-      if (fs.existsSync(fontPath)) {
-        const fontBytes = fs.readFileSync(fontPath);
-        pdfDoc.registerFontkit(fontkit);
-        customFont = await pdfDoc.embedFont(fontBytes);
-      }
-    } catch (e) {
-      console.warn('Could not load custom font, falling back to StandardFonts:', e);
-    }
-    const fallbackFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const font = customFont || fallbackFont;
-
-    const safeText = (text: string | null | undefined): string => {
-      if (!text) return '-';
-      const str = String(text);
-      if (customFont) return str;
-      return str.replace(/[^\x20-\x7E]/g, ' ');
-    };
-
-    const page = pdfDoc.addPage([595.28, 841.89]);
-    const { width, height } = page.getSize();
-
-    page.drawRectangle({
-      x: 36,
-      y: height - 55,
-      width: width - 72,
-      height: 35,
-      color: rgb(0.08, 0.25, 0.55),
-    });
-    page.drawText(safeText('บริษัท ฮาฮา'), {
-      x: 50,
-      y: height - 42,
-      size: 11,
-      font,
-      color: rgb(1, 1, 1),
-    });
-
-    const pdfBytes = await pdfDoc.save();
-    return Buffer.from(pdfBytes);
+    throw new ServiceUnavailableException(
+      'ไม่สามารถสร้าง PDF ได้ กรุณาตรวจสอบ Chromium/Edge ของ server',
+    );
   }
 
-  async updateDocumentFull(id: string, dto: CreateDocumentDto, userId: string) {
-    const doc = await this.prisma.document.findFirst({
-      where: {
-        OR: [{ id }, { doc_number: id }],
-        is_deleted: false,
-      },
-      include: { type: true, pr_form: true, po_form: true, bk_form: true },
-    });
-
-    if (!doc) throw new NotFoundException('ไม่พบเอกสาร');
-    if (!['Returned', 'Rejected', 'Draft', 'Pending'].includes(doc.status)) {
-      throw new BadRequestException('สถานะเอกสารไม่สามารถแก้ไขได้');
-    }
-
-    let prefix = (dto.prefix || doc.type?.prefix || 'PR').toUpperCase();
-    if (prefix === 'MEMO') prefix = 'BK';
-
-    let totalAmount = 0;
-    const itemsData = (dto.items || []).map((item) => {
-      const itemTotal =
-        Number(item.quantity || 1) * Number(item.unit_price || 0);
-      const vatRate = item.vat !== undefined ? Number(item.vat) : ((prefix === 'PO' || prefix === 'PO_FORM') ? 7 : 0);
-      totalAmount += itemTotal * (1 + (vatRate / 100));
-      return {
-        item_name: item.item_name,
-        quantity: item.quantity,
-        unit: item.unit || 'ชิ้น',
-        unit_price: item.unit_price,
-        total_price: itemTotal,
-        remark: item.remark,
-      };
-    });
-
-    // Update main document
-    await this.prisma.document.update({
-      where: { id: doc.id },
-      data: { title: dto.title, status: 'Draft' },
-    });
-
-    const targetPrefix = doc.type?.prefix || prefix;
-
-    // Update forms
-    if (targetPrefix === 'PR' && doc.pr_form) {
-      await this.prisma.pRForm.update({
-        where: { id: doc.pr_form.id },
-        data: {
-          purpose: dto.purpose || '',
-          remark: dto.remark || '',
-          total_amount: totalAmount,
-          items: { deleteMany: {}, create: itemsData },
-        },
-      });
-    } else if (targetPrefix === 'PO' && doc.po_form) {
-      await this.prisma.pOForm.update({
-        where: { id: doc.po_form.id },
-        data: {
-          vendor_name: dto.vendor_name || dto.purpose || 'Vendor',
-          vendor_contact: dto.vendor_contact || '',
-          delivery_date: dto.delivery_date ? new Date(dto.delivery_date) : null,
-          payment_terms: dto.payment_terms || '',
-          total_amount: totalAmount,
-          remark: dto.remark || '',
-          items: { deleteMany: {}, create: itemsData },
-        },
-      });
-    } else if (
-      (targetPrefix === 'BK' || targetPrefix === 'MEMO') &&
-      doc.bk_form
-    ) {
-      await this.prisma.bKForm.update({
-        where: { id: doc.bk_form.id },
-        data: {
-          subject: dto.title,
-          detail: dto.purpose || '',
-        },
-      });
-    }
-
-    const updatedFullDoc = await this.findOne(doc.id);
-    let updatedFormData: any = undefined;
-    if (updatedFullDoc.pr_form) updatedFormData = updatedFullDoc.pr_form;
-    else if (updatedFullDoc.po_form) updatedFormData = updatedFullDoc.po_form;
-    else if (updatedFullDoc.bk_form) updatedFormData = updatedFullDoc.bk_form;
-
-    if (updatedFormData) {
-      const latestVersion = await this.prisma.documentVersion.findFirst({
-        where: { document_id: doc.id },
-        orderBy: { version_number: 'desc' },
-      });
-      if (latestVersion) {
-        await this.prisma.documentVersion.update({
-          where: { id: latestVersion.id },
-          data: { form_data: updatedFormData },
-        });
-      }
-    }
-
-    await this.prisma.auditLog.create({
-      data: {
-        user_id: userId,
-        action: 'Edit',
-        module: 'Document',
-        target_id: doc.id,
-        details: { message: 'อัปเดตเอกสารเต็มรูปแบบเพื่อรอส่งใหม่' },
-      },
-    });
-
-    return updatedFullDoc;
+  private cleanResponse(value: any): any {
+    if (value === null || value === undefined || typeof value !== 'object')
+      return value;
+    if (value instanceof Date || value instanceof Prisma.Decimal) return value;
+    if (Array.isArray(value))
+      return value.map((entry) => this.cleanResponse(entry));
+    const hidden = new Set([
+      'password_hash',
+      'reset_token',
+      'reset_token_expiry',
+      'signature_encrypted',
+      'file_data',
+    ]);
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([key]) => !hidden.has(key))
+        .map(([key, entry]) => [key, this.cleanResponse(entry)]),
+    );
   }
 
-  async updateDocumentFullWithFile(
-    id: string,
-    dto: CreateDocumentDto,
-    userId: string,
-    file: Express.Multer.File,
+  private mapDocumentToResponse(
+    doc: ResponseDocument,
+    actor?: Actor,
+    filePresence?: ReadonlyMap<string, boolean>,
   ) {
-    const updatedDoc = await this.updateDocumentFull(id, dto, userId);
-
-    const doc = await this.prisma.document.findUnique({
-      where: { id: updatedDoc.real_id || updatedDoc.id },
-      include: { versions: { select: {
-              id: true, document_id: true, version_number: true, file_size: true, file_extension: true, form_data: true, uploaded_by_id: true, remarks: true, created_at: true, updated_at: true,
-              uploaded_by: true
-            }, orderBy: { version_number: 'desc' }, take: 1 } },
-    });
-    if (!doc) throw new NotFoundException('Document not found');
-
-    const nextVersion =
-      doc.versions.length > 0 ? doc.versions[0].version_number + 1 : 2;
-
-    await this.prisma.documentVersion.create({
-      data: {
-        document_id: doc.id,
-        version_number: nextVersion,
-        file_data: file.buffer,
-        file_size: String(file.size),
-        file_extension: 'pdf',
-        uploaded_by_id: userId,
-        remarks: 'อัปโหลดเวอร์ชันใหม่ผ่านการแก้ไขเต็มรูปแบบ',
-      },
-    });
-
-    return this.findOne(doc.id);
-  }
-
-  async softDelete(id: string, currentUser: { id: string; role: string }) {
-    const doc = await this.prisma.document.findFirst({
-      where: { OR: [{ id }, { doc_number: id }], is_deleted: false },
-    });
-
-    if (!doc) throw new NotFoundException('ไม่พบเอกสาร');
-
-    const isOwner = doc.creator_id === currentUser.id;
-    const isAdmin = currentUser.role === 'Administrator';
-    if (!isOwner && !isAdmin) {
-      throw new ForbiddenException('ไม่มีสิทธิ์ลบเอกสารนี้');
-    }
-
-    await this.prisma.document.update({
-      where: { id: doc.id },
-      data: { is_deleted: true },
-    });
-
-    await this.prisma.auditLog.create({
-      data: {
-        user_id: currentUser.id,
-        action: 'Delete',
-        module: 'Document',
-        target_id: doc.id,
-        details: {
-          oldState: {
-            id: doc.id,
-            doc_number: doc.doc_number,
-            is_deleted: false,
-          },
-          newState: {
-            id: doc.id,
-            doc_number: doc.doc_number,
-            is_deleted: true,
-          },
-        },
-      },
-    });
-
-    return { success: true, message: 'ลบเอกสารสำเร็จ' };
-  }
-
-  private mapDocumentToResponse(doc: DocumentResponsePayload) {
-    const creatorName = doc.creator
-      ? `${doc.creator.first_name} ${doc.creator.last_name}`
-      : 'ไม่ระบุ';
-
-    const amount = doc.pr_form
-      ? `฿${Number(doc.pr_form.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-      : doc.po_form
-        ? `฿${Number(doc.po_form.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-        : '-';
-
-    const creatorSigUrl = doc.creator?.signature_encrypted
-      ? `/api/users/${doc.creator.id}/signature`
-      : null;
-
-    let workflow = doc.workflow;
-    if (workflow && workflow.steps) {
-      const stepsWithSig = workflow.steps.map(
-        (
-          step: NonNullable<
-            NonNullable<DocumentResponsePayload['workflow']>['steps']
-          >[0],
-        ) => {
-          let signature_url: string | null = null;
-          if (step.approver?.signature_encrypted) {
-            signature_url = `/api/users/${step.approver.id}/signature`;
-          }
-          return {
-            ...step,
-            approver: step.approver
-              ? {
-                  ...step.approver,
-                  signature_url,
-                }
+    const latest = doc.versions?.[0];
+    const formData = (
+      version: ResponseDocument['versions'][number] | undefined,
+    ) => (version && 'form_data' in version ? version.form_data : null);
+    const hasFile = (
+      version: ResponseDocument['versions'][number] | undefined,
+    ) =>
+      version
+        ? (filePresence?.get(version.id) ??
+          ('file_data' in version && !!version.file_data?.length))
+        : false;
+    const frozenUser = (user: any, number: number, step: number) =>
+      user
+        ? {
+            ...this.cleanResponse(user),
+            signature_url: user.signature_encrypted
+              ? `/api/documents/${doc.id}/versions/${number}/signatures/${step}`
               : null,
-          };
+          }
+        : null;
+    const freezeView = (data: any, number: number) => {
+      const meta = data?._meta;
+      if (!meta) return this.cleanResponse(data);
+      return {
+        ...this.cleanResponse(data),
+        _meta: {
+          ...this.cleanResponse(meta),
+          creator: frozenUser(meta.creator, number, 0),
+          workflow: meta.workflow
+            ? {
+                ...this.cleanResponse(meta.workflow),
+                steps: (meta.workflow.steps ?? []).map((s: any) => ({
+                  ...this.cleanResponse(s),
+                  approver: frozenUser(s.approver, number, s.step_order),
+                  signature_url:
+                    s.status === 'Approved'
+                      ? frozenUser(s.approver, number, s.step_order)
+                          ?.signature_url
+                      : null,
+                })),
+              }
+            : null,
         },
-      );
-      workflow = { ...workflow, steps: stepsWithSig };
-    }
-
-    const approvers = doc.workflow?.steps
-      ? doc.workflow.steps
-          .map(
-            (
-              st: NonNullable<
-                NonNullable<DocumentResponsePayload['workflow']>['steps']
-              >[0],
-            ) =>
-              st.approver
-                ? `${st.approver.first_name} ${st.approver.last_name}`
-                : null,
-          )
-          .filter((name: unknown): name is string => Boolean(name))
-      : [];
-
+      };
+    };
+    const meta = (formData(latest) as any)?._meta;
+    const creator = meta?.creator
+      ? frozenUser(meta.creator, latest.version_number, 0)
+      : this.cleanResponse(doc.creator);
+    const workflow = doc.workflow
+      ? {
+          ...this.cleanResponse(doc.workflow),
+          steps: doc.workflow.steps.map((s) => {
+            const stored = meta?.workflow?.steps?.find(
+              (entry: any) => entry.id === s.id,
+            );
+            const user =
+              stored && latest
+                ? frozenUser(
+                    stored.approver,
+                    latest.version_number,
+                    s.step_order,
+                  )
+                : this.cleanResponse(s.approver);
+            return {
+              ...this.cleanResponse(s),
+              approver: user,
+              signature_url:
+                s.status === 'Approved' ? user?.signature_url : null,
+            };
+          }),
+        }
+      : null;
+    const type = doc.type.prefix;
+    const amount = doc.pr_form?.total_amount ?? doc.po_form?.total_amount;
     return {
-      id: doc.doc_number || doc.id,
+      id: doc.doc_number,
       real_id: doc.id,
-      folder_id: doc.folder_id,
+      doc_number: doc.doc_number,
       title: doc.title,
       name: doc.title,
-      type: doc.type?.prefix || (doc.doc_number || doc.id || '').split('-')[0] || 'DOC',
-      doc_type: doc.type?.type_name || ((doc.doc_number || doc.id || '').startsWith('PO') ? 'ใบสั่งซื้อ (PO)' : (doc.doc_number || doc.id || '').startsWith('BK') ? 'บันทึกข้อความ (BK)' : (doc.doc_number || doc.id || '').startsWith('PR') ? 'ใบขอซื้อ (PR)' : 'เอกสารทั่วไป (DOC)'),
-      creator_name: creatorName,
-      sender: creatorName,
-      approvers,
-      created_at: doc.created_at,
-      submittedDate: doc.created_at ? new Date(doc.created_at).toISOString() : undefined,
-      approved_at: doc.approved_at,
+      type,
+      doc_type: doc.type.type_name,
+      folder_id: doc.folder_id,
       status: doc.status,
-      amount,
-      department: doc.creator?.department?.name || 'ไม่ระบุ',
+      is_deleted: doc.is_deleted,
+      created_at: doc.created_at,
+      updated_at: doc.updated_at,
+      approved_at: doc.approved_at,
+      submittedDate: doc.workflow?.created_at ?? null,
+      amount:
+        amount !== undefined
+          ? `฿${Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : '-',
       creator_id: doc.creator_id,
-      creator: doc.creator
-        ? {
-            id: doc.creator.id,
-            first_name: doc.creator.first_name,
-            last_name: doc.creator.last_name,
-            email: doc.creator.email,
-            department: doc.creator.department?.name,
-            position: doc.creator.position?.name,
-            role: doc.creator.role?.name,
-            signature_url: creatorSigUrl,
-          }
-        : null,
-      pr_form: doc.pr_form
-        ? {
-            ...doc.pr_form,
-            attachment_file_name: doc.versions?.[0]?.file_extension
-              ? `document_v${doc.versions[0].version_number}.${doc.versions[0].file_extension}`
-              : undefined,
-          }
-        : null,
-      po_form: doc.po_form
-        ? {
-            ...doc.po_form,
-            attachment_file_name: doc.versions?.[0]?.file_extension
-              ? `document_v${doc.versions[0].version_number}.${doc.versions[0].file_extension}`
-              : undefined,
-          }
-        : null,
-      bk_form: doc.bk_form,
-      versions: doc.versions?.map(
-        (v: NonNullable<DocumentResponsePayload['versions']>[0], index: number) => ({
-          id: v.id,
-          version_number: v.version_number,
-          file_size: v.file_size,
-          file_extension: v.file_extension,
-          form_data: (v as any).form_data,
-          created_at: v.created_at,
-          uploaded_by: v.uploaded_by
-            ? `${v.uploaded_by.first_name} ${v.uploaded_by.last_name}`
-            : 'ไม่ระบุ',
-          download_url: `/api/documents/${doc.id}/download?v=${v.version_number}`,
-          remarks: v.remarks,
-          is_active: index === 0,
-        }),
-      ),
+      creator,
+      creator_name: `${doc.creator.first_name} ${doc.creator.last_name}`,
+      sender: `${doc.creator.first_name} ${doc.creator.last_name}`,
+      department: doc.creator.department?.name ?? '',
+      _meta: latest
+        ? freezeView(formData(latest), latest.version_number)?._meta
+        : undefined,
+      purpose: meta?.description ?? doc.search_text ?? '',
+      visibility: {
+        type: doc.visibility_type,
+        departments: doc.visibility_departments,
+        users: doc.visibility_users,
+      },
+      pr_form: this.cleanResponse(doc.pr_form),
+      po_form: this.cleanResponse(doc.po_form),
+      bk_form: this.cleanResponse(doc.bk_form),
       workflow,
+      has_file: hasFile(latest),
+      fileUrl: `/api/documents/${doc.id}/download`,
+      approvers:
+        doc.workflow?.steps.map((s) =>
+          s.approver ? `${s.approver.first_name} ${s.approver.last_name}` : '',
+        ) ?? [],
+      versions: (actor && !hasAny(actor, permissions.history)
+        ? doc.versions.slice(0, 1)
+        : doc.versions
+      ).map((v, i) => ({
+        id: v.id,
+        version_number: v.version_number,
+        version: `v${v.version_number}`,
+        file_size: v.file_size,
+        file_size_kb: v.file_size?.endsWith('KB')
+          ? parseFloat(v.file_size)
+          : Number(v.file_size ?? 0) / 1024,
+        file_extension: v.file_extension,
+        has_file: hasFile(v),
+        form_data: freezeView(formData(v), v.version_number),
+        created_at: v.created_at,
+        updated_at: v.updated_at,
+        uploaded_by: v.uploaded_by
+          ? `${v.uploaded_by.first_name} ${v.uploaded_by.last_name}`
+          : v.uploaded_by_id,
+        remarks: v.remarks,
+        is_active: i === 0,
+        download_url: `/api/documents/${doc.id}/download?v=${v.version_number}`,
+      })),
     };
   }
 }
-

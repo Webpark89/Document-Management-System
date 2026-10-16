@@ -2,15 +2,14 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, Search } from "lucide-react";
-import {
-  MD_TH,
-  MD_THEAD,
-  MD_TR,
-} from '@views/components/ui/admin';
+import { MD_TH, MD_THEAD, MD_TR } from "@views/components/ui/admin";
 
 export type ActionKey = "view" | "create" | "edit" | "delete" | "approve";
 export type ProductKey = "all" | "dms" | "esign" | "reports" | "archive";
-export type PermissionMatrix = Record<string, Record<string, Record<ActionKey, boolean>>>;
+export type PermissionMatrix = Record<
+  string,
+  Record<string, Record<ActionKey, boolean>>
+>;
 
 export type RoleFormState = {
   title: string;
@@ -58,12 +57,11 @@ export const PERMISSION_SUMMARY_LABELS: Record<string, string> = {
 
 export function PermissionActionGrid({
   summary = "",
-  roleName,
 }: {
   summary?: string;
   roleName: string;
 }) {
-  const isFullAccess = summary === "Full access" || roleName === "Administrator";
+  const isFullAccess = summary === "Full access";
   const granted = isFullAccess
     ? new Set<string>(PERMISSION_SUMMARY_ACTION_ORDER)
     : summary === "No permissions" || !summary
@@ -105,20 +103,102 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     key: "dashboard",
     label: "หน้า Dashboard",
     items: [
-      { key: "view_employee",         subGroup: "มุมมองพนักงาน", label: "เปิดใช้งานมุมมองพนักงาน [หลัก]",                   actions: ["view"] },
-      { key: "employee_stat_cards",   subGroup: "มุมมองพนักงาน", dependsOn: "view_employee", label: "สถิติรวม (Stat Cards)",                                actions: ["view"] },
-      { key: "employee_pending_approvals", subGroup: "มุมมองพนักงาน", dependsOn: "view_employee", label: "ทางลัดงานของฉันที่ต้องอนุมัติ",                        actions: ["view"] },
-      { key: "employee_submissions_status", subGroup: "มุมมองพนักงาน", dependsOn: "view_employee", label: "ทางลัดสถานะการจัดทำของฉัน",                         actions: ["view"] },
-      { key: "employee_recent_docs",  subGroup: "มุมมองพนักงาน", dependsOn: "view_employee", label: "ตารางเอกสารล่าสุดของฉัน",                                 actions: ["view"] },
-      { key: "employee_docs_status_chart", subGroup: "มุมมองพนักงาน", dependsOn: "view_employee", label: "กราฟสัดส่วนสถานะเอกสารของฉัน",                        actions: ["view"] },
-      { key: "view_executive",        subGroup: "มุมมองผู้บริหาร", label: "เปิดใช้งานมุมมองผู้บริหาร [หลัก]",                actions: ["view"] },
-      { key: "executive_stat_cards",  subGroup: "มุมมองผู้บริหาร", dependsOn: "view_executive", label: "สถิติรวม (Stat Cards)",                               actions: ["view"] },
-      { key: "executive_docs_type_chart", subGroup: "มุมมองผู้บริหาร", dependsOn: "view_executive", label: "กราฟเอกสารตามประเภท",                                 actions: ["view"] },
-      { key: "executive_docs_status_chart", subGroup: "มุมมองผู้บริหาร", dependsOn: "view_executive", label: "กราฟสัดส่วนสถานะเอกสาร",                            actions: ["view"] },
-      { key: "executive_pending_dept_chart", subGroup: "มุมมองผู้บริหาร", dependsOn: "view_executive", label: "กราฟเอกสารรออนุมัติแยกตามแผนก",                    actions: ["view"] },
-      { key: "executive_recent_activity", subGroup: "มุมมองผู้บริหาร", dependsOn: "view_executive", label: "ตารางกิจกรรมล่าสุดในระบบ",                            actions: ["view"] },
-      { key: "executive_bottlenecks", subGroup: "มุมมองผู้บริหาร", dependsOn: "view_executive", label: "ตารางเอกสารค้างนานผิดปกติ",                              actions: ["view"] },
-      { key: "executive_view_scope",  subGroup: "มุมมองผู้บริหาร", dependsOn: "view_executive", label: "ตัวกรองขอบเขตการดู (View Scope)",                       actions: ["view"] },
+      {
+        key: "view_employee",
+        subGroup: "มุมมองพนักงาน",
+        label: "เปิดใช้งานมุมมองพนักงาน [หลัก]",
+        actions: ["view"],
+      },
+      {
+        key: "employee_stat_cards",
+        subGroup: "มุมมองพนักงาน",
+        dependsOn: "view_employee",
+        label: "สถิติรวม (Stat Cards)",
+        actions: ["view"],
+      },
+      {
+        key: "employee_pending_approvals",
+        subGroup: "มุมมองพนักงาน",
+        dependsOn: "view_employee",
+        label: "ทางลัดงานของฉันที่ต้องอนุมัติ",
+        actions: ["view"],
+      },
+      {
+        key: "employee_submissions_status",
+        subGroup: "มุมมองพนักงาน",
+        dependsOn: "view_employee",
+        label: "ทางลัดสถานะการจัดทำของฉัน",
+        actions: ["view"],
+      },
+      {
+        key: "employee_recent_docs",
+        subGroup: "มุมมองพนักงาน",
+        dependsOn: "view_employee",
+        label: "ตารางเอกสารล่าสุดของฉัน",
+        actions: ["view"],
+      },
+      {
+        key: "employee_docs_status_chart",
+        subGroup: "มุมมองพนักงาน",
+        dependsOn: "view_employee",
+        label: "กราฟสัดส่วนสถานะเอกสารของฉัน",
+        actions: ["view"],
+      },
+      {
+        key: "view_executive",
+        subGroup: "มุมมองผู้บริหาร",
+        label: "เปิดใช้งานมุมมองผู้บริหาร [หลัก]",
+        actions: ["view"],
+      },
+      {
+        key: "executive_stat_cards",
+        subGroup: "มุมมองผู้บริหาร",
+        dependsOn: "view_executive",
+        label: "สถิติรวม (Stat Cards)",
+        actions: ["view"],
+      },
+      {
+        key: "executive_docs_type_chart",
+        subGroup: "มุมมองผู้บริหาร",
+        dependsOn: "view_executive",
+        label: "กราฟเอกสารตามประเภท",
+        actions: ["view"],
+      },
+      {
+        key: "executive_docs_status_chart",
+        subGroup: "มุมมองผู้บริหาร",
+        dependsOn: "view_executive",
+        label: "กราฟสัดส่วนสถานะเอกสาร",
+        actions: ["view"],
+      },
+      {
+        key: "executive_pending_dept_chart",
+        subGroup: "มุมมองผู้บริหาร",
+        dependsOn: "view_executive",
+        label: "กราฟเอกสารรออนุมัติแยกตามแผนก",
+        actions: ["view"],
+      },
+      {
+        key: "executive_recent_activity",
+        subGroup: "มุมมองผู้บริหาร",
+        dependsOn: "view_executive",
+        label: "ตารางกิจกรรมล่าสุดในระบบ",
+        actions: ["view"],
+      },
+      {
+        key: "executive_bottlenecks",
+        subGroup: "มุมมองผู้บริหาร",
+        dependsOn: "view_executive",
+        label: "ตารางเอกสารค้างนานผิดปกติ",
+        actions: ["view"],
+      },
+      {
+        key: "executive_view_scope",
+        subGroup: "มุมมองผู้บริหาร",
+        dependsOn: "view_executive",
+        label: "ตัวกรองขอบเขตการดู (View Scope)",
+        actions: ["view"],
+      },
     ],
   },
 
@@ -127,16 +207,52 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     key: "submissions",
     label: "ส่งเรื่องขออนุมัติ (My Submissions)",
     items: [
-      { key: "view_list",             label: "ดูรายการเอกสารที่ฉันส่งขออนุมัติ",                                    actions: ["view"] },
-      { key: "view_all",              label: "ดูเอกสารทั้งหมดในระบบ (ไม่จำกัดเฉพาะของตัวเอง)",                        actions: ["view"] },
-      { key: "search_sort",           label: "ค้นหาและเรียงลำดับรายการ",                                           actions: ["view"] },
-      { key: "filter_type",           label: "กรองประเภทเอกสาร (PR / PO / BK / OTHER)",                            actions: ["view"] },
-      { key: "open_doc_detail",       label: "เปิดดูรายละเอียดเอกสาร",                                            actions: ["view"] },
-      { key: "create_document",       label: "สร้างเอกสารใหม่",                                                   actions: ["create"] },
-      { key: "edit_document",         label: "แก้ไขเอกสาร (Draft / Returned)",                                   actions: ["edit"] },
-      { key: "delete_document",       label: "ลบเอกสาร (เฉพาะ Draft)",                                           actions: ["delete"] },
-      { key: "submit_document",       label: "ส่งเอกสารเข้าระบบอนุมัติ",                                         actions: ["create"] },
-      { key: "view_approval_history", label: "ดูประวัติการอนุมัติทั้งหมด (ปุ่ม: ประวัติการอนุมัติ)",              actions: ["view"] },
+      {
+        key: "view_list",
+        label: "ดูรายการเอกสารที่ฉันส่งขออนุมัติ",
+        actions: ["view"],
+      },
+      {
+        key: "view_all",
+        label: "ดูเอกสารทั้งหมดในระบบ (ไม่จำกัดเฉพาะของตัวเอง)",
+        actions: ["view"],
+      },
+      {
+        key: "search_sort",
+        label: "ค้นหาและเรียงลำดับรายการ",
+        actions: ["view"],
+      },
+      {
+        key: "filter_type",
+        label: "กรองประเภทเอกสาร (PR / PO / BK / OTHER)",
+        actions: ["view"],
+      },
+      {
+        key: "open_doc_detail",
+        label: "เปิดดูรายละเอียดเอกสาร",
+        actions: ["view"],
+      },
+      { key: "create_document", label: "สร้างเอกสารใหม่", actions: ["create"] },
+      {
+        key: "edit_document",
+        label: "แก้ไขเอกสาร (Draft / Returned)",
+        actions: ["edit"],
+      },
+      {
+        key: "delete_document",
+        label: "ลบเอกสาร (เฉพาะ Draft)",
+        actions: ["delete"],
+      },
+      {
+        key: "submit_document",
+        label: "ส่งเอกสารเข้าระบบอนุมัติ",
+        actions: ["create"],
+      },
+      {
+        key: "view_approval_history",
+        label: "ดูประวัติการอนุมัติทั้งหมด (ปุ่ม: ประวัติการอนุมัติ)",
+        actions: ["view"],
+      },
     ],
   },
 
@@ -145,15 +261,47 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     key: "approvals",
     label: "รายการรออนุมัติ (Pending Approvals)",
     items: [
-      { key: "view_list",             label: "ดูเอกสารที่ฉันต้องอนุมัติ",                                         actions: ["view"] },
-      { key: "view_all",              label: "ดูเอกสารรออนุมัติทั้งหมดในระบบ (ไม่จำกัดเฉพาะของตัวเอง)",                 actions: ["view"] },
-      { key: "search_sort",           label: "ค้นหาและเรียงลำดับรายการ",                                           actions: ["view"] },
-      { key: "open_doc_detail",       label: "เปิดดูรายละเอียดเอกสาร",                                            actions: ["view"] },
-      { key: "approve_document",      label: "อนุมัติเอกสาร",                                                     actions: ["approve"] },
-      { key: "reject_document",       label: "ปฏิเสธ / Reject เอกสาร",                                           actions: ["approve"] },
-      { key: "return_document",       label: "ส่งคืนเอกสาร (Return for Revision)",                                actions: ["approve"] },
-      { key: "place_signature",       label: "วางลายเซ็น e-Signature (ผู้อนุมัติ)",                               actions: ["approve"] },
-      { key: "add_comment",           label: "เพิ่มความคิดเห็น / หมายเหตุ",                                       actions: ["edit"] },
+      {
+        key: "view_list",
+        label: "ดูเอกสารที่ฉันต้องอนุมัติ",
+        actions: ["view"],
+      },
+      {
+        key: "view_all",
+        label: "ดูเอกสารรออนุมัติทั้งหมดในระบบ (ไม่จำกัดเฉพาะของตัวเอง)",
+        actions: ["view"],
+      },
+      {
+        key: "search_sort",
+        label: "ค้นหาและเรียงลำดับรายการ",
+        actions: ["view"],
+      },
+      {
+        key: "open_doc_detail",
+        label: "เปิดดูรายละเอียดเอกสาร",
+        actions: ["view"],
+      },
+      { key: "approve_document", label: "อนุมัติเอกสาร", actions: ["approve"] },
+      {
+        key: "reject_document",
+        label: "ปฏิเสธ / Reject เอกสาร",
+        actions: ["approve"],
+      },
+      {
+        key: "return_document",
+        label: "ส่งคืนเอกสาร (Return for Revision)",
+        actions: ["approve"],
+      },
+      {
+        key: "place_signature",
+        label: "วางลายเซ็น e-Signature (ผู้อนุมัติ)",
+        actions: ["approve"],
+      },
+      {
+        key: "add_comment",
+        label: "เพิ่มความคิดเห็น / หมายเหตุ",
+        actions: ["edit"],
+      },
     ],
   },
 
@@ -162,25 +310,121 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     key: "document",
     label: "คลังเอกสาร (Document Center)",
     items: [
-      { key: "view_list",             subGroup: "หน้าคลังเอกสาร", label: "ดูรายการเอกสารทั้งหมด",                                             actions: ["view"] },
-      { key: "view_detail",           subGroup: "หน้าคลังเอกสาร", label: "เปิดดูรายละเอียดเอกสาร",                                            actions: ["view"] },
-      { key: "preview_document",      subGroup: "หน้าคลังเอกสาร", label: "Preview เอกสารในหน้านี้ (Document Preview Panel)",                  actions: ["view"] },
-      { key: "scope_dropdown",        subGroup: "หน้าคลังเอกสาร", label: "ดรอปดาวน์ขอบเขตการมองเห็น (All / แผนกฉัน / เอกสารฉัน / เลือกแผนก)", actions: ["view"] },
-      { key: "search_filter",         subGroup: "หน้าคลังเอกสาร", label: "ค้นหา กรองประเภท กรองสถานะ กรองวันที่",                            actions: ["view"] },
-      { key: "bulk_select",           subGroup: "หน้าคลังเอกสาร", label: "เลือกหลายรายการพร้อมกัน (Bulk Select)",                             actions: ["edit"] },
-      { key: "view_folders",          subGroup: "หน้าคลังเอกสาร", label: "ดูและเข้าถึงโฟลเดอร์",                                             actions: ["view"] },
-      { key: "manage_folders",        subGroup: "หน้าคลังเอกสาร", label: "สร้าง / แก้ไข / ลบ / ปักหมุดโฟลเดอร์",                           actions: ["create", "edit", "delete"] },
-      { key: "move_to_folder",        subGroup: "หน้าคลังเอกสาร", label: "ย้ายเอกสารเข้าโฟลเดอร์",                                           actions: ["edit"] },
-      { key: "create_document",       subGroup: "หน้าเอกสาร", label: "สร้างเอกสารใหม่",                                                   actions: ["create"] },
-      { key: "upload_attachment",     subGroup: "หน้าเอกสาร", label: "อัปโหลดไฟล์แนบ",                                                   actions: ["create"] },
-      { key: "edit_document",         subGroup: "หน้าเอกสาร", label: "แก้ไขเอกสาร (Draft / Returned)",                                   actions: ["edit"] },
-      { key: "submit_document",       subGroup: "หน้าเอกสาร", label: "ส่งเอกสารเข้าระบบอนุมัติ",                                         actions: ["create"] },
-      { key: "recall_document",       subGroup: "หน้าเอกสาร", label: "ดึงเอกสารคืน (Recall)",                                            actions: ["edit"] },
-      { key: "delete_document",       subGroup: "หน้าเอกสาร", label: "ลบเอกสาร (เฉพาะ Draft)",                                           actions: ["delete"] },
-      { key: "download_document",     subGroup: "หน้าเอกสาร", label: "Download / Export เอกสาร",                                          actions: ["view"] },
-      { key: "view_version_history",  subGroup: "หน้าเอกสาร", label: "ดูประวัติเวอร์ชัน (Version History)",                              actions: ["view"] },
-      { key: "view_timeline",         subGroup: "หน้าเอกสาร", label: "ดู Timeline การอนุมัติ",                                           actions: ["view"] },
-      { key: "place_signature",       subGroup: "หน้าเอกสาร", label: "วางลายเซ็น e-Signature (ผู้จัดทำ)",                               actions: ["edit"] },
+      {
+        key: "view_list",
+        subGroup: "หน้าคลังเอกสาร",
+        label: "ดูรายการเอกสารทั้งหมด",
+        actions: ["view"],
+      },
+      {
+        key: "view_detail",
+        subGroup: "หน้าคลังเอกสาร",
+        label: "เปิดดูรายละเอียดเอกสาร",
+        actions: ["view"],
+      },
+      {
+        key: "preview_document",
+        subGroup: "หน้าคลังเอกสาร",
+        label: "Preview เอกสารในหน้านี้ (Document Preview Panel)",
+        actions: ["view"],
+      },
+      {
+        key: "scope_dropdown",
+        subGroup: "หน้าคลังเอกสาร",
+        label:
+          "ดรอปดาวน์ขอบเขตการมองเห็น (All / แผนกฉัน / เอกสารฉัน / เลือกแผนก)",
+        actions: ["view"],
+      },
+      {
+        key: "search_filter",
+        subGroup: "หน้าคลังเอกสาร",
+        label: "ค้นหา กรองประเภท กรองสถานะ กรองวันที่",
+        actions: ["view"],
+      },
+      {
+        key: "bulk_select",
+        subGroup: "หน้าคลังเอกสาร",
+        label: "เลือกหลายรายการพร้อมกัน (Bulk Select)",
+        actions: ["edit"],
+      },
+      {
+        key: "view_folders",
+        subGroup: "หน้าคลังเอกสาร",
+        label: "ดูและเข้าถึงโฟลเดอร์",
+        actions: ["view"],
+      },
+      {
+        key: "manage_folders",
+        subGroup: "หน้าคลังเอกสาร",
+        label: "สร้าง / แก้ไข / ลบ / ปักหมุดโฟลเดอร์",
+        actions: ["create", "edit", "delete"],
+      },
+      {
+        key: "move_to_folder",
+        subGroup: "หน้าคลังเอกสาร",
+        label: "ย้ายเอกสารเข้าโฟลเดอร์",
+        actions: ["edit"],
+      },
+      {
+        key: "create_document",
+        subGroup: "หน้าเอกสาร",
+        label: "สร้างเอกสารใหม่",
+        actions: ["create"],
+      },
+      {
+        key: "upload_attachment",
+        subGroup: "หน้าเอกสาร",
+        label: "อัปโหลดไฟล์แนบ",
+        actions: ["create"],
+      },
+      {
+        key: "edit_document",
+        subGroup: "หน้าเอกสาร",
+        label: "แก้ไขเอกสาร (Draft / Returned)",
+        actions: ["edit"],
+      },
+      {
+        key: "submit_document",
+        subGroup: "หน้าเอกสาร",
+        label: "ส่งเอกสารเข้าระบบอนุมัติ",
+        actions: ["create"],
+      },
+      {
+        key: "recall_document",
+        subGroup: "หน้าเอกสาร",
+        label: "ดึงเอกสารคืน (Recall)",
+        actions: ["edit"],
+      },
+      {
+        key: "delete_document",
+        subGroup: "หน้าเอกสาร",
+        label: "ลบเอกสาร (เฉพาะ Draft)",
+        actions: ["delete"],
+      },
+      {
+        key: "download_document",
+        subGroup: "หน้าเอกสาร",
+        label: "Download / Export เอกสาร",
+        actions: ["view"],
+      },
+      {
+        key: "view_version_history",
+        subGroup: "หน้าเอกสาร",
+        label: "ดูประวัติเวอร์ชัน (Version History)",
+        actions: ["view"],
+      },
+      {
+        key: "view_timeline",
+        subGroup: "หน้าเอกสาร",
+        label: "ดู Timeline การอนุมัติ",
+        actions: ["view"],
+      },
+      {
+        key: "place_signature",
+        subGroup: "หน้าเอกสาร",
+        label: "วางลายเซ็น e-Signature (ผู้จัดทำ)",
+        actions: ["edit"],
+      },
     ],
   },
 
@@ -190,8 +434,12 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     key: "notifications",
     label: "หน้า Notifications (การแจ้งเตือน)",
     items: [
-      { key: "view_notifications",    label: "ดูการแจ้งเตือน",                                                    actions: ["view"] },
-      { key: "mark_read",             label: "ทำเครื่องหมายว่าอ่านแล้ว",                                         actions: ["edit"] },
+      { key: "view_notifications", label: "ดูการแจ้งเตือน", actions: ["view"] },
+      {
+        key: "mark_read",
+        label: "ทำเครื่องหมายว่าอ่านแล้ว",
+        actions: ["edit"],
+      },
     ],
   },
 
@@ -200,10 +448,18 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     key: "reports",
     label: "หน้า Reports (รายงาน)",
     items: [
-      { key: "access",                label: "เข้าถึงหน้า Reports ได้",                                           actions: ["view"] },
-      { key: "view_reports",          label: "ดูรายงานสรุป",                                                      actions: ["view"] },
-      { key: "export_reports",        label: "Export รายงาน (PDF / Excel)",                                       actions: ["view"] },
-      { key: "view_all_dept",         label: "ดูรายงานของทุกแผนก (ไม่จำกัดเฉพาะแผนกตัวเอง)",                    actions: ["view"] },
+      { key: "access", label: "เข้าถึงหน้า Reports ได้", actions: ["view"] },
+      { key: "view_reports", label: "ดูรายงานสรุป", actions: ["view"] },
+      {
+        key: "export_reports",
+        label: "Export รายงาน (PDF / Excel)",
+        actions: ["view"],
+      },
+      {
+        key: "view_all_dept",
+        label: "ดูรายงานของทุกแผนก (ไม่จำกัดเฉพาะแผนกตัวเอง)",
+        actions: ["view"],
+      },
     ],
   },
 
@@ -212,13 +468,41 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     key: "masterdata",
     label: "หน้า Master Data (ข้อมูลหลัก)",
     items: [
-      { key: "access",                label: "เข้าถึงหน้า Master Data ได้",                                       actions: ["view"] },
-      { key: "doc_types",             label: "ประเภทเอกสาร (Document Types)",                                     actions: ["view", "create", "edit", "delete"] },
-      { key: "workflow",              label: "กระบวนการอนุมัติ (Workflow / Approval Matrix)",                     actions: ["view", "create", "edit", "delete"] },
-      { key: "departments",           label: "แผนก (Departments)",                                               actions: ["view", "create", "edit", "delete"] },
-      { key: "positions",             label: "ตำแหน่ง (Positions)",                                              actions: ["view", "create", "edit", "delete"] },
-      { key: "running_numbers",       label: "เลขที่เอกสารอัตโนมัติ (Running Numbers)",                          actions: ["view", "edit"] },
-      { key: "signatures",            label: "ลายเซ็น (Signature Management)",                                    actions: ["view", "create", "edit", "delete"] },
+      {
+        key: "access",
+        label: "เข้าถึงหน้า Master Data ได้",
+        actions: ["view"],
+      },
+      {
+        key: "doc_types",
+        label: "ประเภทเอกสาร (Document Types)",
+        actions: ["view", "create", "edit", "delete"],
+      },
+      {
+        key: "workflow",
+        label: "กระบวนการอนุมัติ (Workflow / Approval Matrix)",
+        actions: ["view", "create", "edit", "delete"],
+      },
+      {
+        key: "departments",
+        label: "แผนก (Departments)",
+        actions: ["view", "create", "edit", "delete"],
+      },
+      {
+        key: "positions",
+        label: "ตำแหน่ง (Positions)",
+        actions: ["view", "create", "edit", "delete"],
+      },
+      {
+        key: "running_numbers",
+        label: "เลขที่เอกสารอัตโนมัติ (Running Numbers)",
+        actions: ["view", "edit"],
+      },
+      {
+        key: "signatures",
+        label: "ลายเซ็น (Signature Management)",
+        actions: ["view", "create", "edit", "delete"],
+      },
     ],
   },
 
@@ -227,9 +511,21 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     key: "config",
     label: "หน้า Config (ตั้งค่าระบบ)",
     items: [
-      { key: "access",                label: "เข้าถึงเมนูหัวข้อนี้ได้",                                            actions: ["view"] },
-      { key: "role_management",       label: "Role (ดู / สร้าง / แก้ไข / ลบ)",                                    actions: ["view", "create", "edit", "delete"] },
-      { key: "user_management",       label: "User (ดู / สร้าง / แก้ไข / ลบ)",                                    actions: ["view", "create", "edit", "delete"] },
+      {
+        key: "access",
+        label: "เข้าถึงเมนูและแก้ไขข้อมูลบริษัท",
+        actions: ["view", "edit"],
+      },
+      {
+        key: "role_management",
+        label: "Role (ดู / สร้าง / แก้ไข / ลบ)",
+        actions: ["view", "create", "edit", "delete"],
+      },
+      {
+        key: "user_management",
+        label: "User (ดู / สร้าง / แก้ไข / ลบ)",
+        actions: ["view", "create", "edit", "delete"],
+      },
     ],
   },
 
@@ -238,10 +534,14 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     key: "auditlog",
     label: "หน้า Audit Log (บันทึกกิจกรรม)",
     items: [
-      { key: "access",                label: "เข้าถึงหน้า Audit Log ได้",                                         actions: ["view"] },
-      { key: "view_all_logs",         label: "ดู Log ของผู้ใช้ทุกคน (ไม่จำกัดเฉพาะตัวเอง)",                     actions: ["view"] },
-      { key: "export_logs",           label: "Export Audit Log",                                                  actions: ["view"] },
-      { key: "search_filter",         label: "ค้นหาและกรอง Log",                                                 actions: ["view"] },
+      { key: "access", label: "เข้าถึงหน้า Audit Log ได้", actions: ["view"] },
+      {
+        key: "view_all_logs",
+        label: "ดู Log ของผู้ใช้ทุกคน (ไม่จำกัดเฉพาะตัวเอง)",
+        actions: ["view"],
+      },
+      { key: "export_logs", label: "Export Audit Log", actions: ["view"] },
+      { key: "search_filter", label: "ค้นหาและกรอง Log", actions: ["view"] },
     ],
   },
 
@@ -250,21 +550,39 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
     key: "profile",
     label: "หน้า Profile (โปรไฟล์ผู้ใช้)",
     items: [
-      { key: "view_own",              label: "ดูโปรไฟล์ตัวเอง",                                                   actions: ["view"] },
-      { key: "edit_own",              label: "แก้ไขข้อมูลโปรไฟล์ตัวเอง",                                        actions: ["edit"] },
-      { key: "change_password",       label: "เปลี่ยนรหัสผ่านตัวเอง",                                           actions: ["edit"] },
-      { key: "upload_signature",      label: "อัปโหลด / จัดการลายเซ็นของตัวเอง",                               actions: ["edit"] },
-      { key: "view_others",           label: "ดูโปรไฟล์ผู้ใช้คนอื่น (Admin)",                                    actions: ["view"] },
+      { key: "view_own", label: "ดูโปรไฟล์ตัวเอง", actions: ["view"] },
+      { key: "edit_own", label: "แก้ไขข้อมูลโปรไฟล์ตัวเอง", actions: ["edit"] },
+      {
+        key: "change_password",
+        label: "เปลี่ยนรหัสผ่านตัวเอง",
+        actions: ["edit"],
+      },
+      {
+        key: "upload_signature",
+        label: "อัปโหลด / จัดการลายเซ็นของตัวเอง",
+        actions: ["edit"],
+      },
+      {
+        key: "view_others",
+        label: "ดูโปรไฟล์ผู้ใช้คนอื่น (Admin)",
+        actions: ["view"],
+      },
     ],
   },
 ];
 
 function emptyRow(): Record<ActionKey, boolean> {
-  return { view: false, create: false, edit: false, delete: false, approve: false };
+  return {
+    view: false,
+    create: false,
+    edit: false,
+    delete: false,
+    approve: false,
+  };
 }
 
 export function buildPermissions(
-  presets?: Record<string, Record<string, Partial<Record<ActionKey, boolean>>>>
+  presets?: Record<string, Record<string, Partial<Record<ActionKey, boolean>>>>,
 ): PermissionMatrix {
   const permissions: PermissionMatrix = {};
   for (const section of PERMISSION_SCHEMA) {
@@ -283,7 +601,7 @@ export function buildPermissions(
 
 export function countSection(
   sectionKey: string,
-  permissions: PermissionMatrix
+  permissions: PermissionMatrix,
 ): { granted: number; total: number } {
   const section = PERMISSION_SCHEMA.find((s) => s.key === sectionKey);
   if (!section) return { granted: 0, total: 0 };
@@ -298,7 +616,10 @@ export function countSection(
   return { granted, total };
 }
 
-export function countAll(permissions: PermissionMatrix): { granted: number; total: number } {
+export function countAll(permissions: PermissionMatrix): {
+  granted: number;
+  total: number;
+} {
   let granted = 0;
   let total = 0;
   for (const section of PERMISSION_SCHEMA) {
@@ -376,15 +697,15 @@ export function RolePermissionPanel({
   role: RoleFormState;
   onChange: (next: RoleFormState) => void;
 }) {
-  const [expanded, setExpanded] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(PERMISSION_SCHEMA.map((s) => [s.key, true]))
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(PERMISSION_SCHEMA.map((s) => [s.key, true])),
   );
   const [searchQuery, setSearchQuery] = useState("");
 
   const summary = useMemo(() => countAll(role.permissions), [role.permissions]);
   const pageSelectState = useMemo(
     () => checkState(summary.granted, summary.total),
-    [summary]
+    [summary],
   );
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
@@ -392,17 +713,23 @@ export function RolePermissionPanel({
   const visibleSections = useMemo(() => {
     if (!normalizedSearch) return PERMISSION_SCHEMA;
     return PERMISSION_SCHEMA.filter((section) =>
-      section.items.some((item) => item.label.toLowerCase().includes(normalizedSearch))
+      section.items.some((item) =>
+        item.label.toLowerCase().includes(normalizedSearch),
+      ),
     );
   }, [normalizedSearch]);
 
   useEffect(() => {
     if (!normalizedSearch) return;
-   
+
     setExpanded((prev) => {
       const next = { ...prev };
       for (const section of PERMISSION_SCHEMA) {
-        if (section.items.some((item) => item.label.toLowerCase().includes(normalizedSearch))) {
+        if (
+          section.items.some((item) =>
+            item.label.toLowerCase().includes(normalizedSearch),
+          )
+        ) {
           next[section.key] = true;
         }
       }
@@ -414,19 +741,27 @@ export function RolePermissionPanel({
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const setPermission = (moduleKey: string, itemKey: string, action: ActionKey, value: boolean) => {
+  const setPermission = (
+    moduleKey: string,
+    itemKey: string,
+    action: ActionKey,
+    value: boolean,
+  ) => {
     const nextPermissions = {
       ...role.permissions,
       [moduleKey]: {
         ...role.permissions[moduleKey],
-        [itemKey]: { ...role.permissions[moduleKey]?.[itemKey], [action]: value },
+        [itemKey]: {
+          ...role.permissions[moduleKey]?.[itemKey],
+          [action]: value,
+        },
       },
     };
 
     if (action === "view" && !value) {
-      const section = PERMISSION_SCHEMA.find(s => s.key === moduleKey);
+      const section = PERMISSION_SCHEMA.find((s) => s.key === moduleKey);
       if (section) {
-        const dependents = section.items.filter(i => i.dependsOn === itemKey);
+        const dependents = section.items.filter((i) => i.dependsOn === itemKey);
         for (const child of dependents) {
           nextPermissions[moduleKey][child.key] = emptyRow();
         }
@@ -457,12 +792,18 @@ export function RolePermissionPanel({
     onChange({ ...role, permissions: next });
   };
 
-  const applySubGroupPermissions = (checked: boolean, sectionKey: string, subGroupLabel: string) => {
+  const applySubGroupPermissions = (
+    checked: boolean,
+    sectionKey: string,
+    subGroupLabel: string,
+  ) => {
     const next: PermissionMatrix = { ...role.permissions };
     const section = PERMISSION_SCHEMA.find((s) => s.key === sectionKey);
     if (section) {
       next[sectionKey] = { ...next[sectionKey] };
-      const items = section.items.filter((item) => item.subGroup === subGroupLabel);
+      const items = section.items.filter(
+        (item) => item.subGroup === subGroupLabel,
+      );
       for (const item of items) {
         const row = emptyRow();
         for (const action of PERMISSION_ACTIONS) {
@@ -489,7 +830,9 @@ export function RolePermissionPanel({
 
       <div className="mt-4 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center border-b border-slate-100 px-6 py-4">
-          <h2 className="min-w-0 flex-1 text-sm font-bold text-slate-800">สิทธิ์การใช้งาน</h2>
+          <h2 className="min-w-0 flex-1 text-sm font-bold text-slate-800">
+            สิทธิ์การใช้งาน
+          </h2>
           <span className={`${countPillCls} mr-4 hidden sm:inline-flex`}>
             เปิดใช้ {summary.granted}/{summary.total} สิทธิ์
           </span>
@@ -513,24 +856,33 @@ export function RolePermissionPanel({
         <div className="divide-y divide-slate-100">
           {visibleSections.map((section) => {
             const sectionCounts = countSection(section.key, role.permissions);
-            const sectionState = sectionCheckState(section.key, role.permissions);
+            const sectionState = sectionCheckState(
+              section.key,
+              role.permissions,
+            );
             const filteredItems = normalizedSearch
               ? section.items.filter((item) =>
-                  item.label.toLowerCase().includes(normalizedSearch)
+                  item.label.toLowerCase().includes(normalizedSearch),
                 )
               : section.items;
 
             if (filteredItems.length === 0) return null;
 
             // Group filtered items by subGroup
-            const subGroups: { label: string | undefined; items: PermissionItem[] }[] = [];
+            const subGroups: {
+              label: string | undefined;
+              items: PermissionItem[];
+            }[] = [];
             let currentSubGroup: string | undefined = undefined;
             let currentItems: PermissionItem[] = [];
 
             for (const item of filteredItems) {
               if (item.subGroup !== currentSubGroup) {
                 if (currentItems.length > 0) {
-                  subGroups.push({ label: currentSubGroup, items: currentItems });
+                  subGroups.push({
+                    label: currentSubGroup,
+                    items: currentItems,
+                  });
                 }
                 currentSubGroup = item.subGroup;
                 currentItems = [item];
@@ -565,7 +917,9 @@ export function RolePermissionPanel({
                   >
                     <IndeterminateCheckbox
                       state={sectionState}
-                      onChange={(checked) => applyPermissions(checked, section.key)}
+                      onChange={(checked) =>
+                        applyPermissions(checked, section.key)
+                      }
                       className={checkboxCls}
                     />
                     เลือกทั้งหมด
@@ -583,9 +937,14 @@ export function RolePermissionPanel({
                       </colgroup>
                       <thead className={MD_THEAD}>
                         <tr>
-                          <th className={`${MD_TH} font-normal text-slate-400`}>รายการ</th>
+                          <th className={`${MD_TH} font-normal text-slate-400`}>
+                            รายการ
+                          </th>
                           {PERMISSION_ACTIONS.map((action) => (
-                            <th key={action.key} className={PERM_MATRIX_ACTION_TH}>
+                            <th
+                              key={action.key}
+                              className={PERM_MATRIX_ACTION_TH}
+                            >
                               {action.label}
                             </th>
                           ))}
@@ -596,17 +955,43 @@ export function RolePermissionPanel({
                           <Fragment key={gIdx}>
                             {group.label && (
                               <tr className="bg-slate-50/80">
-                                <td colSpan={1} className="px-6 py-2.5 text-xs font-bold text-slate-700 uppercase tracking-wide">
+                                <td
+                                  colSpan={1}
+                                  className="px-6 py-2.5 text-xs font-bold text-slate-700 uppercase tracking-wide"
+                                >
                                   {group.label}
                                 </td>
-                                <td colSpan={5} className="px-2 py-2.5 text-right">
+                                <td
+                                  colSpan={5}
+                                  className="px-2 py-2.5 text-right"
+                                >
                                   <label className="inline-flex items-center justify-end gap-2 text-xs font-semibold text-slate-500 hover:text-slate-700 cursor-pointer pr-4">
                                     <IndeterminateCheckbox
                                       state={checkState(
-                                        group.items.reduce((acc, item) => acc + item.actions.filter(a => role.permissions[section.key]?.[item.key]?.[a]).length, 0),
-                                        group.items.reduce((acc, item) => acc + item.actions.length, 0)
+                                        group.items.reduce(
+                                          (acc, item) =>
+                                            acc +
+                                            item.actions.filter(
+                                              (a) =>
+                                                role.permissions[section.key]?.[
+                                                  item.key
+                                                ]?.[a],
+                                            ).length,
+                                          0,
+                                        ),
+                                        group.items.reduce(
+                                          (acc, item) =>
+                                            acc + item.actions.length,
+                                          0,
+                                        ),
                                       )}
-                                      onChange={(checked) => applySubGroupPermissions(checked, section.key, group.label!)}
+                                      onChange={(checked) =>
+                                        applySubGroupPermissions(
+                                          checked,
+                                          section.key,
+                                          group.label!,
+                                        )
+                                      }
                                       className={checkboxCls}
                                     />
                                     เลือกหมวดนี้
@@ -615,37 +1000,55 @@ export function RolePermissionPanel({
                               </tr>
                             )}
                             {group.items.map((item) => {
-                              const parentChecked = item.dependsOn ? !!role.permissions[section.key]?.[item.dependsOn]?.["view"] : true;
+                              const parentChecked = item.dependsOn
+                                ? !!role.permissions[section.key]?.[
+                                    item.dependsOn
+                                  ]?.["view"]
+                                : true;
                               const isDisabled = !parentChecked;
 
                               return (
-                                <tr key={item.key} className={`${MD_TR} ${isDisabled ? 'opacity-50' : ''}`}>
-                                  <td className={`px-6 py-3.5 text-sm font-medium ${isDisabled ? 'text-slate-400' : 'text-slate-700'} ${group.label ? 'pl-10' : ''}`}>
+                                <tr
+                                  key={item.key}
+                                  className={`${MD_TR} ${isDisabled ? "opacity-50" : ""}`}
+                                >
+                                  <td
+                                    className={`px-6 py-3.5 text-sm font-medium ${isDisabled ? "text-slate-400" : "text-slate-700"} ${group.label ? "pl-10" : ""}`}
+                                  >
                                     {item.label}
                                   </td>
                                   {PERMISSION_ACTIONS.map((action) => {
-                                    const isSupported = item.actions.includes(action.key);
+                                    const isSupported = item.actions.includes(
+                                      action.key,
+                                    );
                                     return (
-                                      <td key={action.key} className={PERM_MATRIX_ACTION_TD}>
+                                      <td
+                                        key={action.key}
+                                        className={PERM_MATRIX_ACTION_TD}
+                                      >
                                         {isSupported ? (
                                           <input
                                             type="checkbox"
                                             disabled={isDisabled}
                                             checked={
-                                              !!role.permissions[section.key]?.[item.key]?.[action.key]
+                                              !!role.permissions[section.key]?.[
+                                                item.key
+                                              ]?.[action.key]
                                             }
                                             onChange={(e) =>
                                               setPermission(
                                                 section.key,
                                                 item.key,
                                                 action.key,
-                                                e.target.checked
+                                                e.target.checked,
                                               )
                                             }
-                                            className={`${checkboxCls} mx-auto block ${isDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                                            className={`${checkboxCls} mx-auto block ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
                                           />
                                         ) : (
-                                          <span className="text-slate-300 select-none">-</span>
+                                          <span className="text-slate-300 select-none">
+                                            -
+                                          </span>
                                         )}
                                       </td>
                                     );
@@ -677,11 +1080,19 @@ export function RoleProductTypesField({
 }) {
   const toggleProductType = (key: ProductKey, checked: boolean) => {
     if (key === "all") {
-      onChange({ all: checked, dms: checked, esign: checked, reports: checked, archive: checked });
+      onChange({
+        all: checked,
+        dms: checked,
+        esign: checked,
+        reports: checked,
+        archive: checked,
+      });
       return;
     }
     const next = { ...productTypes, [key]: checked };
-    next.all = PRODUCT_TYPES.filter((p) => p.key !== "all").every((p) => next[p.key]);
+    next.all = PRODUCT_TYPES.filter((p) => p.key !== "all").every(
+      (p) => next[p.key],
+    );
     onChange(next);
   };
 
@@ -690,7 +1101,10 @@ export function RoleProductTypesField({
       <p className="mb-2 text-xs text-slate-500">ประเภทผลิตภัณฑ์</p>
       <div className="flex flex-wrap gap-4">
         {PRODUCT_TYPES.map(({ key, label }) => (
-          <label key={key} className="flex items-center gap-2 text-sm text-slate-600">
+          <label
+            key={key}
+            className="flex items-center gap-2 text-sm text-slate-600"
+          >
             <input
               type="checkbox"
               checked={productTypes[key]}

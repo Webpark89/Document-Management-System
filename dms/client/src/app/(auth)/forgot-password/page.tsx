@@ -19,9 +19,15 @@ export default function ForgotPasswordPage() {
 
     try {
       const res = await authService.forgotPassword(email);
-      setMessage(res.message || "หากอีเมลมีในระบบ เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปแล้ว");
-    } catch {
-      setMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      setMessage(
+        res.message || "หากอีเมลมีในระบบ เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปแล้ว",
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+      );
     } finally {
       setLoading(false);
     }
@@ -32,7 +38,8 @@ export default function ForgotPasswordPage() {
       <div>
         <h2 className="text-lg font-bold text-white">ลืมรหัสผ่าน</h2>
         <p className="text-xs text-slate-400">
-          กรอกอีเมลองค์กรของคุณเพื่อรับลิงก์สำหรับรีเซ็ตรหัสผ่าน (อายุ 1 ชั่วโมง)
+          กรอกอีเมลองค์กรของคุณเพื่อรับลิงก์สำหรับรีเซ็ตรหัสผ่าน (อายุ 1
+          ชั่วโมง)
         </p>
       </div>
 

@@ -17,14 +17,14 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from '@views/components/ui/avatar';
-import { useToast } from '@views/components/providers/ToastProvider';
-import { useAuth } from '@views/components/providers/AuthProvider';
+import { Avatar, AvatarFallback } from "@views/components/ui/avatar";
+import { useToast } from "@views/components/providers/ToastProvider";
+import { useAuth } from "@views/components/providers/AuthProvider";
 import { adminService } from "@/controllers/services/admin.service";
 import {
   USER_ROLE_OPTIONS,
   type ConfigUser,
-} from '@views/features/roles-users';
+} from "@views/features/roles-users";
 import {
   ADMIN_CONTENT,
   ADMIN_PAGE_SHELL,
@@ -44,11 +44,12 @@ import {
   StatCards,
   StatusBadge,
   StatusFormToggle,
-} from '@views/components/ui/admin';
-import { APP_CARD_LG } from '@views/components/ui/design-system';
+} from "@views/components/ui/admin";
+import { APP_CARD_LG } from "@views/components/ui/design-system";
 
 const CARD = APP_CARD_LG;
-const CARD_HEADER_LABEL = "text-[11px] font-bold uppercase tracking-wider text-slate-400";
+const CARD_HEADER_LABEL =
+  "text-[11px] font-bold uppercase tracking-wider text-slate-400";
 const BTN_SECONDARY =
   "inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50";
 
@@ -138,12 +139,16 @@ function CardSectionHeader({
   return (
     <div className="mb-6 border-b border-slate-100 pb-5">
       <div className="flex items-center gap-3">
-        <div className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
+        <div
+          className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${iconBg}`}
+        >
           <Icon className={`size-5 ${iconColor}`} />
         </div>
         <span className={CARD_HEADER_LABEL}>{label}</span>
       </div>
-      {description ? <p className="mt-3 text-sm text-slate-500">{description}</p> : null}
+      {description ? (
+        <p className="mt-3 text-sm text-slate-500">{description}</p>
+      ) : null}
     </div>
   );
 }
@@ -155,7 +160,7 @@ function CreateUserPreview({ form }: { form: UserForm }) {
     return name ? name.charAt(0).toUpperCase() : "?";
   }, [displayName]);
 
-    const joinedLabel = form.joinedAt
+  const joinedLabel = form.joinedAt
     ? new Date(form.joinedAt).toLocaleDateString("th-TH", {
         year: "numeric",
         month: "numeric",
@@ -172,14 +177,17 @@ function CreateUserPreview({ form }: { form: UserForm }) {
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-lg font-bold tracking-tight text-slate-900">{displayName}</p>
+          <p className="truncate text-lg font-bold tracking-tight text-slate-900">
+            {displayName}
+          </p>
           <p className="mt-0.5 truncate text-sm text-slate-500">
             {form.email.trim() || "อีเมล@company.com"}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span
               className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-medium ${
-                ROLE_BADGE[form.role] ?? "bg-slate-100 text-slate-600 ring-1 ring-slate-200/80"
+                ROLE_BADGE[form.role] ??
+                "bg-slate-100 text-slate-600 ring-1 ring-slate-200/80"
               }`}
             >
               {form.role}
@@ -192,19 +200,27 @@ function CreateUserPreview({ form }: { form: UserForm }) {
       <dl className="mt-5 space-y-3 border-t border-slate-200/80 pt-5 text-sm">
         <div className="flex items-start justify-between gap-4">
           <dt className="shrink-0 text-slate-500">แผนก</dt>
-          <dd className="text-right font-medium text-slate-800">{form.department || "—"}</dd>
+          <dd className="text-right font-medium text-slate-800">
+            {form.department || "—"}
+          </dd>
         </div>
         <div className="flex items-start justify-between gap-4">
           <dt className="shrink-0 text-slate-500">ตำแหน่ง</dt>
-          <dd className="text-right font-medium text-slate-800">{form.position || "—"}</dd>
+          <dd className="text-right font-medium text-slate-800">
+            {form.position || "—"}
+          </dd>
         </div>
         <div className="flex items-start justify-between gap-4">
           <dt className="shrink-0 text-slate-500">เบอร์โทร</dt>
-          <dd className="text-right font-medium text-slate-800">{form.phone.trim() || "—"}</dd>
+          <dd className="text-right font-medium text-slate-800">
+            {form.phone.trim() || "—"}
+          </dd>
         </div>
         <div className="flex items-start justify-between gap-4">
           <dt className="shrink-0 text-slate-500">วันที่เริ่มงาน</dt>
-          <dd className="text-right font-medium text-slate-800">{joinedLabel}</dd>
+          <dd className="text-right font-medium text-slate-800">
+            {joinedLabel}
+          </dd>
         </div>
       </dl>
 
@@ -281,7 +297,12 @@ function UsersListView({
       if (roleFilter && u.role !== roleFilter) return false;
       if (statusFilter === "active" && !u.isActive) return false;
       if (statusFilter === "inactive" && u.isActive) return false;
-      if (q && !u.fullName.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return false;
+      if (
+        q &&
+        !u.fullName.toLowerCase().includes(q) &&
+        !u.email.toLowerCase().includes(q)
+      )
+        return false;
       return true;
     });
   }, [users, search, deptFilter, roleFilter, statusFilter, showInactive]);
@@ -293,12 +314,16 @@ function UsersListView({
 
   const handleToggleStatus = async (user: ConfigUser) => {
     const next = !user.isActive;
-    if (!confirm(`${next ? "เปิดใช้งาน" : "ปิดใช้งาน"} ${user.fullName}?`)) return;
+    if (!confirm(`${next ? "เปิดใช้งาน" : "ปิดใช้งาน"} ${user.fullName}?`))
+      return;
     setTogglingId(user.id);
     try {
       await adminService.toggleUserActive(user.id);
       onRefresh();
-      showToast(next ? "เปิดใช้งานผู้ใช้สำเร็จ" : "ปิดใช้งานผู้ใช้สำเร็จ", "success");
+      showToast(
+        next ? "เปิดใช้งานผู้ใช้สำเร็จ" : "ปิดใช้งานผู้ใช้สำเร็จ",
+        "success",
+      );
     } catch {
       showToast("เกิดข้อผิดพลาดในการเปลี่ยนสถานะ", "error");
     } finally {
@@ -313,9 +338,7 @@ function UsersListView({
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
             <span>Admin</span>
             <span>/</span>
-            <span className="text-slate-500">
-              Config
-            </span>
+            <span className="text-slate-500">Config</span>
             <span>/</span>
             <span className="font-medium text-slate-600">Users</span>
           </nav>
@@ -323,7 +346,7 @@ function UsersListView({
         title="Users"
         subtitle="จัดการข้อมูลผู้ใช้งานและสิทธิ์การเข้าใช้งานระบบ"
         actions={
-          hasPerm('user_management', 'create') && (
+          hasPerm("user_management", "create") && (
             <button type="button" onClick={onCreate} className={MD_ADD_BTN}>
               <Plus className="size-4" />
               สร้างผู้ใช้งาน
@@ -347,7 +370,11 @@ function UsersListView({
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
-                <select className={inputCls} value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}>
+                <select
+                  className={inputCls}
+                  value={deptFilter}
+                  onChange={(e) => setDeptFilter(e.target.value)}
+                >
                   <option value="">ทุกแผนก</option>
                   {depts.map((d) => (
                     <option key={d.id} value={d.name}>
@@ -355,15 +382,30 @@ function UsersListView({
                     </option>
                   ))}
                 </select>
-                <select className={inputCls} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                <select
+                  className={inputCls}
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                >
                   <option value="">ทุก Role</option>
-                  {(roles.length > 0 ? roles.filter(r => r.is_active !== false && r.isActive !== false).map(r => r.name) : USER_ROLE_OPTIONS).map((r) => (
+                  {(roles.length > 0
+                    ? roles
+                        .filter(
+                          (r) => r.is_active !== false && r.isActive !== false,
+                        )
+                        .map((r) => r.name)
+                    : USER_ROLE_OPTIONS
+                  ).map((r) => (
                     <option key={r} value={r}>
                       {r}
                     </option>
                   ))}
                 </select>
-                <select className={inputCls} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                <select
+                  className={inputCls}
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
                   <option value="">ทุกสถานะ</option>
                   <option value="active">ใช้งาน</option>
                   <option value="inactive">ปิดใช้งาน</option>
@@ -397,28 +439,41 @@ function UsersListView({
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
+                    <td
+                      colSpan={7}
+                      className="px-6 py-12 text-center text-slate-400"
+                    >
                       ไม่พบผู้ใช้งาน
                     </td>
                   </tr>
                 ) : (
                   filtered.map((user) => (
                     <tr
-                       key={user.id}
+                      key={user.id}
                       className={`${MD_TR} cursor-pointer`}
-                      onDoubleClick={() => { if (hasPerm("user_management", "edit")) setEditUser(user); }}
+                      onDoubleClick={() => {
+                        if (hasPerm("user_management", "edit"))
+                          setEditUser(user);
+                      }}
                     >
-                      <td className={`${tdCls} font-medium`}>{user.fullName}</td>
+                      <td className={`${tdCls} font-medium`}>
+                        {user.fullName}
+                      </td>
                       <td className={tdMuted}>{user.email}</td>
                       <td className={tdMuted}>{user.department}</td>
                       <td className={tdMuted}>{user.position}</td>
-                      <td className={`${tdCls} text-center`}>{roleBadge(user.role)}</td>
+                      <td className={`${tdCls} text-center`}>
+                        {roleBadge(user.role)}
+                      </td>
                       <td className={MD_TD_STATUS}>
                         <StatusBadge active={user.isActive} />
                       </td>
-                      <td className={MD_TD_ACTION} onDoubleClick={(e) => e.stopPropagation()}>
+                      <td
+                        className={MD_TD_ACTION}
+                        onDoubleClick={(e) => e.stopPropagation()}
+                      >
                         <div className="inline-flex items-center divide-x divide-gray-200 rounded-md border border-transparent">
-                          {hasPerm('user_management', 'edit') && (
+                          {hasPerm("user_management", "edit") && (
                             <>
                               <button
                                 type="button"
@@ -438,7 +493,7 @@ function UsersListView({
                               </button>
                             </>
                           )}
-                          {hasPerm('user_management', 'edit') && (
+                          {hasPerm("user_management", "edit") && (
                             <button
                               type="button"
                               title={user.isActive ? "ปิดใช้งาน" : "เปิดใช้งาน"}
@@ -475,14 +530,18 @@ function UsersListView({
           onClose={() => setEditUser(null)}
           onSaved={async (updated) => {
             try {
-              const department_id = depts.find(d => d.name === updated.department)?.id;
-              const position_id = positions.find(p => p.name === updated.position)?.id;
-              const role_id = roles.find(r => r.name === updated.role)?.id;
+              const department_id = depts.find(
+                (d) => d.name === updated.department,
+              )?.id;
+              const position_id = positions.find(
+                (p) => p.name === updated.position,
+              )?.id;
+              const role_id = roles.find((r) => r.name === updated.role)?.id;
 
               await adminService.updateUser(updated.id, {
                 email: updated.email,
-                first_name: updated.fullName.split(' ')[0] || updated.fullName,
-                last_name: updated.fullName.split(' ').slice(1).join(' ') || '',
+                first_name: updated.fullName.split(" ")[0] || updated.fullName,
+                last_name: updated.fullName.split(" ").slice(1).join(" ") || "",
                 department_id,
                 position_id,
                 role_id,
@@ -531,7 +590,7 @@ function EditUserModal({
   positions: any[];
   roles: any[];
   onClose: () => void;
-  onSaved: (user: ConfigUser) => void;
+  onSaved: (user: ConfigUser) => Promise<void>;
 }) {
   const [form, setForm] = useState<UserForm>(() => userToForm(user));
   const [errors, setErrors] = useState<FormErrors>({});
@@ -541,7 +600,8 @@ function EditUserModal({
     const next: FormErrors = {};
     if (!form.fullName.trim()) next.fullName = "กรุณากรอกชื่อ-สกุล";
     if (!form.email.trim()) next.email = "กรุณากรอกอีเมล";
-    else if (!EMAIL_RE.test(form.email.trim())) next.email = "รูปแบบอีเมลไม่ถูกต้อง";
+    else if (!EMAIL_RE.test(form.email.trim()))
+      next.email = "รูปแบบอีเมลไม่ถูกต้อง";
     if (!form.department) next.department = "กรุณาเลือกแผนก";
     if (!form.position) next.position = "กรุณาเลือกตำแหน่ง";
     if (!form.role) next.role = "กรุณาเลือก Role";
@@ -553,7 +613,7 @@ function EditUserModal({
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
     setSaving(true);
-    onSaved({
+    await onSaved({
       ...user,
       fullName: form.fullName.trim(),
       email: form.email.trim(),
@@ -566,20 +626,40 @@ function EditUserModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6"
+      onClick={onClose}
+    >
       <div
         className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-sm font-medium text-slate-800">แก้ไขผู้ใช้งาน</h2>
-          <button type="button" onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md p-1 text-slate-400 hover:bg-slate-100"
+          >
             <X className="size-4" />
           </button>
         </div>
-        <UserFormFields form={form} setForm={setForm} errors={errors} setErrors={setErrors} includePassword={false} depts={depts} positions={positions} roles={roles} />
+        <UserFormFields
+          form={form}
+          setForm={setForm}
+          errors={errors}
+          setErrors={setErrors}
+          includePassword={false}
+          depts={depts}
+          positions={positions}
+          roles={roles}
+        />
         <div className="mt-6 flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100"
+          >
             ยกเลิก
           </button>
           <button
@@ -613,7 +693,10 @@ function ResetPasswordModal({
   onClose: () => void;
   onSaved: (password: string) => Promise<void>;
 }) {
-  const [form, setForm] = useState<ResetPasswordForm>({ newPassword: "", confirmPassword: "" });
+  const [form, setForm] = useState<ResetPasswordForm>({
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [errors, setErrors] = useState<ResetPasswordErrors>({});
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -622,7 +705,8 @@ function ResetPasswordModal({
   const validate = (): ResetPasswordErrors => {
     const next: ResetPasswordErrors = {};
     if (!form.newPassword) next.newPassword = "กรุณากรอกรหัสผ่านใหม่";
-    else if (form.newPassword.length < 8) next.newPassword = "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร";
+    else if (form.newPassword.length < 8)
+      next.newPassword = "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร";
     if (!form.confirmPassword) next.confirmPassword = "กรุณายืนยันรหัสผ่านใหม่";
     else if (form.newPassword !== form.confirmPassword) {
       next.confirmPassword = "รหัสผ่านไม่ตรงกัน";
@@ -645,7 +729,7 @@ function ResetPasswordModal({
     key: keyof ResetPasswordForm,
     label: string,
     show: boolean,
-    onToggle: () => void
+    onToggle: () => void,
   ) => (
     <div>
       <label className={labelCls}>{label}</label>
@@ -668,38 +752,55 @@ function ResetPasswordModal({
           {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>
       </div>
-      {errors[key] && <p className="mt-1 text-xs text-red-500">{errors[key]}</p>}
+      {errors[key] && (
+        <p className="mt-1 text-xs text-red-500">{errors[key]}</p>
+      )}
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6"
+      onClick={onClose}
+    >
       <div
         className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-sm font-medium text-slate-800">ตั้งรหัสผ่านใหม่</h2>
+            <h2 className="text-sm font-medium text-slate-800">
+              ตั้งรหัสผ่านใหม่
+            </h2>
             <p className="mt-1 text-xs text-slate-500">{user.fullName}</p>
           </div>
-          <button type="button" onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md p-1 text-slate-400 hover:bg-slate-100"
+          >
             <X className="size-4" />
           </button>
         </div>
 
         <div className="mt-4 space-y-3">
-          {renderPasswordField("newPassword", "รหัสผ่านใหม่", showNew, () => setShowNew((v) => !v))}
+          {renderPasswordField("newPassword", "รหัสผ่านใหม่", showNew, () =>
+            setShowNew((v) => !v),
+          )}
           {renderPasswordField(
             "confirmPassword",
             "ยืนยันรหัสผ่านใหม่",
             showConfirm,
-            () => setShowConfirm((v) => !v)
+            () => setShowConfirm((v) => !v),
           )}
         </div>
 
         <div className="mt-6 flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md px-4 py-2 text-sm text-slate-600 hover:bg-slate-100"
+          >
             ยกเลิก
           </button>
           <button
@@ -740,20 +841,41 @@ function UserFormFields({
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
-  const deptList = depts.length > 0 
-    ? depts.filter(d => (d.is_active !== false && d.isActive !== false) || d.name === form.department).map(d => d.name) 
-    : ["แผนก IT", "แผนกจัดซื้อ", "แผนก HR", "แผนกผลิต"];
-  const posList = positions.length > 0 
-    ? positions.filter(p => (p.is_active !== false && p.isActive !== false) || p.name === form.position).map(p => p.name) 
-    : ["ผู้อำนวยการ", "ผู้จัดการ", "หัวหน้าแผนก", "พนักงาน"];
-  const roleList = roles.length > 0 
-    ? roles
-        .filter(r => (r.is_active !== false && r.isActive !== false) || r.name === form.role)
-        .map(r => r.name)
-    : USER_ROLE_OPTIONS;
+  const deptList =
+    depts.length > 0
+      ? depts
+          .filter(
+            (d) =>
+              (d.is_active !== false && d.isActive !== false) ||
+              d.name === form.department,
+          )
+          .map((d) => d.name)
+      : ["แผนก IT", "แผนกจัดซื้อ", "แผนก HR", "แผนกผลิต"];
+  const posList =
+    positions.length > 0
+      ? positions
+          .filter(
+            (p) =>
+              (p.is_active !== false && p.isActive !== false) ||
+              p.name === form.position,
+          )
+          .map((p) => p.name)
+      : ["ผู้อำนวยการ", "ผู้จัดการ", "หัวหน้าแผนก", "พนักงาน"];
+  const roleList =
+    roles.length > 0
+      ? roles
+          .filter(
+            (r) =>
+              (r.is_active !== false && r.isActive !== false) ||
+              r.name === form.role,
+          )
+          .map((r) => r.name)
+      : USER_ROLE_OPTIONS;
 
   const isCreateLayout = layout === "create";
-  const fieldStackCls = isCreateLayout ? "flex flex-col gap-5" : "mt-4 space-y-3";
+  const fieldStackCls = isCreateLayout
+    ? "flex flex-col gap-5"
+    : "mt-4 space-y-3";
   const labelCls = "mb-1.5 block text-xs font-medium text-slate-500";
   const fieldInputCls = (key: keyof UserForm) =>
     isCreateLayout
@@ -772,11 +894,14 @@ function UserFormFields({
         value={form.fullName}
         onChange={(e) => {
           setForm((p) => ({ ...p, fullName: e.target.value }));
-          if (errors.fullName) setErrors((p) => ({ ...p, fullName: undefined }));
+          if (errors.fullName)
+            setErrors((p) => ({ ...p, fullName: undefined }));
         }}
         className={fieldInputCls("fullName")}
       />
-      {errors.fullName && <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>}
+      {errors.fullName && (
+        <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>
+      )}
     </div>
   );
 
@@ -792,7 +917,9 @@ function UserFormFields({
         }}
         className={fieldInputCls("email")}
       />
-      {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+      {errors.email && (
+        <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+      )}
     </div>
   );
 
@@ -805,7 +932,8 @@ function UserFormFields({
           value={form.password}
           onChange={(e) => {
             setForm((p) => ({ ...p, password: e.target.value }));
-            if (errors.password) setErrors((p) => ({ ...p, password: undefined }));
+            if (errors.password)
+              setErrors((p) => ({ ...p, password: undefined }));
           }}
           className={`${fieldInputCls("password")} pr-10`}
         />
@@ -815,13 +943,21 @@ function UserFormFields({
           className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
           aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
         >
-          {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          {showPassword ? (
+            <EyeOff className="size-4" />
+          ) : (
+            <Eye className="size-4" />
+          )}
         </button>
       </div>
       {isCreateLayout && !errors.password ? (
-        <p className="mt-1.5 text-xs text-slate-400">รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร</p>
+        <p className="mt-1.5 text-xs text-slate-400">
+          รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร
+        </p>
       ) : null}
-      {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
+      {errors.password && (
+        <p className="mt-1 text-xs text-red-500">{errors.password}</p>
+      )}
     </div>
   ) : null;
 
@@ -846,7 +982,8 @@ function UserFormFields({
     <div>
       <label className={labelCls}>วันที่เริ่มงาน</label>
       <input
-        type="date" max={new Date().toISOString().split("T")[0]}
+        type="date"
+        max={new Date().toISOString().split("T")[0]}
         value={form.joinedAt}
         onChange={(e) => setForm((p) => ({ ...p, joinedAt: e.target.value }))}
         className={fieldInputCls("joinedAt")}
@@ -865,7 +1002,8 @@ function UserFormFields({
             ...p,
             department,
           }));
-          if (errors.department) setErrors((p) => ({ ...p, department: undefined }));
+          if (errors.department)
+            setErrors((p) => ({ ...p, department: undefined }));
         }}
         className={fieldInputCls("department")}
       >
@@ -875,7 +1013,9 @@ function UserFormFields({
           </option>
         ))}
       </select>
-      {errors.department && <p className="mt-1 text-xs text-red-500">{errors.department}</p>}
+      {errors.department && (
+        <p className="mt-1 text-xs text-red-500">{errors.department}</p>
+      )}
     </div>
   );
 
@@ -886,7 +1026,8 @@ function UserFormFields({
         value={form.position}
         onChange={(e) => {
           setForm((p) => ({ ...p, position: e.target.value }));
-          if (errors.position) setErrors((p) => ({ ...p, position: undefined }));
+          if (errors.position)
+            setErrors((p) => ({ ...p, position: undefined }));
         }}
         className={fieldInputCls("position")}
       >
@@ -896,7 +1037,9 @@ function UserFormFields({
           </option>
         ))}
       </select>
-      {errors.position && <p className="mt-1 text-xs text-red-500">{errors.position}</p>}
+      {errors.position && (
+        <p className="mt-1 text-xs text-red-500">{errors.position}</p>
+      )}
     </div>
   );
 
@@ -970,7 +1113,7 @@ function CreateUserForm({
   positions: any[];
   roles: any[];
   onBack: () => void;
-  onSaved: (user: ConfigUser) => void;
+  onSaved: (user: ConfigUser) => Promise<void>;
 }) {
   const { showToast } = useToast();
   const initialDept = depts[0]?.name ?? "";
@@ -979,6 +1122,7 @@ function CreateUserForm({
     ...EMPTY_USER,
     department: initialDept,
     position: allPositions[0] ?? "",
+    role: roles.find((r) => r.is_active !== false)?.name ?? "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
@@ -989,9 +1133,11 @@ function CreateUserForm({
     const next: FormErrors = {};
     if (!user.fullName.trim()) next.fullName = "กรุณากรอกชื่อ-สกุล";
     if (!user.email.trim()) next.email = "กรุณากรอกอีเมล";
-    else if (!EMAIL_RE.test(user.email.trim())) next.email = "รูปแบบอีเมลไม่ถูกต้อง";
+    else if (!EMAIL_RE.test(user.email.trim()))
+      next.email = "รูปแบบอีเมลไม่ถูกต้อง";
     if (!user.password) next.password = "กรุณากรอกรหัสผ่าน";
-    else if (user.password.length < 8) next.password = "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร";
+    else if (user.password.length < 8)
+      next.password = "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร";
     if (!user.department) next.department = "กรุณาเลือกแผนก";
     if (!user.position) next.position = "กรุณาเลือกตำแหน่ง";
     if (!user.role) next.role = "กรุณาเลือก Role";
@@ -1009,7 +1155,11 @@ function CreateUserForm({
       user.position !== (allPositions[0] ?? "") ||
       user.role !== USER_ROLE_OPTIONS[0] ||
       !user.isActive;
-    if (hasData && !confirm("ยังไม่ได้บันทึกข้อมูล ต้องการออกจากหน้านี้หรือไม่?")) return;
+    if (
+      hasData &&
+      !confirm("ยังไม่ได้บันทึกข้อมูล ต้องการออกจากหน้านี้หรือไม่?")
+    )
+      return;
     onBack();
   };
 
@@ -1030,9 +1180,17 @@ function CreateUserForm({
       ...(user.phone.trim() ? { phone: user.phone.trim() } : {}),
       ...(user.joinedAt ? { joinedAt: user.joinedAt } : {}),
     };
-    await onSaved(saved);
-    setSaving(false);
-    showToast("สร้างผู้ใช้งานสำเร็จ", "success");
+    try {
+      await onSaved(saved);
+      showToast("สร้างผู้ใช้งานสำเร็จ", "success");
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "ไม่สามารถสร้างผู้ใช้งานได้",
+        "error",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -1043,11 +1201,12 @@ function CreateUserForm({
             <nav className="flex items-center gap-1.5 text-xs text-slate-400">
               <span>Admin</span>
               <span>/</span>
-              <span className="text-slate-500">
-                Config
-              </span>
+              <span className="text-slate-500">Config</span>
               <span>/</span>
-              <Link href="/admin/config/users" className="text-slate-500 hover:text-slate-600">
+              <Link
+                href="/admin/config/users"
+                className="text-slate-500 hover:text-slate-600"
+              >
                 Users
               </Link>
               <span>/</span>
@@ -1058,7 +1217,11 @@ function CreateUserForm({
           subtitle="จัดการข้อมูลผู้ใช้งานและสิทธิ์การเข้าใช้งานระบบ"
           actions={
             <div className="relative z-30 flex shrink-0 items-center gap-3">
-              <button type="button" onClick={handleBack} className={BTN_SECONDARY}>
+              <button
+                type="button"
+                onClick={handleBack}
+                className={BTN_SECONDARY}
+              >
                 ย้อนกลับ
               </button>
               <button
@@ -1116,7 +1279,7 @@ function UsersPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isCreateMode = searchParams.get("mode") === "new";
-  
+
   const [users, setUsers] = useState<ConfigUser[]>([]);
   const [depts, setDepts] = useState<any[]>([]);
   const [positions, setPositions] = useState<any[]>([]);
@@ -1136,13 +1299,16 @@ function UsersPageContent() {
       setRoles(rList);
       function cleanPositionName(name: string): string {
         if (!name) return "—";
-        const exactMatch = pList.find((p: any) => p.name === name || p.id === name);
+        const exactMatch = pList.find(
+          (p: any) => p.name === name || p.id === name,
+        );
         return exactMatch ? exactMatch.name : name;
       }
 
       const mapped = uList.map((u: any) => ({
         id: u.id,
-        fullName: `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.username,
+        fullName:
+          `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.username,
         email: u.email,
         department: u.department,
         position: cleanPositionName(u.position),
@@ -1159,7 +1325,7 @@ function UsersPageContent() {
   };
 
   const { user } = useAuth();
-  const hasPerm = (itemKey: string, action: string = 'view') =>
+  const hasPerm = (itemKey: string, action: string = "view") =>
     !!user?.permissions?.includes(`config.${itemKey}:${action}`);
 
   React.useEffect(() => {
@@ -1174,15 +1340,17 @@ function UsersPageContent() {
     );
   }
 
-  if (!hasPerm('user_management', 'view')) {
+  if (!hasPerm("user_management", "view")) {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-slate-400 mt-12">
-        <p className="text-sm font-bold">ไม่มีสิทธิ์เข้าถึงหน้าจัดการผู้ใช้งาน</p>
+        <p className="text-sm font-bold">
+          ไม่มีสิทธิ์เข้าถึงหน้าจัดการผู้ใช้งาน
+        </p>
       </div>
     );
   }
 
-  if (isCreateMode && hasPerm('user_management', 'create')) {
+  if (isCreateMode && hasPerm("user_management", "create")) {
     return (
       <CreateUserForm
         depts={depts}
@@ -1191,24 +1359,29 @@ function UsersPageContent() {
         onBack={() => router.push("/admin/config/users")}
         onSaved={async (saved) => {
           try {
-            const department_id = depts.find(d => d.name === saved.department)?.id;
-            const position_id = positions.find(p => p.name === saved.position)?.id;
-            const role_id = roles.find(r => r.name === saved.role)?.id;
+            const department_id = depts.find(
+              (d) => d.name === saved.department,
+            )?.id;
+            const position_id = positions.find(
+              (p) => p.name === saved.position,
+            )?.id;
+            const role_id = roles.find((r) => r.name === saved.role)?.id;
 
             await adminService.createUser({
-              username: saved.email.split('@')[0],
+              username: saved.email.split("@")[0],
               email: saved.email,
-              first_name: saved.fullName.split(' ')[0] || saved.fullName,
-              last_name: saved.fullName.split(' ').slice(1).join(' ') || '',
+              first_name: saved.fullName.split(" ")[0] || saved.fullName,
+              last_name: saved.fullName.split(" ").slice(1).join(" ") || "",
               department_id,
               position_id,
               role_id,
               password: saved.password,
+              is_active: saved.isActive,
             });
             await fetchAll();
             router.push("/admin/config/users");
-          } catch {
-            // Toast will be shown inside CreateUserForm or handled via state
+          } catch (error) {
+            throw error;
           }
         }}
       />

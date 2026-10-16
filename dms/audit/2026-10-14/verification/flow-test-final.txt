@@ -1,0 +1,39 @@
+
+> dms-monorepo@1.0.0 test:flow
+> npm run test:e2e --workspace=server
+
+
+> server@0.0.1 test:e2e
+> nest build && node ../scripts/verify-flow-e2e.cjs
+
+PASS: HTTP requires authentication for documents/workflow/signature
+PASS: Empty-permission user cannot change approval master
+PASS: Signature accepts real PNG; rejects corrupt bytes and SVG
+PASS: Creation permission and nested item input enforced
+PASS: Invalid master update preserves previous steps
+PASS: PR: Draft, private visibility, named approvals, signed download, immutable versions
+PASS: PO: Draft, private visibility, named approvals, signed download, immutable versions
+PASS: BK: Draft, private visibility, named approvals, signed download, immutable versions
+PASS: DOC: Draft, private visibility, named approvals, signed download, immutable versions
+PASS: Return/edit/resubmit preserves previous form and previous workflow history
+PASS: DOC edit reuses existing file without uploading a replacement
+PASS: Cancel stops inbox and prevents approval; soft delete is separate
+PASS: Concurrent creation allocates distinct running numbers
+PASS: Concurrent approvals have one winner and one conflict
+PASS: Signature/PDF failure rolls back step, document and versions
+PASS: Inactive user and inactive role invalidate existing JWT
+PASS: Notification read_at and user scope
+PASS: Running settings persist and partial update keeps year valid
+PASS: Master departments use soft delete and can be restored
+PASS: Folder visibility, document visibility and move permissions are enforced
+PASS: Signature management persists, clears original only, preserves signed PDF
+PASS: Dashboard respects visibility; returns real counts
+PASS: Password reset delivers through local SMTP sink, consumes token once and revokes old JWT
+PASS: Legacy current version freezes before editing or approval
+PASS: Admin creates users with chosen password and inactive status; password reset revokes sessions
+PASS: Custom master document type uploads and signs a PDF using its own matrix
+PASS: Company settings persist and previous versions keep their frozen company
+PASS: Version history permission protects history API and historical file reads
+PASS: Later approvals preserve prior signer image and creator image after profile changes
+PASS: Read-only primary schema unchanged by tests
+TOTAL 30 PASS 30 FAIL 0

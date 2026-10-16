@@ -1,0 +1,52 @@
+▲ Next.js 16.2.11 (webpack)
+- Environments: .env.local
+- Experiments (use with caution):
+  · proxyTimeout: 30000
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 18.1s
+  Running TypeScript ...
+  Finished TypeScript in 27.1s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/6) ...
+  Generating static pages using 11 workers (1/6) 
+  Generating static pages using 11 workers (2/6) 
+  Generating static pages using 11 workers (4/6) 
+✓ Generating static pages using 11 workers (6/6) in 1759ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /admin/[...slug]
+├ ƒ /admin/audit-logs
+├ ƒ /admin/config
+├ ƒ /admin/config/general
+├ ƒ /admin/config/roles
+├ ƒ /admin/config/users
+├ ƒ /admin/master-data
+├ ƒ /admin/master-data/doc-forms
+├ ƒ /admin/reports
+├ ƒ /approvals
+├ ƒ /approvals/[id]
+├ ƒ /approvals/history
+├ ƒ /dashboard
+├ ƒ /documents
+├ ƒ /documents/[id]
+├ ƒ /documents/[id]/versions
+├ ƒ /documents/folders
+├ ƒ /folders
+├ ○ /forgot-password
+├ ○ /login
+├ ƒ /notifications
+├ ƒ /profile
+├ ƒ /reset-password
+├ ƒ /submissions
+├ ƒ /submissions/create
+└ ƒ /submissions/history
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

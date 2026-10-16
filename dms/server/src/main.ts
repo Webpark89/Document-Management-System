@@ -3,7 +3,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
-import { join } from 'path';
 import { networkInterfaces } from 'os';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
@@ -12,15 +11,20 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.enableShutdownHooks();
-  app.useStaticAssets(join(process.cwd(), 'uploads'), {
-    prefix: '/api/uploads/',
-  });
   app.use(cookieParser());
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new AllExceptionsFilter());
   app.enableCors({
-    origin: true,
+    origin: [
+      process.env.FRONTEND_URL || 'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      ...Object.values(networkInterfaces()).flatMap((interfaces) =>
+        (interfaces || [])
+          .filter((i) => i.family === 'IPv4' && !i.internal)
+          .map((i) => `http://${i.address}:3000`),
+      ),
+    ],
     credentials: true,
   });
 
@@ -44,7 +48,11 @@ async function bootstrap() {
   let lanIp = 'localhost';
   for (const iface of Object.values(nets)) {
     for (const alias of iface ?? []) {
-      if (alias.family === 'IPv4' && !alias.internal && alias.address.startsWith('192.168.')) {
+      if (
+        alias.family === 'IPv4' &&
+        !alias.internal &&
+        alias.address.startsWith('192.168.')
+      ) {
         lanIp = alias.address;
       }
     }

@@ -1,256 +1,199 @@
 "use client";
-
-import React, { useState } from "react";
-import {
-  Download,
-  Edit3,
-  Type,
-  Calendar,
-  ZoomIn,
-  ZoomOut,
-   
-   
-   
-} from "lucide-react";
-   
-import { useAuth } from '@views/components/providers/AuthProvider';
-import { useSignatures } from '@views/components/providers/SignatureProvider';
-import { documentsService } from '@/controllers/services/documents.service';
-import { formatThaiDate } from '@/lib/format-date';
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { Download, PenLine } from "lucide-react";
+import { usersService } from "@/controllers/services/users.service";
 import { DocumentPreview } from "../documents/DocumentPreview";
+import type { ApprovalSignatureInput } from "@models";
 
-interface DocumentSignerViewerProps {
+interface Props {
   documentId: string;
   documentName: string;
   version: string;
   initialStatus: string;
   signaturePlaced: boolean;
-  onSignatureChange?: (placed: boolean) => void;
+  onSignatureChange?: (placed: boolean, input?: ApprovalSignatureInput) => void;
   doc?: unknown;
   canSign?: boolean;
   activeApproverName?: string;
+  currentStep?: number;
 }
-
-type ToolMode = "signature" | "text" | "date";
-
 export function DocumentSignerViewer({
   documentId,
-  documentName,
-  version,
-   
-  initialStatus,
-   
+  doc,
+  canSign = false,
   signaturePlaced,
   onSignatureChange,
-  doc,
-  canSign = true,
+  currentStep = 1,
   activeApproverName,
-}: DocumentSignerViewerProps) {
-  const { user } = useAuth();
-  const { signatures, findByApproverName } = useSignatures();
-  const approverName = user?.full_name || user?.username || "Administrator";
-  const mySignature = findByApproverName(approverName) || signatures.find(s => s.imageUrl);
-  const [activeTool, setActiveTool] = useState<ToolMode>("signature");
-   
-  const [zoomLevel, setZoomLevel] = useState(100);
-  const [placedElements, setPlacedElements] = useState<{
-    signature: boolean;
-    textNote: string | null;
-    dateStamp: string | null;
-  }>({
-    signature: initialStatus === "Approved",
-    textNote: null,
-    dateStamp: null,
+}: Props) {
+  const [signature, setSignature] = useState<string | null>(null);
+  const [input, setInput] = useState<ApprovalSignatureInput>({
+    signature_page: 1,
+    signature_width: 120,
+    signature_height: 60,
+    signature_x: 36 + ((currentStep - 1) % 3) * 170,
+    signature_y: 60 + Math.floor((currentStep - 1) / 3) * 90,
+    annotation_text: "",
+    date_stamp: false,
   });
-  const [signedUrl, setSignedUrl] = useState<string | null>(null);
-
-  React.useEffect(() => {
-    documentsService.getDocumentSignedUrl(documentId).then(res => {
-      if (res?.url) setSignedUrl(res.url);
-    });
-  }, [documentId]);
-
-  const handlePlaceStamp = () => {
-    if (!canSign) return;
-
-    const todayStr = formatThaiDate(new Date(), true);
-
-    if (activeTool === "signature") {
-      setPlacedElements((prev) => ({ ...prev, signature: true }));
-      onSignatureChange?.(true);
-    } else if (activeTool === "text") {
-      setPlacedElements((prev) => ({
-        ...prev,
-        textNote: "เห็นควรอนุมัติรายการนี้ตามเสนอ",
-      }));
-    } else if (activeTool === "date") {
-      setPlacedElements((prev) => ({ ...prev, dateStamp: todayStr }));
-    }
+  const document = doc as
+    | {
+        real_id?: string;
+        type?: string;
+        versions?: { version_number: number; file_extension?: string }[];
+      }
+    | undefined;
+  const uploaded =
+    !!document &&
+    !["PR", "PO", "BK", "MEMO", "บันทึก"].includes(document.type ?? "");
+  useEffect(() => {
+    if (canSign)
+      usersService
+        .getMySignatureUrl()
+        .then((value) => setSignature(value.url))
+        .catch(() => setSignature(null));
+  }, [canSign]);
+  const change = (patch: Partial<ApprovalSignatureInput>) => {
+    const next = { ...input, ...patch };
+    setInput(next);
+    onSignatureChange?.(signaturePlaced, next);
   };
-
-  const handleZoom = (delta: number) => {
-    setZoomLevel((prev) => Math.min(150, Math.max(75, prev + delta)));
+  const place = () => {
+    if (canSign && signature) onSignatureChange?.(true, input);
   };
-
+  const url = `/api/documents/${encodeURIComponent(document?.real_id || documentId)}/download`;
   return (
-    <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-4">
-      {/* HEADER TOOLBAR */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-slate-100">
-        <div>
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            PDF Viewer & E-Signature Controls
-          </h4>
-          <p className="text-xs text-slate-400 font-medium">
-            {canSign 
-              ? "เลือกเครื่องมือเพื่อประทับลายเซ็น ข้อความ หรือวันที่ลงบนไฟล์ PDF"
-              : `🔒 โหมดดูอย่างเดียว: รอการอนุมัติโดย ${activeApproverName || "ผู้อนุมัติประจำขั้นตอน"}`}
-          </p>
-        </div>
-
-        {/* 3 TOOL BUTTONS (Only if authorized approver and pending) */}
-        {initialStatus === "Pending" && (
-          <div className="flex items-center gap-2">
-            {canSign ? (
-              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTool("signature");
-                    handlePlaceStamp();
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    placedElements.signature || signaturePlaced
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : activeTool === "signature"
-                      ? "bg-blue-600 text-white shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  {placedElements.signature || signaturePlaced ? "วางลายเซ็นแล้ว ✓" : "ประทับลายเซ็น"}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTool("text");
-                    handlePlaceStamp();
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    activeTool === "text"
-                      ? "bg-blue-600 text-white shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <Type className="w-3.5 h-3.5" />
-                  ข้อความ
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTool("date");
-                    handlePlaceStamp();
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    activeTool === "date"
-                      ? "bg-blue-600 text-white shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <Calendar className="w-3.5 h-3.5" />
-                  วันที่
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-xs font-bold shadow-2xs">
-                <span>🔒 สงวนสิทธิ์การวางลายเซ็นสำหรับผู้อนุมัติ</span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* PAGE & ZOOM NAVIGATION CONTROLS */}
-      <div className="flex items-center justify-between bg-slate-50 px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 border border-slate-100">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-800">Page 1 of 1</span>
-          <span className="text-slate-300">|</span>
-          <span>PDF Preview Mode</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleZoom(-10)}
-            className="p-1 hover:bg-slate-200 rounded text-slate-600 transition-colors"
-            title="Zoom Out"
-          >
-            <ZoomOut className="w-3.5 h-3.5" />
-          </button>
-          <span className="w-12 text-center font-mono font-bold">
-            {zoomLevel}%
-          </span>
-          <button
-            onClick={() => handleZoom(10)}
-            className="p-1 hover:bg-slate-200 rounded text-slate-600 transition-colors"
-            title="Zoom In"
-          >
-            <ZoomIn className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {/* CANVAS & MOCK A4 VIEWER */}
-      <div className="bg-slate-200/70 rounded-xl p-4 sm:p-8 border border-slate-200 text-center min-h-[420px] flex flex-col items-center justify-center relative overflow-auto">
-        <div
-          style={{ transform: `scale(${zoomLevel / 100})` }}
-          className="transition-transform duration-150 origin-top flex flex-col relative w-fit max-w-none mx-auto"
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4">
+      <div className="flex flex-wrap justify-between gap-3 items-center">
+        <h3 className="font-bold text-slate-800">เอกสารและลายเซ็นอนุมัติ</h3>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-blue-700 flex items-center gap-2"
         >
-          {/* Mock Document Content Lines */}
-          <div className="w-full">
-            <DocumentPreview 
-              doc={doc} 
-              hideHeader={true} 
-              isViewer={true} 
-              tempSignature={placedElements.signature || signaturePlaced}
-              onSignClick={handlePlaceStamp}
-            />
-          </div>
- 
-          {/* Display Text Note Stamp if added */}
-          {placedElements.textNote && (
-            <div className="mt-4 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs font-semibold text-amber-800 animate-in fade-in">
-              📝 ข้อความแนบ: {placedElements.textNote}
+          <Download className="size-4" />
+          เปิด PDF ฉบับจริง
+        </a>
+      </div>
+      {canSign ? (
+        <div className="space-y-3 rounded-xl bg-blue-50 p-4">
+          {signature ? (
+            <div className="flex gap-4 items-center">
+              <img
+                src={signature}
+                alt="ลายเซ็นของคุณ"
+                className="h-14 max-w-40 object-contain"
+              />
+              <button
+                type="button"
+                onClick={place}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white flex gap-2 items-center"
+              >
+                <PenLine className="size-4" />
+                {signaturePlaced ? "เลือกลายเซ็นแล้ว" : "ใช้ลายเซ็นนี้อนุมัติ"}
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm text-amber-800">
+              กรุณา{" "}
+              <Link className="underline" href="/profile">
+                บันทึกลายเซ็นในโปรไฟล์
+              </Link>{" "}
+              ก่อนอนุมัติ
+            </p>
+          )}
+          {uploaded && (
+            <div className="grid grid-cols-3 gap-3 text-xs">
+              <label>
+                หน้า PDF
+                <input
+                  aria-label="หน้าลายเซ็น"
+                  type="number"
+                  min="1"
+                  value={input.signature_page}
+                  onChange={(e) =>
+                    change({ signature_page: Number(e.target.value) })
+                  }
+                  className="block w-full border rounded-lg p-2 mt-1"
+                />
+              </label>
+              <label>
+                X จากซ้าย (point)
+                <input
+                  aria-label="พิกัด X"
+                  type="number"
+                  min="0"
+                  value={input.signature_x}
+                  onChange={(e) =>
+                    change({ signature_x: Number(e.target.value) })
+                  }
+                  className="block w-full border rounded-lg p-2 mt-1"
+                />
+              </label>
+              <label>
+                Y จากล่าง (point)
+                <input
+                  aria-label="พิกัด Y"
+                  type="number"
+                  min="0"
+                  value={input.signature_y}
+                  onChange={(e) =>
+                    change({ signature_y: Number(e.target.value) })
+                  }
+                  className="block w-full border rounded-lg p-2 mt-1"
+                />
+              </label>
             </div>
           )}
-      </div>
-    </div>
-
-      <div className="flex justify-between items-center pt-2">
-        <span className="text-xs text-slate-400 font-medium">
-          * ระบบดึงรูปภาพลายเซ็นจาก `users.signature_image_path` ของผู้ใช้งานที่ล็อกอิน
-        </span>
-        {signedUrl ? (
-          <a
-            href={signedUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5" />
-            เปิดไฟล์ PDF ฉบับจริง (New Tab)
-          </a>
-        ) : (
-          <button
-            type="button"
-            disabled
-            className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 text-slate-400 font-bold rounded-xl text-xs cursor-not-allowed"
-          >
-            <Download className="w-3.5 h-3.5" />
-            ไม่พบไฟล์ PDF แนบ
-          </button>
-        )}
-      </div>
-    </div>
+          <label className="block text-sm">
+            ข้อความที่บันทึกลง PDF
+            <textarea
+              aria-label="ข้อความบน PDF"
+              maxLength={1000}
+              value={input.annotation_text}
+              onChange={(e) => change({ annotation_text: e.target.value })}
+              className="block w-full border rounded-lg p-2 mt-1"
+            />
+          </label>
+          <label className="flex gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={input.date_stamp}
+              onChange={(e) => change({ date_stamp: e.target.checked })}
+            />
+            เพิ่มวันที่และเวลาลงนามลง PDF
+          </label>
+          <p className="text-xs text-slate-600">
+            {uploaded
+              ? "ลายเซ็นจะบันทึกบนหน้าและพิกัดที่ระบุเมื่อกดอนุมัติ"
+              : "ลายเซ็นจะลงในช่องของผู้อนุมัติขั้นปัจจุบัน และบันทึกเป็น PDF version ใหม่"}
+          </p>
+        </div>
+      ) : (
+        <p className="text-sm text-slate-500">
+          ดูเอกสาร:{" "}
+          {activeApproverName
+            ? `รอ ${activeApproverName}`
+            : "ยังไม่ถึงขั้นของคุณ"}
+        </p>
+      )}
+      {uploaded ? (
+        <iframe
+          src={url}
+          title="PDF สำหรับอนุมัติ"
+          className="h-[650px] w-full border rounded-lg"
+        />
+      ) : (
+        <DocumentPreview
+          doc={doc}
+          hideHeader
+          isViewer
+          tempSignature={signaturePlaced}
+          onSignClick={place}
+        />
+      )}
+    </section>
   );
 }

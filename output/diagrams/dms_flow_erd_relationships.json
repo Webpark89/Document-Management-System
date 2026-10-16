@@ -1,0 +1,233 @@
+[
+  {
+    "parent": "roles",
+    "child": "role_permissions",
+    "field": "role_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "permissions",
+    "child": "role_permissions",
+    "field": "permission_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "departments",
+    "child": "users",
+    "field": "department_id",
+    "optional": true,
+    "unique": false
+  },
+  {
+    "parent": "positions",
+    "child": "users",
+    "field": "position_id",
+    "optional": true,
+    "unique": false
+  },
+  {
+    "parent": "roles",
+    "child": "users",
+    "field": "role_id",
+    "optional": true,
+    "unique": false
+  },
+  {
+    "parent": "document_types",
+    "child": "documents",
+    "field": "type_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "users",
+    "child": "documents",
+    "field": "creator_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "folders",
+    "child": "documents",
+    "field": "folder_id",
+    "optional": true,
+    "unique": false
+  },
+  {
+    "parent": "documents",
+    "child": "pr_forms",
+    "field": "document_id",
+    "optional": false,
+    "unique": true
+  },
+  {
+    "parent": "users",
+    "child": "pr_forms",
+    "field": "requester_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "departments",
+    "child": "pr_forms",
+    "field": "department_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "pr_forms",
+    "child": "pr_form_items",
+    "field": "pr_form_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "documents",
+    "child": "po_forms",
+    "field": "document_id",
+    "optional": false,
+    "unique": true
+  },
+  {
+    "parent": "po_forms",
+    "child": "po_form_items",
+    "field": "po_form_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "documents",
+    "child": "bk_forms",
+    "field": "document_id",
+    "optional": false,
+    "unique": true
+  },
+  {
+    "parent": "departments",
+    "child": "bk_forms",
+    "field": "department_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "documents",
+    "child": "document_versions",
+    "field": "document_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "users",
+    "child": "document_versions",
+    "field": "uploaded_by_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "document_types",
+    "child": "approval_matrix",
+    "field": "document_type_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "roles",
+    "child": "approval_matrix",
+    "field": "required_role_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "documents",
+    "child": "workflows",
+    "field": "document_id",
+    "optional": false,
+    "unique": true
+  },
+  {
+    "parent": "workflows",
+    "child": "workflow_steps",
+    "field": "workflow_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "users",
+    "child": "workflow_steps",
+    "field": "approver_id",
+    "optional": true,
+    "unique": false
+  },
+  {
+    "parent": "users",
+    "child": "notifications",
+    "field": "user_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "documents",
+    "child": "notifications",
+    "field": "document_id",
+    "optional": true,
+    "unique": false
+  },
+  {
+    "parent": "document_types",
+    "child": "running_numbers",
+    "field": "document_type_id",
+    "optional": false,
+    "unique": true
+  },
+  {
+    "parent": "users",
+    "child": "audit_logs",
+    "field": "user_id",
+    "optional": true,
+    "unique": false
+  },
+  {
+    "parent": "folders",
+    "child": "folders",
+    "field": "parent_id",
+    "optional": true,
+    "unique": false
+  },
+  {
+    "parent": "users",
+    "child": "folders",
+    "field": "creator_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "departments",
+    "child": "folders",
+    "field": "department_id",
+    "optional": true,
+    "unique": false
+  },
+  {
+    "parent": "folders",
+    "child": "folder_permissions",
+    "field": "folder_id",
+    "optional": false,
+    "unique": false
+  },
+  {
+    "parent": "users",
+    "child": "folder_permissions",
+    "field": "user_id",
+    "optional": true,
+    "unique": false
+  },
+  {
+    "parent": "departments",
+    "child": "folder_permissions",
+    "field": "department_id",
+    "optional": true,
+    "unique": false
+  }
+]

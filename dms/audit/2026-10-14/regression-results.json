@@ -1,0 +1,281 @@
+{
+  "date": "2026-10-14",
+  "scope": "Real services and framework validation/metadata with in-memory Prisma doubles; no real database mutations or full UI E2E",
+  "total": 47,
+  "passed": 10,
+  "failed": 37,
+  "results": [
+    {
+      "id": "NORMAL-PR",
+      "name": "PR draft creation and version 1",
+      "status": "PASS"
+    },
+    {
+      "id": "NORMAL-PO",
+      "name": "PO draft creation and version 1",
+      "status": "PASS"
+    },
+    {
+      "id": "NORMAL-BK",
+      "name": "BK draft creation and version 1",
+      "status": "PASS"
+    },
+    {
+      "id": "NORMAL-DOC",
+      "name": "DOC draft creation and version 1",
+      "status": "PASS"
+    },
+    {
+      "id": "NORMAL-STEP",
+      "name": "Assigned approver advances workflow and notifies next approver",
+      "status": "PASS"
+    },
+    {
+      "id": "NORMAL-SOFT-DELETE",
+      "name": "Non-owner cannot soft delete",
+      "status": "PASS"
+    },
+    {
+      "id": "NORMAL-CRYPTO",
+      "name": "AES-GCM rejects altered signature payload",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-APPROVE",
+      "name": "Unassigned user must not approve",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "AUTH-REJECT",
+      "name": "Unassigned user must not reject",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "AUTH-SUBMIT",
+      "name": "Non-owner must not submit another user draft",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "AUTH-EDIT",
+      "name": "Non-owner must not edit another user draft",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "MATRIX-COUNT",
+      "name": "Client must not truncate configured 2-step matrix",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "MATRIX-GAPS",
+      "name": "Client must not submit non-contiguous step order",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "STATE-APPROVED",
+      "name": "Cannot approve Approved workflow again",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "STATE-REJECTED",
+      "name": "Cannot approve Rejected workflow again",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "STATE-DELETED",
+      "name": "Cannot approve soft-deleted document",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "SIGN-FAILURE",
+      "name": "Missing signature/PDF cannot report signature_applied=true",
+      "status": "FAIL",
+      "detail": "Approval reports signature applied although no PDF was embedded\n\ntrue !== false\n"
+    },
+    {
+      "id": "VERSION-SIGN",
+      "name": "Signing must preserve previous version and create reported new version",
+      "status": "FAIL",
+      "detail": "Signed bytes overwrite version 1 instead of creating version 2\n\n0 !== 1\n"
+    },
+    {
+      "id": "VERSION-APPROVED-UPLOAD",
+      "name": "Cannot replace approved PDF while preserving Approved status",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "VERSION-MISSING",
+      "name": "Unknown historical version must return 404",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "VISIBILITY-DTO",
+      "name": "Private visibility survives global ValidationPipe",
+      "status": "FAIL",
+      "detail": "Visibility removed because DTO has no visibility field"
+    },
+    {
+      "id": "VISIBILITY-CREATE",
+      "name": "Private visibility must persist to document row",
+      "status": "FAIL",
+      "detail": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'SpecificUsers'\n"
+    },
+    {
+      "id": "INPUT-NESTED",
+      "name": "Nested negative quantity must be rejected by ValidationPipe",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "PO-VAT",
+      "name": "PO stored item total and VAT must match requested rate",
+      "status": "FAIL",
+      "detail": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   total_price: 200,\n+   vat: 7\n-   total_price: 220,\n-   vat: 10\n  }\n"
+    },
+    {
+      "id": "PUBLIC-WORKFLOW",
+      "name": "Workflow reads must require authentication",
+      "status": "FAIL",
+      "detail": "No authentication guard on workflow read endpoint"
+    },
+    {
+      "id": "PUBLIC-SIGNATURE",
+      "name": "Raw signature reads must require authentication",
+      "status": "FAIL",
+      "detail": "No authentication guard on raw signature endpoint"
+    },
+    {
+      "id": "PERMISSION-MASTER",
+      "name": "User without permissions cannot edit approval master workflow",
+      "status": "FAIL",
+      "detail": "Missing expected exception: PermissionsGuard allows workflow master edits with empty permission list"
+    },
+    {
+      "id": "DOWNLOAD-AUTH",
+      "name": "Download must authorize document visibility before reading bytes",
+      "status": "FAIL",
+      "detail": "Cannot read properties of undefined (reading 'x-forwarded-for')"
+    },
+    {
+      "id": "FOLDER-MOVE",
+      "name": "Unassigned user must not move another user document into private folder",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "READ-TIMESTAMP",
+      "name": "Mark notification read must record read_at",
+      "status": "FAIL",
+      "detail": "is_read changes without read_at"
+    },
+    {
+      "id": "USER-DELETED",
+      "name": "Existing JWT for deleted user must be rejected",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "USER-DEPARTMENT",
+      "name": "Authenticated user must include department ID for visibility checks",
+      "status": "FAIL",
+      "detail": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'dept-1'\n"
+    },
+    {
+      "id": "TYPE-INACTIVE",
+      "name": "Disabled document type must reject new documents",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "MASTER-SOFT-DELETE",
+      "name": "Unused department must still use soft delete",
+      "status": "FAIL",
+      "detail": "Department is physically deleted\n\ntrue !== false\n"
+    },
+    {
+      "id": "RUNNING-PARTIAL",
+      "name": "Partial running-number update must not write NaN year",
+      "status": "FAIL",
+      "detail": "Omitted last_reset_year becomes NaN"
+    },
+    {
+      "id": "SIGNATURE-FORMAT",
+      "name": "Unsupported SVG signature must be rejected before persistence",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "VERSION-BK-SNAPSHOT",
+      "name": "Historical BK PDF must use saved content instead of current form",
+      "status": "FAIL",
+      "detail": "Historical BK PDF uses live form content"
+    },
+    {
+      "id": "VERSION-EDIT-SNAPSHOT",
+      "name": "Editing returned form must preserve rejected version snapshot",
+      "status": "FAIL",
+      "detail": "Existing historical form_data overwritten\n\n1 !== 0\n"
+    },
+    {
+      "id": "PENDING-EDIT",
+      "name": "Editing Pending must not leave document Draft and workflow Pending",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "RUNNING-CONCURRENT",
+      "name": "Concurrent creation must not allocate identical document numbers",
+      "status": "FAIL",
+      "detail": "Two concurrent readers allocate identical number; one document fails (simulated READ COMMITTED interleaving)\n\n1 !== 2\n"
+    },
+    {
+      "id": "NORMAL-NOTIFICATION-OWNER",
+      "name": "Mark-read query is scoped to current user",
+      "status": "PASS"
+    },
+    {
+      "id": "HTTP-NORMAL-AUTH",
+      "name": "Anonymous document detail returns 401",
+      "status": "PASS"
+    },
+    {
+      "id": "HTTP-NORMAL-VISIBILITY",
+      "name": "Restricted detail returns 403 to unrelated user",
+      "status": "PASS"
+    },
+    {
+      "id": "HTTP-PUBLIC-WORKFLOW",
+      "name": "Anonymous workflow request must return 401",
+      "status": "FAIL",
+      "detail": "expected 401 \"Unauthorized\", got 200 \"OK\""
+    },
+    {
+      "id": "HTTP-PUBLIC-SIGNATURE",
+      "name": "Anonymous raw signature request must return 401",
+      "status": "FAIL",
+      "detail": "expected 401 \"Unauthorized\", got 200 \"OK\""
+    },
+    {
+      "id": "HTTP-DOWNLOAD",
+      "name": "Restricted PDF download must return 403 to unrelated user",
+      "status": "FAIL",
+      "detail": "expected 403 \"Forbidden\", got 200 \"OK\""
+    },
+    {
+      "id": "HTTP-MASTER-MUTATION",
+      "name": "Empty-permission user must not change master approval workflow",
+      "status": "FAIL",
+      "detail": "expected 403 \"Forbidden\", got 200 \"OK\""
+    }
+  ]
+}

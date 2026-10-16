@@ -15,13 +15,13 @@ import {
   Workflow,
   X,
 } from "lucide-react";
-import { useToast } from '@views/components/providers/ToastProvider';
+import { useToast } from "@views/components/providers/ToastProvider";
 import { swalConfirm } from "@/lib/swal";
-import { useSidebar } from '@views/components/providers/SidebarProvider';
-import { useAuth } from '@views/components/providers/AuthProvider';
-import { adminService } from '@/controllers/services/admin.service';
+import { useSidebar } from "@views/components/providers/SidebarProvider";
+import { useAuth } from "@views/components/providers/AuthProvider";
+import { api } from "@/lib";
+import { adminService } from "@/controllers/services/admin.service";
 import {
-
   ROLE_OPTIONS,
   type DepartmentRecord,
   type DocumentTypeRecord,
@@ -30,16 +30,19 @@ import {
   type RoleOption,
   type SignatureRecord,
   type WorkflowRecord,
-} from '@views/features/master-data';
+} from "@views/features/master-data";
 import {
   countUsersInDepartment,
   countUsersWithPosition,
   formatApproverLabel,
   getApproverUsers,
   LEVEL_OPTIONS,
-} from '@views/features/roles-users';
-import { DocumentRunningTab, WorkflowTab } from '@views/features/master-data/components';
-import { useSignatures } from '@views/components/providers/SignatureProvider';
+} from "@views/features/roles-users";
+import {
+  DocumentRunningTab,
+  WorkflowTab,
+} from "@views/features/master-data/components";
+import { useSignatures } from "@views/components/providers/SignatureProvider";
 import {
   InactiveFilterCheckbox,
   MD_MASTER_ADD_BTN,
@@ -70,9 +73,10 @@ import {
   StatCards,
   StatusBadge,
   StatusFormToggle,
-} from '@views/components/ui/admin';
+} from "@views/components/ui/admin";
 
-type TabKey = "doctype" | "department" | "position" | "workflow" | "signature" | "running";
+type TabKey =
+  "doctype" | "department" | "position" | "workflow" | "signature" | "running";
 type DataTabKey = Exclude<TabKey, "running">;
 
 interface DocTypeRow extends MasterDocumentTypeRecord {}
@@ -151,12 +155,17 @@ function validateDoctypeName(name: string): string | undefined {
 function validateDoctypePrefix(
   prefix: string,
   rows: DocTypeRow[],
-  editingId: string | null
+  editingId: string | null,
 ): string | undefined {
   const normalized = prefix.trim().toUpperCase();
   if (!normalized) return "กรุณากรอก Prefix";
-  if (!PREFIX_RE.test(normalized)) return "Prefix ต้องเป็นตัวอักษรหรือตัวเลข 2-5 ตัว";
-  if (rows.some((r) => r.prefix.toUpperCase() === normalized && r.id !== editingId)) {
+  if (!PREFIX_RE.test(normalized))
+    return "Prefix ต้องเป็นตัวอักษรหรือตัวเลข 2-5 ตัว";
+  if (
+    rows.some(
+      (r) => r.prefix.toUpperCase() === normalized && r.id !== editingId,
+    )
+  ) {
     return "รหัสนี้ถูกใช้งานแล้ว";
   }
   return undefined;
@@ -165,7 +174,7 @@ function validateDoctypePrefix(
 function validateDoctypeForm(
   form: FormState,
   rows: DocTypeRow[],
-  editingId: string | null
+  editingId: string | null,
 ): FormErrors {
   const errors: FormErrors = {};
   const nameError = validateDoctypeName(form.name);
@@ -188,7 +197,11 @@ function modalFormSnapshot(form: FormState, tab: TabKey): string {
     case "doctype":
       return doctypeFormSnapshot(form);
     case "department":
-      return JSON.stringify({ name: form.name, code: form.code, isActive: form.isActive });
+      return JSON.stringify({
+        name: form.name,
+        code: form.code,
+        isActive: form.isActive,
+      });
     case "position":
       return JSON.stringify({
         name: form.name,
@@ -206,7 +219,10 @@ function modalFormSnapshot(form: FormState, tab: TabKey): string {
       });
     }
     case "signature":
-      return JSON.stringify({ approverName: form.approverName, isActive: form.isActive });
+      return JSON.stringify({
+        approverName: form.approverName,
+        isActive: form.isActive,
+      });
     default:
       return "";
   }
@@ -215,7 +231,7 @@ function modalFormSnapshot(form: FormState, tab: TabKey): string {
 function validateDepartmentName(
   name: string,
   rows: DepartmentRow[],
-  editingId: string | null
+  editingId: string | null,
 ): string | undefined {
   const trimmed = name.trim();
   if (!trimmed) return "กรุณากรอกชื่อแผนก";
@@ -230,12 +246,14 @@ function validateDepartmentName(
 function validateDepartmentCode(
   code: string,
   rows: DepartmentRow[],
-  editingId: string | null
+  editingId: string | null,
 ): string | undefined {
   const normalized = code.trim().toUpperCase();
   if (!normalized) return "กรุณากรอกรหัส";
   if (!DEPT_CODE_RE.test(normalized)) return "รหัสต้องเป็นตัวพิมพ์ใหญ่ 2-6 ตัว";
-  if (rows.some((r) => r.code.toUpperCase() === normalized && r.id !== editingId)) {
+  if (
+    rows.some((r) => r.code.toUpperCase() === normalized && r.id !== editingId)
+  ) {
     return "รหัสนี้ถูกใช้งานแล้ว";
   }
   return undefined;
@@ -244,7 +262,7 @@ function validateDepartmentCode(
 function validateDepartmentForm(
   form: FormState,
   rows: DepartmentRow[],
-  editingId: string | null
+  editingId: string | null,
 ): FormErrors {
   const errors: FormErrors = {};
   const nameError = validateDepartmentName(form.name, rows, editingId);
@@ -257,7 +275,7 @@ function validateDepartmentForm(
 function validatePositionName(
   name: string,
   rows: PositionRow[],
-  editingId: string | null
+  editingId: string | null,
 ): string | undefined {
   const trimmed = name.trim();
   if (!trimmed) return "กรุณากรอกชื่อตำแหน่ง";
@@ -268,7 +286,11 @@ function validatePositionName(
   return undefined;
 }
 
-function validatePositionForm(form: FormState, rows: PositionRow[], editingId: string | null): FormErrors {
+function validatePositionForm(
+  form: FormState,
+  rows: PositionRow[],
+  editingId: string | null,
+): FormErrors {
   const errors: FormErrors = {};
   const nameError = validatePositionName(form.name, rows, editingId);
   if (nameError) errors.name = nameError;
@@ -278,7 +300,7 @@ function validatePositionForm(form: FormState, rows: PositionRow[], editingId: s
 function validateWorkflowForm(
   form: FormState,
   rows: WorkflowRow[],
-  editingId: string | null
+  editingId: string | null,
 ): FormErrors {
   const errors: FormErrors = {};
   const name = form.name.trim();
@@ -295,12 +317,14 @@ function validateWorkflowForm(
 function validateSignatureForm(
   form: FormState,
   rows: SignatureRow[],
-  editingId: string | null
+  editingId: string | null,
 ): FormErrors {
   const errors: FormErrors = {};
 
   if (!form.approverName) errors.approverName = "กรุณาเลือกผู้อนุมัติ";
-  else if (rows.some((r) => r.approverName === form.approverName && r.id !== editingId)) {
+  else if (
+    rows.some((r) => r.approverName === form.approverName && r.id !== editingId)
+  ) {
     errors.approverName = "ผู้อนุมัตินี้มีลายเซ็นในระบบแล้ว";
   }
 
@@ -340,7 +364,7 @@ function buildEmptyForm(departments: DepartmentRow[]): FormState {
 function getDeleteGuard(
   tab: DataTabKey,
   row: TabData[DataTabKey][number],
-  data: TabData
+  data: TabData,
 ): { blocked: boolean; tooltip: string } {
   if (tab === "department") {
     const r = row as DepartmentRow;
@@ -381,11 +405,24 @@ function MasterDataPageContent() {
   const { showToast } = useToast();
   const { isOpen } = useSidebar();
   const { user } = useAuth();
-  const hasPerm = (itemKey: string, action: string = 'view') =>
-    user?.role === "Administrator" || !!user?.permissions?.includes(`masterdata.${itemKey}:${action}`);
+  const hasPerm = (itemKey: string, action: string = "view") =>
+    user?.role === "Administrator" ||
+    !!user?.permissions?.includes(`masterdata.${itemKey}:${action}`);
 
-  const { signatures, saveSignatureRecord, toggleSignatureActive } = useSignatures();
+  const { signatures, saveSignatureRecord, toggleSignatureActive } =
+    useSignatures();
   const [activeTab, setActiveTab] = useState<TabKey>("department");
+  const [roleNames, setRoleNames] = useState<string[]>([]);
+  useEffect(() => {
+    api
+      .get<any[]>("/api/admin/roles")
+      .then((r) =>
+        setRoleNames(
+          r.data.filter((role) => role.is_active).map((role) => role.name),
+        ),
+      )
+      .catch(() => {});
+  }, []);
   const [data, setData] = useState<TabData>(EMPTY_TAB_DATA);
   const [showDeleted, setShowDeleted] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -394,12 +431,20 @@ function MasterDataPageContent() {
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [modalBaseline, setModalBaseline] = useState("");
   const [saving, setSaving] = useState(false);
-  const [previewSignatureUrl, setPreviewSignatureUrl] = useState<string | null>(null);
+  const [previewSignatureUrl, setPreviewSignatureUrl] = useState<string | null>(
+    null,
+  );
   const [previewSignatureName, setPreviewSignatureName] = useState<string>("");
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    const valid: TabKey[] = ["department", "position", "workflow", "signature", "running"];
+    const valid: TabKey[] = [
+      "department",
+      "position",
+      "workflow",
+      "signature",
+      "running",
+    ];
     if (tab === "formtype") {
       setActiveTab("department");
     } else if (tab && valid.includes(tab as TabKey)) {
@@ -417,51 +462,77 @@ function MasterDataPageContent() {
           adminService.getApprovalWorkflowsList().catch(() => []),
           adminService.getSignaturesList().catch(() => []),
         ]);
-        
-        setData(prev => ({
+
+        setData((prev) => ({
           ...prev,
-          department: depts.length > 0 ? depts.map((d: any) => ({
-            id: d.id,
-            name: d.name,
-            code: d.code && d.code !== "แผน" ? d.code : (() => {
-              const name = d.name || "";
-              if (name.includes("คลัง") || name.includes("จัดส่ง")) return "WH";
-              if (name.includes("จัดซื้อ")) return "PUR";
-              if (name.includes("ทรัพยากรบุคคล")) return "HR";
-              if (name.includes("เทคโนโลยี") || name.includes("สารสนเทศ")) return "IT";
-              if (name.includes("บัญชี") || name.includes("การเงิน")) return "ACC";
-              if (name.includes("ผลิต")) return "PROD";
-              if (name.includes("วิศวกรรม") || name.includes("ซ่อมบำรุง")) return "ENG";
-              if (name.includes("บริหาร")) return "GA";
-              if (name.includes("ประกันคุณภาพ")) return "QA";
-              const clean = name.replace(/^แผนก/, "").trim();
-              return clean.substring(0, 4).toUpperCase() || "DEPT";
-            })(),
-            employeeCount: d.employeeCount || 0,
-            isActive: d.is_active,
-          })) : prev.department,
-          position: pos.length > 0 ? pos.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            level: p.level || "L1",
-            isActive: p.is_active,
-            employeeCount: p._count?.users || 0,
-          })) : prev.position,
-          doctype: docTs.length > 0 ? docTs.map((dt: any) => ({
-            id: dt.id,
-            name: dt.type_name,
-            prefix: dt.prefix,
-            docCount: 0,
-            isActive: dt.is_active,
-          })) : prev.doctype,
+          department:
+            depts.length > 0
+              ? depts.map((d: any) => ({
+                  id: d.id,
+                  name: d.name,
+                  code:
+                    d.code && d.code !== "แผน"
+                      ? d.code
+                      : (() => {
+                          const name = d.name || "";
+                          if (name.includes("คลัง") || name.includes("จัดส่ง"))
+                            return "WH";
+                          if (name.includes("จัดซื้อ")) return "PUR";
+                          if (name.includes("ทรัพยากรบุคคล")) return "HR";
+                          if (
+                            name.includes("เทคโนโลยี") ||
+                            name.includes("สารสนเทศ")
+                          )
+                            return "IT";
+                          if (
+                            name.includes("บัญชี") ||
+                            name.includes("การเงิน")
+                          )
+                            return "ACC";
+                          if (name.includes("ผลิต")) return "PROD";
+                          if (
+                            name.includes("วิศวกรรม") ||
+                            name.includes("ซ่อมบำรุง")
+                          )
+                            return "ENG";
+                          if (name.includes("บริหาร")) return "GA";
+                          if (name.includes("ประกันคุณภาพ")) return "QA";
+                          const clean = name.replace(/^แผนก/, "").trim();
+                          return clean.substring(0, 4).toUpperCase() || "DEPT";
+                        })(),
+                  employeeCount: d.employeeCount || 0,
+                  isActive: d.is_active,
+                }))
+              : prev.department,
+          position:
+            pos.length > 0
+              ? pos.map((p: any) => ({
+                  id: p.id,
+                  name: p.name,
+                  level: p.level || "L1",
+                  isActive: p.is_active,
+                  employeeCount: p._count?.users || 0,
+                }))
+              : prev.position,
+          doctype:
+            docTs.length > 0
+              ? docTs.map((dt: any) => ({
+                  id: dt.id,
+                  name: dt.type_name,
+                  prefix: dt.prefix,
+                  docCount: dt.doc_count || 0,
+                  isActive: dt.is_active,
+                }))
+              : prev.doctype,
           workflow: (wfs as any[]).length > 0 ? (wfs as any[]) : prev.workflow,
-          signature: (sigs as any[]).length > 0 ? (sigs as any[]) : prev.signature,
+          signature:
+            (sigs as any[]).length > 0 ? (sigs as any[]) : prev.signature,
         }));
       } catch (err) {
         console.error("Failed to fetch master data", err);
       }
     };
-    
+
     fetchData();
   }, []);
 
@@ -472,15 +543,22 @@ function MasterDataPageContent() {
   const rows = useMemo(() => {
     if (activeTab === "running") return [];
     const list =
-      activeTab === "signature" ? effectiveSignatures : data[activeTab as DataTabKey];
-    return showDeleted ? list.filter((r) => !r.isActive) : list.filter((r) => r.isActive);
+      activeTab === "signature"
+        ? effectiveSignatures
+        : data[activeTab as DataTabKey];
+    return showDeleted
+      ? list.filter((r) => !r.isActive)
+      : list.filter((r) => r.isActive);
   }, [data, activeTab, showDeleted, effectiveSignatures]);
 
-  const tabLabel = TABS.find((t) => t.key === activeTab)?.label ?? "Master Data";
+  const tabLabel =
+    TABS.find((t) => t.key === activeTab)?.label ?? "Master Data";
   const tabStats = useMemo(() => {
     if (activeTab === "running") return { total: 0, active: 0, deleted: 0 };
     const list =
-      activeTab === "signature" ? effectiveSignatures : data[activeTab as DataTabKey];
+      activeTab === "signature"
+        ? effectiveSignatures
+        : data[activeTab as DataTabKey];
     return {
       total: list.length,
       active: list.filter((r) => r.isActive).length,
@@ -499,7 +577,10 @@ function MasterDataPageContent() {
 
   const openEdit = (id: string) => {
     setEditingId(id);
-    const list = activeTab === "signature" ? effectiveSignatures : data[activeTab as DataTabKey];
+    const list =
+      activeTab === "signature"
+        ? effectiveSignatures
+        : data[activeTab as DataTabKey];
     const row = list.find((r) => r.id === id);
     if (!row) return;
 
@@ -507,9 +588,10 @@ function MasterDataPageContent() {
 
     if (activeTab === "workflow") {
       const wf = row as WorkflowRow;
-      const initialSteps: RoleOption[] = (wf.steps && wf.steps.length > 0)
-        ? [...wf.steps]
-        : ["หัวหน้าแผนก", "ผู้บริหาร", "ผู้ดูแลระบบ"];
+      const initialSteps: RoleOption[] =
+        wf.steps && wf.steps.length > 0
+          ? [...wf.steps]
+          : ["หัวหน้าแผนก", "ผู้บริหาร", "ผู้ดูแลระบบ"];
       while (initialSteps.length < wf.levels) {
         initialSteps.push(ROLE_OPTIONS[0]);
       }
@@ -587,15 +669,30 @@ function MasterDataPageContent() {
   const isModalValid = useMemo(() => {
     switch (activeTab) {
       case "doctype":
-        return Object.keys(validateDoctypeForm(form, data.doctype, editingId)).length === 0;
+        return (
+          Object.keys(validateDoctypeForm(form, data.doctype, editingId))
+            .length === 0
+        );
       case "department":
-        return Object.keys(validateDepartmentForm(form, data.department, editingId)).length === 0;
+        return (
+          Object.keys(validateDepartmentForm(form, data.department, editingId))
+            .length === 0
+        );
       case "position":
-        return Object.keys(validatePositionForm(form, data.position, editingId)).length === 0;
+        return (
+          Object.keys(validatePositionForm(form, data.position, editingId))
+            .length === 0
+        );
       case "workflow":
-        return Object.keys(validateWorkflowForm(form, data.workflow, editingId)).length === 0;
+        return (
+          Object.keys(validateWorkflowForm(form, data.workflow, editingId))
+            .length === 0
+        );
       case "signature":
-        return Object.keys(validateSignatureForm(form, data.signature, editingId)).length === 0;
+        return (
+          Object.keys(validateSignatureForm(form, data.signature, editingId))
+            .length === 0
+        );
       default:
         return true;
     }
@@ -643,46 +740,84 @@ function MasterDataPageContent() {
 
     const wasEditing = !!editingId;
     setSaving(true);
-    
+
+    let persistedId = editingId;
     try {
       if (activeTab === "department") {
         if (wasEditing && editingId) {
-          await adminService.updateDepartment(editingId, { name: form.name.trim(), is_active: form.isActive });
+          await adminService.updateDepartment(editingId, {
+            name: form.name.trim(),
+            is_active: form.isActive,
+          });
         } else {
-          await adminService.createDepartment(form.name.trim());
+          persistedId = (await adminService.createDepartment(form.name.trim()))
+            .id;
         }
       } else if (activeTab === "position") {
         if (wasEditing && editingId) {
-          await adminService.updatePosition(editingId, { name: form.name.trim(), level: form.level, is_active: form.isActive });
+          await adminService.updatePosition(editingId, {
+            name: form.name.trim(),
+            level: form.level,
+            is_active: form.isActive,
+          });
         } else {
-          await adminService.createPosition({ name: form.name.trim(), level: form.level });
+          persistedId = (
+            await adminService.createPosition({
+              name: form.name.trim(),
+              level: form.level,
+            })
+          ).id;
         }
       } else if (activeTab === "doctype") {
         if (wasEditing && editingId) {
-          await adminService.updateDocumentType(editingId, { type_name: form.name.trim(), prefix: form.prefix.trim().toUpperCase(), is_active: form.isActive });
+          await adminService.updateDocumentType(editingId, {
+            type_name: form.name.trim(),
+            prefix: form.prefix.trim().toUpperCase(),
+            is_active: form.isActive,
+          });
         } else {
-          await adminService.createDocumentType({ type_name: form.name.trim(), prefix: form.prefix.trim().toUpperCase() });
+          persistedId = (
+            await adminService.createDocumentType({
+              type_name: form.name.trim(),
+              prefix: form.prefix.trim().toUpperCase(),
+            })
+          ).id;
         }
       } else if (activeTab === "workflow") {
         const num = Number(form.levels);
         const levels = num >= 1 && num <= 4 ? num : 3;
-        const steps = (form.workflowSteps && form.workflowSteps.length > 0)
-          ? [...form.workflowSteps.slice(0, levels)]
-          : [];
+        const steps =
+          form.workflowSteps && form.workflowSteps.length > 0
+            ? [...form.workflowSteps.slice(0, levels)]
+            : [];
         // Ensure steps array is filled up to levels
-        while (steps.length < levels) steps.push(ROLE_OPTIONS[0]); 
-        
+        while (steps.length < levels)
+          steps.push((roleNames[0] || "") as RoleOption);
+
         const prefix = form.prefix || "PR";
-        const docType = data.doctype.find((d: any) => d.id === editingId || d.prefix === prefix || d.typeName === form.name);
+        const docType = data.doctype.find(
+          (d: any) =>
+            d.id === editingId ||
+            d.prefix === prefix ||
+            d.typeName === form.name,
+        );
         const targetDocTypeId = editingId || docType?.id;
         if (targetDocTypeId) {
-          await adminService.updateApprovalWorkflow(targetDocTypeId, { levels, steps });
+          await adminService.updateApprovalWorkflow(targetDocTypeId, {
+            levels,
+            steps,
+          });
         }
       } else if (activeTab === "signature") {
-        // Signatures are normally updated via user profile, but this mocks the admin edit
-        if (wasEditing && editingId) {
-          // not implemented in backend yet for direct signature upload via admin
-        }
+        const signatureId =
+          editingId ||
+          signatures.find((row) => row.approverName === form.approverName)?.id;
+        if (!signatureId) throw new Error("กรุณาเลือกผู้ใช้ที่มีอยู่ในระบบ");
+        if (form.imageUrl?.startsWith("data:") || !form.isActive)
+          await api.patch(`/api/admin/signatures/${signatureId}`, {
+            imageUrl: form.isActive ? form.imageUrl : null,
+          });
+        persistedId = signatureId;
       }
     } catch (err) {
       showToast(`Failed to save to database: ${String(err)}`, "error");
@@ -690,7 +825,7 @@ function MasterDataPageContent() {
       return; // Do not update local state on failure
     }
 
-    const id = editingId ?? uid();
+    const id = persistedId ?? editingId ?? uid();
 
     setData((prev) => {
       switch (activeTab) {
@@ -741,15 +876,17 @@ function MasterDataPageContent() {
           const num = Number(form.levels);
           const levels = num >= 1 && num <= 4 ? num : 3;
           const prefix = form.prefix || "PR";
-          const steps: RoleOption[] = (form.workflowSteps && form.workflowSteps.length > 0)
-            ? [...form.workflowSteps.slice(0, levels)]
-            : [ROLE_OPTIONS[0]];
+          const steps: RoleOption[] =
+            form.workflowSteps && form.workflowSteps.length > 0
+              ? [...form.workflowSteps.slice(0, levels)]
+              : [ROLE_OPTIONS[0]];
           while (steps.length < levels) {
-            steps.push(ROLE_OPTIONS[0]);
+            steps.push((roleNames[0] || "") as RoleOption);
           }
 
           const docType = data.doctype.find((d) => d.prefix === prefix);
-          const documentTypeId = docType?.id ?? `doc-type-${prefix.toLowerCase()}`;
+          const documentTypeId =
+            docType?.id ?? `doc-type-${prefix.toLowerCase()}`;
 
           const row: WorkflowRow = {
             id,
@@ -777,8 +914,12 @@ function MasterDataPageContent() {
             isActive: form.isActive,
             imageUrl: form.imageUrl || existing?.imageUrl,
           };
-          saveSignatureRecord(row);
-          return prev;
+          return {
+            ...prev,
+            signature: prev.signature.some((s) => s.id === row.id)
+              ? prev.signature.map((s) => (s.id === row.id ? row : s))
+              : [...prev.signature, row],
+          };
         }
         default:
           return prev;
@@ -793,15 +934,26 @@ function MasterDataPageContent() {
     setModalBaseline("");
     showToast(
       wasEditing ? `แก้ไข${tabLabel}สำเร็จ` : `เพิ่ม${tabLabel}สำเร็จ`,
-      "success"
+      "success",
     );
   };
 
   const softDelete = async (id: string) => {
     if (activeTab === "running") return;
     if (activeTab === "signature") {
-      toggleSignatureActive(id);
-      showToast("ปิดใช้งานลายเซ็นสำเร็จ", "success");
+      try {
+        await api.patch(`/api/admin/signatures/${id}`, { imageUrl: null });
+        toggleSignatureActive(id);
+        setData((prev) => ({
+          ...prev,
+          signature: prev.signature.map((s) =>
+            s.id === id ? { ...s, imageUrl: undefined, isActive: false } : s,
+          ),
+        }));
+        showToast("ปิดใช้งานลายเซ็นแล้ว", "success");
+      } catch (error) {
+        showToast(String(error), "error");
+      }
       return;
     }
     const row = data[activeTab as DataTabKey].find((r) => r.id === id);
@@ -817,11 +969,15 @@ function MasterDataPageContent() {
         await adminService.deleteDepartment(id);
       } else if (activeTab === "doctype") {
         await adminService.updateDocumentType(id, { is_active: false });
+      } else if (activeTab === "workflow") {
+        await api.patch(`/api/admin/workflows/${id}`, { is_active: false });
       }
 
       setData((prev) => ({
         ...prev,
-        [activeTab]: prev[activeTab as DataTabKey].filter((r) => r.id !== id),
+        [activeTab]: prev[activeTab as DataTabKey].map((r) =>
+          r.id === id ? { ...r, isActive: false } : r,
+        ),
       }));
       showToast("ลบข้อมูลสำเร็จ", "success");
     } catch (err) {
@@ -831,8 +987,7 @@ function MasterDataPageContent() {
 
   const restore = async (id: string) => {
     if (activeTab === "signature") {
-      toggleSignatureActive(id);
-      showToast("กู้คืนสถานะลายเซ็นสำเร็จ", "success");
+      showToast("กรุณาแก้ไขและอัปโหลดรูปใหม่เพื่อเปิดใช้งานลายเซ็น", "error");
       return;
     }
     try {
@@ -842,11 +997,15 @@ function MasterDataPageContent() {
         await adminService.updateDepartment(id, { is_active: true });
       } else if (activeTab === "doctype") {
         await adminService.updateDocumentType(id, { is_active: true });
+      } else if (activeTab === "workflow") {
+        await api.patch(`/api/admin/workflows/${id}`, { is_active: true });
       }
 
       setData((prev) => ({
         ...prev,
-        [activeTab]: prev[activeTab as DataTabKey].map((r) => (r.id === id ? { ...r, isActive: true } : r)),
+        [activeTab]: prev[activeTab as DataTabKey].map((r) =>
+          r.id === id ? { ...r, isActive: true } : r,
+        ),
       }));
       showToast("กู้คืนข้อมูลสำเร็จ", "success");
     } catch (err) {
@@ -856,7 +1015,7 @@ function MasterDataPageContent() {
 
   const signatureGuardData = useMemo(
     () => ({ ...data, signature: effectiveSignatures }),
-    [data, effectiveSignatures]
+    [data, effectiveSignatures],
   );
 
   const mobileRows = useMemo(() => {
@@ -865,32 +1024,40 @@ function MasterDataPageContent() {
     return rows.map((row) => {
       let canEdit = false;
       let canDelete = false;
-      if (activeTab === 'department') {
-        canEdit = hasPerm('departments', 'edit');
-        canDelete = hasPerm('departments', 'delete');
-      } else if (activeTab === 'position') {
-        canEdit = hasPerm('positions', 'edit');
-        canDelete = hasPerm('positions', 'delete');
-      } else if (activeTab === 'doctype') {
-        canEdit = hasPerm('doc_types', 'edit');
-        canDelete = hasPerm('doc_types', 'delete');
-      } else if (activeTab === 'signature') {
-        canEdit = hasPerm('signatures', 'edit');
-        canDelete = hasPerm('signatures', 'delete');
+      if (activeTab === "department") {
+        canEdit = hasPerm("departments", "edit");
+        canDelete = hasPerm("departments", "delete");
+      } else if (activeTab === "position") {
+        canEdit = hasPerm("positions", "edit");
+        canDelete = hasPerm("positions", "delete");
+      } else if (activeTab === "doctype") {
+        canEdit = hasPerm("doc_types", "edit");
+        canDelete = hasPerm("doc_types", "delete");
+      } else if (activeTab === "signature") {
+        canEdit = hasPerm("signatures", "edit");
+        canDelete = hasPerm("signatures", "delete");
       }
-      
-      const guard = getDeleteGuard(activeTab as DataTabKey, row, signatureGuardData);
+
+      const guard = getDeleteGuard(
+        activeTab as DataTabKey,
+        row,
+        signatureGuardData,
+      );
       const actions =
         activeTab === "signature" ? undefined : row.isActive ? (
-        <RowActions
-          onEdit={canEdit ? () => openEdit(row.id) : undefined}
-          onDelete={canDelete && activeTab !== "position" ? () => softDelete(row.id) : undefined}
-          deleteBlocked={guard.blocked}
-          deleteTooltip={guard.tooltip}
-        />
-      ) : (
-        <RowActions onRestore={() => restore(row.id)} />
-      );
+          <RowActions
+            onEdit={canEdit ? () => openEdit(row.id) : undefined}
+            onDelete={
+              canDelete && activeTab !== "position"
+                ? () => softDelete(row.id)
+                : undefined
+            }
+            deleteBlocked={guard.blocked}
+            deleteTooltip={guard.tooltip}
+          />
+        ) : (
+          <RowActions onRestore={() => restore(row.id)} />
+        );
 
       switch (activeTab) {
         case "doctype": {
@@ -974,7 +1141,10 @@ function MasterDataPageContent() {
       }
       case "department": {
         const r = row as DepartmentRow;
-        const count = Math.max(Number(r.employeeCount || 0), countUsersInDepartment(r.name));
+        const count = Math.max(
+          Number(r.employeeCount || 0),
+          countUsersInDepartment(r.name),
+        );
         return (
           <>
             <td className={tdSticky}>{r.name}</td>
@@ -1011,7 +1181,9 @@ function MasterDataPageContent() {
                 <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
                   {r.approverName.slice(0, 2)}
                 </div>
-                <span className="font-medium text-slate-800">{r.approverName}</span>
+                <span className="font-medium text-slate-800">
+                  {r.approverName}
+                </span>
               </div>
             </td>
             <td className={tdMuted}>{r.position || "—"}</td>
@@ -1104,7 +1276,7 @@ function MasterDataPageContent() {
 
   const activeDepartments = useMemo(
     () => data.department.filter((d) => d.isActive),
-    [data.department]
+    [data.department],
   );
 
   const setFieldError = (key: string, err: string | undefined) => {
@@ -1127,7 +1299,10 @@ function MasterDataPageContent() {
   };
 
   const renderStatusToggle = () => (
-    <StatusFormToggle active={form.isActive} onChange={(isActive) => setForm((f) => ({ ...f, isActive }))} />
+    <StatusFormToggle
+      active={form.isActive}
+      onChange={(isActive) => setForm((f) => ({ ...f, isActive }))}
+    />
   );
 
   const renderReadOnlyCount = (label: string, value: string, hint: string) => (
@@ -1180,19 +1355,30 @@ function MasterDataPageContent() {
                 {form.name.length}/50
               </span>
             </div>
-            {formErrors.name && <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>}
+            {formErrors.name && (
+              <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>
+            )}
           </div>
           <div className="mb-3">
-            <label className="mb-1.5 block text-xs text-slate-500">Prefix</label>
+            <label className="mb-1.5 block text-xs text-slate-500">
+              Prefix
+            </label>
             <input
               type="text"
               value={form.prefix}
               maxLength={5}
               onChange={(e) => {
-                const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
+                const value = e.target.value
+                  .toUpperCase()
+                  .replace(/[^A-Z0-9]/g, "")
+                  .slice(0, 5);
                 setForm((f) => ({ ...f, prefix: value }));
                 if (formErrors.prefix) {
-                  const err = validateDoctypePrefix(value, data.doctype, editingId);
+                  const err = validateDoctypePrefix(
+                    value,
+                    data.doctype,
+                    editingId,
+                  );
                   setFormErrors((prev) => {
                     const next = { ...prev };
                     if (err) next.prefix = err;
@@ -1202,7 +1388,11 @@ function MasterDataPageContent() {
                 }
               }}
               onBlur={() => {
-                const err = validateDoctypePrefix(form.prefix, data.doctype, editingId);
+                const err = validateDoctypePrefix(
+                  form.prefix,
+                  data.doctype,
+                  editingId,
+                );
                 setFormErrors((prev) => {
                   const next = { ...prev };
                   if (err) next.prefix = err;
@@ -1215,9 +1405,16 @@ function MasterDataPageContent() {
             <p className="mt-1 text-xs text-slate-400">
               ตัวอย่าง: {prefixPreview}-2569-0001
             </p>
-            {formErrors.prefix && <p className="mt-1 text-xs text-red-500">{formErrors.prefix}</p>}
+            {formErrors.prefix && (
+              <p className="mt-1 text-xs text-red-500">{formErrors.prefix}</p>
+            )}
           </div>
-          {editingId && renderReadOnlyCount("จำนวนเอกสาร", form.docCount, "นับอัตโนมัติจากเอกสารที่ใช้ประเภทนี้")}
+          {editingId &&
+            renderReadOnlyCount(
+              "จำนวนเอกสาร",
+              form.docCount,
+              "นับอัตโนมัติจากเอกสารที่ใช้ประเภทนี้",
+            )}
           {renderStatusToggle()}
         </>
       );
@@ -1226,7 +1423,9 @@ function MasterDataPageContent() {
       return (
         <>
           <div className="mb-3">
-            <label className="mb-1.5 block text-xs text-slate-500">ชื่อแผนก</label>
+            <label className="mb-1.5 block text-xs text-slate-500">
+              ชื่อแผนก
+            </label>
             <div className="relative">
               <input
                 type="text"
@@ -1236,11 +1435,21 @@ function MasterDataPageContent() {
                   const value = e.target.value.slice(0, 50);
                   setForm((f) => ({ ...f, name: value }));
                   if (formErrors.name) {
-                    setFieldError("name", validateDepartmentName(value, data.department, editingId));
+                    setFieldError(
+                      "name",
+                      validateDepartmentName(value, data.department, editingId),
+                    );
                   }
                 }}
                 onBlur={() =>
-                  setFieldError("name", validateDepartmentName(form.name, data.department, editingId))
+                  setFieldError(
+                    "name",
+                    validateDepartmentName(
+                      form.name,
+                      data.department,
+                      editingId,
+                    ),
+                  )
                 }
                 className={`${formErrors.name ? inputErrorCls : inputCls} pr-14`}
               />
@@ -1248,7 +1457,9 @@ function MasterDataPageContent() {
                 {form.name.length}/50
               </span>
             </div>
-            {formErrors.name && <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>}
+            {formErrors.name && (
+              <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>
+            )}
           </div>
           <div className="mb-3">
             <label className="mb-1.5 block text-xs text-slate-500">รหัส</label>
@@ -1257,20 +1468,36 @@ function MasterDataPageContent() {
               value={form.code}
               maxLength={6}
               onChange={(e) => {
-                const value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 6);
+                const value = e.target.value
+                  .toUpperCase()
+                  .replace(/[^A-Z]/g, "")
+                  .slice(0, 6);
                 setForm((f) => ({ ...f, code: value }));
                 if (formErrors.code) {
-                  setFieldError("code", validateDepartmentCode(value, data.department, editingId));
+                  setFieldError(
+                    "code",
+                    validateDepartmentCode(value, data.department, editingId),
+                  );
                 }
               }}
               onBlur={() =>
-                setFieldError("code", validateDepartmentCode(form.code, data.department, editingId))
+                setFieldError(
+                  "code",
+                  validateDepartmentCode(form.code, data.department, editingId),
+                )
               }
               className={formErrors.code ? inputErrorCls : inputCls}
             />
-            {formErrors.code && <p className="mt-1 text-xs text-red-500">{formErrors.code}</p>}
+            {formErrors.code && (
+              <p className="mt-1 text-xs text-red-500">{formErrors.code}</p>
+            )}
           </div>
-          {editingId && renderReadOnlyCount("จำนวนพนักงาน", form.employeeCount, "นับอัตโนมัติจากพนักงานในแผนก")}
+          {editingId &&
+            renderReadOnlyCount(
+              "จำนวนพนักงาน",
+              form.employeeCount,
+              "นับอัตโนมัติจากพนักงานในแผนก",
+            )}
           {renderStatusToggle()}
         </>
       );
@@ -1284,11 +1511,17 @@ function MasterDataPageContent() {
             onChange={(v) => {
               setForm((f) => ({ ...f, name: v }));
               if (formErrors.name) {
-                setFieldError("name", validatePositionName(v, data.position, editingId));
+                setFieldError(
+                  "name",
+                  validatePositionName(v, data.position, editingId),
+                );
               }
             }}
             onBlur={() =>
-              setFieldError("name", validatePositionName(form.name, data.position, editingId))
+              setFieldError(
+                "name",
+                validatePositionName(form.name, data.position, editingId),
+              )
             }
             inputClassName={formErrors.name ? inputErrorCls : inputCls}
             error={formErrors.name}
@@ -1300,9 +1533,10 @@ function MasterDataPageContent() {
     }
     if (activeTab === "workflow") {
       const levelCount = Number(form.levels) || 3;
-      const currentSteps: RoleOption[] = form.workflowSteps && form.workflowSteps.length > 0
-        ? [...form.workflowSteps]
-        : ["หัวหน้าแผนก", "ผู้บริหาร", "ผู้ดูแลระบบ"];
+      const currentSteps: RoleOption[] =
+        form.workflowSteps && form.workflowSteps.length > 0
+          ? [...form.workflowSteps]
+          : ["หัวหน้าแผนก", "ผู้บริหาร", "ผู้ดูแลระบบ"];
       const steps = currentSteps.slice(0, levelCount);
 
       const updateStepRole = (idx: number, role: RoleOption) => {
@@ -1322,7 +1556,7 @@ function MasterDataPageContent() {
                 const err = validateWorkflowForm(
                   { ...form, name: v },
                   data.workflow,
-                  editingId
+                  editingId,
                 ).name;
                 setFieldError("name", err);
               }
@@ -1330,7 +1564,7 @@ function MasterDataPageContent() {
             onBlur={() => {
               setFieldError(
                 "name",
-                validateWorkflowForm(form, data.workflow, editingId).name
+                validateWorkflowForm(form, data.workflow, editingId).name,
               );
             }}
             inputClassName={formErrors.name ? inputErrorCls : inputCls}
@@ -1338,7 +1572,9 @@ function MasterDataPageContent() {
           />
 
           <div className="mb-3">
-            <label className="mb-1.5 block text-xs text-slate-500">ประเภทเอกสารที่ผูก (Prefix)</label>
+            <label className="mb-1.5 block text-xs text-slate-500">
+              ประเภทเอกสารที่ผูก (Prefix)
+            </label>
             <select
               className={inputCls}
               value={form.prefix || "PR"}
@@ -1355,7 +1591,9 @@ function MasterDataPageContent() {
           </div>
 
           <div className="mb-3">
-            <label className="mb-1.5 block text-xs text-slate-500">จำนวน Level (ระดับการตรวจอนุมัติ)</label>
+            <label className="mb-1.5 block text-xs text-slate-500">
+              จำนวน Level (ระดับการตรวจอนุมัติ)
+            </label>
             <select
               className={inputCls}
               value={form.levels}
@@ -1364,7 +1602,7 @@ function MasterDataPageContent() {
                 setForm((f) => {
                   const nextSteps: RoleOption[] = [...(f.workflowSteps || [])];
                   while (nextSteps.length < levelsNum) {
-                    nextSteps.push(ROLE_OPTIONS[0]);
+                    nextSteps.push((roleNames[0] || "") as RoleOption);
                   }
                   return {
                     ...f,
@@ -1394,10 +1632,12 @@ function MasterDataPageContent() {
                   <div className="flex-1">
                     <select
                       className={inputCls}
-                      value={steps[idx] || (data.position.length > 0 ? data.position[0].name : ROLE_OPTIONS[0])}
-                      onChange={(e) => updateStepRole(idx, e.target.value as RoleOption)}
+                      value={steps[idx] || roleNames[0] || ""}
+                      onChange={(e) =>
+                        updateStepRole(idx, e.target.value as RoleOption)
+                      }
                     >
-                      {(data.position.length > 0 ? data.position.map((p) => p.name) : ROLE_OPTIONS).map((role) => (
+                      {roleNames.map((role) => (
                         <option key={role} value={role}>
                           {role}
                         </option>
@@ -1410,14 +1650,18 @@ function MasterDataPageContent() {
 
             {/* Step flow preview */}
             <div className="mt-3 overflow-x-auto rounded-md border border-blue-100 bg-blue-50/50 p-2.5">
-              <p className="mb-1.5 text-[11px] font-medium text-blue-600">ตัวอย่างสายการอนุมัติ:</p>
+              <p className="mb-1.5 text-[11px] font-medium text-blue-600">
+                ตัวอย่างสายการอนุมัติ:
+              </p>
               <div className="flex flex-wrap items-center gap-1 text-xs">
                 {steps.map((s, i) => (
                   <span key={i} className="flex items-center gap-1">
                     <span className="rounded bg-white px-2 py-0.5 font-medium text-blue-700 border border-blue-200">
                       {s}
                     </span>
-                    {i < steps.length - 1 && <span className="text-slate-400 font-bold">›</span>}
+                    {i < steps.length - 1 && (
+                      <span className="text-slate-400 font-bold">›</span>
+                    )}
                   </span>
                 ))}
               </div>
@@ -1431,7 +1675,9 @@ function MasterDataPageContent() {
     return (
       <>
         <div className="mb-3">
-          <label className="mb-1.5 block text-xs text-slate-500">ชื่อผู้อนุมัติ</label>
+          <label className="mb-1.5 block text-xs text-slate-500">
+            ชื่อผู้อนุมัติ
+          </label>
           {editingId ? (
             <div className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-slate-500 font-medium">
               {form.approverName}
@@ -1452,17 +1698,22 @@ function MasterDataPageContent() {
                   setFieldError(
                     "approverName",
                     validateSignatureForm(
-                      { ...form, approverName: name, position: user?.position ?? "" },
+                      {
+                        ...form,
+                        approverName: name,
+                        position: user?.position ?? "",
+                      },
                       data.signature,
-                      editingId
-                    ).approverName
+                      editingId,
+                    ).approverName,
                   );
                 }
               }}
               onBlur={() =>
                 setFieldError(
                   "approverName",
-                  validateSignatureForm(form, data.signature, editingId).approverName
+                  validateSignatureForm(form, data.signature, editingId)
+                    .approverName,
                 )
               }
             >
@@ -1474,7 +1725,11 @@ function MasterDataPageContent() {
               ))}
             </select>
           )}
-          {formErrors.approverName && !editingId && <p className="mt-1 text-xs text-red-500">{formErrors.approverName}</p>}
+          {formErrors.approverName && !editingId && (
+            <p className="mt-1 text-xs text-red-500">
+              {formErrors.approverName}
+            </p>
+          )}
         </div>
         <div className="mb-3">
           <label className="mb-1.5 block text-xs text-slate-500">ตำแหน่ง</label>
@@ -1483,7 +1738,9 @@ function MasterDataPageContent() {
           </div>
         </div>
         <div className="mb-3">
-          <label className="mb-1.5 block text-xs text-slate-500">อัปโหลดไฟล์ลายเซ็น (PNG/JPG/SVG)</label>
+          <label className="mb-1.5 block text-xs text-slate-500">
+            อัปโหลดไฟล์ลายเซ็น (PNG/JPG/SVG)
+          </label>
           <input
             type="file"
             accept="image/*"
@@ -1502,11 +1759,20 @@ function MasterDataPageContent() {
           />
           {form.imageUrl && (
             <div className="mt-2 flex items-center justify-center p-3 border border-slate-200 rounded-lg bg-slate-50">
-              <img src={form.imageUrl} alt="Signature Preview" className="max-h-16 object-contain" />
+              <img
+                src={form.imageUrl}
+                alt="Signature Preview"
+                className="max-h-16 object-contain"
+              />
             </div>
           )}
         </div>
-        {editingId && renderReadOnlyCount("จำนวนลงนาม", form.signedCount, "นับอัตโนมัติจากการใช้ลายเซ็น")}
+        {editingId &&
+          renderReadOnlyCount(
+            "จำนวนลงนาม",
+            form.signedCount,
+            "นับอัตโนมัติจากการใช้ลายเซ็น",
+          )}
         {renderStatusToggle()}
       </>
     );
@@ -1514,7 +1780,7 @@ function MasterDataPageContent() {
 
   const TabIcon = TABS.find((t) => t.key === activeTab)?.icon ?? Building2;
 
-  if (!hasPerm('access', 'view')) {
+  if (!hasPerm("access", "view")) {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-slate-400 mt-12">
         <p className="text-sm font-bold">ไม่มีสิทธิ์เข้าถึงหน้า Master Data</p>
@@ -1524,208 +1790,232 @@ function MasterDataPageContent() {
 
   return (
     <>
-    <MasterDataLayout
-      breadcrumb={
-        <nav className="flex items-center gap-1.5 text-xs text-slate-400">
-          <span>Admin</span>
-          <span>/</span>
-          <span className="text-slate-500">Master Data</span>
-          <span>/</span>
-          <span className="font-medium text-slate-600">{tabLabel}</span>
-        </nav>
-      }
-      title="Master Data"
-      actions={
-        (() => {
+      <MasterDataLayout
+        breadcrumb={
+          <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>Admin</span>
+            <span>/</span>
+            <span className="text-slate-500">Master Data</span>
+            <span>/</span>
+            <span className="font-medium text-slate-600">{tabLabel}</span>
+          </nav>
+        }
+        title="Master Data"
+        actions={(() => {
           let canAdd = false;
-          if (activeTab === 'department') canAdd = hasPerm('departments', 'create');
-          else if (activeTab === 'position') canAdd = hasPerm('positions', 'create');
-          else if (activeTab === 'doctype') canAdd = hasPerm('doc_types', 'create');
-          else if (activeTab === 'workflow') canAdd = hasPerm('workflow', 'create');
-          else if (activeTab === 'signature') canAdd = hasPerm('signatures', 'create');
-          
-          if (!canAdd || activeTab === "running" || activeTab === "workflow") return undefined;
+          if (activeTab === "department")
+            canAdd = hasPerm("departments", "create");
+          else if (activeTab === "position")
+            canAdd = hasPerm("positions", "create");
+          else if (activeTab === "doctype")
+            canAdd = hasPerm("doc_types", "create");
+          else if (activeTab === "workflow")
+            canAdd = hasPerm("workflow", "create");
+          else if (activeTab === "signature")
+            canAdd = hasPerm("signatures", "create");
+
+          if (!canAdd || activeTab === "running" || activeTab === "workflow")
+            return undefined;
           return (
-            <button type="button" onClick={openAdd} className={MD_MASTER_ADD_BTN}>
+            <button
+              type="button"
+              onClick={openAdd}
+              className={MD_MASTER_ADD_BTN}
+            >
               <Plus className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
               เพิ่ม
             </button>
           );
-        })()
-      }
-      sidebar={
-        <nav className={MD_SIDEBAR_NAV}>
-
-          {TABS.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setActiveTab(key)}
-              className={activeTab === key ? MD_SIDEBAR_ITEM_ACTIVE : MD_SIDEBAR_ITEM}
-            >
-              <Icon className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
-              {label}
-            </button>
-          ))}
-        </nav>
-      }
-    >
-      <section className={MD_SECTION}>
-        {modalOpen ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
-              <div>
-                <h3 className="text-base font-bold text-slate-800">
-                  {editingId ? "แก้ไข" : "เพิ่ม"} {tabLabel}
-                </h3>
-                <p className="text-xs text-slate-400 mt-1">
-                  กรอกรายละเอียดข้อมูล {tabLabel} ที่คุณต้องการ {editingId ? "แก้ไข" : "สร้างใหม่"}
-                </p>
-              </div>
+        })()}
+        sidebar={
+          <nav className={MD_SIDEBAR_NAV}>
+            {TABS.map(({ key, label, icon: Icon }) => (
               <button
+                key={key}
                 type="button"
-                onClick={closeModal}
-                disabled={saving}
-                className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
-                aria-label="ปิด"
+                onClick={() => setActiveTab(key)}
+                className={
+                  activeTab === key ? MD_SIDEBAR_ITEM_ACTIVE : MD_SIDEBAR_ITEM
+                }
               >
-                <X className="size-4" />
+                <Icon className={MD_SIDEBAR_ICON} strokeWidth={1.75} />
+                {label}
               </button>
-            </div>
-            
-            <div className={`space-y-4 ${activeTab === "workflow" ? "max-w-xl" : "max-w-md"}`}>
-              {renderFormFields()}
-            </div>
-            
-            <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={closeModal}
-                disabled={saving}
-                className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving || !isModalValid}
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
-              >
-                {saving && <Loader2 className="size-4 animate-spin" />}
-                {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
-              </button>
-            </div>
-          </div>
-        ) : activeTab === "running" ? (
-          <DocumentRunningTab showToast={showToast} />
-        ) : activeTab === "workflow" ? (
-          <WorkflowTab
-            rows={rows as WorkflowRow[]}
-            docTypes={data.doctype as any}
-            showDeleted={showDeleted}
-            onShowDeletedChange={setShowDeleted}
-            stats={tabStats}
-            onEdit={openEdit}
-            onDelete={softDelete}
-            onRestore={restore}
-            canEdit={hasPerm('workflow', 'edit')}
-            canDelete={hasPerm('workflow', 'delete')}
-          />
-        ) : (
-          <>
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <h2 className="text-sm font-medium text-slate-800">{tabLabel}</h2>
-              <InactiveFilterCheckbox checked={showDeleted} onChange={setShowDeleted} />
-            </div>
-
-            <MasterDataTableWrap
-              empty={rows.length === 0}
-              emptyContent={
-                <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-                  <Inbox className="size-10 text-slate-300" />
-                  <p className="text-sm text-slate-500">
-                    {showDeleted ? "ไม่มีรายการที่ปิดใช้งาน" : "ไม่มีข้อมูล"}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    {showDeleted
-                      ? "รายการที่กู้คืนจะแสดงในรายการปกติ"
-                      : activeTab === "signature"
-                        ? "เพิ่มลายเซ็นได้ที่หน้าโปรไฟล์"
-                        : "กดปุ่ม เพิ่ม เพื่อสร้างรายการใหม่"}
+            ))}
+          </nav>
+        }
+      >
+        <section className={MD_SECTION}>
+          {modalOpen ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+                <div>
+                  <h3 className="text-base font-bold text-slate-800">
+                    {editingId ? "แก้ไข" : "เพิ่ม"} {tabLabel}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    กรอกรายละเอียดข้อมูล {tabLabel} ที่คุณต้องการ{" "}
+                    {editingId ? "แก้ไข" : "สร้างใหม่"}
                   </p>
                 </div>
-              }
-              mobile={<MasterDataMobileCardList rows={mobileRows} />}
-            >
-              <table className={MD_TABLE}>
-                <thead className={MD_THEAD}>
-                  <tr>
-                    {renderHeaders()}
-                    <th className={MD_TH_STATUS}>สถานะ</th>
-                    <th className={thAction}>จัดการ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr
-                      key={row.id}
-                      className={`group ${MD_TR}`}
-                    >
-                      {renderCells(row)}
-                      <td className={MD_TD_STATUS}>
-                        <StatusBadge active={row.isActive} />
-                      </td>
-                      <td className={MD_TD_ACTION}>
-                        {row.isActive ? (
-                          (() => {
-                            let canEdit = false;
-                            let canDelete = false;
-                            if (activeTab === 'department') {
-                              canEdit = hasPerm('departments', 'edit');
-                              canDelete = hasPerm('departments', 'delete');
-                            } else if (activeTab === 'position') {
-                              canEdit = hasPerm('positions', 'edit');
-                              canDelete = hasPerm('positions', 'delete');
-                            } else if (activeTab === 'doctype') {
-                              canEdit = hasPerm('doc_types', 'edit');
-                              canDelete = hasPerm('doc_types', 'delete');
-                            } else if (activeTab === 'signature') {
-                              canEdit = hasPerm('signatures', 'edit');
-                              canDelete = hasPerm('signatures', 'delete');
-                            }
-                            
-                            const guard = getDeleteGuard(
-                              activeTab as DataTabKey,
-                              row,
-                              signatureGuardData
-                            );
-                            return (
-                              <RowActions
-                                onEdit={canEdit ? () => openEdit(row.id) : undefined}
-                                onDelete={canDelete && activeTab !== "position" ? () => softDelete(row.id) : undefined}
-                                deleteBlocked={guard.blocked}
-                                deleteTooltip={guard.tooltip}
-                              />
-                            );
-                          })()
-                        ) : (
-                          <RowActions onRestore={() => restore(row.id)} />
-                        )}
-                      </td>
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  disabled={saving}
+                  className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
+                  aria-label="ปิด"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              <div
+                className={`space-y-4 ${activeTab === "workflow" ? "max-w-xl" : "max-w-md"}`}
+              >
+                {renderFormFields()}
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  disabled={saving}
+                  className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving || !isModalValid}
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {saving && <Loader2 className="size-4 animate-spin" />}
+                  {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+                </button>
+              </div>
+            </div>
+          ) : activeTab === "running" ? (
+            <DocumentRunningTab showToast={showToast} />
+          ) : activeTab === "workflow" ? (
+            <WorkflowTab
+              rows={rows as WorkflowRow[]}
+              docTypes={data.doctype as any}
+              showDeleted={showDeleted}
+              onShowDeletedChange={setShowDeleted}
+              stats={tabStats}
+              onEdit={openEdit}
+              onDelete={softDelete}
+              onRestore={restore}
+              canEdit={hasPerm("workflow", "edit")}
+              canDelete={hasPerm("workflow", "delete")}
+            />
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <h2 className="text-sm font-medium text-slate-800">
+                  {tabLabel}
+                </h2>
+                <InactiveFilterCheckbox
+                  checked={showDeleted}
+                  onChange={setShowDeleted}
+                />
+              </div>
+
+              <MasterDataTableWrap
+                empty={rows.length === 0}
+                emptyContent={
+                  <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+                    <Inbox className="size-10 text-slate-300" />
+                    <p className="text-sm text-slate-500">
+                      {showDeleted ? "ไม่มีรายการที่ปิดใช้งาน" : "ไม่มีข้อมูล"}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {showDeleted
+                        ? "รายการที่กู้คืนจะแสดงในรายการปกติ"
+                        : activeTab === "signature"
+                          ? "เพิ่มลายเซ็นได้ที่หน้าโปรไฟล์"
+                          : "กดปุ่ม เพิ่ม เพื่อสร้างรายการใหม่"}
+                    </p>
+                  </div>
+                }
+                mobile={<MasterDataMobileCardList rows={mobileRows} />}
+              >
+                <table className={MD_TABLE}>
+                  <thead className={MD_THEAD}>
+                    <tr>
+                      {renderHeaders()}
+                      <th className={MD_TH_STATUS}>สถานะ</th>
+                      <th className={thAction}>จัดการ</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </MasterDataTableWrap>
-          </>
-        )}
-      </section>
-    </MasterDataLayout>
+                  </thead>
+                  <tbody>
+                    {rows.map((row) => (
+                      <tr key={row.id} className={`group ${MD_TR}`}>
+                        {renderCells(row)}
+                        <td className={MD_TD_STATUS}>
+                          <StatusBadge active={row.isActive} />
+                        </td>
+                        <td className={MD_TD_ACTION}>
+                          {row.isActive ? (
+                            (() => {
+                              let canEdit = false;
+                              let canDelete = false;
+                              if (activeTab === "department") {
+                                canEdit = hasPerm("departments", "edit");
+                                canDelete = hasPerm("departments", "delete");
+                              } else if (activeTab === "position") {
+                                canEdit = hasPerm("positions", "edit");
+                                canDelete = hasPerm("positions", "delete");
+                              } else if (activeTab === "doctype") {
+                                canEdit = hasPerm("doc_types", "edit");
+                                canDelete = hasPerm("doc_types", "delete");
+                              } else if (activeTab === "signature") {
+                                canEdit = hasPerm("signatures", "edit");
+                                canDelete = hasPerm("signatures", "delete");
+                              }
+
+                              const guard = getDeleteGuard(
+                                activeTab as DataTabKey,
+                                row,
+                                signatureGuardData,
+                              );
+                              return (
+                                <RowActions
+                                  onEdit={
+                                    canEdit ? () => openEdit(row.id) : undefined
+                                  }
+                                  onDelete={
+                                    canDelete && activeTab !== "position"
+                                      ? () => softDelete(row.id)
+                                      : undefined
+                                  }
+                                  deleteBlocked={guard.blocked}
+                                  deleteTooltip={guard.tooltip}
+                                />
+                              );
+                            })()
+                          ) : (
+                            <RowActions onRestore={() => restore(row.id)} />
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </MasterDataTableWrap>
+            </>
+          )}
+        </section>
+      </MasterDataLayout>
       {previewSignatureUrl && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 sm:p-6 backdrop-blur-xs"
-          style={{ paddingLeft: isOpen ? "calc(16rem + 1.5rem)" : "calc(5rem + 1.5rem)" }}
+          style={{
+            paddingLeft: isOpen
+              ? "calc(16rem + 1.5rem)"
+              : "calc(5rem + 1.5rem)",
+          }}
           onClick={() => setPreviewSignatureUrl(null)}
         >
           <div

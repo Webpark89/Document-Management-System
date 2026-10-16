@@ -33,14 +33,18 @@ export default function Step2Visibility({
   onChange,
   isRequired = false,
 }: Step2VisibilityProps) {
+  const [departmentsList, setDepartmentsList] = React.useState<
+    { id: string; name: string }[]
+  >([]);
   const [usersList, setUsersList] = React.useState<any[]>([]);
   const [userSearch, setUserSearch] = React.useState("");
 
-  const currentVisibility: VisibilityData = value || propVisibility || {
-    type: "CompanyWide",
-    departments: [],
-    users: [],
-  };
+  const currentVisibility: VisibilityData = value ||
+    propVisibility || {
+      type: "CompanyWide",
+      departments: [],
+      users: [],
+    };
 
   const handleVisibilityChange = (data: VisibilityData) => {
     if (onChange) onChange(data);
@@ -54,7 +58,11 @@ export default function Step2Visibility({
   React.useEffect(() => {
     import("@/controllers/services/admin.service").then(({ adminService }) => {
       adminService
-        .getUsersList()
+        .getDepartmentDirectory()
+        .then(setDepartmentsList)
+        .catch(() => {});
+      adminService
+        .getUserDirectory()
         .then((res: any) => {
           setUsersList((res || []).filter((u: any) => u.is_active));
         })
@@ -142,16 +150,16 @@ export default function Step2Visibility({
               เลือกแผนกที่สามารถเห็นเอกสารได้:
             </p>
             <div className="flex flex-wrap gap-2">
-              {DEPARTMENTS.map((dept) => {
-                const isSelected = safeDepartments.includes(dept);
+              {departmentsList.map((department) => {
+                const isSelected = safeDepartments.includes(department.id);
                 return (
                   <button
-                    key={dept}
+                    key={department.id}
                     type="button"
                     onClick={() => {
                       const newDepts = isSelected
-                        ? safeDepartments.filter((d) => d !== dept)
-                        : [...safeDepartments, dept];
+                        ? safeDepartments.filter((d) => d !== department.id)
+                        : [...safeDepartments, department.id];
                       handleVisibilityChange({
                         ...currentVisibility,
                         departments: newDepts,
@@ -163,7 +171,7 @@ export default function Step2Visibility({
                         : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                     }`}
                   >
-                    {dept}
+                    {department.name}
                   </button>
                 );
               })}
@@ -180,7 +188,7 @@ export default function Step2Visibility({
             {/* Selected Users */}
             <div className="flex flex-wrap gap-2 mb-3">
               {safeUsers.map((username) => {
-                const u = usersList.find((x) => x.username === username);
+                const u = usersList.find((x) => x.id === username);
                 const displayName = u
                   ? `${u.first_name} ${u.last_name}`
                   : username;
@@ -220,13 +228,13 @@ export default function Step2Visibility({
                   {usersList
                     .filter(
                       (u) =>
-                        !safeUsers.includes(u.username) &&
+                        !safeUsers.includes(u.id) &&
                         (u.username
                           .toLowerCase()
                           .includes(userSearch.toLowerCase()) ||
                           `${u.first_name} ${u.last_name}`
                             .toLowerCase()
-                            .includes(userSearch.toLowerCase()))
+                            .includes(userSearch.toLowerCase())),
                     )
                     .map((u) => (
                       <div
@@ -234,7 +242,7 @@ export default function Step2Visibility({
                         onClick={() => {
                           handleVisibilityChange({
                             ...currentVisibility,
-                            users: [...safeUsers, u.username],
+                            users: [...safeUsers, u.id],
                           });
                           setUserSearch("");
                         }}
@@ -248,13 +256,13 @@ export default function Step2Visibility({
                     ))}
                   {usersList.filter(
                     (u) =>
-                      !safeUsers.includes(u.username) &&
+                      !safeUsers.includes(u.id) &&
                       (u.username
                         .toLowerCase()
                         .includes(userSearch.toLowerCase()) ||
                         `${u.first_name} ${u.last_name}`
                           .toLowerCase()
-                          .includes(userSearch.toLowerCase()))
+                          .includes(userSearch.toLowerCase())),
                   ).length === 0 && (
                     <div className="px-3 py-2 text-xs text-slate-400 text-center">
                       ไม่พบผู้ใช้งาน

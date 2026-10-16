@@ -1,0 +1,746 @@
+[
+  {
+    "table": 0,
+    "row": 7,
+    "label": "บทที่ 1 บทนำ",
+    "old": "1",
+    "new": "1",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 8,
+    "label": "1. ที่มาและความสำคัญ",
+    "old": "1",
+    "new": "1",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 9,
+    "label": "2. วัตถุประสงค์",
+    "old": "1",
+    "new": "1",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 10,
+    "label": "3. รายละเอียดเกี่ยวกับองค์กรหรือหน่วยงาน",
+    "old": "1",
+    "new": "1",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 11,
+    "label": "4. ขอบเขตของระบบ",
+    "old": "1",
+    "new": "1",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 12,
+    "label": "5. ตำแหน่งและลักษณะงานที่ได้รับมอบหมาย",
+    "old": "2",
+    "new": "2",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 13,
+    "label": "6. อุปกรณ์และเครื่องมือที่ใช้ในการพัฒนา",
+    "old": "2",
+    "new": "2",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 14,
+    "label": "บทที่ 2 ตรวจสอบเอกสาร",
+    "old": "3",
+    "new": "3",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 15,
+    "label": "1. ระบบจัดการเอกสารและเวอร์ชัน",
+    "old": "3",
+    "new": "3",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 16,
+    "label": "2. ระบบอนุมัติและลายเซ็นอิเล็กทรอนิกส์",
+    "old": "3",
+    "new": "3",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 17,
+    "label": "3. เทคโนโลยีส่วนติดต่อผู้ใช้",
+    "old": "3",
+    "new": "3",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 18,
+    "label": "4. เทคโนโลยีบริการและฐานข้อมูล",
+    "old": "3",
+    "new": "3",
+    "different": false
+  },
+  {
+    "table": 0,
+    "row": 19,
+    "label": "5. การควบคุมสิทธิ์และประวัติการใช้งาน",
+    "old": "3",
+    "new": "3",
+    "different": false
+  },
+  {
+    "table": 1,
+    "row": 0,
+    "label": "บทที่ 3 รายละเอียดของงานที่ปฏิบัติ",
+    "old": "4",
+    "new": "4",
+    "different": false
+  },
+  {
+    "table": 1,
+    "row": 1,
+    "label": "1. ศึกษาความต้องการและระบบงานเดิม",
+    "old": "4",
+    "new": "4",
+    "different": false
+  },
+  {
+    "table": 1,
+    "row": 2,
+    "label": "2. วิเคราะห์ขอบเขตและผู้ใช้งาน",
+    "old": "5",
+    "new": "5",
+    "different": false
+  },
+  {
+    "table": 1,
+    "row": 3,
+    "label": "3. ออกแบบสถาปัตยกรรมและกระบวนการ",
+    "old": "6",
+    "new": "6",
+    "different": false
+  },
+  {
+    "table": 1,
+    "row": 4,
+    "label": "4. ออกแบบกรณีใช้งาน",
+    "old": "9",
+    "new": "9",
+    "different": false
+  },
+  {
+    "table": 1,
+    "row": 5,
+    "label": "5. ออกแบบฐานข้อมูล",
+    "old": "10",
+    "new": "10",
+    "different": false
+  },
+  {
+    "table": 1,
+    "row": 6,
+    "label": "6. พัฒนาระบบ",
+    "old": "21",
+    "new": "22",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 7,
+    "label": "7. การทดสอบและตรวจสอบ",
+    "old": "21",
+    "new": "22",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 8,
+    "label": "บทที่ 4 ผลการดำเนินงาน",
+    "old": "22",
+    "new": "23",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 9,
+    "label": "1. ผลงานตามโมดูล",
+    "old": "22",
+    "new": "23",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 10,
+    "label": "2. ผลการตรวจสอบระบบ",
+    "old": "25",
+    "new": "26",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 11,
+    "label": "3. การประเมินการใช้งาน",
+    "old": "25",
+    "new": "26",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 12,
+    "label": "บทที่ 5 สรุปผลการปฏิบัติงาน ประโยชน์ที่ได้รับ และข้อเสนอแนะ",
+    "old": "26",
+    "new": "26",
+    "different": false
+  },
+  {
+    "table": 1,
+    "row": 13,
+    "label": "1. สรุปผลการดำเนินงาน",
+    "old": "26",
+    "new": "27",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 14,
+    "label": "2. ผลสำเร็จตามวัตถุประสงค์",
+    "old": "26",
+    "new": "27",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 15,
+    "label": "3. ประโยชน์ที่ได้รับ",
+    "old": "26",
+    "new": "27",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 16,
+    "label": "4. ข้อเสนอแนะ",
+    "old": "26",
+    "new": "27",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 17,
+    "label": "เอกสารอ้างอิง",
+    "old": "27",
+    "new": "28",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 18,
+    "label": "ภาคผนวก ก การติดตั้งโปรแกรมที่เกี่ยวข้อง",
+    "old": "29",
+    "new": "30",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 19,
+    "label": "ภาคผนวก ข หลักฐานการทดสอบและแบบฟอร์มสหกิจ",
+    "old": "37",
+    "new": "38",
+    "different": true
+  },
+  {
+    "table": 1,
+    "row": 20,
+    "label": "ประวัติการศึกษา",
+    "old": "45",
+    "new": "49",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 0,
+    "label": "ตารางที่ 1 ขอบเขตการทำงานตามบทบาท",
+    "old": "2",
+    "new": "2",
+    "different": false
+  },
+  {
+    "table": 2,
+    "row": 1,
+    "label": "ตารางที่ 2 แผนงานการปฏิบัติงาน",
+    "old": "2",
+    "new": "2",
+    "different": false
+  },
+  {
+    "table": 2,
+    "row": 2,
+    "label": "ตารางที่ 3 กรณีใช้งานหลักของระบบ",
+    "old": "9",
+    "new": "9",
+    "different": false
+  },
+  {
+    "table": 2,
+    "row": 3,
+    "label": "ตารางที่ 4 Data Dictionary ตาราง departments",
+    "old": "11",
+    "new": "12",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 4,
+    "label": "ตารางที่ 5 Data Dictionary ตาราง positions",
+    "old": "11",
+    "new": "12",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 5,
+    "label": "ตารางที่ 6 Data Dictionary ตาราง document_types",
+    "old": "11",
+    "new": "12",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 6,
+    "label": "ตารางที่ 7 Data Dictionary ตาราง roles",
+    "old": "12",
+    "new": "13",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 7,
+    "label": "ตารางที่ 8 Data Dictionary ตาราง permissions",
+    "old": "12",
+    "new": "13",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 8,
+    "label": "ตารางที่ 9 Data Dictionary ตาราง role_permissions",
+    "old": "12",
+    "new": "13",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 9,
+    "label": "ตารางที่ 10 Data Dictionary ตาราง users",
+    "old": "12",
+    "new": "14",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 10,
+    "label": "ตารางที่ 11 Data Dictionary ตาราง documents",
+    "old": "13",
+    "new": "14",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 11,
+    "label": "ตารางที่ 12 Data Dictionary ตาราง pr_forms",
+    "old": "14",
+    "new": "15",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 12,
+    "label": "ตารางที่ 13 Data Dictionary ตาราง pr_form_items",
+    "old": "14",
+    "new": "16",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 13,
+    "label": "ตารางที่ 14 Data Dictionary ตาราง po_forms",
+    "old": "15",
+    "new": "16",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 14,
+    "label": "ตารางที่ 15 Data Dictionary ตาราง po_form_items",
+    "old": "15",
+    "new": "17",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 15,
+    "label": "ตารางที่ 16 Data Dictionary ตาราง bk_forms",
+    "old": "16",
+    "new": "17",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 16,
+    "label": "ตารางที่ 17 Data Dictionary ตาราง document_versions",
+    "old": "16",
+    "new": "18",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 17,
+    "label": "ตารางที่ 18 Data Dictionary ตาราง approval_matrix",
+    "old": "17",
+    "new": "18",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 18,
+    "label": "ตารางที่ 19 Data Dictionary ตาราง workflows",
+    "old": "17",
+    "new": "19",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 19,
+    "label": "ตารางที่ 20 Data Dictionary ตาราง workflow_steps",
+    "old": "18",
+    "new": "19",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 20,
+    "label": "ตารางที่ 21 Data Dictionary ตาราง notifications",
+    "old": "18",
+    "new": "20",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 21,
+    "label": "ตารางที่ 22 Data Dictionary ตาราง running_numbers",
+    "old": "19",
+    "new": "20",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 22,
+    "label": "ตารางที่ 23 Data Dictionary ตาราง audit_logs",
+    "old": "19",
+    "new": "21",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 23,
+    "label": "ตารางที่ 24 Data Dictionary ตาราง folders",
+    "old": "20",
+    "new": "21",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 24,
+    "label": "ตารางที่ 25 Data Dictionary ตาราง folder_permissions",
+    "old": "20",
+    "new": "22",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 25,
+    "label": "ตารางที่ 26 รายการตรวจสอบการทำงานของระบบ",
+    "old": "21",
+    "new": "22",
+    "different": true
+  },
+  {
+    "table": 2,
+    "row": 26,
+    "label": "ตารางที่ 27 ผลลัพธ์ตามหน้าที่หลักของระบบ",
+    "old": "25",
+    "new": "26",
+    "different": true
+  },
+  {
+    "table": 3,
+    "row": 0,
+    "label": "ภาพที่ 1 ภาพรวมกระบวนการเดิมและกระบวนการใหม่",
+    "old": "4",
+    "new": "4",
+    "different": false
+  },
+  {
+    "table": 3,
+    "row": 1,
+    "label": "ภาพที่ 2 แผนภาพกรณีใช้งานระบบ DMS",
+    "old": "5",
+    "new": "5",
+    "different": false
+  },
+  {
+    "table": 3,
+    "row": 2,
+    "label": "ภาพที่ 3 สถาปัตยกรรมระบบ",
+    "old": "6",
+    "new": "6",
+    "different": false
+  },
+  {
+    "table": 3,
+    "row": 3,
+    "label": "ภาพที่ 4 ผังขั้นตอนการสร้างและส่งอนุมัติเอกสาร",
+    "old": "7",
+    "new": "7",
+    "different": false
+  },
+  {
+    "table": 3,
+    "row": 4,
+    "label": "ภาพที่ 5 ผังขั้นตอนการพิจารณาอนุมัติ",
+    "old": "8",
+    "new": "8",
+    "different": false
+  },
+  {
+    "table": 3,
+    "row": 5,
+    "label": "ภาพที่ 6 Sequence Diagram การสร้างเอกสาร",
+    "old": "9",
+    "new": "9",
+    "different": false
+  },
+  {
+    "table": 3,
+    "row": 6,
+    "label": "ภาพที่ 7 Sequence Diagram การอนุมัติและลงลายเซ็น",
+    "old": "10",
+    "new": "10",
+    "different": false
+  },
+  {
+    "table": 3,
+    "row": 7,
+    "label": "ภาพที่ 8 ER Diagram ระบบ DMS",
+    "old": "10",
+    "new": "11",
+    "different": true
+  },
+  {
+    "table": 3,
+    "row": 8,
+    "label": "ภาพที่ 9 หน้าเข้าสู่ระบบ",
+    "old": "22",
+    "new": "23",
+    "different": true
+  },
+  {
+    "table": 3,
+    "row": 9,
+    "label": "ภาพที่ 10 หน้าแดชบอร์ด",
+    "old": "22",
+    "new": "23",
+    "different": true
+  },
+  {
+    "table": 3,
+    "row": 10,
+    "label": "ภาพที่ 11 หน้าศูนย์เอกสาร",
+    "old": "23",
+    "new": "24",
+    "different": true
+  },
+  {
+    "table": 3,
+    "row": 11,
+    "label": "ภาพที่ 12 หน้าสร้างแบบฟอร์ม PR",
+    "old": "23",
+    "new": "24",
+    "different": true
+  },
+  {
+    "table": 3,
+    "row": 12,
+    "label": "ภาพที่ 13 หน้าสร้างแบบฟอร์ม PO",
+    "old": "23",
+    "new": "24",
+    "different": true
+  },
+  {
+    "table": 3,
+    "row": 13,
+    "label": "ภาพที่ 14 หน้าสร้างบันทึกข้อความ BK",
+    "old": "24",
+    "new": "25",
+    "different": true
+  },
+  {
+    "table": 3,
+    "row": 14,
+    "label": "ภาพที่ 15 หน้ารายละเอียดเอกสารและเวอร์ชัน",
+    "old": "24",
+    "new": "25",
+    "different": true
+  },
+  {
+    "table": 3,
+    "row": 15,
+    "label": "ภาพที่ 16 หน้ารายการอนุมัติ",
+    "old": "24",
+    "new": "25",
+    "different": true
+  },
+  {
+    "table": 3,
+    "row": 16,
+    "label": "ภาพที่ 17 หน้าจัดการข้อมูลหลัก",
+    "old": "25",
+    "new": "26",
+    "different": true
+  },
+  {
+    "table": 3,
+    "row": 17,
+    "label": "ภาพที่ 18 ตัวอย่างหลักฐานการทดสอบระบบ",
+    "old": "25",
+    "new": "26",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 0,
+    "label": "ภาพภาคผนวกที่ ก1 หน้าดาวน์โหลด Visual Studio Code",
+    "old": "30",
+    "new": "31",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 1,
+    "label": "ภาพภาคผนวกที่ ก2 การยอมรับข้อตกลงการติดตั้ง Visual Studio Code",
+    "old": "30",
+    "new": "31",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 2,
+    "label": "ภาพภาคผนวกที่ ก3 การเลือกตัวเลือกเพิ่มเติมของ Visual Studio Code",
+    "old": "31",
+    "new": "32",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 3,
+    "label": "ภาพภาคผนวกที่ ก4 การติดตั้ง Visual Studio Code เสร็จสมบูรณ์",
+    "old": "31",
+    "new": "32",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 4,
+    "label": "ภาพภาคผนวกที่ ก5 ตัวเลือก Windows Installer สำหรับ Node.js",
+    "old": "32",
+    "new": "33",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 5,
+    "label": "ภาพภาคผนวกที่ ก6 ลำดับการติดตั้งและตรวจสอบ Node.js และ npm",
+    "old": "32",
+    "new": "33",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 6,
+    "label": "ภาพภาคผนวกที่ ก7 หน้าดาวน์โหลดตัวติดตั้ง PostgreSQL",
+    "old": "33",
+    "new": "34",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 7,
+    "label": "ภาพภาคผนวกที่ ก8 การเลือกส่วนประกอบของ PostgreSQL",
+    "old": "33",
+    "new": "34",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 8,
+    "label": "ภาพภาคผนวกที่ ก9 การกำหนดรหัสผ่านผู้ดูแล PostgreSQL",
+    "old": "34",
+    "new": "35",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 9,
+    "label": "ภาพภาคผนวกที่ ก10 การกำหนดพอร์ตของ PostgreSQL",
+    "old": "34",
+    "new": "35",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 10,
+    "label": "ภาพภาคผนวกที่ ก11 การติดตั้ง PostgreSQL เสร็จสมบูรณ์",
+    "old": "35",
+    "new": "36",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 11,
+    "label": "ภาพภาคผนวกที่ ก12 ตัวอย่างค่าการเชื่อมต่อ PostgreSQL ใน pgAdmin",
+    "old": "35",
+    "new": "36",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 12,
+    "label": "ภาพภาคผนวกที่ ก13 ตัวอย่างการสร้างฐานข้อมูลและตั้งค่าไฟล์สภาพแวดล้อม",
+    "old": "36",
+    "new": "37",
+    "different": true
+  },
+  {
+    "table": 4,
+    "row": 13,
+    "label": "ภาพภาคผนวกที่ ก14 คำสั่งติดตั้งแพ็กเกจที่ใช้พัฒนาระบบ DMS",
+    "old": "36",
+    "new": "37",
+    "different": true
+  }
+]

@@ -22,7 +22,7 @@ export class NotificationsService {
   async markAsRead(id: string, userId: string) {
     const res = await this.prisma.notification.updateMany({
       where: { id, user_id: userId },
-      data: { is_read: true },
+      data: { is_read: true, read_at: new Date() },
     });
     return { success: true, count: res.count };
   }
@@ -30,7 +30,7 @@ export class NotificationsService {
   async markAllAsRead(userId: string) {
     const res = await this.prisma.notification.updateMany({
       where: { user_id: userId, is_read: false },
-      data: { is_read: true },
+      data: { is_read: true, read_at: new Date() },
     });
     return { success: true, count: res.count };
   }

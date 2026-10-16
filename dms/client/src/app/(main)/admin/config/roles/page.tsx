@@ -6,31 +6,18 @@ import { adminService } from "@/controllers/services/admin.service";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
-import {
-  Loader2,
-  Plus,
-   
-   
-   
-  Pencil,
-   
-  Trash2,
-} from "lucide-react";
-import { useToast } from '@views/components/providers/ToastProvider';
+import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { useToast } from "@views/components/providers/ToastProvider";
 import { swalConfirm } from "@/lib/swal";
-import { useAuth } from '@views/components/providers/AuthProvider';
+import { useAuth } from "@views/components/providers/AuthProvider";
 import {
   RolePermissionPanel,
   PermissionActionGrid,
   buildPermissions,
-   
   type RoleFormState,
-} from '@views/features/roles-users/components';
-   
-import {
-  type RoleRecord,
-  countUsersByRole,
-} from '@views/features/roles-users';
+} from "@views/features/roles-users/components";
+
+import { type RoleRecord, countUsersByRole } from "@views/features/roles-users";
 import {
   ADMIN_CONTENT,
   ADMIN_PAGE_SHELL,
@@ -44,15 +31,16 @@ import {
   MD_TH_STATUS,
   MD_THEAD,
   MD_TR,
-   
   StatusBadge,
-} from '@views/components/ui/admin';
-import { APP_CARD_LG } from '@views/components/ui/design-system';
-   
+} from "@views/components/ui/admin";
+import { APP_CARD_LG } from "@views/components/ui/design-system";
 
 const tdCls = MD_TD;
 
-const SENIOR_MANAGER_PRESETS: Record<string, Record<string, Partial<Record<string, boolean>>>> = {
+const SENIOR_MANAGER_PRESETS: Record<
+  string,
+  Record<string, Partial<Record<string, boolean>>>
+> = {
   dashboard: {
     view_employee: { view: true },
     view_executive: { view: true },
@@ -98,15 +86,26 @@ const SENIOR_MANAGER_PRESETS: Record<string, Record<string, Partial<Record<strin
 
 const EMPTY_ROLE: RoleFormState = {
   title: "",
-  productTypes: { all: false, dms: false, esign: false, reports: false, archive: false },
+  productTypes: {
+    all: false,
+    dms: false,
+    esign: false,
+    reports: false,
+    archive: false,
+  },
   permissions: buildPermissions(),
 };
 
 const EDIT_ROLE: RoleFormState = {
   title: "Senior manager",
-  productTypes: { all: true, dms: true, esign: true, reports: true, archive: true },
+  productTypes: {
+    all: true,
+    dms: true,
+    esign: true,
+    reports: true,
+    archive: true,
+  },
   permissions: buildPermissions(SENIOR_MANAGER_PRESETS),
-   
 };
 
 function uid() {
@@ -119,10 +118,10 @@ const btnDanger =
   "whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent";
 const inputCls =
   "w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
-   
+
 const formInputCls =
   "w-full max-w-md rounded-md border border-gray-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
-   
+
 const inputErrorCls =
   "w-full max-w-md rounded-md border border-red-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500";
 
@@ -175,24 +174,22 @@ function RolesListView({
   const [showInactive, setShowInactive] = useState(false);
 
   const rows = useMemo(
-   
     () =>
-   
       roles.map((role) => ({
         ...role,
         userCount: role.userCount ?? countUsersByRole(role.name),
       })),
-    [roles]
+    [roles],
   );
 
   const stats = useMemo(
     () => ({
       total: roles.length,
       active: roles.filter((r) => r.isActive).length,
-   
+
       inactive: roles.filter((r) => !r.isActive).length,
     }),
-    [roles]
+    [roles],
   );
 
   const filtered = useMemo(() => {
@@ -224,7 +221,6 @@ function RolesListView({
       showToast("เกิดข้อผิดพลาด", "error");
     }
   };
-   
 
   return (
     <div className={`${ADMIN_PAGE_SHELL} min-w-0 max-w-full overflow-x-clip`}>
@@ -233,9 +229,7 @@ function RolesListView({
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
             <span>Admin</span>
             <span>/</span>
-            <span className="text-slate-500">
-              Config
-            </span>
+            <span className="text-slate-500">Config</span>
             <span>/</span>
             <span className="font-medium text-slate-600">Roles</span>
           </nav>
@@ -243,7 +237,7 @@ function RolesListView({
         title="Roles"
         subtitle="จัดการบทบาท กำหนดสิทธิ์ และควบคุมการเข้าถึงระบบ"
         actions={
-          hasPerm('role_management', 'create') && (
+          hasPerm("role_management", "create") && (
             <button type="button" onClick={onCreate} className={MD_ADD_BTN}>
               <Plus className="size-4" />
               สร้าง Role
@@ -254,22 +248,28 @@ function RolesListView({
 
       <div className={`${ADMIN_CONTENT} mt-6 min-w-0 max-w-full space-y-6`}>
         <div className={`${MD_TABLE_CARD} min-w-0 max-w-full`}>
-
           <div className="min-w-0 overflow-x-auto">
             <table className="w-full min-w-0 table-fixed text-sm">
               <thead className={MD_THEAD}>
                 <tr>
                   <th className={MD_TH}>ชื่อ Role</th>
-                  <th className={`${MD_TH_STATUS} w-[7.5rem]`}>จำนวนผู้ใช้งาน</th>
+                  <th className={`${MD_TH_STATUS} w-[7.5rem]`}>
+                    จำนวนผู้ใช้งาน
+                  </th>
                   <th className={MD_TH}>สิทธิ์ (ดู/สร้าง/แก้ไข/ลบ/อนุมัติ)</th>
                   <th className={MD_TH_STATUS}>สถานะ</th>
-                  <th className={`${MD_TH_STATUS} w-[8rem] min-w-[8rem]`}>จัดการ</th>
+                  <th className={`${MD_TH_STATUS} w-[8rem] min-w-[8rem]`}>
+                    จัดการ
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                    <td
+                      colSpan={5}
+                      className="px-6 py-12 text-center text-slate-400"
+                    >
                       {showInactive ? "ไม่มี Role ที่ปิดใช้งาน" : "ไม่พบ Role"}
                     </td>
                   </tr>
@@ -284,11 +284,17 @@ function RolesListView({
                         onDoubleClick={() => {}}
                         onClick={() => {
                           if (hasPerm("role_management", "edit")) {
-                            router.push(`/admin/config/roles?mode=edit&id=${role.id}`);
+                            router.push(
+                              `/admin/config/roles?mode=edit&id=${role.id}`,
+                            );
                           }
                         }}
                       >
-                        <td className={`${tdCls} min-w-0 font-bold text-slate-800`}>{role.name}</td>
+                        <td
+                          className={`${tdCls} min-w-0 font-bold text-slate-800`}
+                        >
+                          {role.name}
+                        </td>
                         <td className={`${MD_TD_NUM} w-[7.5rem]`}>
                           <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
                             {role.userCount}
@@ -308,7 +314,7 @@ function RolesListView({
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div className="flex shrink-0 justify-center items-center gap-2">
-                            {hasPerm('role_management', 'edit') && (
+                            {hasPerm("role_management", "edit") && (
                               <Link
                                 href={`/admin/config/roles?mode=edit&id=${role.id}`}
                                 title="แก้ไข Role"
@@ -317,7 +323,7 @@ function RolesListView({
                                 <Pencil className="size-4" />
                               </Link>
                             )}
-                            {hasPerm('role_management', 'delete') && (
+                            {hasPerm("role_management", "delete") && (
                               <DeleteRoleButton
                                 blocked={deleteBlocked}
                                 tooltip={deleteTooltip}
@@ -352,10 +358,12 @@ function CreateRoleForm({
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
 
-  const validateTitle = (val: string) => (!val.trim() ? "กรุณาระบุชื่อ Role" : "");
+  const validateTitle = (val: string) =>
+    !val.trim() ? "กรุณาระบุชื่อ Role" : "";
 
   const handleBack = () => {
-    if (dirty && !confirm("ยังไม่ได้บันทึกข้อมูล ต้องการออกจากหน้านี้หรือไม่?")) return;
+    if (dirty && !confirm("ยังไม่ได้บันทึกข้อมูล ต้องการออกจากหน้านี้หรือไม่?"))
+      return;
     onBack();
   };
 
@@ -364,22 +372,29 @@ function CreateRoleForm({
     setTitleError(err);
     if (err) return;
     setSaving(true);
-    
+
     try {
       const created = await adminService.createRole(role.title.trim());
-      
+
       const dtoPermissions: unknown[] = [];
       Object.entries(role.permissions).forEach(([sectionKey, items]) => {
         Object.entries(items).forEach(([itemKey, actions]) => {
-          Object.entries(actions as Record<string, boolean>).forEach(([action, value]) => {
-            if (value) {
-              dtoPermissions.push({ module: `${sectionKey}.${itemKey}`, action });
-            }
-          });
+          Object.entries(actions as Record<string, boolean>).forEach(
+            ([action, value]) => {
+              if (value) {
+                dtoPermissions.push({
+                  module: `${sectionKey}.${itemKey}`,
+                  action,
+                });
+              }
+            },
+          );
         });
       });
 
-      await adminService.updateRole((created as any).id, { permissions: dtoPermissions as any });
+      await adminService.updateRole((created as any).id, {
+        permissions: dtoPermissions as any,
+      });
 
       onSaved();
       showToast("สร้าง Role สำเร็จ", "success");
@@ -387,7 +402,6 @@ function CreateRoleForm({
       showToast("เกิดข้อผิดพลาดในการสร้าง Role", "error");
     } finally {
       setSaving(false);
-   
     }
   };
 
@@ -398,9 +412,7 @@ function CreateRoleForm({
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
             <span>Admin</span>
             <span>/</span>
-            <span className="text-slate-500">
-              Config
-            </span>
+            <span className="text-slate-500">Config</span>
             <span>/</span>
             <span className="font-medium text-slate-600">สร้าง Role</span>
           </nav>
@@ -409,7 +421,11 @@ function CreateRoleForm({
         subtitle="จัดการสิทธิ์การเข้าถึง"
         actions={
           <div className="flex items-center gap-2">
-            <button type="button" onClick={handleBack} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+            >
               ย้อนกลับ
             </button>
             <button
@@ -429,7 +445,9 @@ function CreateRoleForm({
           <h2 className="text-sm font-bold text-slate-800">ข้อมูลทั่วไป</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">ชื่อ Role</label>
+              <label className="mb-1.5 block text-xs text-slate-500">
+                ชื่อ Role
+              </label>
               <input
                 type="text"
                 value={role.title}
@@ -441,7 +459,9 @@ function CreateRoleForm({
                 onBlur={() => setTitleError(validateTitle(role.title))}
                 className={titleError ? inputErrorCls : formInputCls}
               />
-              {titleError && <p className="mt-1 text-xs text-red-500">{titleError}</p>}
+              {titleError && (
+                <p className="mt-1 text-xs text-red-500">{titleError}</p>
+              )}
             </div>
           </div>
         </div>
@@ -469,18 +489,24 @@ function EditRoleForm({ roleId }: { roleId: string }) {
     adminService.getRoleById(roleId).then((data: any) => {
       const presets: any = {};
       (data.permissions || []).forEach((p: any) => {
-         const parts = p.module.split('.');
-         if (parts.length === 2) {
-            const [sec, item] = parts;
-            if (!presets[sec]) presets[sec] = {};
-            if (!presets[sec][item]) presets[sec][item] = {};
-            presets[sec][item][p.action] = true;
-         }
+        const parts = p.module.split(".");
+        if (parts.length === 2) {
+          const [sec, item] = parts;
+          if (!presets[sec]) presets[sec] = {};
+          if (!presets[sec][item]) presets[sec][item] = {};
+          presets[sec][item][p.action] = true;
+        }
       });
       setRole({
-         title: data.name,
-         productTypes: { all: true, dms: true, esign: true, reports: true, archive: true },
-         permissions: buildPermissions(presets)
+        title: data.name,
+        productTypes: {
+          all: true,
+          dms: true,
+          esign: true,
+          reports: true,
+          archive: true,
+        },
+        permissions: buildPermissions(presets),
       });
       setLoading(false);
     });
@@ -491,16 +517,24 @@ function EditRoleForm({ roleId }: { roleId: string }) {
     const dtoPermissions: any[] = [];
     Object.entries(role.permissions).forEach(([sectionKey, items]) => {
       Object.entries(items).forEach(([itemKey, actions]) => {
-        Object.entries(actions as Record<string, boolean>).forEach(([action, value]) => {
-          if (value) {
-            dtoPermissions.push({ module: `${sectionKey}.${itemKey}`, action });
-          }
-        });
+        Object.entries(actions as Record<string, boolean>).forEach(
+          ([action, value]) => {
+            if (value) {
+              dtoPermissions.push({
+                module: `${sectionKey}.${itemKey}`,
+                action,
+              });
+            }
+          },
+        );
       });
     });
 
     try {
-      await adminService.updateRole(roleId, { name: role.title, permissions: dtoPermissions });
+      await adminService.updateRole(roleId, {
+        name: role.title,
+        permissions: dtoPermissions,
+      });
       showToast("บันทึกสิทธิ์สำเร็จ", "success");
       router.push("/admin/config/roles");
     } catch {
@@ -510,7 +544,12 @@ function EditRoleForm({ roleId }: { roleId: string }) {
     }
   };
 
-  if (loading) return <div className="p-8 text-center"><Loader2 className="mx-auto size-8 animate-spin text-blue-500" /></div>;
+  if (loading)
+    return (
+      <div className="p-8 text-center">
+        <Loader2 className="mx-auto size-8 animate-spin text-blue-500" />
+      </div>
+    );
 
   return (
     <div className={ADMIN_PAGE_SHELL}>
@@ -519,9 +558,7 @@ function EditRoleForm({ roleId }: { roleId: string }) {
           <nav className="flex items-center gap-1.5 text-xs text-slate-400">
             <span>Admin</span>
             <span>/</span>
-            <span className="text-slate-500">
-              Config
-            </span>
+            <span className="text-slate-500">Config</span>
             <span>/</span>
             <span className="font-medium text-slate-600">แก้ไข Role</span>
           </nav>
@@ -530,7 +567,10 @@ function EditRoleForm({ roleId }: { roleId: string }) {
         subtitle="จัดการสิทธิ์การเข้าถึง"
         actions={
           <div className="flex items-center gap-2">
-            <Link href="/admin/config/roles" className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <Link
+              href="/admin/config/roles"
+              className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+            >
               ย้อนกลับ
             </Link>
             <button
@@ -550,11 +590,15 @@ function EditRoleForm({ roleId }: { roleId: string }) {
           <h2 className="text-sm font-bold text-slate-800">ข้อมูลทั่วไป</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs text-slate-500">ชื่อ Role</label>
+              <label className="mb-1.5 block text-xs text-slate-500">
+                ชื่อ Role
+              </label>
               <input
                 type="text"
                 value={role.title}
-                onChange={(e) => setRole((prev) => ({ ...prev, title: e.target.value }))}
+                onChange={(e) =>
+                  setRole((prev) => ({ ...prev, title: e.target.value }))
+                }
                 className={formInputCls}
               />
             </div>
@@ -576,46 +620,52 @@ function RolesPageContent() {
     Promise.all([
       adminService.getRolesList().catch(() => []),
       adminService.getUsersList().catch(() => []),
-    ]).then(([list, usersList]: [unknown[], unknown[]]) => {
-      if (Array.isArray(list) && list.length > 0) {
-        setRoles(
-          list.map((r: any) => {
-            const calculated = Array.isArray(usersList)
-              ? usersList.filter(
-                  (u: any) =>
-                    (u.role?.name || u.role_name || u.role) === r.name
-                ).length
-              : 0;
-            const actions = Array.isArray(r.permissions)
-              ? Array.from(new Set(r.permissions.map((p: any) => p.action)))
-              : [];
-            const permSummary =
-              r.name === "Administrator"
-                ? "Full access"
-                : actions.length > 0
-                  ? actions.join(", ")
-                  : "view, create, edit, approve";
+    ])
+      .then(([list, usersList]: [unknown[], unknown[]]) => {
+        if (Array.isArray(list) && list.length > 0) {
+          setRoles(
+            list.map((r: any) => {
+              const calculated = Array.isArray(usersList)
+                ? usersList.filter(
+                    (u: any) =>
+                      (u.role?.name || u.role_name || u.role) === r.name,
+                  ).length
+                : 0;
+              const actions = Array.isArray(r.permissions)
+                ? Array.from(new Set(r.permissions.map((p: any) => p.action)))
+                : [];
+              const permSummary =
+                actions.length > 0
+                  ? actions
+                      .map(
+                        (action) =>
+                          String(action).charAt(0).toUpperCase() +
+                          String(action).slice(1).toLowerCase(),
+                      )
+                      .join(", ")
+                  : "No permissions";
 
-            return {
-              id: r.id,
-              name: r.name,
-              userCount: r.user_count ?? r.userCount ?? calculated,
-              summary: permSummary,
-              isActive: r.is_active ?? true,
-              permissions: {},
-              permissionSummary: permSummary,
-            };
-          })
-        );
-      }
-    }).catch(() => {});
+              return {
+                id: r.id,
+                name: r.name,
+                userCount: r.user_count ?? r.userCount ?? calculated,
+                summary: permSummary,
+                isActive: r.is_active ?? true,
+                permissions: {},
+                permissionSummary: permSummary,
+              };
+            }),
+          );
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const { user } = useAuth();
-  const hasPerm = (itemKey: string, action: string = 'view') =>
+  const hasPerm = (itemKey: string, action: string = "view") =>
     !!user?.permissions?.includes(`config.${itemKey}:${action}`);
 
-  if (!hasPerm('role_management', 'view')) {
+  if (!hasPerm("role_management", "view")) {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-slate-400 mt-12">
         <p className="text-sm font-bold">ไม่มีสิทธิ์เข้าถึงหน้าจัดการ Role</p>
@@ -623,7 +673,7 @@ function RolesPageContent() {
     );
   }
 
-  if (mode === "new" && hasPerm('role_management', 'create')) {
+  if (mode === "new" && hasPerm("role_management", "create")) {
     return (
       <CreateRoleForm
         onBack={() => router.push("/admin/config/roles")}
@@ -634,7 +684,7 @@ function RolesPageContent() {
     );
   }
 
-  if (mode === "edit" && hasPerm('role_management', 'edit')) {
+  if (mode === "edit" && hasPerm("role_management", "edit")) {
     return <EditRoleForm roleId={searchParams.get("id") || ""} />;
   }
 

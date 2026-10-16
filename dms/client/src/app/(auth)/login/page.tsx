@@ -4,7 +4,15 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@views/components/providers/AuthProvider";
-import { Lock, User, Shield, Users, UserCheck, Award, KeyRound } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  LoaderCircle,
+  LockKeyhole,
+  UserRound,
+} from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,199 +22,181 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError(null);
     setLoading(true);
 
     try {
       await login(username, password);
       router.push("/dashboard");
-    } catch (err: any) {
-      const errMsg = err?.message || "";
-      if (errMsg.includes("401") || errMsg.includes("Unauthorized")) {
-        setError("ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง");
-      } else if (errMsg.includes("500") || errMsg.includes("fetch") || errMsg.includes("เชื่อมต่อ")) {
-        setError("ไม่สามารถเชื่อมต่อกับserverได้");
-      } else {
-        setError(errMsg || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
-      }
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่",
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleQuickFill = (user: string, pass: string = "folk2546") => {
-    setUsername(user);
-    setPassword(pass);
-    setError(null);
-  };
-
-  const testAccountGroups = [
-    {
-      roleTitle: "ผู้ดูแลระบบ (Administrator)",
-      icon: <Shield className="w-3.5 h-3.5 text-rose-400" />,
-      badgeColor: "bg-rose-500/20 text-rose-300 border-rose-500/30",
-      users: [
-        { username: "admin", name: "ผู้ดูแลระบบ", desc: "สิทธิ์สูงสุด จัดการระบบทั้งหมด", pass: "folk2546" }
-      ]
-    },
-    {
-      roleTitle: "พนักงาน / ผู้เสนอเอกสาร (Employee)",
-      icon: <UserCheck className="w-3.5 h-3.5 text-blue-400" />,
-      badgeColor: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-      users: [
-        { username: "somchai", name: "คุณสมชาย ใจดี", desc: "แผนกจัดซื้อ", pass: "folk2546" },
-        { username: "suda", name: "คุณสุดา วงศ์ศรี", desc: "แผนกบัญชี", pass: "folk2546" },
-        { username: "napa", name: "คุณนภา สุขใจ", desc: "แผนกบุคคล", pass: "folk2546" }
-      ]
-    },
-    {
-      roleTitle: "หัวหน้าแผนก (Department Head / Manager)",
-      icon: <Users className="w-3.5 h-3.5 text-amber-400" />,
-      badgeColor: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-      users: [
-        { username: "kittisak", name: "คุณกิตติศักดิ์", desc: "หัวหน้างาน (อนุมัติ Step 1)", pass: "folk2546" },
-        { username: "manager01", name: "คุณวิภา รักดี", desc: "หัวหน้าคลังสินค้า", pass: "folk2546" }
-      ]
-    },
-    {
-      roleTitle: "ผู้บริหาร (Executive)",
-      icon: <Award className="w-3.5 h-3.5 text-emerald-400" />,
-      badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-      users: [
-        { username: "prasert", name: "คุณประเสริฐ มีสุข", desc: "ผู้บริหาร (อนุมัติ Step ท้ายๆ)", pass: "folk2546" }
-      ]
-    }
-  ];
-
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      
-      {/* ฝั่งซ้าย: ฟอร์มเข้าสู่ระบบ */}
-      <div className="lg:col-span-5 space-y-5">
+    <div className="w-full">
+      <div className="space-y-7">
         <div>
-          <h2 className="text-xl font-black text-white">เข้าสู่ระบบ</h2>
-          <p className="text-xs text-slate-400 mt-1">กรอกข้อมูลบัญชีเพื่อเข้าใช้งานระบบ DMS</p>
+          <span className="mb-5 inline-flex size-11 items-center justify-center rounded-2xl border border-indigo-400/20 bg-indigo-400/10 text-indigo-300">
+            <LockKeyhole
+              className="size-5"
+              strokeWidth={1.7}
+              aria-hidden="true"
+            />
+          </span>
+          <p className="mb-2 text-[11px] font-semibold tracking-[0.18em] text-indigo-300">
+            WELCOME TO YOUR WORKSPACE
+          </p>
+          <h2 className="text-[28px] font-bold tracking-tight text-white sm:text-[32px]">
+            ยินดีต้อนรับกลับ
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-slate-400">
+            เข้าสู่ระบบเพื่อเริ่มจัดการเอกสารของคุณ
+          </p>
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold">
-            {error}
+          <div
+            id="login-error"
+            role="alert"
+            className="flex items-start gap-2.5 rounded-xl border border-rose-400/25 bg-rose-400/10 p-3.5 text-sm leading-6 text-rose-200"
+          >
+            <AlertCircle className="mt-1 size-4 shrink-0" aria-hidden="true" />
+            <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          aria-describedby={error ? "login-error" : undefined}
+          className="space-y-5"
+        >
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">
-              ชื่อผู้ใช้งาน (Username)
+            <label
+              htmlFor="login-username"
+              className="mb-2 block text-sm font-medium text-slate-200"
+            >
+              ชื่อผู้ใช้งาน
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                <User className="w-4 h-4" />
+              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                <UserRound
+                  className="size-[18px]"
+                  strokeWidth={1.7}
+                  aria-hidden="true"
+                />
               </span>
               <input
                 type="text"
+                id="login-username"
+                name="username"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                disabled={loading}
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="ระบุชื่อผู้ใช้งาน"
-                className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl py-2.5 pl-10 pr-3.5 text-xs font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                placeholder="กรอกชื่อผู้ใช้งานของคุณ"
+                className="h-[52px] w-full rounded-xl border border-slate-600/60 bg-white/[0.035] pl-12 pr-4 text-base text-white outline-none transition placeholder:text-slate-500 hover:border-slate-500 focus:border-indigo-400 focus:bg-indigo-400/5 focus:ring-4 focus:ring-indigo-400/10 disabled:opacity-60 sm:text-sm"
               />
             </div>
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-bold text-slate-300">
-                รหัสผ่าน (Password)
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label
+                htmlFor="login-password"
+                className="block text-sm font-medium text-slate-200"
+              >
+                รหัสผ่าน
               </label>
-              <Link href="/forgot-password" className="text-xs text-blue-400 hover:underline">
+              <Link
+                href="/forgot-password"
+                className="rounded text-xs font-medium text-indigo-300 underline-offset-4 hover:text-indigo-200 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-indigo-300"
+              >
                 ลืมรหัสผ่าน?
               </Link>
             </div>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                <Lock className="w-4 h-4" />
+              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                <LockKeyhole
+                  className="size-[18px]"
+                  strokeWidth={1.7}
+                  aria-hidden="true"
+                />
               </span>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
+                id="login-password"
+                name="password"
+                autoComplete="current-password"
+                disabled={loading}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl py-2.5 pl-10 pr-3.5 text-xs font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                placeholder="กรอกรหัสผ่าน"
+                className="h-[52px] w-full rounded-xl border border-slate-600/60 bg-white/[0.035] pl-12 pr-12 text-base text-white outline-none transition placeholder:text-slate-500 hover:border-slate-500 focus:border-indigo-400 focus:bg-indigo-400/5 focus:ring-4 focus:ring-indigo-400/10 disabled:opacity-60 sm:text-sm"
               />
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                aria-pressed={showPassword}
+                className="absolute inset-y-1.5 right-1.5 flex w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/5 hover:text-slate-200 focus-visible:outline-2 focus-visible:outline-indigo-300 disabled:opacity-50"
+              >
+                {showPassword ? (
+                  <EyeOff className="size-[18px]" aria-hidden="true" />
+                ) : (
+                  <Eye className="size-[18px]" aria-hidden="true" />
+                )}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50 cursor-pointer mt-2"
+            className="mt-2 flex h-[52px] w-full items-center justify-center gap-2.5 rounded-xl bg-indigo-500 px-4 text-sm font-bold text-white shadow-lg shadow-indigo-950/30 transition hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-indigo-300 active:translate-y-px disabled:cursor-wait disabled:opacity-65"
           >
-            {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+            {loading ? (
+              <>
+                <LoaderCircle
+                  className="size-4 animate-spin motion-reduce:animate-none"
+                  aria-hidden="true"
+                />
+                กำลังเข้าสู่ระบบ...
+              </>
+            ) : (
+              <>
+                เข้าสู่ระบบ
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </>
+            )}
           </button>
         </form>
-      </div>
-
-      {/* ฝั่งขวา: แผง Quick Test Accounts */}
-      <div className="lg:col-span-7 bg-slate-950/60 p-5 rounded-2xl border border-slate-800 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <KeyRound className="w-4 h-4 text-blue-400" />
-            <h3 className="text-xs font-black text-white uppercase tracking-wider">
-              บัญชีทดสอบระบบ (Quick Login)
-            </h3>
-          </div>
-          <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full font-bold">
-            คลิกเลือกเพื่อเติมข้อมูล
-          </span>
-        </div>
-
-        <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
-          {testAccountGroups.map((group, idx) => (
-            <div key={idx} className="space-y-1.5">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
-                {group.icon}
-                <span>{group.roleTitle}</span>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {group.users.map((acc) => (
-                  <button
-                    key={acc.username}
-                    type="button"
-                    onClick={() => handleQuickFill(acc.username, acc.pass)}
-                    className="flex flex-col text-left p-2.5 rounded-xl bg-slate-900/90 hover:bg-blue-950/60 border border-slate-800 hover:border-blue-500/50 transition-all group cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-xs font-bold text-white group-hover:text-blue-400">
-                        {acc.username}
-                      </span>
-                      <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md border ${group.badgeColor}`}>
-                        เลือก
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-semibold text-slate-300 mt-0.5">
-                      {acc.name}
-                    </span>
-                    <span className="text-[10px] text-slate-400 truncate">
-                      {acc.desc}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 text-center">
-          💡 รหัสผ่านเริ่มต้น: <code className="text-blue-300 font-mono bg-slate-800 px-1.5 py-0.5 rounded">folk2546</code>
+        <div className="border-t border-white/10 pt-5">
+          <p className="text-center text-xs leading-6 text-slate-500">
+            เข้าใช้งานด้วยบัญชีที่ได้รับจากผู้ดูแลระบบ
+            <br />
+            <span className="text-slate-400">
+              พบปัญหาการเข้าใช้งาน? ติดต่อผู้ดูแลระบบของคุณ
+            </span>
+          </p>
         </div>
       </div>
-
     </div>
   );
 }

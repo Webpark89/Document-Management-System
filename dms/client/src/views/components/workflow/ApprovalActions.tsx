@@ -1,16 +1,19 @@
 "use client";
 
+import type { ApprovalSignatureInput } from "@models";
 import React, { useState } from "react";
 import { Check, X, Loader2, AlertTriangle, RotateCcw, Ban } from "lucide-react";
-import { submitApprove, submitReject } from '@views/features/workflow/api';
+import { submitApprove, submitReject } from "@views/features/workflow/api";
 import { useRouter } from "next/navigation";
-import { useToast } from '@views/components/providers/ToastProvider';
+import { useToast } from "@views/components/providers/ToastProvider";
 import { swalConfirm, swalError } from "@/lib/swal";
 import { mutate } from "swr";
 
 interface ApprovalActionsProps {
   documentId: string;
   signaturePlaced: boolean;
+  signatureData?: ApprovalSignatureInput;
+  documentVersion: number;
   canApprove?: boolean;
   canReject?: boolean;
   canReturn?: boolean;
@@ -22,12 +25,14 @@ interface ApprovalActionsProps {
 export function ApprovalActions({
   documentId,
   signaturePlaced,
+  signatureData,
+  documentVersion,
   canApprove = true,
   canReject = true,
   canReturn = true,
   canComment = true,
   activeApproverName,
-  currentStep = 1
+  currentStep = 1,
 }: ApprovalActionsProps) {
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,7 +44,10 @@ export function ApprovalActions({
 
   const handleApprove = async () => {
     if (!signaturePlaced) {
-      swalError("ต้องประทับลายเซ็นก่อนอนุมัติ", "กรุณาวางลายเซ็นบนเอกสาร (หรือกดปุ่มประทับลายเซ็น) ใน PDF Viewer ก่อนทำการอนุมัติ");
+      swalError(
+        "ต้องประทับลายเซ็นก่อนอนุมัติ",
+        "กรุณาวางลายเซ็นบนเอกสาร (หรือกดปุ่มประทับลายเซ็น) ใน PDF Viewer ก่อนทำการอนุมัติ",
+      );
       return;
     }
 
@@ -55,17 +63,22 @@ export function ApprovalActions({
 
     setIsSubmitting(true);
     try {
-      const signatureParams = signaturePlaced
-        ? { signature_x: 400, signature_y: 100, signature_page: 1, signature_width: 120, signature_height: 60 }
-        : undefined;
-      await submitApprove(documentId, comment, signatureParams);
+      await submitApprove(documentId, comment, {
+        ...signatureData,
+        expected_step: currentStep,
+        expected_version: documentVersion,
+      });
       showToast("อนุมัติเอกสารเรียบร้อยแล้ว", "success");
       mutate("documents");
       mutate("dashboard");
       router.push("/approvals");
       router.refresh();
     } catch (error: any) {
-      showToast(error.message || "เกิดข้อผิดพลาดในการดำเนินการ", "error");
+      showToast(
+        (error instanceof Error ? error.message : String(error)) ||
+          "เกิดข้อผิดพลาดในการดำเนินการ",
+        "error",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -79,21 +92,37 @@ export function ApprovalActions({
 
     setIsSubmitting(true);
     try {
-      await submitReject(documentId, comment, rejectType, rejectType === "return" ? returnToStep : undefined);
-      showToast(rejectType === "return" ? "ตีกลับเอกสารเพื่อแก้ไขเรียบร้อยแล้ว" : "ปฏิเสธเอกสารถาวรเรียบร้อยแล้ว", "success");
+      await submitReject(
+        documentId,
+        comment,
+        rejectType,
+        1,
+        currentStep,
+        documentVersion,
+      );
+      showToast(
+        rejectType === "return"
+          ? "ตีกลับเอกสารเพื่อแก้ไขเรียบร้อยแล้ว"
+          : "ปฏิเสธเอกสารถาวรเรียบร้อยแล้ว",
+        "success",
+      );
       setShowRejectModal(false);
       mutate("documents");
       mutate("dashboard");
       router.push("/approvals");
       router.refresh();
     } catch (error: any) {
-      showToast(error.message || "เกิดข้อผิดพลาดในการดำเนินการ", "error");
+      showToast(
+        (error instanceof Error ? error.message : String(error)) ||
+          "เกิดข้อผิดพลาดในการดำเนินการ",
+        "error",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!canApprove) {
+  if (!canApprove && !canReject && !canReturn) {
     return (
       <div className="bg-slate-50 rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-2">
         <div className="flex items-center gap-2 text-slate-700 font-bold text-xs">
@@ -101,10 +130,14 @@ export function ApprovalActions({
           <span>อยู่ระหว่างการรออนุมัติ (Step {currentStep})</span>
         </div>
         <p className="text-xs text-slate-500 font-medium leading-relaxed">
-          เอกสารฉบับนี้อยู่ในระหว่างการรอพิจารณาโดย <strong className="text-slate-800">{activeApproverName || "ผู้อนุมัติประจำขั้นตอน"}</strong>
+          เอกสารฉบับนี้อยู่ในระหว่างการรอพิจารณาโดย{" "}
+          <strong className="text-slate-800">
+            {activeApproverName || "ผู้อนุมัติประจำขั้นตอน"}
+          </strong>
         </p>
         <div className="text-[11px] text-slate-400 pt-1">
-          🔒 ปุ่มอนุมัติและลายเซ็นจะเปิดให้ใช้งานเมื่อเป็นลำดับสิทธิ์ของคุณเท่านั้น
+          🔒
+          ปุ่มอนุมัติและลายเซ็นจะเปิดให้ใช้งานเมื่อเป็นลำดับสิทธิ์ของคุณเท่านั้น
         </div>
       </div>
     );
@@ -149,7 +182,7 @@ export function ApprovalActions({
 
           <div className="flex gap-3 pt-2">
             {/* Reject button — requires reject_document:approve OR return_document:approve */}
-            {(canReject || canReturn) ? (
+            {canReject || canReturn ? (
               <button
                 type="button"
                 onClick={() => setShowRejectModal(true)}
@@ -167,10 +200,11 @@ export function ApprovalActions({
                 type="button"
                 onClick={handleApprove}
                 disabled={isSubmitting}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-white font-bold rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 cursor-pointer ${signaturePlaced
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-white font-bold rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 cursor-pointer ${
+                  signaturePlaced
                     ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100"
                     : "bg-slate-400 hover:bg-slate-500 cursor-not-allowed"
-                  }`}
+                }`}
               >
                 {isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -207,10 +241,11 @@ export function ApprovalActions({
               {canReturn && (
                 <label
                   onClick={() => setRejectType("return")}
-                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${rejectType === "return"
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    rejectType === "return"
                       ? "border-amber-500 bg-amber-50/50 shadow-xs"
                       : "border-slate-200 bg-white hover:bg-slate-50"
-                    }`}
+                  }`}
                 >
                   <input
                     type="radio"
@@ -225,7 +260,8 @@ export function ApprovalActions({
                       ตีกลับให้ผู้สร้างแก้ไข (Reject & Return)
                     </div>
                     <p className="text-[11px] text-slate-500 font-medium">
-                      สถานะเอกสารจะเปลี่ยนเป็น Returned (ส่งกลับแก้ไข) เพื่อให้ผู้สร้างแก้ไขและส่งขออนุมัติใหม่ได้
+                      สถานะเอกสารจะเปลี่ยนเป็น Returned (ส่งกลับแก้ไข)
+                      เพื่อให้ผู้สร้างแก้ไขและส่งขออนุมัติใหม่ได้
                     </p>
                   </div>
                 </label>
@@ -235,10 +271,11 @@ export function ApprovalActions({
               {canReject && (
                 <label
                   onClick={() => setRejectType("cancel")}
-                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${rejectType === "cancel"
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    rejectType === "cancel"
                       ? "border-rose-500 bg-rose-50/50 shadow-xs"
                       : "border-slate-200 bg-white hover:bg-slate-50"
-                    }`}
+                  }`}
                 >
                   <input
                     type="radio"
@@ -253,14 +290,13 @@ export function ApprovalActions({
                       ปฏิเสธถาวร (Reject & Cancel)
                     </div>
                     <p className="text-[11px] text-slate-500 font-medium">
-                      ปิดขั้นตอนอนุมัติถาวร เอกสารจะอยู่ในสถานะ Rejected ไม่สามารถแก้ไขหรือส่งใหม่ได้
+                      ปิดขั้นตอนอนุมัติถาวร เอกสารจะอยู่ในสถานะ Rejected
+                      ไม่สามารถแก้ไขหรือส่งใหม่ได้
                     </p>
                   </div>
                 </label>
               )}
             </div>
-
-
 
             <div className="flex gap-3 pt-2 border-t border-slate-100">
               <button

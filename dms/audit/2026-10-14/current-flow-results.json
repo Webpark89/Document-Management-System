@@ -1,0 +1,204 @@
+{
+  "date": "2026-10-14",
+  "scope": "Current application flow; no requirement-based fixed approval-step count or per-signature new-version requirement. Real compiled services and HTTP stack, in-memory DB. Targeted failure counts are not overall feature success percentages.",
+  "total": 34,
+  "passed": 9,
+  "failed": 25,
+  "results": [
+    {
+      "id": "CREATE-PR",
+      "name": "PR creates Draft with version 1",
+      "status": "PASS"
+    },
+    {
+      "id": "CREATE-PO",
+      "name": "PO creates Draft with version 1",
+      "status": "PASS"
+    },
+    {
+      "id": "CREATE-BK",
+      "name": "BK creates Draft with version 1",
+      "status": "PASS"
+    },
+    {
+      "id": "CREATE-DOC",
+      "name": "DOC creates Draft with version 1",
+      "status": "PASS"
+    },
+    {
+      "id": "NORMAL-ADVANCE",
+      "name": "Assigned approver advances and notifies next approver",
+      "status": "PASS"
+    },
+    {
+      "id": "NORMAL-DELETE",
+      "name": "Non-owner soft delete is rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "NORMAL-READ-OWNER",
+      "name": "Notification mark-read scopes update to current user",
+      "status": "PASS"
+    },
+    {
+      "id": "AUTH-APPROVE",
+      "name": "Unassigned user cannot approve",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "AUTH-REJECT",
+      "name": "Unassigned user cannot reject",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "AUTH-SUBMIT",
+      "name": "Non-owner cannot submit another user draft",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "AUTH-EDIT",
+      "name": "Non-owner cannot edit another user draft",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "MATRIX",
+      "name": "Client cannot truncate current master matrix",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "STATE-Approved",
+      "name": "Cannot approve Approved workflow",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "STATE-Rejected",
+      "name": "Cannot approve Rejected workflow",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "SIGN-MISSING",
+      "name": "Missing PDF cannot be reported as successfully signed",
+      "status": "FAIL",
+      "detail": "Expected values to be strictly equal:\n\ntrue !== false\n"
+    },
+    {
+      "id": "SIGN-VERSION-TRUTH",
+      "name": "API signing version matches persisted version",
+      "status": "FAIL",
+      "detail": "API reports version 2 but version 1 is updated\n\n2 !== 1\n"
+    },
+    {
+      "id": "APPROVED-REPLACE",
+      "name": "Approved document cannot silently acquire unapproved latest PDF",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "MISSING-VERSION",
+      "name": "Missing historical version is rejected",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "PRIVATE-DTO",
+      "name": "Visibility survives API validation",
+      "status": "FAIL",
+      "detail": "The expression evaluated to a falsy value:\n\n  assert.ok(value.visibility)\n"
+    },
+    {
+      "id": "PRIVATE-SAVE",
+      "name": "Chosen private visibility persists",
+      "status": "FAIL",
+      "detail": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'SpecificUsers'\n"
+    },
+    {
+      "id": "NEGATIVE-INPUT",
+      "name": "Nested negative quantity is rejected",
+      "status": "FAIL",
+      "detail": "Missing expected rejection."
+    },
+    {
+      "id": "PO-VAT",
+      "name": "Stored PO VAT matches selected VAT",
+      "status": "FAIL",
+      "detail": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   total: 200,\n+   vat: 7\n-   total: 220,\n-   vat: 10\n  }\n"
+    },
+    {
+      "id": "HISTORICAL-BK",
+      "name": "Historical BK PDF uses historical detail",
+      "status": "FAIL",
+      "detail": "The expression evaluated to a falsy value:\n\n  assert.ok(html.includes('HISTORICAL_CONTENT') && !html.includes('CURRENT_CONTENT'))\n"
+    },
+    {
+      "id": "HISTORICAL-EDIT",
+      "name": "Returned form edit preserves prior snapshot",
+      "status": "FAIL",
+      "detail": "Expected values to be strictly equal:\n\n1 !== 0\n"
+    },
+    {
+      "id": "DEPARTMENT-CLAIM",
+      "name": "JWT user carries department ID for current visibility checks",
+      "status": "FAIL",
+      "detail": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'dept-1'\n"
+    },
+    {
+      "id": "READ-TIME",
+      "name": "Notification read records read_at",
+      "status": "FAIL",
+      "detail": "The expression evaluated to a falsy value:\n\n  assert.ok(calls(f, 'notification.updateMany')[0].args.data.read_at instanceof Date)\n"
+    },
+    {
+      "id": "RUNNING-PARTIAL",
+      "name": "Partial running config update does not set NaN year",
+      "status": "FAIL",
+      "detail": "The expression evaluated to a falsy value:\n\n  assert.ok(year === undefined || Number.isFinite(year))\n"
+    },
+    {
+      "id": "SENSITIVE-RESPONSE",
+      "name": "Document response excludes approver password hashes and reset tokens",
+      "status": "FAIL",
+      "detail": "The expression evaluated to a falsy value:\n\n  assert.ok(!('password_hash' in approver) && !('reset_token' in approver) && !('signature_encrypted' in approver))\n"
+    },
+    {
+      "id": "HTTP-AUTH",
+      "name": "Anonymous detail returns 401",
+      "status": "PASS"
+    },
+    {
+      "id": "HTTP-PRIVATE-DETAIL",
+      "name": "Unrelated user cannot view private detail",
+      "status": "PASS"
+    },
+    {
+      "id": "HTTP-WORKFLOW",
+      "name": "Anonymous workflow is rejected",
+      "status": "FAIL",
+      "detail": "expected 401 \"Unauthorized\", got 200 \"OK\""
+    },
+    {
+      "id": "HTTP-SIGNATURE",
+      "name": "Anonymous raw signature is rejected",
+      "status": "FAIL",
+      "detail": "expected 401 \"Unauthorized\", got 200 \"OK\""
+    },
+    {
+      "id": "HTTP-PRIVATE-DOWNLOAD",
+      "name": "Unrelated user cannot download private PDF",
+      "status": "FAIL",
+      "detail": "expected 403 \"Forbidden\", got 200 \"OK\""
+    },
+    {
+      "id": "HTTP-MASTER",
+      "name": "User without edit permission cannot change master workflow",
+      "status": "FAIL",
+      "detail": "expected 403 \"Forbidden\", got 200 \"OK\""
+    }
+  ]
+}

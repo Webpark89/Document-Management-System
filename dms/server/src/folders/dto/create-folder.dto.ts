@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsEnum, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsArray,
+  IsUUID,
+  IsNotEmpty,
+  MaxLength,
+} from 'class-validator';
 
 export enum FolderVisibilityEnum {
   Private = 'Private',
@@ -10,6 +18,8 @@ export enum FolderVisibilityEnum {
 
 export class CreateFolderDto {
   @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
   name: string;
 
   @IsOptional()
@@ -38,9 +48,11 @@ export class CreateFolderDto {
 
   @IsOptional()
   @IsArray()
+  @IsUUID('all', { each: true })
   shared_departments?: string[];
 
   @IsOptional()
   @IsArray()
+  @IsUUID('all', { each: true })
   shared_users?: string[];
 }

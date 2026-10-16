@@ -2,14 +2,16 @@
 
 import React, { useState } from "react";
 import { XCircle, X } from "lucide-react";
-import { Document } from '@views/features/documents/types';
-import { deleteDocument } from '@views/features/documents/api';
+import { Document } from "@views/features/documents/types";
+import { api } from "@/lib";
+import { useAuth } from "../providers/AuthProvider";
 
 interface CancelDocumentButtonProps {
   document: Document;
 }
 
 export function CancelDocumentButton({ document }: CancelDocumentButtonProps) {
+  const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState("");
   const [isCancelled, setIsCancelled] = useState(false);
@@ -17,7 +19,19 @@ export function CancelDocumentButton({ document }: CancelDocumentButtonProps) {
 
   // Conditions: only Pending or Draft, and we assume current user is the owner for mock purposes.
   // In a real app, we would check `document.creator_id === currentUser.id`.
-  if (document.status !== "Pending" && document.status !== "Draft") {
+  if (
+    !user ||
+    (document as Document & { creator_id?: string }).creator_id !== user.id ||
+    !user.permissions?.some((p) =>
+      [
+        "submissions.delete_document:delete",
+        "document.delete_document:delete",
+        "submissions.cancel_document:delete",
+        "document.recall_document:edit",
+      ].includes(p),
+    ) ||
+    !["Pending", "Draft", "Returned"].includes(document.status)
+  ) {
     return null;
   }
 
@@ -29,7 +43,17 @@ export function CancelDocumentButton({ document }: CancelDocumentButtonProps) {
   const handleCancel = async () => {
     setIsSubmitting(true);
     const targetId = document.real_id || document.id;
-    const success = await deleteDocument(targetId);
+    let success = false;
+    try {
+      success = (
+        await api.post<{ success: boolean }>(
+          `/api/documents/${encodeURIComponent(targetId)}/cancel`,
+          { reason },
+        )
+      ).data.success;
+    } catch (error) {
+      alert(error instanceof Error ? error.message : String(error));
+    }
     setIsSubmitting(false);
 
     if (success) {
@@ -57,19 +81,22 @@ export function CancelDocumentButton({ document }: CancelDocumentButtonProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-rose-50/50">
-              <h3 className="text-lg font-black text-rose-700">ยืนยันการยกเลิกเอกสาร</h3>
-              <button 
+              <h3 className="text-lg font-black text-rose-700">
+                ยืนยันการยกเลิกเอกสาร
+              </h3>
+              <button
                 onClick={() => setShowModal(false)}
                 className="p-2 rounded-xl hover:bg-rose-100 text-rose-500 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div className="flex items-start gap-4 p-4 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-sm font-semibold">
-  { }
-                การกระทำนี้ไม่สามารถย้อนกลับได้! เอกสารจะถูกเปลี่ยนสถานะเป็น "ยกเลิก" และยุติสายการอนุมัติทั้งหมด
+                {}
+                การกระทำนี้ไม่สามารถย้อนกลับได้! เอกสารจะถูกเปลี่ยนสถานะเป็น
+                "ยกเลิก" และยุติสายการอนุมัติทั้งหมด
               </div>
 
               <div className="space-y-2">
