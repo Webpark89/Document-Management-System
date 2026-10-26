@@ -32,7 +32,11 @@ type Folder = Prisma.FolderGetPayload<{ include: typeof folderInclude }>;
 export class FoldersService {
   constructor(private prisma: PrismaService) {}
   private canView(folder: Folder, user: Actor) {
-    if (folder.creator_id === user.id || hasAny(user, permissions.viewAll))
+    if (
+      folder.creator_id === user.id ||
+      hasAny(user, permissions.viewAll) ||
+      hasAny(user, ['document.move_any_to_folder:edit'])
+    )
       return true;
     if (folder.visibility === 'CompanyWide') return true;
     if (folder.visibility === 'Department')
@@ -60,6 +64,12 @@ export class FoldersService {
           (p.user_id === user.id ||
             (!!user.department_id && p.department_id === user.department_id)),
       )
+    );
+  }
+  private canAddDocument(folder: Folder, user: Actor) {
+    return (
+      this.canEdit(folder, user) ||
+      hasAny(user, ['document.move_any_to_folder:edit'])
     );
   }
   private async folder(
@@ -105,6 +115,7 @@ export class FoldersService {
         can_edit:
           this.canEdit(f, user) &&
           hasAny(user, ['document.manage_folders:edit']),
+        can_add_document: this.canAddDocument(f, user),
         shared_departments: f.permissions
           .filter((p) => p.department_id)
           .map((p) => p.department_id),
@@ -343,13 +354,17 @@ export class FoldersService {
       requireDocumentAccess(doc, user);
       if (doc.status !== 'Approved')
         throw new ConflictException('ย้ายเข้าคลังได้หลังอนุมัติครบแล้ว');
-      if (doc.creator_id !== user.id && !hasAny(user, permissions.viewAll))
+      if (
+        doc.creator_id !== user.id &&
+        !hasAny(user, permissions.viewAll) &&
+        !hasAny(user, ['document.move_any_to_folder:edit'])
+      )
         throw new ForbiddenException(
           'เฉพาะเจ้าของหรือผู้มีสิทธิ์จัดการทั้งหมด',
         );
       if (dto.target_folder_id) {
         const target = await this.folder(dto.target_folder_id, user, tx);
-        if (!this.canEdit(target, user))
+        if (!this.canAddDocument(target, user))
           throw new ForbiddenException(
             'ไม่มีสิทธิ์เพิ่มเอกสารในโฟลเดอร์ปลายทาง',
           );

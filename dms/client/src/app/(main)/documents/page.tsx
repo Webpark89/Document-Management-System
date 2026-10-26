@@ -222,6 +222,16 @@ function DocumentsContent() {
 
   const handleMoveSelectedDocs = async (targetFolderId: string | null) => {
     if (selectedDocIds.length === 0) return;
+    const canManageAll = hasPerm("view_all", "view") ||
+      hasPerm("move_any_to_folder", "edit") ||
+      !!user?.permissions?.includes("submissions.view_all:view");
+    const selected = documents.filter((doc) =>
+      selectedDocIds.includes(doc.id) ||
+      selectedDocIds.includes((doc as any).real_id),
+    );
+    if (!canManageAll && selected.some((doc) => (doc as any).creator_id !== user?.id)) {
+      throw new Error("ย้ายได้เฉพาะเอกสารที่คุณสร้างเอง หากต้องการย้ายเอกสารของผู้อื่นให้ผู้มีสิทธิ์จัดการทั้งหมดดำเนินการ");
+    }
     for (const docId of selectedDocIds) {
       await moveDocumentToFolder({
         document_id: docId,
@@ -1002,11 +1012,11 @@ function DocumentsContent() {
               </div>
               {/* TABLE */}
               <div className="overflow-x-auto border border-slate-200/80 rounded-2xl bg-white shadow-2xs">
-                <table className="w-full table-fixed text-left border-collapse min-w-[1150px]">
+                <table className="w-full table-fixed text-left border-collapse min-w-[1320px]">
                   <colgroup>
                     <col className="w-12" />
-                    <col className="w-[140px]" />
-                    <col className="w-[300px]" />
+                    <col className="w-[190px]" />
+                    <col className="w-[320px]" />
                     <col className="w-[100px]" />
                     <col className="w-[130px]" />
                     <col className="w-[120px]" />

@@ -320,7 +320,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
           <AppStatCard label="รออนุมัติทั้งระบบ" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Pending' ? null : 'Pending')} isActive={activeStatusFilter === 'Pending'} />
           <AppStatCard label="อนุมัติ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Approved' ? null : 'Approved')} isActive={activeStatusFilter === 'Approved'} />
           <AppStatCard label="ส่งกลับแก้ไข" value={returned} icon={AlertCircle} iconBg="bg-orange-50" iconColor="text-orange-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Returned' ? null : 'Returned')} isActive={activeStatusFilter === 'Returned'} />
-          <AppStatCard label="ยอด PR/PO" value={`${totalBudget.toLocaleString()} บาท`} icon={TrendingUp} iconBg="bg-purple-50" iconColor="text-purple-600" />
+          <AppStatCard label="ยอด PR/PO" value={<>{totalBudget.toLocaleString()}<span className="ml-1 text-sm font-semibold whitespace-nowrap">บาท</span></>} icon={TrendingUp} iconBg="bg-purple-50" iconColor="text-purple-600" />
         </StatCardGrid>
       )}
 

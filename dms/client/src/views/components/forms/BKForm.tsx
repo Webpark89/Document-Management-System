@@ -51,6 +51,7 @@ export default function BKForm({
   initialData,
   isViewer,
   tempSignature,
+  tempSignatureUrl,
   onSignClick,
 }: any) {
   const { user } = useAuth();
@@ -261,6 +262,7 @@ export default function BKForm({
                   const isCurrentStep = step.isCurrentStep;
                   const approverId = step.approver_id || step.approver?.id;
                   const sigSrc =
+                    (isCurrentStep && tempSignature ? tempSignatureUrl : null) ||
                     step.signature_url ||
                     step.approver?.signature_url ||
                     (isCurrentStep && tempSignature && user?.id

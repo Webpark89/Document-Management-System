@@ -56,6 +56,7 @@ interface POFormProps {
   initialData?: any;
   isViewer?: boolean;
   tempSignature?: boolean;
+  tempSignatureUrl?: string | null;
   onSignClick?: () => void;
 }
 
@@ -79,6 +80,7 @@ export default function POForm({
   initialData,
   isViewer,
   tempSignature,
+  tempSignatureUrl,
   onSignClick,
 }: any) {
   const { user } = useAuth();
@@ -781,6 +783,7 @@ export default function POForm({
                   const isCurrentStep = step.isCurrentStep;
                   const approverId = step.approver_id || step.approver?.id;
                   const sigSrc =
+                    (isCurrentStep && tempSignature ? tempSignatureUrl : null) ||
                     step.signature_url ||
                     step.approver?.signature_url ||
                     (isCurrentStep && tempSignature && user?.id

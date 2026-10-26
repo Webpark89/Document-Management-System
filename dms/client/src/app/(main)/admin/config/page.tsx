@@ -108,7 +108,7 @@ export default function ConfigPage() {
             </nav>
           }
           title="การตั้งค่าระบบ"
-          subtitle="In-memory demo — resets on refresh"
+          subtitle="จัดการผู้ใช้ บทบาท และการตั้งค่าของระบบ"
         />
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

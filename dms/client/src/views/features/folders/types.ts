@@ -13,6 +13,7 @@ export interface Folder {
   children?: Folder[];
   document_count: number;
   can_edit: boolean;
+  can_add_document?: boolean;
   creator: { id: string; full_name: string };
   created_at?: string;
 }

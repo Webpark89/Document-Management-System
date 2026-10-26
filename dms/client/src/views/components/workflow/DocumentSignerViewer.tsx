@@ -191,6 +191,7 @@ export function DocumentSignerViewer({
           hideHeader
           isViewer
           tempSignature={signaturePlaced}
+          tempSignatureUrl={signature}
           onSignClick={place}
         />
       )}

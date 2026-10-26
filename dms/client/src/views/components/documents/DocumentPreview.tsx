@@ -15,6 +15,7 @@ interface DocumentPreviewProps {
   hideHeader?: boolean;
   isViewer?: boolean;
   tempSignature?: boolean;
+  tempSignatureUrl?: string | null;
   onSignClick?: () => void;
 }
 
@@ -24,6 +25,7 @@ export function DocumentPreview({
   hideHeader,
   isViewer,
   tempSignature,
+  tempSignatureUrl,
   onSignClick,
 }: DocumentPreviewProps) {
   let doc = initialDoc as any;
@@ -90,6 +92,7 @@ export function DocumentPreview({
         <PRForm
           isViewer={true}
           tempSignature={tempSignature}
+          tempSignatureUrl={tempSignatureUrl}
           onSignClick={onSignClick}
           initialData={doc}
           currentStep={1}
@@ -117,6 +120,7 @@ export function DocumentPreview({
         <POForm
           isViewer={true}
           tempSignature={tempSignature}
+          tempSignatureUrl={tempSignatureUrl}
           onSignClick={onSignClick}
           initialData={doc}
           currentStep={1}
@@ -137,6 +141,7 @@ export function DocumentPreview({
         <BKForm
           isViewer={true}
           tempSignature={tempSignature}
+          tempSignatureUrl={tempSignatureUrl}
           onSignClick={onSignClick}
           initialData={doc}
           currentStep={1}

@@ -133,6 +133,7 @@ async function main() {
   const execPerms: [string, string][] = [
     ...managerPerms,
     ['reports.view_all_dept', 'view'],
+    ['document.move_any_to_folder', 'edit'],
   ];
   for (const [mod, act] of execPerms) await grantPermission(execRole.id, mod, act);
 

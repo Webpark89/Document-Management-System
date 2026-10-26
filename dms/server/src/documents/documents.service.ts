@@ -11,6 +11,7 @@ import { CreateDocumentDto } from './dto/create-document.dto';
 import { Prisma, AuditAction, DocumentStatus } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
+import { createHash } from 'crypto';
 import puppeteer from 'puppeteer-core';
 import { EncryptionService } from '../common/encryption/encryption.service';
 import {
@@ -993,20 +994,12 @@ export class DocumentsService {
         (!Number.isInteger(versionNumber) || versionNumber < 1))
     )
       throw new NotFoundException('ไม่พบเวอร์ชันเอกสาร');
-    if (
-      version.version_number !== doc.versions[0]?.version_number &&
-      !version.file_data?.length &&
-      (!version.form_data ||
-        typeof version.form_data !== 'object' ||
-        !Object.keys(version.form_data).length)
-    ) {
+    if (!version.file_data?.length) {
       throw new ConflictException(
-        'เวอร์ชันเดิมไม่มีไฟล์หรือข้อมูลต้นฉบับที่บันทึกไว้ ไม่สามารถสร้างเอกสารย้อนหลังแทนได้',
+        'เวอร์ชันนี้ไม่มีไฟล์ PDF ที่บันทึกไว้ ไม่สามารถดาวน์โหลดหรือสร้างย้อนหลังแทนได้',
       );
     }
-    const buffer = version.file_data?.length
-      ? Buffer.from(version.file_data)
-      : await this.generateFallbackPdf(doc, version);
+    const buffer = Buffer.from(version.file_data);
     return {
       buffer,
       filename: `${doc.doc_number}_v${version.version_number}.pdf`,
@@ -1932,6 +1925,9 @@ export class DocumentsService {
           : Number(v.file_size ?? 0) / 1024,
         file_extension: v.file_extension,
         has_file: hasFile(v),
+        file_sha256: 'file_data' in v && v.file_data instanceof Uint8Array && v.file_data.length
+          ? createHash('sha256').update(v.file_data).digest('hex')
+          : null,
         form_data: freezeView(formData(v), v.version_number),
         created_at: v.created_at,
         updated_at: v.updated_at,

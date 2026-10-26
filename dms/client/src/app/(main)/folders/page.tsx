@@ -159,7 +159,7 @@ export default function FoldersPage() {
     return (
       <div 
         onClick={() => navigateToFolder(folder.id)}
-        className="relative bg-white hover:bg-blue-50/50 rounded-2xl p-4 transition-all cursor-pointer border border-slate-200 hover:border-blue-200 shadow-sm hover:shadow-md flex flex-col group"
+        className="relative min-w-0 bg-white hover:bg-blue-50/50 rounded-2xl p-4 transition-all cursor-pointer border border-slate-200 hover:border-blue-200 shadow-sm hover:shadow-md flex flex-col group"
       >
         {/* Top bar: Checkbox */}
         <div className="flex justify-end mb-2">
@@ -176,28 +176,18 @@ export default function FoldersPage() {
         {/* Center: Big Icon */}
         <div className="flex-1 flex items-center justify-center py-6">
           <div className="w-20 h-20 rounded-full bg-[#F4F7FE] group-hover:bg-[#EDF2FA] flex items-center justify-center text-4xl transition-colors">
-            {folder.icon && folder.icon !== "📁" && folder.icon !== "📂" ? (
-              <span className="leading-none">{folder.icon}</span>
-            ) : (
-              <FolderIcon 
-                className="w-10 h-10" 
-                style={{ 
-                  color: folder.color || '#3b82f6', 
-                  fill: folder.color || '#3b82f6' 
-                }} 
-              />
-            )}
+            <FolderIcon className="w-10 h-10 text-indigo-600" />
           </div>
         </div>
 
         {/* Bottom: Details */}
         <div className="mt-auto">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm truncate pr-2 max-w-[150px]">{folder.name}</h3>
+          <div className="flex items-start gap-2 min-w-0">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-bold text-slate-800 text-sm truncate" title={folder.name}>{folder.name}</h3>
               <p className="text-[11px] text-slate-400 font-medium mt-0.5">{folder.document_count || 0} Files</p>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex shrink-0 items-center gap-1">
               <button 
                 title="ปักหมุด"
                 onClick={(e) => handleTogglePinFolder(e, folder.id)} 
@@ -307,7 +297,7 @@ export default function FoldersPage() {
                     <span>เปิดล่าสุด (Recent)</span>
                   </h2>
                 </div>
-                <div className={viewMode === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4" : "flex flex-col gap-3"}>
+                <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4" : "flex flex-col gap-3"}>
                   {recentFolders.map(folder => (
                     <FolderCardItem key={`recent-${folder.id}`} folder={folder} />
                   ))}
@@ -327,7 +317,7 @@ export default function FoldersPage() {
                 </h2>
               </div>
 
-              <div className={viewMode === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4" : "flex flex-col gap-3"}>
+              <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4" : "flex flex-col gap-3"}>
                 {filteredFolders.map(folder => (
                   <FolderCardItem key={`all-${folder.id}`} folder={folder} />
                 ))}
@@ -405,5 +395,3 @@ const ChevronDown = ({ className }: { className?: string }) => (
     <path d="m6 9 6 6 6-6"/>
   </svg>
 );
-
-   

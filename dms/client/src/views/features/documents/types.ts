@@ -44,6 +44,7 @@ export interface DocumentVersion {
   uploaded_by: string;
   created_at: string;
   file_size_kb: number;
+  file_sha256?: string | null;
   remarks: string;
   is_active: boolean;
   file_preview_url?: string;

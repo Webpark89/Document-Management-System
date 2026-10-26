@@ -32,7 +32,6 @@ import {
 } from "@views/components/ui/design-system";
 import { useToast } from "@views/components/providers/ToastProvider";
 import { useSidebar } from "@views/components/providers/SidebarProvider";
-import { DocumentPreview } from "@views/components/documents/DocumentPreview";
 
 function formatVersionDate(iso: string) {
   return new Date(iso).toLocaleString("th-TH", {
@@ -75,10 +74,14 @@ function buildVersionDiffFields(
       changed: older.file_size_kb !== newer.file_size_kb,
     },
     {
-      label: "สถานะ",
-      older: older.is_active ? "Current" : "Archived",
-      newer: newer.is_active ? "Current" : "Archived",
-      changed: older.is_active !== newer.is_active,
+      label: "เนื้อหา PDF",
+      older: older.file_sha256 ? `SHA-256 ${older.file_sha256.slice(0, 12)}…` : "ไม่มีไฟล์ต้นฉบับ",
+      newer: newer.file_sha256 ? `SHA-256 ${newer.file_sha256.slice(0, 12)}…` : "ไม่มีไฟล์ต้นฉบับ",
+      changed: Boolean(
+        older.file_sha256 &&
+        newer.file_sha256 &&
+        older.file_sha256 !== newer.file_sha256,
+      ),
     },
   ];
 }
@@ -372,12 +375,6 @@ export default function DocumentVersionsPage() {
 
   const showCheckboxes = versions.length > 1;
   const canCompare = selectedVersions.length === 2;
-  const docTypeStr =
-    typeof doc?.type === "object"
-      ? (doc?.type as any)?.prefix
-      : doc?.type || "";
-  const isFormType = ["PR", "PO", "BK", "บันทึก"].includes(docTypeStr);
-
   const iconActionBtn =
     "group relative rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100";
   const iconActionTooltip =
@@ -895,48 +892,22 @@ export default function DocumentVersionsPage() {
                   <h4 className="text-sm font-bold text-slate-700 mb-4 px-1">
                     File Preview
                   </h4>
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* Preview Left */}
                     <div className="border border-slate-200 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 aspect-[1/1.2] shadow-inner relative overflow-hidden">
-                      {isFormType ? (
-                        <div className="absolute inset-0 bg-white m-2 sm:m-4 rounded shadow-sm border border-slate-200 overflow-y-auto">
-                          <div className="scale-[0.5] sm:scale-[0.6] origin-top mx-auto">
-                            <DocumentPreview
-                              doc={doc}
-                              versionId={selectedData[0].id}
-                              hideHeader
-                              isViewer
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <iframe
-                          src={`/api/documents/${doc?.id}/download?v=${selectedData[0].version_number}#toolbar=0`}
-                          className="absolute inset-0 w-full h-full border-0"
-                          title={`${selectedData[0].version_number} Preview`}
-                        />
-                      )}
+                      <iframe
+                        src={`/api/documents/${doc?.id}/download?v=${selectedData[0].version_number}#toolbar=0`}
+                        className="absolute inset-0 w-full h-full border-0"
+                        title={`${selectedData[0].version_number} Preview`}
+                      />
                     </div>
                     {/* Preview Right */}
                     <div className="border border-slate-200 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 aspect-[1/1.2] shadow-inner relative overflow-hidden">
-                      {isFormType ? (
-                        <div className="absolute inset-0 bg-white m-2 sm:m-4 rounded shadow-sm border border-slate-200 overflow-y-auto">
-                          <div className="scale-[0.5] sm:scale-[0.6] origin-top mx-auto">
-                            <DocumentPreview
-                              doc={doc}
-                              versionId={selectedData[1].id}
-                              hideHeader
-                              isViewer
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <iframe
-                          src={`/api/documents/${doc?.id}/download?v=${selectedData[1].version_number}#toolbar=0`}
-                          className="absolute inset-0 w-full h-full border-0"
-                          title={`${selectedData[1].version_number} Preview`}
-                        />
-                      )}
+                      <iframe
+                        src={`/api/documents/${doc?.id}/download?v=${selectedData[1].version_number}#toolbar=0`}
+                        className="absolute inset-0 w-full h-full border-0"
+                        title={`${selectedData[1].version_number} Preview`}
+                      />
                     </div>
                   </div>
                 </div>
@@ -1024,26 +995,13 @@ export default function DocumentVersionsPage() {
                 </button>
               </div>
               <div className="flex-1 overflow-hidden p-6 bg-slate-100/50 flex flex-col relative">
-                {isFormType ? (
-                  <div className="absolute inset-4 bg-white m-4 rounded shadow-sm border border-slate-200 overflow-y-auto">
-                    <div className="scale-[0.8] origin-top mx-auto max-w-5xl">
-                      <DocumentPreview
-                        doc={doc}
-                        versionId={viewingVersion || undefined}
-                        hideHeader
-                        isViewer
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex-1 bg-white border border-slate-200 rounded-xl flex flex-col shadow-inner relative overflow-hidden">
-                    <iframe
-                      src={`/api/documents/${doc?.id}/download?v=${versions.find((v) => v.id === viewingVersion)?.version_number}`}
-                      className="w-full h-full border-0"
-                      title="PDF Preview"
-                    />
-                  </div>
-                )}
+                <div className="flex-1 bg-white border border-slate-200 rounded-xl flex flex-col shadow-inner relative overflow-hidden">
+                  <iframe
+                    src={`/api/documents/${doc?.id}/download?v=${versions.find((v) => v.id === viewingVersion)?.version_number}`}
+                    className="w-full h-full border-0"
+                    title="PDF Preview"
+                  />
+                </div>
               </div>
               <div className="p-4 border-t border-slate-100 bg-white rounded-b-2xl flex justify-between items-center">
                 <button

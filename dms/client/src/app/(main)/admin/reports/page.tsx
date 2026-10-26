@@ -28,17 +28,6 @@ import {
   APP_PAGE_SHELL,
 } from "@views/components/ui/design-system";
 
-// ─── MOCK DATA ─────────────────────────────────────────────────────────────────
-const DEPARTMENTS = [
-  "All",
-  "ฝ่ายจัดซื้อและพัสดุ",
-  "ฝ่ายเทคโนโลยีสารสนเทศ (IT)",
-  "ฝ่ายบัญชีและการเงิน",
-  "ฝ่ายบริหารทรัพยากรบุคคล (HR)",
-  "ฝ่ายบริหารทั่วไป",
-  "ฝ่ายวิศวกรรมและซ่อมบำรุง",
-];
-
 const DOCUMENT_TYPES = [
   { value: "All", label: "All" },
   { value: "PR", label: "PR" },
@@ -111,15 +100,7 @@ export default function ReportsPage() {
   const [dateTo, setDateTo] = useState("");
   const [filterType, setFilterType] = useState("All");
   const [filterDept, setFilterDept] = useState("All");
-  const [departments, setDepartments] = useState<string[]>([
-    "All",
-    "แผนกจัดซื้อ",
-    "แผนกบัญชีและการเงิน",
-    "แผนกคลังสินค้าและจัดส่ง",
-    "แผนกเทคโนโลยีสารสนเทศ",
-    "แผนกทรัพยากรบุคคล",
-    "แผนกผลิต",
-  ]);
+  const [departments, setDepartments] = useState<string[]>(["All"]);
 
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(

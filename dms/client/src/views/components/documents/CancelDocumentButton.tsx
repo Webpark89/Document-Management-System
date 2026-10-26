@@ -17,8 +17,6 @@ export function CancelDocumentButton({ document }: CancelDocumentButtonProps) {
   const [isCancelled, setIsCancelled] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Conditions: only Pending or Draft, and we assume current user is the owner for mock purposes.
-  // In a real app, we would check `document.creator_id === currentUser.id`.
   if (
     !user ||
     (document as Document & { creator_id?: string }).creator_id !== user.id ||
@@ -59,7 +57,7 @@ export function CancelDocumentButton({ document }: CancelDocumentButtonProps) {
     if (success) {
       setIsCancelled(true);
       setShowModal(false);
-      alert(`เอกสาร ${document.id} ถูกยกเลิก/ลบเรียบร้อยแล้ว`);
+      alert(`เอกสาร ${document.id} ถูกยกเลิกเรียบร้อยแล้ว`);
       window.location.href = "/documents";
     } else {
       alert("เกิดข้อผิดพลาดในการยกเลิกเอกสาร");

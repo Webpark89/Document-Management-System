@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import { Folder } from "@views/features/folders/types";
-import { X, FolderInput, FileText, Check } from "lucide-react";
-import { FolderIconRenderer } from "./FolderIconRenderer";
+import { X, FolderInput, Folder as FolderIcon, FileText, Check } from "lucide-react";
 
 interface MoveToFolderModalProps {
   isOpen: boolean;
@@ -22,16 +21,18 @@ export function MoveToFolderModal({
 }: MoveToFolderModalProps) {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [moveError, setMoveError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleMove = async () => {
     try {
+      setMoveError(null);
       setIsSubmitting(true);
       await onConfirm(selectedFolderId);
       onClose();
     } catch (err) {
-      console.error(err);
+      setMoveError(err instanceof Error ? err.message : "ย้ายเอกสารไม่สำเร็จ");
     } finally {
       setIsSubmitting(false);
     }
@@ -77,29 +78,38 @@ export function MoveToFolderModal({
           </button>
 
           {/* Folder items */}
+          {folders.length === 0 && (
+            <p className="px-3 py-2 text-xs text-slate-500">
+              ไม่พบโฟลเดอร์ที่เข้าถึงได้
+            </p>
+          )}
           {folders.map((folder) => {
             const isSelected = selectedFolderId === folder.id;
             return (
               <button
                 key={folder.id}
                 type="button"
+                disabled={!folder.can_add_document}
+                title={!folder.can_add_document ? "คุณไม่มีสิทธิ์เพิ่มเอกสารในโฟลเดอร์นี้" : folder.name}
                 onClick={() => setSelectedFolderId(folder.id)}
-                className={`w-full flex items-center justify-between p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex min-w-0 items-center justify-between gap-2 p-3 rounded-2xl border text-xs font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                   isSelected
                     ? "bg-blue-50 border-blue-300 text-blue-700"
                     : "border-slate-200 hover:bg-slate-50 text-slate-700"
                 }`}
               >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-base"><FolderIconRenderer iconName={folder.icon} className="w-5 h-5" /></span>
-                  <span className="truncate">{folder.name}</span>
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <FolderIcon className="h-5 w-5 shrink-0 text-indigo-600" />
+                  <span className="min-w-0 truncate text-left" title={folder.name}>{folder.name}</span>
                 </div>
-                {isSelected && <Check className="w-4 h-4 text-blue-600" />}
+                {!folder.can_add_document && <span className="shrink-0 text-[10px] font-medium">ไม่มีสิทธิ์</span>}
+                {isSelected && <Check className="h-4 w-4 shrink-0 text-blue-600" />}
               </button>
             );
           })}
         </div>
 
+        {moveError && <p role="alert" className="mb-3 text-xs text-red-600">{moveError}</p>}
         <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
           <button
             type="button"
