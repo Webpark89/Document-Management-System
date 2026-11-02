@@ -3,6 +3,7 @@
 import type { ApprovalSignatureInput } from "@models";
 import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, FileText, AlertCircle, History } from "lucide-react";
 import { getDocumentById } from "@views/features/documents/api";
 import type { Document } from "@views/features/documents/types";
@@ -14,6 +15,11 @@ import {
 } from "@views/components/ui/design-system";
 import { Badge } from "@views/components/ui/badge";
 import { getStatusVariant } from "@/lib/document-status";
+import {
+  navSourceListHref,
+  parseNavSource,
+  withNavSource,
+} from "@/lib/nav-source";
 import { WorkflowTracker } from "@views/components/workflow/WorkflowTracker";
 import { ApprovalActions } from "@views/components/workflow/ApprovalActions";
 import { DocumentSignerViewer } from "@views/components/workflow/DocumentSignerViewer";
@@ -26,6 +32,9 @@ interface PageProps {
 
 export default function ApprovalDetailPage({ params }: PageProps) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const source = parseNavSource(searchParams.get("source")) ?? "approvals";
+  const listHref = navSourceListHref(source);
   const { user } = useAuth();
   const [doc, setDoc] = useState<Document | null>(null);
   const [workflow, setWorkflow] = useState<WorkflowData | null>(null);
@@ -70,7 +79,7 @@ export default function ApprovalDetailPage({ params }: PageProps) {
           หรือคุณไม่มีสิทธิ์ในการเข้าถึงเอกสารฉบับนี้
         </p>
         <Link
-          href="/approvals"
+          href={listHref}
           className="mt-8 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm transition-all shadow-sm"
         >
           กลับไปยังหน้ารายการอนุมัติ
@@ -126,7 +135,7 @@ export default function ApprovalDetailPage({ params }: PageProps) {
       <div className={APP_PAGE_CONTENT}>
         <div className="flex justify-between items-center">
           <Link
-            href="/approvals"
+            href={listHref}
             className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -134,7 +143,7 @@ export default function ApprovalDetailPage({ params }: PageProps) {
           </Link>
 
           <Link
-            href={`/documents/${doc.id}/versions`}
+            href={withNavSource(`/documents/${doc.id}/versions`, source)}
             className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
           >
             <History className="w-4 h-4" />
@@ -214,7 +223,7 @@ export default function ApprovalDetailPage({ params }: PageProps) {
                       v{doc.versions?.[0]?.version_number || 1}
                     </p>
                     <Link
-                      href={`/documents/${doc.id}/versions`}
+                      href={withNavSource(`/documents/${doc.id}/versions`, source)}
                       title="View Version History"
                       className="p-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors"
                     >

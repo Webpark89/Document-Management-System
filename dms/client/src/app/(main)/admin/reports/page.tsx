@@ -177,7 +177,8 @@ export default function ReportsPage() {
       .then((docs) => {
         const mapped = docs.map((d) => {
           const doc: any = d;
-          const typeCode = doc.type?.code || doc.type;
+          const rawType = doc.type?.code || doc.type;
+          const typeCode = rawType === "DOC" ? "OTHER" : rawType;
           const departmentName =
             doc.creator?.department?.name || doc.department || "ทั่วไป";
 
@@ -208,8 +209,8 @@ export default function ReportsPage() {
               const diff =
                 new Date(doc.approved_at).getTime() -
                 new Date(doc.submittedDate).getTime();
-              const days = Math.ceil(diff / (1000 * 3600 * 24));
-              return Math.max(0, days);
+              if (Number.isNaN(diff)) return null;
+              return Math.max(0, diff / (1000 * 3600 * 24));
             })(),
           };
         });
@@ -323,7 +324,7 @@ export default function ReportsPage() {
       ];
       csvContent = headers.join(",") + "\n";
       filteredData.forEach((d) => {
-        csvContent += `"${d.id}","${d.type}","${d.department}","${d.status}","${d.date}","${d.approvalDays ?? ""}"\n`;
+        csvContent += `"${d.id}","${d.type}","${d.department}","${d.status}","${d.date}","${d.approvalDays != null ? d.approvalDays.toFixed(2) : ""}"\n`;
       });
     } else if (activeReport === "spend") {
       const spendData = filteredData.filter(
@@ -702,6 +703,14 @@ export default function ReportsPage() {
     );
   };
 
+  const formatDuration = (days: number) => {
+    const minutes = days * 24 * 60;
+    if (minutes < 1) return "< 1 min";
+    if (minutes < 60) return `${Math.round(minutes)} min`;
+    if (days < 1) return `${(minutes / 60).toFixed(1)} hrs`;
+    return `${days.toFixed(1)} days`;
+  };
+
   const renderTurnaroundReport = () => {
     const completedDocs = filteredData.filter(
       (d: any) => d.status === "Approved" && d.approvalDays !== null,
@@ -724,12 +733,13 @@ export default function ReportsPage() {
     const stats = ["PR", "PO", "BK", "OTHER"]
       .map((prefix) => {
         const docs = completedDocs.filter((d: any) => d.type === prefix);
-        if (docs.length === 0) return null;
         const avg =
-          docs.reduce(
-            (sum: any, d: any) => sum + (d.approvalDays as number),
-            0,
-          ) / docs.length;
+          docs.length === 0
+            ? 0
+            : docs.reduce(
+                (sum: any, d: any) => sum + (d.approvalDays as number),
+                0,
+              ) / docs.length;
 
         let displayName = prefix;
         if (prefix === "BK") displayName = "บันทึก";
@@ -770,12 +780,14 @@ export default function ReportsPage() {
                     ({s.count} docs)
                   </span>
                 </span>
-                <span>{s.avg.toFixed(1)} days</span>
+                <span>{s.count === 0 ? "ไม่มีข้อมูล" : formatDuration(s.avg)}</span>
               </div>
               <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full ${getTypeColor(s.type)} transition-all duration-500`}
-                  style={{ width: `${Math.max((s.avg / maxAvg) * 100, 5)}%` }}
+                  style={{
+                    width: `${maxAvg > 0 ? Math.max((s.avg / maxAvg) * 100, 5) : 5}%`,
+                  }}
                 />
               </div>
             </div>

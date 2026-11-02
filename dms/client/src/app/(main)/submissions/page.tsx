@@ -506,7 +506,7 @@ export default function SubmissionsPage() {
                         } else {
                           // If they need to approve, send them to approval. Otherwise send to detail view.
                           if (item.isToApprove) {
-                            router.push(`/approvals/${item.id}`);
+                            router.push(`/approvals/${item.id}?source=submissions`);
                           } else {
                             router.push(`/documents/${item.real_id}?source=submissions`);
                           }
@@ -567,7 +567,7 @@ export default function SubmissionsPage() {
                         <div className="inline-flex items-center justify-center gap-2">
                         {item.isToApprove ? (
                           <Link
-                            href={`/approvals/${item.id}`}
+                            href={`/approvals/${item.id}?source=submissions`}
                             className="px-2.5 py-1 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 shadow-xs cursor-pointer leading-tight"
                           >
                             <CheckSquare className="w-4 h-4 shrink-0" />

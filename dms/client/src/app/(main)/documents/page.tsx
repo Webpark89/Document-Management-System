@@ -78,7 +78,7 @@ function DocumentsContent() {
     data: initialDocs,
     error,
     mutate: mutateDocuments,
-  } = useSWR("documents", getDocuments);
+  } = useSWR("documents", () => getDocuments({ status: "Approved" }));
   const [documents, setDocuments] = useState<Document[]>([]);
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
   const hasDeletePermission = user?.permissions?.some((permission) =>
@@ -92,7 +92,8 @@ function DocumentsContent() {
 
   useEffect(() => {
     if (initialDocs) {
-      setDocuments(initialDocs);
+      // All Documents lists only approved documents; everything else lives under Submissions.
+      setDocuments(initialDocs.filter((d) => d.status === "Approved"));
     }
   }, [initialDocs]);
 
@@ -173,6 +174,8 @@ function DocumentsContent() {
   const [activeFolderId, setActiveFolderId] = useState<
     string | null | "ALL_DOCS"
   >("ALL_DOCS");
+  const detailSource =
+    activeFolderId && activeFolderId !== "ALL_DOCS" ? "folders" : "documents";
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [editingFolder, setEditingFolder] = useState<FolderType | null>(null);
@@ -1161,7 +1164,11 @@ function DocumentsContent() {
                         return (
                           <tr
                             key={(doc as any).real_id || `${doc.id}-${index}`}
-                            onClick={() => router.push(`/documents/${doc.id}`)}
+                            onClick={() =>
+                              router.push(
+                                `/documents/${doc.id}?source=${detailSource}`,
+                              )
+                            }
                             className={`hover:bg-blue-50/50 transition-colors group cursor-pointer ${
                               isChecked ? "bg-blue-50/30" : ""
                             }`}
@@ -1399,7 +1406,7 @@ function DocumentsContent() {
 
                     <div className="flex items-center gap-2">
                       <Link
-                        href={`/documents/${selectedDoc.id}`}
+                        href={`/documents/${selectedDoc.id}?source=${detailSource}`}
                         className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
                       >
                         เปิดหน้ารายละเอียดเต็ม

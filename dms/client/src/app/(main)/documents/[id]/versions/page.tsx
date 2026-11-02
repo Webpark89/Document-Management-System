@@ -3,7 +3,7 @@
 import { useAuth } from "@views/components/providers/AuthProvider";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
@@ -32,6 +32,7 @@ import {
 } from "@views/components/ui/design-system";
 import { useToast } from "@views/components/providers/ToastProvider";
 import { useSidebar } from "@views/components/providers/SidebarProvider";
+import { parseNavSource, withNavSource } from "@/lib/nav-source";
 
 function formatVersionDate(iso: string) {
   return new Date(iso).toLocaleString("th-TH", {
@@ -162,6 +163,7 @@ function getRemarkBadge(remark: string) {
 export default function DocumentVersionsPage() {
   const params = useParams();
   const id = params.id as string;
+  const source = parseNavSource(useSearchParams().get("source"));
   const { showToast } = useToast();
   const { user } = useAuth();
   const { isOpen } = useSidebar();
@@ -393,7 +395,7 @@ export default function DocumentVersionsPage() {
         <div className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
           <div className="space-y-4">
             <Link
-              href={`/documents/${doc.id}`}
+              href={withNavSource(`/documents/${doc.id}`, source)}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600"
             >
               <ArrowLeft className="size-4" />

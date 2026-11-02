@@ -24,6 +24,11 @@ import { useAuth } from "@views/components/providers/AuthProvider";
 import { useSidebar } from "@views/components/providers/SidebarProvider";
 import useSWR from "swr";
 import { getApprovals } from "@views/features/workflow/api";
+import {
+  navSourceSection,
+  parseNavSource,
+  type NavSection,
+} from "@/lib/nav-source";
 
 type NavItem = {
   name: string;
@@ -152,6 +157,25 @@ function isConfigRoute(pathname: string) {
   return pathname === "/admin/config" || pathname.startsWith("/admin/config/");
 }
 
+/** Section of the sidebar a page belongs to; detail pages follow the list they were opened from. */
+function resolveSection(
+  pathname: string,
+  source: string | null | undefined,
+  folderId: string | null | undefined,
+): NavSection | null {
+  const parsed = parseNavSource(source);
+  if (parsed) return navSourceSection(parsed);
+  if (pathname === "/submissions" || pathname.startsWith("/submissions/"))
+    return "submissions";
+  if (pathname === "/approvals" || pathname.startsWith("/approvals/"))
+    return "approvals";
+  if (pathname === "/folders" || pathname.startsWith("/folders/"))
+    return "folders";
+  if (pathname === "/documents" && folderId) return "folders";
+  if (isDocsRoute(pathname)) return "documents";
+  return null;
+}
+
 function isNavItemActive(pathname: string, href: string) {
   if (isConfigRoute(pathname) || isDocsRoute(pathname)) return false;
   if (pathname === href) return true;
@@ -220,18 +244,18 @@ export default function Sidebar() {
   const [configExpanded, setConfigExpanded] = useState(() =>
     isConfigRoute(pathname),
   );
-  const [docsExpanded, setDocsExpanded] = useState(
-    () => isDocsRoute(pathname) && source !== "submissions",
-  );
+  const section = resolveSection(pathname, source, folderId);
+  const inDocsSection = section === "documents" || section === "folders";
+  const [docsExpanded, setDocsExpanded] = useState(() => inDocsSection);
 
   useEffect(() => {
     if (isConfigRoute(pathname)) {
       setConfigExpanded(true);
     }
-    if (isDocsRoute(pathname) && source !== "submissions") {
+    if (inDocsSection) {
       setDocsExpanded(true);
     }
-  }, [pathname, source]);
+  }, [pathname, inDocsSection]);
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -261,10 +285,7 @@ export default function Sidebar() {
   // Highlight parent IF route matches AND (sidebar closed OR menu collapsed)
   const isConfigActive =
     isConfigRoute(pathname) && (!isOpen || !configExpanded);
-  const isDocsActive =
-    isDocsRoute(pathname) &&
-    source !== "submissions" &&
-    (!isOpen || !docsExpanded);
+  const isDocsActive = inDocsSection && (!isOpen || !docsExpanded);
 
   return (
     <aside
@@ -297,11 +318,9 @@ export default function Sidebar() {
           .filter((item) => hasAccess(item, user?.role, user?.permissions))
           .map((item) => {
             const Icon = item.icon;
-            let isActive = isNavItemActive(pathname, item.href);
-            if (item.href === "/submissions" && source === "submissions")
-              isActive = true;
-            if (item.href === "/approvals" && source === "submissions")
-              isActive = false;
+            const isActive = section
+              ? item.href === `/${section}`
+              : isNavItemActive(pathname, item.href);
 
             return (
               <Link
@@ -380,11 +399,9 @@ export default function Sidebar() {
                     hasAccess(child, user?.role, user?.permissions),
                   )
                   .map((child) => {
-                    let isChildActive = isChildNavActive(pathname, child.href);
-                    if (pathname === "/documents" && folderId) {
-                      if (child.href === "/folders") isChildActive = true;
-                      if (child.href === "/documents") isChildActive = false;
-                    }
+                    const isChildActive = section
+                      ? child.href === `/${section}`
+                      : isChildNavActive(pathname, child.href);
                     const ChildIcon = child.icon;
 
                     return (

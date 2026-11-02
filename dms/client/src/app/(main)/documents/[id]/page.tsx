@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   History,
@@ -26,6 +26,12 @@ import {
 } from "@views/components/ui/design-system";
 import { Badge } from "@views/components/ui/badge";
 import { getStatusVariant } from "@/lib/document-status";
+import {
+  navSourceListHref,
+  navSourceListLabel,
+  parseNavSource,
+  withNavSource,
+} from "@/lib/nav-source";
 import { CancelDocumentButton } from "@views/components/documents/CancelDocumentButton";
 import { ResubmitButton } from "@views/components/documents/ResubmitButton";
 import { useAuth } from "@views/components/providers/AuthProvider";
@@ -38,6 +44,10 @@ interface PageProps {
 export default function DocumentDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const source = parseNavSource(searchParams.get("source"));
+  const listHref = navSourceListHref(source);
   const { user } = useAuth();
   const { showToast } = useToast();
   const hasPerm = (itemKey: string, action: string = "view") =>
@@ -89,6 +99,13 @@ export default function DocumentDetailPage({ params }: PageProps) {
             `/api/documents/${id}`,
           );
         setDoc(d);
+        // Opened without a known origin (dashboard, notification, ...): approved
+        // documents belong to All Documents, anything else to Submissions.
+        if (!parseNavSource(new URLSearchParams(window.location.search).get("source"))) {
+          router.replace(
+            `${pathname}?source=${d.status === "Approved" ? "documents" : "submissions"}`,
+          );
+        }
         setWorkflow(mapWorkflow(d.workflow, d.real_id || id));
       })
       .catch((error) => {
@@ -139,7 +156,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
           </button>
         )}
         <Link
-          href="/documents"
+          href={listHref}
           className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
         >
           Back to Documents
@@ -153,11 +170,11 @@ export default function DocumentDetailPage({ params }: PageProps) {
       <div className={APP_PAGE_CONTENT}>
         <div className="flex justify-between items-center">
           <Link
-            href="/documents"
+            href={listHref}
             className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Documents
+            {navSourceListLabel(source)}
           </Link>
 
           <div className="flex items-center gap-3">
@@ -211,7 +228,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
 
             {hasPerm("view_version_history") && (
               <Link
-                href={`/documents/${doc.id}/versions`}
+                href={withNavSource(`/documents/${doc.id}/versions`, source)}
                 className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
               >
                 <History className="w-4 h-4" />
@@ -299,7 +316,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
                       </span>
                       {hasPerm("view_version_history") && (
                         <Link
-                          href={`/documents/${doc.id}/versions`}
+                          href={withNavSource(`/documents/${doc.id}/versions`, source)}
                           className="text-blue-500 hover:text-blue-600"
                         >
                           <History className="w-3.5 h-3.5" />
