@@ -158,6 +158,11 @@ export default function DocumentUploadPage() {
       showToast("กรุณาเลือกผู้อนุมัติให้ครบตาม Master Data", "error");
       return;
     }
+    const approverIds = steps.map((step) => step.approverId).filter(Boolean);
+    if (new Set(approverIds).size !== approverIds.length) {
+      showToast("ไม่สามารถเลือกผู้อนุมัติคนเดียวกันซ้ำหลายขั้นตอนได้ กรุณาเลือกคนอื่น", "error");
+      return;
+    }
     if (!payload.title?.trim()) {
       showToast("กรุณาระบุชื่อเอกสาร", "error");
       return;

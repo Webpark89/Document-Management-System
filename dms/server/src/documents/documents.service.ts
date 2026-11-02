@@ -22,6 +22,7 @@ import {
   lockEntity,
   permissions,
   requireDocumentAccess,
+  requireDocumentDelete,
   requireDocumentOwner,
   requirePermission,
   safeUserSelect,
@@ -825,10 +826,6 @@ export class DocumentsService {
         throw new ConflictException(
           'ต้องเป็นร่างหรือส่งกลับแก้ไขก่อนอัปโหลดฉบับใหม่',
         );
-      if (['PR', 'PO', 'BK'].includes(doc.type.prefix))
-        throw new BadRequestException(
-          'กรุณาแก้ไขข้อมูลแบบฟอร์มเพื่อสร้างฉบับใหม่',
-        );
       await this.preserveLegacyVersion(tx, doc);
       await tx.document.update({
         where: { id: doc.id },
@@ -838,11 +835,14 @@ export class DocumentsService {
           approved_at: null,
         },
       });
+      const note = remarks?.trim().slice(0, 1000);
       await this.appendVersion(
         tx,
         await this.getDocument(doc.id, tx),
         actor.id,
-        remarks || 'อัปโหลดฉบับแก้ไข',
+        note
+          ? `อัปโหลดเอกสาร version ใหม่: ${note}`
+          : 'อัปโหลดเอกสาร version ใหม่',
         file.buffer,
       );
       await tx.auditLog.create({
@@ -928,16 +928,13 @@ export class DocumentsService {
   }
 
   async softDelete(id: string, actor: Actor) {
-    requirePermission(actor, permissions.delete);
+    requirePermission(actor, [...permissions.delete, ...permissions.deleteOthers]);
     const original = await this.getDocument(id);
     return this.prisma.$transaction(async (tx) => {
       await lockEntity(tx, `document:${original.id}`);
       const doc = await this.getDocument(original.id, tx);
-      requireDocumentOwner(doc, actor);
-      if (doc.status === 'Pending' || doc.status === 'Approved')
-        throw new ConflictException(
-          'ต้องยกเลิกเอกสารก่อนลบ; เอกสารอนุมัติแล้วเก็บไว้เป็นหลักฐาน',
-        );
+      requireDocumentDelete(doc, actor);
+      requireDocumentAccess(doc, actor);
       await tx.document.update({
         where: { id: doc.id },
         data: { is_deleted: true },

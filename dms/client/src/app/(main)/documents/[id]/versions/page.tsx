@@ -111,6 +111,13 @@ function buildRemarkDiff(olderRemarks: string, newerRemarks: string) {
 
 function getRemarkBadge(remark: string) {
   if (!remark) return null;
+  if (remark.startsWith("อัปโหลดเอกสาร version ใหม่")) {
+    return (
+      <span className="inline-flex items-center rounded-md bg-violet-50 px-2 py-1 text-xs font-semibold text-violet-700 ring-1 ring-inset ring-violet-700/10">
+        อัปโหลดเวอร์ชันใหม่
+      </span>
+    );
+  }
   if (
     remark.includes("เอกสารชุดปัจจุบัน") ||
     remark.includes("ส่งอนุมัติ") ||
@@ -404,7 +411,6 @@ export default function DocumentVersionsPage() {
                     disabled={
                       !doc ||
                       !["Draft", "Returned"].includes(doc.status) ||
-                      ["PR", "PO", "BK"].includes(doc.type) ||
                       (doc as any).creator_id !== user?.id ||
                       !user?.permissions?.some((p) =>
                         [
@@ -414,7 +420,7 @@ export default function DocumentVersionsPage() {
                       )
                     }
                     onClick={() => setIsUploadVersionOpen(true)}
-                    className="flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-blue-700 cursor-pointer"
+                    className="flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-blue-700 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600"
                   >
                     <Upload className="size-3.5" />
                     อัปโหลดเวอร์ชันใหม่ (Upload Version)

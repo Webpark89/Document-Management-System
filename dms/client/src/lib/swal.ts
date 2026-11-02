@@ -12,14 +12,15 @@ export const Toast = Swal.mixin({
     toast.addEventListener("mouseleave", Swal.resumeTimer);
   },
   customClass: {
-    popup: "font-sans rounded-2xl shadow-xl border border-slate-100/80 backdrop-blur-md",
+    popup:
+      "font-sans rounded-2xl shadow-xl border border-slate-100/80 backdrop-blur-md",
     title: "text-xs font-bold text-slate-800",
   },
 });
 
 export const swalToast = (
   message: string,
-  icon: "success" | "error" | "warning" | "info" = "success"
+  icon: "success" | "error" | "warning" | "info" = "success",
 ) => {
   Toast.fire({
     icon,
@@ -56,7 +57,8 @@ export const swalConfirm = async ({
       popup: "rounded-3xl p-6 font-sans shadow-2xl border border-slate-100",
       title: "text-lg font-extrabold text-slate-900",
       htmlContainer: "text-sm text-slate-500 font-medium mt-2",
-      confirmButton: "px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm",
+      confirmButton:
+        "px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm",
       cancelButton: "px-5 py-2.5 rounded-xl font-bold text-sm transition-all",
     },
   });
@@ -92,6 +94,31 @@ export const swalError = (title: string, text?: string) => {
       title: "text-lg font-extrabold text-slate-900",
       htmlContainer: "text-sm text-rose-600 font-medium mt-2",
       confirmButton: "px-6 py-2.5 rounded-xl font-bold text-sm transition-all",
+    },
+  });
+};
+
+export const swalPermissionDenied = (text: string) => {
+  return Swal.fire({
+    icon: "warning",
+    iconColor: "#d97706",
+    titleText: "คุณไม่มีสิทธิ์ลบเอกสารนี้",
+    text,
+    footer: "กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์เพิ่มเติม",
+    confirmButtonText: "เข้าใจแล้ว",
+    confirmButtonColor: "#0f172a",
+    showCloseButton: true,
+    closeButtonAriaLabel: "ปิดการแจ้งเตือน",
+    width: 460,
+    padding: "2rem",
+    backdrop: "rgba(15, 23, 42, 0.45)",
+    customClass: {
+      popup: "!rounded-3xl font-sans shadow-2xl border border-slate-100",
+      icon: "!border-amber-200 !bg-amber-50",
+      title: "!text-xl !font-bold !text-slate-900",
+      htmlContainer: "!text-sm !leading-7 !text-slate-600",
+      confirmButton: "!rounded-xl !px-8 !py-3 !text-sm !font-semibold",
+      footer: "!text-xs !text-slate-500 !border-slate-100",
     },
   });
 };

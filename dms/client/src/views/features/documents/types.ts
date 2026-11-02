@@ -16,6 +16,7 @@ export interface Document {
   id: string;              // doc_number, e.g. "PR-2026-0001"
   doc_number?: string;
   real_id?: string;
+  creator_id?: string;
   folder_id?: string;
   name: string;            // title
   title?: string;

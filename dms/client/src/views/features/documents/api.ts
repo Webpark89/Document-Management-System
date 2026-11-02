@@ -87,13 +87,10 @@ export async function addDocument(
 }
 
 export async function deleteDocument(id: string): Promise<boolean> {
-  try {
-    const res = await api.delete<{ success: boolean }>(`/api/documents/${id}`);
-    return res.data?.success ?? true;
-  } catch (err) {
-    console.error("[deleteDocument] Failed to delete document", err);
-    return false;
-  }
+  const res = await api.delete<{ success: boolean }>(
+    `/api/documents/${encodeURIComponent(id)}`,
+  );
+  return res.data.success;
 }
 
 export async function uploadNewDocumentVersion(

@@ -38,7 +38,9 @@ import PageHeader from "@views/components/shared/PageHeader";
 import DocTypeBadge from "@views/components/shared/DocTypeBadge";
 import { useToast } from "@views/components/providers/ToastProvider";
 import { useAuth } from "@views/components/providers/AuthProvider";
-import { swalConfirm } from "@/lib/swal";
+import { swalConfirm, swalError, swalPermissionDenied } from "@/lib/swal";
+import { ApiError } from "@/lib";
+import { canDeleteDocument } from "@/lib/document-permissions";
 import { getStatusVariant } from "@/lib/document-status";
 import { formatThaiDate } from "@/lib/format-date";
 import { DocumentTypeIcon } from "@/lib/document-type-icon";
@@ -78,6 +80,15 @@ function DocumentsContent() {
     mutate: mutateDocuments,
   } = useSWR("documents", getDocuments);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
+  const hasDeletePermission = user?.permissions?.some((permission) =>
+    [
+      "document.delete_document:delete",
+      "document.delete_others_document:delete",
+      "submissions.delete_document:delete",
+      "submissions.delete_others_document:delete",
+    ].includes(permission),
+  );
 
   useEffect(() => {
     if (initialDocs) {
@@ -391,22 +402,47 @@ function DocumentsContent() {
 
   // Delete action
   const handleDeleteDoc = async (doc: Document) => {
+    if (deletingDocId) return;
+    if (!canDeleteDocument(user, doc)) {
+      await swalPermissionDenied(
+        doc.creator_id === user?.id
+          ? "บทบาทของคุณยังไม่ได้รับสิทธิ์ลบเอกสารของตัวเอง"
+          : "เอกสารนี้เป็นของผู้อื่น บทบาทของคุณยังไม่ได้รับสิทธิ์ลบเอกสารของผู้อื่น",
+      );
+      return;
+    }
     const confirmed = await swalConfirm({
       title: "ยืนยันการลบเอกสาร",
-      text: `คุณต้องการลบเอกสาร ${doc.id} ถาวรหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้`,
+      text: `คุณต้องการลบเอกสาร ${doc.id} หรือไม่? เอกสารจะถูกนำออกจากรายการ โดยระบบยังเก็บข้อมูลและประวัติไว้`,
       confirmButtonText: "ลบเอกสาร",
       cancelButtonText: "ยกเลิก",
       icon: "warning",
     });
 
     if (confirmed) {
+      setDeletingDocId(doc.id);
       const targetId = doc.real_id || doc.id;
-      const success = await deleteDocument(targetId);
-      if (success) {
+      try {
+        const success = await deleteDocument(targetId);
+        if (!success) throw new Error("ลบเอกสารไม่สำเร็จ กรุณาลองใหม่");
         setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
+        await mutateDocuments(
+          (current) => current?.filter((d) => d.id !== doc.id),
+          { revalidate: false },
+        );
         showToast(`ลบเอกสาร ${doc.id} เรียบร้อยแล้ว`);
-      } else {
-        showToast(`เกิดข้อผิดพลาดในการลบเอกสาร ${doc.id}`, "error");
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "ลบเอกสารไม่สำเร็จ กรุณาลองใหม่";
+        if (error instanceof ApiError && error.status === 403) {
+          await swalPermissionDenied(message);
+        } else {
+          await swalError("ลบเอกสารไม่สำเร็จ", message);
+        }
+      } finally {
+        setDeletingDocId(null);
       }
     }
   };
@@ -1279,17 +1315,31 @@ function DocumentsContent() {
                                     )}
                                   </button>
                                 )}
-                                {hasPerm("delete_document", "delete") && (
+                                {hasDeletePermission && (
                                   <button
                                     type="button"
-                                    title="ลบเอกสาร (Delete)"
+                                    title={
+                                      canDeleteDocument(user, doc)
+                                        ? "ลบเอกสาร"
+                                        : "ดูข้อจำกัดสิทธิ์การลบเอกสาร"
+                                    }
+                                    aria-label={
+                                      canDeleteDocument(user, doc)
+                                        ? `ลบเอกสาร ${doc.id}`
+                                        : `ดูข้อจำกัดสิทธิ์การลบเอกสาร ${doc.id}`
+                                    }
+                                    disabled={deletingDocId !== null}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleDeleteDoc(doc);
                                     }}
-                                    className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-rose-600 transition-colors cursor-pointer"
+                                    className={`p-1.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50 ${canDeleteDocument(user, doc) ? "text-slate-500 hover:bg-rose-50 hover:text-rose-600" : "text-slate-300 hover:bg-amber-50 hover:text-amber-600"}`}
                                   >
-                                    <Trash2 className="w-4 h-4" />
+                                    {deletingDocId === doc.id ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="w-4 h-4" />
+                                    )}
                                   </button>
                                 )}
                               </div>

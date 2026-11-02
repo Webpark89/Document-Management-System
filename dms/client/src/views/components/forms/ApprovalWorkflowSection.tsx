@@ -50,6 +50,12 @@ export default function ApprovalWorkflowSection({
   }, []);
 
   const handleApproverSelect = (stepId: string, selectedUserId: string) => {
+    if (
+      steps.some(
+        (step) => step.id !== stepId && step.approverId === selectedUserId,
+      )
+    )
+      return;
     const selectedUser = users.find((u) => u.id === selectedUserId);
     if (!selectedUser) return;
     const fullName =
@@ -85,7 +91,7 @@ export default function ApprovalWorkflowSection({
             </div>
             <p className="text-xs text-slate-400 font-semibold mt-0.5">
               ดึงข้อมูลสายการอนุมัติตามประเภทเอกสารจาก Master Data
-              (เลือกเปลี่ยนชื่อบุคคลได้)
+              (เลือกเปลี่ยนชื่อบุคคลได้ โดยผู้อนุมัติแต่ละขั้นต้องไม่ซ้ำกัน)
             </p>
           </div>
         </div>
@@ -103,6 +109,12 @@ export default function ApprovalWorkflowSection({
             (u) => u.id === step.approverId,
           );
           const currentVal = currentSelectedUser?.id || step.approverId || "";
+          const duplicateStep = safeSteps.find(
+            (other) =>
+              other.id !== step.id &&
+              other.approverId === currentVal &&
+              currentVal !== "",
+          );
 
           return (
             <div
@@ -127,7 +139,7 @@ export default function ApprovalWorkflowSection({
                 </div>
               </div>
 
-              {/* Approver dropdown — ALL active users, no position filter */}
+              {/* Only eligible approvers; each person can fill one step. */}
               <div className="flex items-center gap-3 w-full sm:w-auto flex-1">
                 <div className="flex-1">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
@@ -135,6 +147,11 @@ export default function ApprovalWorkflowSection({
                   </label>
                   <div className="relative">
                     <select
+                      aria-label={`ผู้อนุมัติขั้นที่ ${step.stepOrder}`}
+                      aria-invalid={!!duplicateStep}
+                      aria-describedby={
+                        duplicateStep ? `approver-error-${step.id}` : undefined
+                      }
                       value={currentVal}
                       onChange={(e) =>
                         handleApproverSelect(step.id, e.target.value)
@@ -161,15 +178,36 @@ export default function ApprovalWorkflowSection({
                             u.position && u.position !== "-"
                               ? u.position
                               : u.role || "N/A";
+                          const selectedInStep = safeSteps.find(
+                            (other) =>
+                              other.id !== step.id && other.approverId === u.id,
+                          );
                           return (
-                            <option key={u.id} value={u.id}>
+                            <option
+                              key={u.id}
+                              value={u.id}
+                              disabled={!!selectedInStep}
+                            >
                               {fullName} ({posLabel})
+                              {selectedInStep
+                                ? ` — เลือกแล้วในขั้นที่ ${selectedInStep.stepOrder}`
+                                : ""}
                             </option>
                           );
                         })}
                     </select>
                     <UserCheck className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
                   </div>
+                  {duplicateStep && (
+                    <p
+                      id={`approver-error-${step.id}`}
+                      role="alert"
+                      className="mt-1.5 text-xs font-medium text-rose-600"
+                    >
+                      ผู้อนุมัติซ้ำกับขั้นที่ {duplicateStep.stepOrder}{" "}
+                      กรุณาเลือกคนอื่น
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

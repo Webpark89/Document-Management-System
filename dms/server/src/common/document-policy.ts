@@ -42,6 +42,10 @@ export const permissions = {
     'submissions.delete_document:delete',
     'document.delete_document:delete',
   ],
+  deleteOthers: [
+    'submissions.delete_others_document:delete',
+    'document.delete_others_document:delete',
+  ],
   download: [
     'document.download_document:view',
     'submissions.download_document:view',
@@ -129,6 +133,20 @@ export function requireDocumentOwner(
     throw new ForbiddenException(
       'เฉพาะผู้สร้างเอกสารเท่านั้นที่ดำเนินการนี้ได้',
     );
+}
+
+export function requireDocumentDelete(
+  doc: { creator_id: string },
+  actor: Actor,
+): void {
+  const isOwner = doc.creator_id === actor.id;
+  if (!hasAny(actor, isOwner ? permissions.delete : permissions.deleteOthers)) {
+    throw new ForbiddenException(
+      isOwner
+        ? 'คุณไม่มีสิทธิ์ลบเอกสารของตัวเอง'
+        : 'คุณไม่มีสิทธิ์ลบเอกสารของผู้อื่น',
+    );
+  }
 }
 
 export async function lockEntity(

@@ -43,7 +43,9 @@ const png = fs.existsSync(
       "base64",
     );
 const results = [],
-  artifacts = path.join(root, "audit/2026-10-14/verification");
+  artifacts = process.env.DMS_TEST_ARTIFACTS
+    ? path.resolve(root, process.env.DMS_TEST_ARTIFACTS)
+    : path.join(root, "audit/2026-10-14/verification");
 let app, prisma, baseline, baselineClient, users, types;
 const tokens = {};
 let lastHTTP = "";
@@ -418,6 +420,97 @@ async function main() {
       2,
     );
   });
+  await check(
+    "Approval steps reject duplicate people, including legacy selections, without changing document history",
+    async () => {
+      const type = await prisma.documentType.create({
+        data: { prefix: "DUP", type_name: "ทดสอบผู้อนุมัติซ้ำ" },
+      });
+      await prisma.runningNumber.create({
+        data: {
+          document_type_id: type.id,
+          prefix: "DUP",
+          year_format: "YYYY",
+          last_reset_year: new Date().getFullYear(),
+        },
+      });
+      await prisma.approvalMatrix.createMany({
+        data: [
+          {
+            document_type_id: type.id,
+            step_order: 1,
+            required_role_id: managerRole.id,
+          },
+          {
+            document_type_id: type.id,
+            step_order: 2,
+            required_role_id: managerRole.id,
+          },
+          {
+            document_type_id: type.id,
+            step_order: 3,
+            required_role_id: executiveRole.id,
+          },
+        ],
+      });
+      const doc = await create("DUP");
+      const duplicate = [
+        { step_order: 1, approver_id: users.manager.id },
+        { step_order: 2, approver_id: users.manager.id },
+        { step_order: 3, approver_id: users.executive.id },
+      ];
+      const unique = duplicate.map((step) =>
+        step.step_order === 2
+          ? { ...step, approver_id: users.manager2.id }
+          : step,
+      );
+      const snapshot = async () => ({
+        document: await prisma.document.findUniqueOrThrow({
+          where: { id: doc.real_id },
+          include: { versions: true, workflow: { include: { steps: true } } },
+        }),
+        audit: await prisma.auditLog.count({
+          where: { target_id: doc.real_id },
+        }),
+        notifications: await prisma.notification.count({
+          where: { document_id: doc.real_id },
+        }),
+      });
+      const before = await snapshot();
+      const denied = await api("post", `/workflows/${doc.real_id}/submit`)
+        .send({ workflow_steps: duplicate })
+        .expect(400);
+      assert.match(denied.body.message, /ผู้อนุมัติ.*ซ้ำ/);
+      assert.deepEqual(await snapshot(), before);
+      await api("post", `/workflows/${doc.real_id}/submit`)
+        .send({ workflow_steps: unique })
+        .expect(201);
+      const current = await detail(doc.real_id);
+      assert.equal(
+        new Set(current.workflow.steps.map((step) => step.approver_id)).size,
+        3,
+      );
+
+      // Simulate a returned document saved before duplicate selection was blocked.
+      await prisma.document.update({
+        where: { id: doc.real_id },
+        data: { status: "Returned" },
+      });
+      await prisma.workflowStep.update({
+        where: { id: current.workflow.steps[1].id },
+        data: { approver_id: users.manager.id },
+      });
+      const legacy = await snapshot();
+      const resubmit = await api("post", `/workflows/${doc.real_id}/submit`)
+        .send({})
+        .expect(400);
+      assert.match(resubmit.body.message, /ผู้อนุมัติ.*ซ้ำ/);
+      assert.deepEqual(await snapshot(), legacy);
+      await api("post", `/workflows/${doc.real_id}/submit`)
+        .send({ workflow_steps: unique })
+        .expect(201);
+    },
+  );
   for (const prefix of ["PR", "PO", "BK", "DOC"])
     await check(
       `${prefix}: Draft, private visibility, named approvals, signed download, immutable versions`,
@@ -614,6 +707,159 @@ async function main() {
     },
   );
   await check(
+    "Delete scopes are independent across every status and saved through role API",
+    async () => {
+      for (const section of ["document", "submissions"]) {
+        const role = await createRole(`Delete scopes ${section}`, []);
+        const actor = await prisma.user.create({
+          data: {
+            username: `delete_${section}`,
+            email: `delete_${section}@example.test`,
+            first_name: "ทดสอบ",
+            last_name: "สิทธิ์ลบ",
+            password_hash: passwordHash,
+            role_id: role.id,
+          },
+        });
+        const who = actor.username;
+        const login = await request(app.getHttpServer())
+          .post("/api/auth/login")
+          .send({ username: who, password })
+          .expect(200);
+        tokens[who] = login.headers["set-cookie"][0].split(";")[0];
+        const saveScopes = async (own, others, viewAll = true) => {
+          const keys = [
+            "document.view_list:view",
+            ...(viewAll ? ["document.view_all:view"] : []),
+            ...(own ? [`${section}.delete_document:delete`] : []),
+            ...(others ? [`${section}.delete_others_document:delete`] : []),
+          ];
+          await api("patch", `/admin/roles/${role.id}`, "admin")
+            .send({
+              permissions: keys.map((key) => {
+                const [module, action] = key.split(":");
+                return { module, action };
+              }),
+            })
+            .expect(200);
+          const current = await api("get", "/auth/me", who).expect(200);
+          assert.equal(
+            current.body.permissions.includes(
+              `${section}.delete_document:delete`,
+            ),
+            own,
+          );
+          assert.equal(
+            current.body.permissions.includes(
+              `${section}.delete_others_document:delete`,
+            ),
+            others,
+          );
+        };
+        const makeDoc = (creator_id, status = "Draft") =>
+          prisma.document.create({
+            data: {
+              doc_number: `DEL-${crypto.randomUUID()}`,
+              title: "ทดสอบสิทธิ์ลบเอกสาร",
+              creator_id,
+              type_id: types.PR.id,
+              status,
+              visibility_type: "SpecificUsers",
+              visibility_users: [creator_id],
+            },
+          });
+        const remove = async (doc, status) => {
+          await api("delete", `/documents/${doc.id}`, who).expect(status);
+          const stored = await prisma.document.findUniqueOrThrow({
+            where: { id: doc.id },
+          });
+          assert.equal(stored.is_deleted, status === 200);
+          assert.equal(
+            await prisma.auditLog.count({
+              where: { target_id: doc.id, user_id: actor.id, action: "Delete" },
+            }),
+            status === 200 ? 1 : 0,
+          );
+        };
+
+        for (const [own, others] of [
+          [true, false],
+          [false, true],
+          [false, false],
+          [true, true],
+        ]) {
+          await saveScopes(own, others);
+          for (const status of [
+            "Draft",
+            "Pending",
+            "Approved",
+            "Rejected",
+            "Cancelled",
+            "Returned",
+          ]) {
+            await remove(await makeDoc(actor.id, status), own ? 200 : 403);
+            await remove(
+              await makeDoc(users.owner.id, status),
+              others ? 200 : 403,
+            );
+          }
+        }
+        await saveScopes(false, true, false);
+        await remove(await makeDoc(users.owner.id), 403);
+        const visible = await makeDoc(users.owner.id);
+        await prisma.document.update({
+          where: { id: visible.id },
+          data: { visibility_type: "CompanyWide" },
+        });
+        await remove(visible, 200);
+      }
+    },
+  );
+  await check(
+    "Deleting Pending or Approved preserves history and blocks further document actions",
+    async () => {
+      const pending = await create("PR");
+      await submit(pending);
+      await api("delete", `/documents/${pending.real_id}`).expect(200);
+      assert.ok(
+        !(await api("get", "/approvals", "manager")).body.some(
+          (d) => d.real_id === pending.real_id,
+        ),
+      );
+      await api("post", `/workflows/${pending.real_id}/approve`, "manager")
+        .send({ expected_step: 1, expected_version: 1 })
+        .expect(404);
+
+      const completed = await create("PR");
+      await submit(completed);
+      await approve(completed.real_id, "manager");
+      await approve(completed.real_id, "executive");
+      const approved = await prisma.document.findUniqueOrThrow({
+        where: { id: completed.real_id },
+        include: {
+          versions: { orderBy: { version_number: "asc" } },
+          workflow: { include: { steps: true } },
+        },
+      });
+      assert.ok(approved.versions.length > 0);
+      await api("delete", `/documents/${approved.id}`).expect(200);
+      const preserved = await prisma.document.findUniqueOrThrow({
+        where: { id: approved.id },
+        include: {
+          versions: { orderBy: { version_number: "asc" } },
+          workflow: { include: { steps: true } },
+        },
+      });
+      assert.equal(preserved.is_deleted, true);
+      assert.equal(preserved.status, "Approved");
+      assert.deepEqual(preserved.versions, approved.versions);
+      assert.deepEqual(preserved.workflow, approved.workflow);
+      await api("get", `/documents/${approved.id}`).expect(404);
+      await api("get", `/documents/${approved.id}/download`).expect(404);
+      await api("get", `/documents/${approved.id}/versions`).expect(404);
+    },
+  );
+  await check(
     "Concurrent creation allocates distinct running numbers",
     async () => {
       const docs = await Promise.all(
@@ -796,7 +1042,7 @@ async function main() {
     "Signature management persists, clears original only, preserves signed PDF",
     async () => {
       const approved = await prisma.document.findFirst({
-        where: { type_id: types.PR.id, status: "Approved" },
+        where: { type_id: types.PR.id, status: "Approved", is_deleted: false },
       });
       const before = await download(approved.id);
       await api("patch", `/admin/signatures/${users.manager.id}`, "admin")

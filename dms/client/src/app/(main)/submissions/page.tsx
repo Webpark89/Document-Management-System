@@ -4,11 +4,11 @@ import { Pagination } from '@views/components/shared/Pagination';
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, CheckSquare, Eye, Search, ChevronLeft, ChevronRight, Plus, Inbox, Send, FileEdit } from "lucide-react";
+import { Check, CheckSquare, Eye, Search, ChevronLeft, ChevronRight, Plus, Inbox, Send, FileEdit, Trash2, Loader2 } from "lucide-react";
 import PageHeader from '@views/components/shared/PageHeader';
 import { Badge } from '@views/components/ui/badge';
 import { getApprovals, Approval } from '@views/features/workflow/api';
-import { getDocuments } from '@views/features/documents/api';
+import { getDocuments, deleteDocument } from '@views/features/documents/api';
 import type { Document } from '@views/features/documents/types';
 import { getStatusVariant } from "@/lib/document-status";
 import { formatThaiDate, formatThaiTime } from "@/lib/format-date";
@@ -17,10 +17,15 @@ import { APP_PAGE_CONTENT, APP_PAGE_SHELL, APP_TABLE_CARD } from '@views/compone
 import DocTypeBadge from '@views/components/shared/DocTypeBadge';
 
 import { useAuth } from '@views/components/providers/AuthProvider';
+import { useToast } from '@views/components/providers/ToastProvider';
+import { ApiError } from '@/lib';
+import { canDeleteDocument } from '@/lib/document-permissions';
+import { swalConfirm, swalError, swalPermissionDenied } from '@/lib/swal';
 
 export default function SubmissionsPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const hasPerm = (itemKey: string, action: string = "view") => {
     return !!user?.permissions?.includes(`submissions.${itemKey}:${action}`);
@@ -33,6 +38,7 @@ export default function SubmissionsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
   
   // Navigation & Filter States
   const [typeFilters, setTypeFilters] = useState<string[]>(["All"]);
@@ -95,6 +101,39 @@ export default function SubmissionsPage() {
     }
   };
 
+  const handleDeleteDoc = async (doc: { id: string; real_id: string; creator_id?: string }) => {
+    if (deletingDocId) return;
+    if (!canDeleteDocument(user, doc)) {
+      await swalPermissionDenied("บทบาทของคุณไม่มีสิทธิ์ลบเอกสารนี้ กรุณาติดต่อผู้ดูแลระบบ");
+      return;
+    }
+    const confirmed = await swalConfirm({
+      title: "ยืนยันการลบเอกสาร",
+      text: `คุณต้องการลบเอกสาร ${doc.id} หรือไม่? เอกสารจะถูกนำออกจากรายการ โดยระบบยังเก็บข้อมูลและประวัติไว้`,
+      confirmButtonText: "ลบเอกสาร",
+      cancelButtonText: "ยกเลิก",
+    });
+    if (!confirmed) return;
+
+    setDeletingDocId(doc.real_id);
+    try {
+      if (!(await deleteDocument(doc.real_id))) {
+        throw new Error("ลบเอกสารไม่สำเร็จ กรุณาลองใหม่");
+      }
+      setMyDocsList((current) => current.filter((item) => (item.real_id || item.id) !== doc.real_id));
+      showToast(`ลบเอกสาร ${doc.id} เรียบร้อยแล้ว`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "ลบเอกสารไม่สำเร็จ กรุณาลองใหม่";
+      if (error instanceof ApiError && error.status === 403) {
+        await swalPermissionDenied(message);
+      } else {
+        await swalError("ลบเอกสารไม่สำเร็จ", message);
+      }
+    } finally {
+      setDeletingDocId(null);
+    }
+  };
+
   const getDocTypeCategory = (id: string, typeVal?: unknown): "PR" | "PO" | "BK" | "OTHER" => {
     let raw = "";
     if (typeof typeVal === "string") {
@@ -123,6 +162,7 @@ export default function SubmissionsPage() {
     return {
       id: doc.id,
       real_id: doc.real_id || doc.id,
+      creator_id: doc.creator_id,
       name: doc.name || doc.title || "",
       type: resolvedType,
       amount: doc.amount || "-",
@@ -221,6 +261,9 @@ export default function SubmissionsPage() {
   }, [typeFilters, searchQuery, dateFrom, dateTo, deptFilter]);
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedItems = filteredItems.slice(startIndex, startIndex + itemsPerPage);
 
@@ -417,7 +460,7 @@ export default function SubmissionsPage() {
                 <col className="w-[120px]" />
                 <col className="w-[75px]" />
                 <col className="w-[110px]" />
-                <col className="w-[100px]" />
+                <col className="w-[160px]" />
               </colgroup>
               <thead>
                 <tr className="bg-slate-50/70 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -521,6 +564,7 @@ export default function SubmissionsPage() {
                         </Badge>
                       </td>
                       <td className="py-4 pr-4 pl-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="inline-flex items-center justify-center gap-2">
                         {item.isToApprove ? (
                           <Link
                             href={`/approvals/${item.id}`}
@@ -555,6 +599,23 @@ export default function SubmissionsPage() {
                             </div>
                           </Link>
                         )}
+                        {canDeleteDocument(user, item) && (
+                          <button
+                            type="button"
+                            title="ลบเอกสาร"
+                            aria-label={`ลบเอกสาร ${item.id}`}
+                            disabled={deletingDocId !== null}
+                            onClick={() => handleDeleteDoc(item)}
+                            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-rose-100 bg-rose-50 text-rose-600 transition-colors hover:border-rose-200 hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                          >
+                            {deletingDocId === item.real_id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
+                        </div>
                       </td>
                     </tr>
                   ))

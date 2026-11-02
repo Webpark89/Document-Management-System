@@ -240,7 +240,12 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
       },
       {
         key: "delete_document",
-        label: "ลบเอกสาร (เฉพาะ Draft)",
+        label: "ลบเอกสารของตัวเอง (ทุกสถานะ)",
+        actions: ["delete"],
+      },
+      {
+        key: "delete_others_document",
+        label: "ลบเอกสารของผู้อื่นที่เข้าถึงได้ (ทุกสถานะ)",
         actions: ["delete"],
       },
       {
@@ -398,7 +403,13 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
       {
         key: "delete_document",
         subGroup: "หน้าเอกสาร",
-        label: "ลบเอกสาร (เฉพาะ Draft)",
+        label: "ลบเอกสารของตัวเอง (ทุกสถานะ)",
+        actions: ["delete"],
+      },
+      {
+        key: "delete_others_document",
+        subGroup: "หน้าเอกสาร",
+        label: "ลบเอกสารของผู้อื่นที่เข้าถึงได้ (ทุกสถานะ)",
         actions: ["delete"],
       },
       {

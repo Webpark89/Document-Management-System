@@ -83,6 +83,10 @@ export class WorkflowsService {
               `กรุณาเลือกผู้อนุมัติขั้นที่ ${m.step_order}`,
             );
           const approver = await loadActor(tx, selected);
+          if (steps.some((step) => step.approver_id === approver.id))
+            throw new BadRequestException(
+              `ผู้อนุมัติขั้นที่ ${m.step_order} ซ้ำกับขั้นก่อนหน้า กรุณาเลือกคนอื่น`,
+            );
           if (approver.role_id !== m.required_role_id)
             throw new BadRequestException(
               `ผู้อนุมัติขั้นที่ ${m.step_order} ต้องมีบทบาท ${m.required_role.name}`,
