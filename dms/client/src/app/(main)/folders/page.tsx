@@ -31,17 +31,10 @@ import { FolderCreateModal } from '@views/components/folders/FolderCreateModal';
 import PageHeader from '@views/components/shared/PageHeader';
 import { APP_PAGE_CONTENT, APP_PAGE_SHELL } from '@views/components/ui/design-system';
 
-import { useAuth } from '@views/components/providers/AuthProvider';
 
 export default function FoldersPage() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { user } = useAuth();
-  
-  const hasPerm = (itemKey: string, action: string = 'view') =>
-    !!user?.permissions?.includes(`document.${itemKey}:${action}`);
-
-  
   const { data: initialFolders, error, mutate } = useSWR("folders", getFolders, {
     revalidateOnFocus: false,
   });
@@ -195,7 +188,7 @@ export default function FoldersPage() {
               >
                 <Pin className="w-3.5 h-3.5" fill={pinnedFolderIds.includes(folder.id) ? 'currentColor' : 'none'} />
               </button>
-              {hasPerm('manage_folders', 'edit') && (
+              {(
                 <button 
                   title="แก้ไข"
                   onClick={(e) => {
@@ -215,14 +208,9 @@ export default function FoldersPage() {
           <div className="flex items-center gap-1 mt-3">
             <div className="flex -space-x-2">
               <div className="w-6 h-6 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-blue-700 uppercase">
-                {folder.creator?.full_name?.substring(0, 2) || 'AD'}
+                {folder.creator?.full_name?.substring(0, 2) || '?'}
               </div>
-              <div className="w-6 h-6 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-indigo-700 uppercase">
-                U
-              </div>
-              <div className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-[8px] font-bold text-slate-500">
-                +2
-              </div>
+
             </div>
           </div>
         </div>
@@ -233,7 +221,8 @@ export default function FoldersPage() {
   return (
     <div className={APP_PAGE_SHELL}>
       <div className={APP_PAGE_CONTENT}>
-        {hasPerm('view_folders') ? (
+        {error && <p role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-600">โหลดโฟลเดอร์ไม่สำเร็จ กรุณาลองใหม่</p>}
+        {(
           <>
             {/* HEADER BAR */}
             <PageHeader
@@ -251,7 +240,7 @@ export default function FoldersPage() {
                       className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs w-full md:w-[260px] focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium"
                     />
                   </div>
-                  {hasPerm('manage_folders', 'create') && (
+                  {(
                     <button 
                       onClick={() => { setEditingFolder(null); setIsCreateModalOpen(true); }}
                       className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center gap-2 transition-colors shadow-xs shrink-0 text-xs font-bold cursor-pointer"
@@ -265,7 +254,7 @@ export default function FoldersPage() {
             />
 
             {/* BULK ACTION BAR */}
-            {selectedFolderIds.length > 0 && hasPerm('manage_folders', 'delete') && (
+            {selectedFolderIds.length > 0 && (
               <div className="bg-blue-600 text-white rounded-2xl p-3.5 flex items-center justify-between shadow-md animate-in fade-in slide-in-from-top-2 mb-6">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-bold bg-white/20 px-2.5 py-1 rounded-lg">
@@ -331,15 +320,11 @@ export default function FoldersPage() {
               )}
             </div>
           </>
-        ) : (
-          <div className="flex flex-col items-center justify-center p-12 text-slate-400 mt-12">
-            <p className="text-sm font-bold">ไม่มีสิทธิ์เข้าถึงหน้าโฟลเดอร์</p>
-          </div>
         )}
 
       </div>
 
-      {hasPerm('manage_folders', 'create') && (
+      {(
         <FolderCreateModal 
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}

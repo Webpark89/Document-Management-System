@@ -83,8 +83,7 @@ export async function getApprovals(): Promise<Approval[]> {
       };
     });
   } catch (err) {
-    console.warn("[getApprovals] Failed to fetch approvals", err);
-    return [];
+    throw err;
   }
 }
 

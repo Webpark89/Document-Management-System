@@ -26,6 +26,7 @@ export default function ApprovalsInboxPage() {
   // Data States
   const [toApproveList, setToApproveList] = useState<Approval[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   
   // Navigation & Filter States
   const [typeFilters, setTypeFilters] = useState<string[]>(["All"]);
@@ -54,10 +55,12 @@ export default function ApprovalsInboxPage() {
     }
     // Fetch approvals (items waiting for MY approval)
     setIsLoading(true);
+    setLoadError(false);
     getApprovals().then((data) => {
       setToApproveList(data.filter((item) => item.status !== "Approved"));
     }).catch(err => {
       console.error(err);
+      setLoadError(true);
       setToApproveList([]);
     }).finally(() => {
       setIsLoading(false);
@@ -246,7 +249,8 @@ export default function ApprovalsInboxPage() {
     <div className={APP_PAGE_SHELL}>
       <div className={APP_PAGE_CONTENT}>
         {/* HEADER WITH HISTORY */}
-        <PageHeader
+        {loadError && <p role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-600">โหลดรายการอนุมัติไม่สำเร็จ กรุณาลองใหม่</p>}
+      <PageHeader
           title="รายการรออนุมัติ (Pending Approvals)"
           subtitle="จัดการและตรวจสอบเอกสารที่กำลังรอการอนุมัติจากคุณ"
           actions={

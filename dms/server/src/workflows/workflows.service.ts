@@ -47,6 +47,24 @@ export class WorkflowsService {
           throw new ConflictException('ส่งอนุมัติได้เฉพาะร่างหรือส่งกลับแก้ไข');
         if (!doc.type.is_active)
           throw new BadRequestException('ประเภทเอกสารถูกปิดใช้งาน');
+        if (!doc.creator.signature_encrypted)
+          throw new BadRequestException(
+            'กรุณาบันทึกลายเซ็นในโปรไฟล์ก่อนส่งอนุมัติ',
+          );
+        try {
+          const signature = this.encryption
+            .decrypt(doc.creator.signature_encrypted)
+            .match(/^data:(image\/(?:png|jpeg));base64,(.+)$/);
+          if (!signature) throw new Error('Unsupported signature');
+          const pdf = await PDFDocument.create();
+          if (signature[1] === 'image/png')
+            await pdf.embedPng(Buffer.from(signature[2], 'base64'));
+          else await pdf.embedJpg(Buffer.from(signature[2], 'base64'));
+        } catch {
+          throw new BadRequestException(
+            'อ่านลายเซ็นผู้จัดทำไม่ได้ กรุณาบันทึกลายเซ็นใหม่',
+          );
+        }
         const matrix = await tx.approvalMatrix.findMany({
           where: { document_type_id: doc.type_id },
           include: { required_role: true },
@@ -101,7 +119,7 @@ export class WorkflowsService {
         const latest = doc.versions[0];
         if (!latest) throw new BadRequestException('ไม่พบ version เอกสาร');
         if (
-          !['PR', 'PO', 'BK'].includes(doc.type.prefix) &&
+          !this.documents.usesGeneratedForm(doc, latest) &&
           !latest.file_data?.length
         )
           throw new BadRequestException('ไม่พบไฟล์ PDF');
@@ -141,7 +159,7 @@ export class WorkflowsService {
           ...previous,
           _meta: { ...previous?._meta, workflow_history: history },
         };
-        const buffer = !['PR', 'PO', 'BK'].includes(doc.type.prefix)
+        const buffer = !this.documents.usesGeneratedForm(doc, latest)
           ? Buffer.from(latest.file_data!)
           : undefined;
         await this.documents.appendVersion(
@@ -414,7 +432,7 @@ export class WorkflowsService {
           _meta: { ...previous?._meta, annotations },
         };
         let bytes: Buffer;
-        if (['PR', 'PO', 'BK'].includes(doc.type.prefix)) {
+        if (this.documents.usesGeneratedForm(doc, doc.versions[0])) {
           const snapshot = this.documents.snapshotDocument(
             current,
             undefined,

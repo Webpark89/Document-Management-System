@@ -353,24 +353,6 @@ export const PERMISSION_SCHEMA: PermissionSection[] = [
         actions: ["edit"],
       },
       {
-        key: "view_folders",
-        subGroup: "หน้าคลังเอกสาร",
-        label: "ดูและเข้าถึงโฟลเดอร์",
-        actions: ["view"],
-      },
-      {
-        key: "manage_folders",
-        subGroup: "หน้าคลังเอกสาร",
-        label: "สร้าง / แก้ไข / ลบ / ปักหมุดโฟลเดอร์",
-        actions: ["create", "edit", "delete"],
-      },
-      {
-        key: "move_to_folder",
-        subGroup: "หน้าคลังเอกสาร",
-        label: "ย้ายเอกสารเข้าโฟลเดอร์",
-        actions: ["edit"],
-      },
-      {
         key: "create_document",
         subGroup: "หน้าเอกสาร",
         label: "สร้างเอกสารใหม่",

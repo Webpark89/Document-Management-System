@@ -382,7 +382,7 @@ export class DocumentsService {
   ): Prisma.InputJsonValue {
     const form = doc.pr_form ?? doc.po_form ?? doc.bk_form ?? {};
     let company = {
-      companyName: 'บริษัท นิสซุย (ประเทศไทย) จำกัด',
+      companyName: '',
       companyAddress: '',
     };
     try {
@@ -459,6 +459,11 @@ export class DocumentsService {
         },
         workflow_history: previous?._meta?.workflow_history ?? [],
         annotations: previous?._meta?.annotations ?? [],
+        file_source:
+          previous?._meta?.file_source ??
+          (['PR', 'PO', 'BK'].includes(doc.type.prefix)
+            ? 'generated_form'
+            : 'uploaded_pdf'),
       },
     });
   }
@@ -529,6 +534,16 @@ export class DocumentsService {
         file_extension: 'pdf',
       },
     });
+  }
+
+  usesGeneratedForm(
+    doc: { type: { prefix: string } },
+    version?: { form_data?: unknown },
+  ) {
+    return (
+      ['PR', 'PO', 'BK'].includes(doc.type.prefix) &&
+      (version?.form_data as any)?._meta?.file_source !== 'uploaded_pdf'
+    );
   }
 
   async create(
@@ -655,6 +670,7 @@ export class DocumentsService {
           'สร้างเอกสาร (ร่าง)',
           file?.buffer,
           dto.purpose,
+          { _meta: { file_source: file ? 'uploaded_pdf' : 'generated_form' } },
         );
         await tx.auditLog.create({
           data: {
@@ -776,6 +792,13 @@ export class DocumentsService {
           'แก้ไขเอกสาร (ร่าง)',
           buffer,
           dto.purpose,
+          {
+            ...(doc.versions[0]?.form_data as any),
+            _meta: {
+              ...(doc.versions[0]?.form_data as any)?._meta,
+              file_source: buffer ? 'uploaded_pdf' : 'generated_form',
+            },
+          },
         );
         await tx.auditLog.create({
           data: {
@@ -822,11 +845,27 @@ export class DocumentsService {
       await lockEntity(tx, `document:${original.id}`);
       const doc = await this.getDocument(original.id, tx);
       requireDocumentOwner(doc, actor);
-      if (!['Draft', 'Returned'].includes(doc.status))
+      if (!['Draft', 'Returned', 'Approved'].includes(doc.status))
         throw new ConflictException(
-          'ต้องเป็นร่างหรือส่งกลับแก้ไขก่อนอัปโหลดฉบับใหม่',
+          'อัปโหลดฉบับใหม่ได้เมื่อเป็นร่าง ส่งกลับแก้ไข หรืออนุมัติแล้ว',
         );
       await this.preserveLegacyVersion(tx, doc);
+      const previous = doc.versions[0]?.form_data as any;
+      const retained = {
+        ...previous,
+        _meta: {
+          ...previous?._meta,
+          file_source: 'uploaded_pdf',
+          workflow_history: [
+            ...(previous?._meta?.workflow_history ?? []),
+            ...(previous?._meta?.workflow ? [previous._meta.workflow] : []),
+          ],
+        },
+      };
+      // Approval belongs to the signed bytes. A replacement file starts a new
+      // approval cycle; the prior signed versions remain available in history.
+      if (doc.workflow)
+        await tx.workflow.delete({ where: { id: doc.workflow.id } });
       await tx.document.update({
         where: { id: doc.id },
         data: {
@@ -844,6 +883,8 @@ export class DocumentsService {
           ? `อัปโหลดเอกสาร version ใหม่: ${note}`
           : 'อัปโหลดเอกสาร version ใหม่',
         file.buffer,
+        undefined,
+        retained,
       );
       await tx.auditLog.create({
         data: {
@@ -928,7 +969,10 @@ export class DocumentsService {
   }
 
   async softDelete(id: string, actor: Actor) {
-    requirePermission(actor, [...permissions.delete, ...permissions.deleteOthers]);
+    requirePermission(actor, [
+      ...permissions.delete,
+      ...permissions.deleteOthers,
+    ]);
     const original = await this.getDocument(id);
     return this.prisma.$transaction(async (tx) => {
       await lockEntity(tx, `document:${original.id}`);
@@ -1102,9 +1146,8 @@ export class DocumentsService {
     doc = escape(doc);
     version = escape(version);
     // 1. Company Settings
-    let companyName = 'บริษัท นิสซุย (ประเทศไทย) จำกัด';
-    let companyAddress =
-      'เลขที่ 282 (หรือ 2086) ถนนรามคำแหง แขวงหัวหมาก เขตบางกะปิ กรุงเทพมหานคร 10240';
+    let companyName = '';
+    let companyAddress = '';
     try {
       const settingsPath = path.join(process.cwd(), 'uploads', 'settings.json');
       if (fs.existsSync(settingsPath)) {
@@ -1129,21 +1172,20 @@ export class DocumentsService {
     const vFormData = version?.form_data || {};
 
     const rawDate = doc.created_at ? new Date(doc.created_at) : new Date();
-    const thaiDay = rawDate.getDate();
-    const thaiMonth = rawDate.getMonth() + 1;
-    const thaiYear = rawDate.getFullYear() + 543;
-    const docDate = `${thaiDay}/${thaiMonth}/${thaiYear}`;
+    const docDate = rawDate.toLocaleDateString('th-TH', {
+      timeZone: 'Asia/Bangkok',
+    });
 
     const requesterName = doc.creator
       ? `${doc.creator.first_name || ''} ${doc.creator.last_name || ''}`.trim() ||
         doc.creator.username ||
-        'วิภา รักดี'
-      : 'วิภา รักดี';
+        '-'
+      : '-';
     const department =
       doc.creator?.department?.name ||
       doc.pr_form?.department?.name ||
       doc.bk_form?.department?.name ||
-      'แผนกจัดซื้อ';
+      '-';
     const title = doc.title || '-';
 
     const isPO = prefix === 'PO';
@@ -1188,7 +1230,8 @@ export class DocumentsService {
             'ผู้อนุมัติ'
           : s.approver_name || 'ผู้อนุมัติ';
         const stepRole =
-          s.approver?.role?.name || (idx === 0 ? 'Manager' : 'Executive');
+          s.approver?.role?.name ||
+          `ผู้อนุมัติขั้นที่ ${s.step_order ?? idx + 1}`;
         const sigImg = this.decryptSignature(s.approver?.signature_encrypted);
         signatures.push({
           role: stepRole,
@@ -1198,7 +1241,7 @@ export class DocumentsService {
                 timeZone: 'Asia/Bangkok',
               })
             : '',
-          isApproved: true,
+          isApproved: !!sigImg && !!s.signature_applied && !!s.action_date,
           sigImage: sigImg,
         });
       });
@@ -1922,9 +1965,12 @@ export class DocumentsService {
           : Number(v.file_size ?? 0) / 1024,
         file_extension: v.file_extension,
         has_file: hasFile(v),
-        file_sha256: 'file_data' in v && v.file_data instanceof Uint8Array && v.file_data.length
-          ? createHash('sha256').update(v.file_data).digest('hex')
-          : null,
+        file_sha256:
+          'file_data' in v &&
+          v.file_data instanceof Uint8Array &&
+          v.file_data.length
+            ? createHash('sha256').update(v.file_data).digest('hex')
+            : null,
         form_data: freezeView(formData(v), v.version_number),
         created_at: v.created_at,
         updated_at: v.updated_at,

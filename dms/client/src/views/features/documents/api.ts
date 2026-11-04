@@ -16,18 +16,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       types: res.data.types || [],
       goals: res.data.goals || [],
     };
-  } catch {
-    return {
-      total: 0,
-      approved: 0,
-      pending: 0,
-      actionRequired: 0,
-      documents: [],
-      trend: [],
-      types: [],
-      goals: [],
-      activity: [],
-    };
+  } catch (error) {
+    throw error;
   }
 }
 

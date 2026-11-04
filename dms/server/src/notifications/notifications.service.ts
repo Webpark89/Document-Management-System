@@ -24,7 +24,7 @@ export class NotificationsService {
       where: { id, user_id: userId },
       data: { is_read: true, read_at: new Date() },
     });
-    return { success: true, count: res.count };
+    return { success: res.count > 0, count: res.count };
   }
 
   async markAllAsRead(userId: string) {

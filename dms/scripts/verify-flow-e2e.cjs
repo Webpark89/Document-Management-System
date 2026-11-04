@@ -596,12 +596,7 @@ async function main() {
         await api("put", `/documents/${doc.real_id}`)
           .send(data(prefix))
           .expect(409);
-        await api("post", `/documents/${doc.real_id}/upload-new-version`)
-          .attach("file", finalPdf.body, {
-            filename: "new.pdf",
-            contentType: "application/pdf",
-          })
-          .expect(409);
+
         await api("post", `/workflows/${doc.real_id}/reject`, "executive")
           .send({
             comment: "late",
@@ -1000,7 +995,7 @@ async function main() {
     },
   );
   await check(
-    "Folder visibility, document visibility and move permissions are enforced",
+    "All users access folders while document visibility stays enforced",
     async () => {
       const doc = await create("BK");
       await submit(doc);
@@ -1011,7 +1006,7 @@ async function main() {
           .send({ name: "ส่วนตัว", visibility: "Private" })
           .expect(201)
       ).body;
-      await api("get", `/folders/${f.id}`, "outsider").expect(403);
+      await api("get", `/folders/${f.id}`, "outsider").expect(200);
       await api("post", "/folders/move-doc", "outsider")
         .send({ document_id: doc.real_id, target_folder_id: f.id })
         .expect(403);
@@ -1601,8 +1596,51 @@ async function main() {
       });
     },
   );
+  await check('Submission refuses missing creator signature without creating approval evidence', async () => {
+    const doc = await create('PR');
+    const before = await detail(doc.real_id);
+    const owner = await prisma.user.findUniqueOrThrow({ where: { id: users.owner.id } });
+    try {
+      await prisma.user.update({ where: { id: owner.id }, data: { signature_encrypted: null } });
+      await api('post', '/workflows/' + doc.real_id + '/submit').send({ workflow_steps: steps() }).expect(400);
+      const after = await detail(doc.real_id);
+      assert.equal(after.status, 'Draft'); assert.equal(after.workflow, null);
+      assert.equal(after.versions.length, before.versions.length);
+    } finally {
+      await prisma.user.update({ where: { id: owner.id }, data: { signature_encrypted: owner.signature_encrypted } });
+    }
+  });
+  for (const prefix of ['PR', 'PO', 'BK', 'DOC']) {
+    await check(prefix + ' uploaded replacement needs fresh approval and preserves exact PDF bytes', async () => {
+      const doc = await create(prefix);
+      await submit(doc);
+      await approve(doc.real_id, 'manager');
+      await approve(doc.real_id, 'executive');
+      const before = await detail(doc.real_id);
+      const oldNumber = before.versions[0].version_number;
+      const oldBytes = (await download(doc.real_id)).body;
+      const pdf = await PDFDocument.create(); pdf.addPage(); pdf.addPage();
+      pdf.setTitle(prefix + ' replacement uploaded file');
+      const replacement = Buffer.from(await pdf.save());
+      await api('post', '/documents/' + doc.real_id + '/upload-new-version')
+        .attach('file', replacement, { filename: 'replacement.pdf', contentType: 'application/pdf' }).expect(201);
+      const draft = await detail(doc.real_id);
+      assert.equal(draft.status, 'Draft'); assert.equal(draft.approved_at, null); assert.equal(draft.workflow, null);
+      assert.equal(hash((await download(doc.real_id)).body), hash(replacement));
+      assert.equal(hash((await download(doc.real_id, oldNumber)).body), hash(oldBytes));
+      await submit(doc);
+      assert.equal(hash((await download(doc.real_id)).body), hash(replacement), 'submission must not regenerate an uploaded file');
+      await approve(doc.real_id, 'manager');
+      await approve(doc.real_id, 'executive');
+      const signed = (await download(doc.real_id)).body;
+      assert.notEqual(hash(signed), hash(replacement));
+      assert.equal((await PDFDocument.load(signed)).getPageCount(), 2);
+      assert.equal((await detail(doc.real_id)).status, 'Approved');
+    });
+  }
   const summary = {
-    date: "2026-10-15",
+    date: new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date()),
+    completed_at: new Date().toISOString(),
     kind: "PostgreSQL and Nest HTTP integration using isolated scratch schema",
     schema,
     primaryBefore: baseline,

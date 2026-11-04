@@ -34,7 +34,6 @@ function AllFoldersContent() {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [visibilityFilter, setVisibilityFilter] = useState<string>("ALL");
 
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
@@ -65,9 +64,10 @@ function AllFoldersContent() {
     setLoading(true);
     try {
       const data = await getFolders();
-      setTimeout(() => setFolders(data), 0);
+      setFolders(data);
     } catch (err) {
       console.error("Failed to load folders", err);
+      showToast("โหลดโฟลเดอร์ไม่สำเร็จ กรุณาลองใหม่", "error");
     } finally {
       setLoading(false);
     }
@@ -121,9 +121,6 @@ function AllFoldersContent() {
     }
 
     // Filter by Visibility
-    if (visibilityFilter !== "ALL") {
-      list = list.filter((f) => f.visibility === visibilityFilter);
-    }
 
     // Sort Pinned Folders first
     list.sort((a, b) => {
@@ -135,7 +132,7 @@ function AllFoldersContent() {
     });
 
     return list;
-  }, [folders, searchQuery, visibilityFilter, pinnedFolderIds]);
+  }, [folders, searchQuery, pinnedFolderIds]);
 
   return (
     <div className={APP_PAGE_SHELL}>
@@ -194,18 +191,6 @@ function AllFoldersContent() {
               )}
             </div>
 
-            {/* Visibility Select */}
-            <select
-              value={visibilityFilter}
-              onChange={(e) => setVisibilityFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer shrink-0"
-            >
-              <option value="ALL">🌐 ทุกขอบเขต (All Visibility)</option>
-              <option value="CompanyWide">🌐 ทั้งองค์กร (Company-wide)</option>
-              <option value="Department">🏢 เฉพาะแผนก (Department)</option>
-              <option value="Private">🔒 ส่วนตัว (Private)</option>
-              <option value="Shared">👥 แชร์เฉพาะกลุ่ม (Shared)</option>
-            </select>
           </div>
         </div>
 

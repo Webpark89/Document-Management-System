@@ -246,7 +246,6 @@ export default function DocumentTypesTab({
     if (Object.keys(errors).length > 0) return;
 
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
 
     const prefix = form.prefix.trim().toUpperCase();
     const typeName = form.typeName.trim();

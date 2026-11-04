@@ -77,8 +77,8 @@ export default function PRForm({
     .split("T")[0];
 
   const [companySettings, setCompanySettings] = useState({
-    companyName: "บริษัท นิสซุย (ประเทศไทย) จำกัด",
-    companyAddress: "เลขที่ 123 อาคารนิสซุย ถนนสุขุมวิท",
+    companyName: "",
+    companyAddress: "",
   });
 
   const [title, setTitle] = useState("");

@@ -129,7 +129,7 @@ export function FolderSidebar({
       </div>
 
       <div className="px-2 pb-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-        โฟลเดอร์ของฉัน ({folders.length})
+        โฟลเดอร์ทั้งหมด ({folders.length})
       </div>
 
       {/* Dynamic Folder List */}

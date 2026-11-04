@@ -1,4 +1,4 @@
-import { api } from "@/lib";
+import { api, ApiError } from "@/lib";
 import { Folder, CreateFolderPayload, UpdateFolderPayload, MoveDocumentPayload } from "./types";
 
 export async function getFolders(): Promise<Folder[]> {
@@ -6,8 +6,7 @@ export async function getFolders(): Promise<Folder[]> {
     const res = await api.get<Folder[]>("/api/folders");
     return res.data || [];
   } catch (err) {
-    console.error("Failed to fetch folders:", err);
-    return [];
+    throw err;
   }
 }
 
@@ -16,8 +15,8 @@ export async function getFolderById(id: string): Promise<Folder | null> {
     const res = await api.get<Folder>(`/api/folders/${id}`);
     return res.data;
   } catch (err) {
-    console.error(`Failed to fetch folder ${id}:`, err);
-    return null;
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
   }
 }
 

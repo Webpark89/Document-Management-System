@@ -89,10 +89,9 @@ export function MoveToFolderModal({
               <button
                 key={folder.id}
                 type="button"
-                disabled={!folder.can_add_document}
-                title={!folder.can_add_document ? "คุณไม่มีสิทธิ์เพิ่มเอกสารในโฟลเดอร์นี้" : folder.name}
+                title={folder.name}
                 onClick={() => setSelectedFolderId(folder.id)}
-                className={`w-full flex min-w-0 items-center justify-between gap-2 p-3 rounded-2xl border text-xs font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+                className={`w-full flex min-w-0 items-center justify-between gap-2 p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
                   isSelected
                     ? "bg-blue-50 border-blue-300 text-blue-700"
                     : "border-slate-200 hover:bg-slate-50 text-slate-700"
@@ -102,7 +101,6 @@ export function MoveToFolderModal({
                   <FolderIcon className="h-5 w-5 shrink-0 text-indigo-600" />
                   <span className="min-w-0 truncate text-left" title={folder.name}>{folder.name}</span>
                 </div>
-                {!folder.can_add_document && <span className="shrink-0 text-[10px] font-medium">ไม่มีสิทธิ์</span>}
                 {isSelected && <Check className="h-4 w-4 shrink-0 text-blue-600" />}
               </button>
             );

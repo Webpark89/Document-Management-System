@@ -412,7 +412,7 @@ export default function DocumentVersionsPage() {
                     type="button"
                     disabled={
                       !doc ||
-                      !["Draft", "Returned"].includes(doc.status) ||
+                      !["Draft", "Returned", "Approved"].includes(doc.status) ||
                       (doc as any).creator_id !== user?.id ||
                       !user?.permissions?.some((p) =>
                         [
@@ -1083,6 +1083,9 @@ export default function DocumentVersionsPage() {
                 onSubmit={handleUploadVersionSubmit}
                 className="p-6 space-y-4"
               >
+                <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-800">
+                  ไฟล์ใหม่จะเป็นฉบับร่างและต้องส่งอนุมัติใหม่ ลายเซ็นและเอกสารที่อนุมัติแล้วจะเก็บอยู่ในเวอร์ชันเดิม
+                </p>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
                     ไฟล์ PDF เวอร์ชันใหม่{" "}

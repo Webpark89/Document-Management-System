@@ -15,11 +15,12 @@ interface TopbarProps {
 
 export function Topbar({ title }: TopbarProps) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notificationError, setNotificationError] = useState(false);
   const unreadCount = notifications.filter((n) => !n.is_read).length;
   const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
-    getNotifications().then(setNotifications);
+    getNotifications().then(setNotifications).catch(() => setNotificationError(true));
   }, []);
 
   return (
@@ -52,6 +53,7 @@ export function Topbar({ title }: TopbarProps) {
                 <p className="text-sm font-semibold text-slate-700">การแจ้งเตือน</p>
               </div>
               <ul className="max-h-72 overflow-y-auto">
+                {notificationError && <li role="alert" className="p-4 text-xs text-red-600">โหลดการแจ้งเตือนไม่สำเร็จ</li>}
                 {notifications.slice(0, 5).map((n) => (
                   <Link
                     key={n.id}

@@ -36,7 +36,7 @@ export class AdminController {
     const p = path.join(process.cwd(), 'uploads/settings.json');
     return fs.existsSync(p)
       ? JSON.parse(fs.readFileSync(p, 'utf8'))
-      : { companyName: 'บริษัท นิสซุย (ประเทศไทย) จำกัด', companyAddress: '' };
+      : { companyName: '', companyAddress: '' };
   }
   @Post('settings')
   @Permissions('config.access:edit', 'config.role_management:edit')

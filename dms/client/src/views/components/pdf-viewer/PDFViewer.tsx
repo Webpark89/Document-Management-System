@@ -15,17 +15,16 @@ export function PDFViewer({ url, className }: PDFViewerProps) {
         className || ""
       }`}
     >
-      <div className="text-center">
+      {url ? (
+        <iframe src={url} title="เอกสาร PDF" className="h-full w-full rounded-lg border-0" />
+      ) : <div className="text-center">
         <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-white shadow-md">
           <FileText className="size-8 text-blue-600" />
         </div>
         <p className="mt-4 text-sm font-semibold text-slate-700">
-          Browser PDF Viewer Component
+          ไม่มีไฟล์ PDF สำหรับแสดงผล
         </p>
-        <p className="mt-1 text-xs text-slate-400">
-          {url ? `ไฟล์: ${url}` : "พร้อมแสดงผล PDF ด้วย react-pdf เมื่อต่อกับ Backend API"}
-        </p>
-      </div>
+      </div>}
     </div>
   );
 }

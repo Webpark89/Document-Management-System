@@ -159,15 +159,9 @@ function DocumentsContent() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Departments list state — Thai Master Data Names
-  const [departments, setDepartments] = useState<string[]>([
-    "แผนกจัดซื้อ",
-    "แผนกบัญชีและการเงิน",
-    "แผนกคลังสินค้าและจัดส่ง",
-    "แผนกเทคโนโลยีสารสนเทศ",
-    "แผนกทรัพยากรบุคคล",
-    "แผนกผลิต",
-  ]);
+  const { data: departments = [] } = useSWR('document-departments', async () =>
+    (await adminService.getDepartmentDirectory()).map(department => department.name),
+  );
 
   // Folder System States
   const [folders, setFolders] = useState<FolderType[]>([]);
@@ -198,6 +192,7 @@ function DocumentsContent() {
       setFolders(data);
     } catch (err) {
       console.error("Failed to load folders", err);
+      showToast("โหลดโฟลเดอร์ไม่สำเร็จ กรุณาลองใหม่", "error");
     }
   };
 
@@ -236,16 +231,6 @@ function DocumentsContent() {
 
   const handleMoveSelectedDocs = async (targetFolderId: string | null) => {
     if (selectedDocIds.length === 0) return;
-    const canManageAll = hasPerm("view_all", "view") ||
-      hasPerm("move_any_to_folder", "edit") ||
-      !!user?.permissions?.includes("submissions.view_all:view");
-    const selected = documents.filter((doc) =>
-      selectedDocIds.includes(doc.id) ||
-      selectedDocIds.includes((doc as any).real_id),
-    );
-    if (!canManageAll && selected.some((doc) => (doc as any).creator_id !== user?.id)) {
-      throw new Error("ย้ายได้เฉพาะเอกสารที่คุณสร้างเอง หากต้องการย้ายเอกสารของผู้อื่นให้ผู้มีสิทธิ์จัดการทั้งหมดดำเนินการ");
-    }
     for (const docId of selectedDocIds) {
       await moveDocumentToFolder({
         document_id: docId,
@@ -658,7 +643,7 @@ function DocumentsContent() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {hasPerm("move_to_folder", "edit") && (
+                  {(
                     <button
                       type="button"
                       onClick={() => setIsMoveModalOpen(true)}
@@ -684,7 +669,7 @@ function DocumentsContent() {
               className={`${APP_TABLE_CARD} overflow-visible flex flex-col p-6 space-y-6`}
             >
               {/* ACTIVE FOLDER BANNER INDICATOR */}
-              {hasPerm("view_folders") && activeFolder && (
+              {activeFolder && (
                 <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-50/90 border border-blue-200/90 p-4 rounded-2xl flex items-center justify-between shadow-2xs animate-in fade-in slide-in-from-top-1">
                   <div className="flex items-center gap-3.5">
                     <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-xs shrink-0">
@@ -1269,7 +1254,7 @@ function DocumentsContent() {
                                     <Eye className="w-4 h-4" />
                                   </button>
                                 )}
-                                {hasPerm("move_to_folder", "edit") && (
+                                {(
                                   <button
                                     type="button"
                                     title="ย้ายเข้าโฟลเดอร์ (Move to Folder)"

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Folder,
-  FolderVisibility,
   CreateFolderPayload,
 } from "@views/features/folders/types";
 
@@ -46,15 +45,12 @@ export function FolderCreateModal({
   onClose,
   onSubmit,
   editingFolder,
-  departments = [],
   parentFolderId,
 }: FolderCreateModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("📁");
   const [color, setColor] = useState("#4F81FF");
-  const [visibility, setVisibility] = useState<FolderVisibility>("CompanyWide");
-  const [sharedDepartments, setSharedDepartments] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -63,18 +59,11 @@ export function FolderCreateModal({
       setDescription(editingFolder.description || "");
       setIcon(editingFolder.icon || "📁");
       setColor(editingFolder.color || "#4F81FF");
-      setVisibility(editingFolder.visibility);
-      setSharedDepartments(
-        (editingFolder as Folder & { shared_departments?: string[] })
-          .shared_departments || [],
-      );
     } else {
       setName("");
       setDescription("");
       setIcon("📁");
       setColor("#4F81FF");
-      setVisibility("CompanyWide");
-      setSharedDepartments([]);
     }
   }, [editingFolder, isOpen]);
 
@@ -91,10 +80,8 @@ export function FolderCreateModal({
         description: description.trim() || undefined,
         icon,
         color,
-        visibility,
+        visibility: "CompanyWide",
         parent_id: parentFolderId || null,
-        shared_departments:
-          visibility === "Shared" ? sharedDepartments : undefined,
       });
       onClose();
     } catch (err) {
@@ -124,7 +111,7 @@ export function FolderCreateModal({
               {editingFolder ? "แก้ไขโฟลเดอร์" : "สร้างโฟลเดอร์ใหม่"}
             </h2>
             <p className="text-xs text-slate-400">
-              จัดระเบียบเอกสารสำหรับการทำงานร่วมกัน
+              ทุกคนในระบบเข้าถึงและจัดการโฟลเดอร์นี้ได้
             </p>
           </div>
         </div>

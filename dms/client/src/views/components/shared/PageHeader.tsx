@@ -31,7 +31,7 @@ export default function PageHeader({
   const [showNotifications, setShowNotifications] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
-  const { data: notificationsData } = useSWR('/api/notifications', async () => {
+  const { data: notificationsData, error: notificationsError } = useSWR('/api/notifications', async () => {
     return await getNotifications();
   }, { refreshInterval: 5000 });
 
@@ -126,7 +126,7 @@ export default function PageHeader({
                 <p className="text-sm font-bold text-slate-700">การแจ้งเตือน</p>
               </div>
               <ul className="max-h-72 overflow-y-auto">
-                {unreadNotifications.length > 0 ? (
+                {notificationsError ? <p role="alert" className="p-4 text-xs text-red-600">โหลดการแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่</p> : unreadNotifications.length > 0 ? (
                   unreadNotifications.slice(0, 5).map((n) => (
                     <Link
                       key={n.id}

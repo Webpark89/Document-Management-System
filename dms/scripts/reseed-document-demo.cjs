@@ -17,8 +17,8 @@ const {
 const {
   DocumentsService,
 } = require("../server/dist/src/documents/documents.service");
-const puppeteer = require("puppeteer-core"),
-  sharp = require("sharp");
+const puppeteer = require("puppeteer-core");
+const { registeredSignature, uploadedFixtureHtml } = require("./lib/fixture-signatures.cjs");
 const { PDFDocument } = require("pdf-lib");
 const targetUrl = new URL(process.env.DATABASE_URL);
 if (!["localhost", "127.0.0.1"].includes(targetUrl.hostname))
@@ -176,6 +176,7 @@ async function prepare() {
         is_deleted: true,
         created_at: true,
         updated_at: true,
+        signature_encrypted: true,
       },
     });
     for (const model of baseModels) {
@@ -230,20 +231,15 @@ async function prepare() {
     const encryption = new EncryptionService(new ConfigService(process.env));
     const service = new DocumentsService(stage, encryption);
     const signerImages = new Map();
-    for (const user of active) {
-      const png = await sharp(
-        Buffer.from(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="120"><rect x="3" y="3" width="474" height="114" rx="12" fill="#eff6ff" stroke="#3157a1" stroke-width="3"/><path d="M26 57l17 17 29-36" fill="none" stroke="#3157a1" stroke-width="5"/><text x="92" y="53" font-family="Arial" font-size="26" fill="#1e3a8a">${esc(user.username)}</text><text x="92" y="88" font-family="Arial" font-size="18" fill="#526a91">DEMO APPROVAL / SAMPLE</text></svg>`,
-        ),
-      )
-        .png()
-        .toBuffer();
-      signerImages.set(
-        user.id,
-        encryption.encrypt("data:image/png;base64," + png.toString("base64")),
-      );
+    for (const user of users) {
+      if (user.signature_encrypted) {
+        signerImages.set(user.id, await registeredSignature(user, encryption));
+      }
     }
-    const stampUser = (u) => ({
+    const companySettings = JSON.parse(fs.readFileSync(path.join(root, "server/uploads/settings.json"), "utf8"));
+    const stampUser = (u) => {
+      if (!signerImages.has(u.id)) throw Error(`Register a signature before generating documents for ${u.username}`);
+      return ({
       id: u.id,
       username: u.username,
       first_name: u.first_name,
@@ -253,6 +249,7 @@ async function prepare() {
       role: { id: u.role.id, name: u.role.name },
       signature_encrypted: signerImages.get(u.id),
     });
+    };
     const dataset = Object.fromEntries(models.map((model) => [model, []]));
     const folders = new Map();
     const folder = (
@@ -629,8 +626,7 @@ async function prepare() {
               workflow: frozenWorkflow,
               workflow_history: clone(history),
               company: {
-                companyName: "บริษัท นิสซุย (ประเทศไทย) จำกัด",
-                companyAddress: "ข้อมูลจำลองสำหรับสาธิตระบบ",
+                ...companySettings,
               },
               description: doc.search_text,
               visibility: {
@@ -723,7 +719,7 @@ async function prepare() {
             "Workflow",
             step.approver_id,
             date,
-            "ประทับตรา DEMO APPROVAL",
+            "ประทับลายเซ็นที่ลงทะเบียนในระบบ",
             events.length,
           );
         };
@@ -849,10 +845,7 @@ async function prepare() {
                 },
                 version,
               );
-            else {
-              const meta = version.form_data._meta;
-              html = `<!doctype html><html><head><meta charset="utf-8"><style>@page{size:A4;margin:18mm}body{font:14px Tahoma,sans-serif;color:#1e293b;line-height:1.8}h1{font-size:24px;color:#1e40af}h2{font-size:17px}.page{break-before:page}.sig{display:inline-block;vertical-align:top;width:30%;text-align:center;margin-top:20px}.sig img{width:125px;height:36px}td{padding:8px;border-bottom:1px solid #ddd}</style></head><body><p>ระบบควบคุมเอกสารองค์กร | ${docNumber} | v${version.version_number}</p><h1>${esc(title)}</h1><p>หน่วยงาน: ${esc(creator.department.name)}</p><h2>1. วัตถุประสงค์และขอบเขต</h2><p>${esc(doc.search_text)} เอกสารฉบับนี้กำหนดผู้รับผิดชอบ ขั้นตอนการดำเนินงาน และหลักฐานที่ต้องจัดเก็บ</p><h2>2. ขั้นตอนดำเนินงาน</h2><ol><li>รวบรวมข้อมูลและตรวจสอบความครบถ้วน</li><li>จัดทำรายละเอียดและเอกสารประกอบ</li><li>เสนอผู้มีอำนาจตามลำดับอนุมัติ</li><li>ติดตามผลและจัดเก็บเอกสารฉบับที่ได้รับอนุมัติ</li></ol><h2>3. เอกสารและหลักฐาน</h2><p>จัดเก็บรายการตรวจสอบ รายงานผล และเอกสารที่เกี่ยวข้องในแฟ้มกลางของหน่วยงาน</p><div class="page"><h1>บันทึกการทบทวนและอนุมัติ</h1><p>ฉบับแก้ไข ${version.form_data.revision} — สถานะ ${meta.status}</p><p>ผู้จัดทำ ${esc(creator.first_name + " " + creator.last_name)}</p><p>รายละเอียดการทบทวน: ${revision ? "เพิ่มรายละเอียดผู้รับผิดชอบและกำหนดส่งมอบ" : "ทบทวนขอบเขตและตรวจสอบข้อมูลเบื้องต้น"}</p>${[meta.creator, ...(meta.workflow?.steps || []).filter((s) => s.status === "Approved").map((s) => s.approver)].map((u) => `<div class="sig"><img src="${encryption.decrypt(u.signature_encrypted)}"><p>${esc(u.first_name + " " + u.last_name)}</p><p>ข้อมูลจำลอง</p></div>`).join("")}</div></body></html>`;
-            }
+            else html = uploadedFixtureHtml(doc, version, encryption);
             await page.setContent(html, { waitUntil: "load", timeout: 15000 });
             const bytes = Buffer.from(
               await page.pdf({
@@ -860,7 +853,7 @@ async function prepare() {
                 printBackground: true,
                 displayHeaderFooter: true,
                 headerTemplate: "<span></span>",
-                footerTemplate: `<div style="font-size:8px;width:100%;text-align:center;color:#64748b">ข้อมูลจำลองเพื่อสาธิตระบบ · ${docNumber} · v${version.version_number} · <span class="pageNumber"></span>/<span class="totalPages"></span></div>`,
+                footerTemplate: `<div style="font-size:8px;width:100%;text-align:center;color:#64748b">${docNumber} · v${version.version_number} · <span class="pageNumber"></span>/<span class="totalPages"></span></div>`,
                 margin: { bottom: "14mm" },
               }),
             );

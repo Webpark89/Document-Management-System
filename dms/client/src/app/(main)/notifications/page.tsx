@@ -27,11 +27,12 @@ export default function NotificationsPage() {
   const hasPerm = (itemKey: string, action: string = 'view') =>
     !!user?.permissions?.includes(`notifications.${itemKey}:${action}`);
 
+  const [operationError, setOperationError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [activeTab, setActiveTab] = useState<"All" | "Unread" | "Read">("All");
 
   useEffect(() => {
-    getNotifications().then(setNotifications);
+    getNotifications().then(setNotifications).catch(() => setOperationError("โหลดการแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่"));
   }, []);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -46,12 +47,14 @@ export default function NotificationsPage() {
   }, [notifications, activeTab]);
 
   const handleMarkAllAsRead = async () => {
-    await markAllNotificationsAsRead();
+    if (!(await markAllNotificationsAsRead())) { setOperationError("บันทึกสถานะอ่านไม่สำเร็จ กรุณาลองใหม่"); return; }
+    setOperationError(null);
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };
 
   const handleMarkAsRead = async (id: string) => {
-    await markNotificationAsRead(id);
+    if (!(await markNotificationAsRead(id))) { setOperationError("บันทึกสถานะอ่านไม่สำเร็จ กรุณาลองใหม่"); return; }
+    setOperationError(null);
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 
@@ -79,6 +82,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 w-full">
+      {operationError && <p role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-600">{operationError}</p>}
       <PageHeader
         title="ศูนย์การแจ้งเตือน (Notification Center)"
         subtitle="ติดตามความเคลื่อนไหวของเอกสารและงานที่ต้องพิจารณา"

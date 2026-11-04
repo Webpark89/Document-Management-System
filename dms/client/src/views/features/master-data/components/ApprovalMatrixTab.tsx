@@ -154,7 +154,6 @@ export default function ApprovalMatrixTab({
   const handleSave = async () => {
     if (!canSave || !selectedEntry) return;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
 
     onMatrixChange({
       ...matrix,
