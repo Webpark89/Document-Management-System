@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
+import useSWR from "swr";
 import { ShieldCheck, UserCheck } from "lucide-react";
 import { adminService } from "@/controllers/services/admin.service";
+import { AutomaticApproverVisibility } from "./AutomaticApproverVisibility";
 
 export interface WorkflowStepInput {
   id: string;
@@ -12,42 +14,24 @@ export interface WorkflowStepInput {
   approverName: string;
 }
 
-interface UserItem {
-  id: string;
-  first_name: string;
-  last_name: string;
-  username: string;
-  position: string;
-  role: string;
-  department: string;
-  is_active: boolean;
-  can_approve?: boolean;
-}
-
 interface ApprovalWorkflowSectionProps {
   steps: WorkflowStepInput[];
   onChange: (steps: WorkflowStepInput[]) => void;
+  visibilityType?: string;
 }
 
 export default function ApprovalWorkflowSection({
   steps,
   onChange,
+  visibilityType = "CompanyWide",
 }: ApprovalWorkflowSectionProps) {
-  const [users, setUsers] = useState<UserItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    adminService
-      .getUserDirectory()
-      .then((res) => {
-        const activeUsers = (res || [])
-          .filter((u) => (u as UserItem).is_active)
-          .map((u) => u as UserItem);
-        setUsers(activeUsers);
-      })
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
-  }, []);
+  const {
+    data: users = [],
+    isLoading,
+    error,
+    mutate: reloadUsers,
+  } = useSWR("/api/lookups/users", () => adminService.getUserDirectory());
+  const loadError = !!error;
 
   const handleApproverSelect = (stepId: string, selectedUserId: string) => {
     if (
@@ -57,7 +41,13 @@ export default function ApprovalWorkflowSection({
     )
       return;
     const selectedUser = users.find((u) => u.id === selectedUserId);
-    if (!selectedUser) return;
+    const selectedStep = steps.find((step) => step.id === stepId);
+    if (
+      !selectedUser ||
+      !selectedUser.can_approve ||
+      selectedUser.role !== selectedStep?.roleName
+    )
+      return;
     const fullName =
       `${selectedUser.first_name} ${selectedUser.last_name}`.trim();
 
@@ -102,6 +92,21 @@ export default function ApprovalWorkflowSection({
           ยังไม่มีสายอนุมัติสำหรับประเภทนี้ กรุณาให้ผู้ดูแลตั้งค่า Master Data
           ก่อนส่ง
         </p>
+      )}
+      {loadError && (
+        <p role="alert" className="text-sm text-red-600">
+          โหลดรายชื่อผู้อนุมัติจาก Master Data ไม่สำเร็จ{" "}
+          <button
+            type="button"
+            className="underline"
+            onClick={() => void reloadUsers()}
+          >
+            ลองใหม่
+          </button>
+        </p>
+      )}
+      {visibilityType !== "CompanyWide" && (
+        <AutomaticApproverVisibility steps={safeSteps} />
       )}
       <div className="space-y-3">
         {safeSteps.map((step) => {
@@ -153,6 +158,7 @@ export default function ApprovalWorkflowSection({
                         duplicateStep ? `approver-error-${step.id}` : undefined
                       }
                       value={currentVal}
+                      disabled={isLoading || loadError}
                       onChange={(e) =>
                         handleApproverSelect(step.id, e.target.value)
                       }

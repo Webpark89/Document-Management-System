@@ -95,9 +95,14 @@ export function visibleDocuments(actor: Actor): Prisma.DocumentWhereInput {
     OR: [
       { creator_id: actor.id },
       { visibility_type: 'CompanyWide' },
-      { visibility_users: { has: actor.id } },
+      { visibility_type: 'SpecificUsers', visibility_users: { has: actor.id } },
       ...(actor.department_id
-        ? [{ visibility_departments: { has: actor.department_id } }]
+        ? [
+            {
+              visibility_type: 'Department',
+              visibility_departments: { has: actor.department_id },
+            },
+          ]
         : []),
       { workflow: { steps: { some: { approver_id: actor.id } } } },
     ],
@@ -118,11 +123,28 @@ export function requireDocumentAccess(
     doc.creator_id === actor.id ||
     hasAny(actor, permissions.viewAll) ||
     doc.visibility_type === 'CompanyWide' ||
-    doc.visibility_users?.includes(actor.id) ||
-    (!!actor.department_id &&
+    (doc.visibility_type === 'SpecificUsers' &&
+      doc.visibility_users?.includes(actor.id)) ||
+    (doc.visibility_type === 'Department' &&
+      !!actor.department_id &&
       doc.visibility_departments?.includes(actor.department_id)) ||
-    doc.workflow?.steps?.some((s) => s.approver_id === actor.id);
+    documentApproverIds(doc).includes(actor.id);
   if (!allowed) throw new ForbiddenException('คุณไม่มีสิทธิ์เข้าถึงเอกสารนี้');
+}
+
+// Assignment grants document-level visibility independently of the manually
+// selected audience. Derive it from the current workflow so changing approvers
+// cannot leave former approvers in a persistent sharing list.
+export function documentApproverIds(doc: {
+  workflow?: { steps?: { approver_id?: string | null }[] } | null;
+}): string[] {
+  return [
+    ...new Set(
+      (doc.workflow?.steps ?? []).flatMap((step) =>
+        step.approver_id ? [step.approver_id] : [],
+      ),
+    ),
+  ];
 }
 
 export function requireDocumentOwner(

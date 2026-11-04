@@ -28,13 +28,10 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
   ) {
-    const ip =
-      request.headers['x-forwarded-for'] ||
-      request.socket.remoteAddress ||
-      '127.0.0.1';
+    const ip = request.ip || request.socket.remoteAddress || '';
     const result = await this.authService.login(
       loginDto,
-      Array.isArray(ip) ? ip[0] : ip,
+      ip,
     );
 
     // Set httpOnly cookie

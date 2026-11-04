@@ -839,7 +839,11 @@ export default function PRForm({
 
       {currentStep === 2 && (
         <div className="space-y-6">
-          <Step2Visibility value={visibility} onChange={setVisibility} />
+          <Step2Visibility
+            value={visibility}
+            onChange={setVisibility}
+            approvers={workflowSteps}
+          />
           <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
             <button
               type="button"
@@ -869,6 +873,7 @@ export default function PRForm({
       {currentStep === 3 && (
         <div className="space-y-6">
           <ApprovalWorkflowSection
+            visibilityType={visibility.type}
             steps={workflowSteps}
             onChange={setWorkflowSteps}
           />

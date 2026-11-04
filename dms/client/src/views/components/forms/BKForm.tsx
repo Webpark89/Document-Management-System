@@ -404,6 +404,7 @@ export default function BKForm({
       {currentStep === 2 && (
         <>
           <Step2Visibility
+            approvers={workflowSteps}
             visibility={visibility}
             onVisibilityChange={setVisibility}
           />
@@ -437,6 +438,7 @@ export default function BKForm({
         <>
           <div className="mt-8 border-t border-slate-200 pt-6">
             <ApprovalWorkflowSection
+              visibilityType={visibility.type}
               steps={workflowSteps}
               onChange={setWorkflowSteps}
             />

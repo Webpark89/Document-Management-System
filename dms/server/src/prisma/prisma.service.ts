@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { auditContext } from '../common/audit-context';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
@@ -14,6 +15,18 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
             'postgresql://postgres:folk2546@localhost:5433/dms_db?schema=public&connection_limit=50&pool_timeout=10',
         },
       },
+    });
+    this.$use(async (params, next) => {
+      const request = auditContext.getStore();
+      if (params.model === 'AuditLog' && params.action === 'create' && request) {
+        const data = params.args.data;
+        if (!data.ip_address && request.ip) data.ip_address = request.ip.replace(/^::ffff:/, '');
+        if (request.actor?.id === data.user_id) {
+          const details = data.details && typeof data.details === 'object' ? data.details : {};
+          data.details = { ...details, extra: { ...details.extra, actor: request.actor } };
+        }
+      }
+      return next(params);
     });
   }
 

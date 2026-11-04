@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { AuditContextInterceptor } from './common/audit-context.interceptor';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -28,6 +30,6 @@ import { LookupsController } from './common/lookups.controller';
     FoldersModule,
   ],
   controllers: [LookupsController],
-  providers: [],
+  providers: [{ provide: APP_INTERCEPTOR, useClass: AuditContextInterceptor }],
 })
 export class AppModule {}

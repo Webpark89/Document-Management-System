@@ -8,6 +8,7 @@ import { useToast } from "@views/components/providers/ToastProvider";
 import PRForm from "@views/components/forms/PRForm";
 import POForm from "@views/components/forms/POForm";
 import BKForm from "@views/components/forms/BKForm";
+import { isUploadedPdfDocument } from "@/lib/document-file-source";
 
 interface DocumentPreviewProps {
   doc: any;
@@ -155,7 +156,7 @@ export function DocumentPreview({
     );
   };
 
-  const type = versionId ? "PDF" : resolvedTypePrefix;
+  const type = versionId || isUploadedPdfDocument(doc) ? "PDF" : resolvedTypePrefix;
   const { user } = useAuth();
   const { showToast } = useToast();
   const canPreview = user?.permissions?.some((p) =>

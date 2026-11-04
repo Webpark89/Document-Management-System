@@ -50,6 +50,7 @@ let app, prisma, baseline, baselineClient, users, types;
 const tokens = {};
 let lastHTTP = "";
 async function check(name, fn) {
+  if (process.env.DMS_TEST_FILTER && !new RegExp(process.env.DMS_TEST_FILTER).test(name)) return;
   try {
     await fn();
     results.push({ name, status: "PASS" });
@@ -1638,6 +1639,7 @@ async function main() {
       assert.equal((await detail(doc.real_id)).status, 'Approved');
     });
   }
+  await require('./verify-visibility-cases.cjs')({ check, api, prisma, users, types, data, detail, approve, tokens, password, png });
   const summary = {
     date: new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date()),
     completed_at: new Date().toISOString(),

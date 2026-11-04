@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { bangkokDateKey, bangkokDayStart, bangkokMonthRange } from '../common/bangkok-time';
 import {
   loadActor,
   requirePermission,
@@ -56,6 +57,12 @@ export class DashboardService {
         take: 10,
       }),
     ]);
+    const now = new Date();
+    const month = bangkokMonthRange(now);
+    const [approvedThisMonth, myApprovedThisMonth] = await Promise.all([
+      this.prisma.document.count({ where: { AND: [where, { status: 'Approved', approved_at: { gte: month.start, lt: month.end } }] } }),
+      this.prisma.document.count({ where: { AND: [where, { creator_id: userId, status: 'Approved', approved_at: { gte: month.start, lt: month.end } }] } }),
+    ]);
     const typeNames = await this.prisma.documentType.findMany({
       select: { id: true, prefix: true, type_name: true },
     });
@@ -63,23 +70,22 @@ export class DashboardService {
       counts.find((c) => c.status === status)?._count._all ?? 0;
     const trend: { day: string; documents: number; approvals: number }[] = [];
     for (let offset = 6; offset >= 0; offset--) {
-      const start = new Date();
-      start.setDate(start.getDate() - offset);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(start);
-      end.setDate(end.getDate() + 1);
+      const today = bangkokDayStart(bangkokDateKey(now));
+      const start = new Date(today.getTime() - offset * 86400000);
+      const end = new Date(start.getTime() + 86400000);
       const [documents, approvals] = await Promise.all([
         this.prisma.document.count({
           where: { AND: [where, { created_at: { gte: start, lt: end } }] },
         }),
         this.prisma.document.count({
-          where: { AND: [where, { approved_at: { gte: start, lt: end } }] },
+          where: { AND: [where, { status: 'Approved', approved_at: { gte: start, lt: end } }] },
         }),
       ]);
       trend.push({
         day: start.toLocaleDateString('th-TH', {
           day: 'numeric',
           month: 'short',
+          timeZone: 'Asia/Bangkok',
         }),
         documents,
         approvals,
@@ -88,6 +94,10 @@ export class DashboardService {
     return {
       total: counts.reduce((n, c) => n + c._count._all, 0),
       approved: count('Approved'),
+      approvedThisMonth,
+      myApprovedThisMonth,
+      timeZone: 'Asia/Bangkok',
+      generatedAt: now.toISOString(),
       pending: count('Pending'),
       returned: count('Returned'),
       rejected: count('Rejected'),

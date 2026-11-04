@@ -16,6 +16,7 @@ import puppeteer from 'puppeteer-core';
 import { EncryptionService } from '../common/encryption/encryption.service';
 import {
   Actor,
+  documentApproverIds,
   hasAny,
   jsonSnapshot,
   loadActor,
@@ -245,8 +246,12 @@ export class DocumentsService {
       departments: [],
       users: [],
     };
-    const departments = [...new Set(value.departments ?? [])],
-      users = [...new Set(value.users ?? [])];
+    const departments =
+        value.type === 'Department'
+          ? [...new Set(value.departments ?? [])]
+          : [],
+      users =
+        value.type === 'SpecificUsers' ? [...new Set(value.users ?? [])] : [];
     if (value.type === 'Department' && !departments.length)
       throw new BadRequestException('กรุณาเลือกแผนกที่เข้าถึงเอกสาร');
     if (value.type === 'SpecificUsers' && !users.length)
@@ -261,7 +266,12 @@ export class DocumentsService {
     if (
       users.length &&
       (await tx.user.count({
-        where: { id: { in: users }, is_active: true, is_deleted: false },
+        where: {
+          id: { in: users },
+          is_active: true,
+          is_deleted: false,
+          role: { is_active: true },
+        },
       })) !== users.length
     )
       throw new BadRequestException('ผู้ใช้ที่เลือกไม่ถูกต้อง');
@@ -456,6 +466,7 @@ export class DocumentsService {
           type: doc.visibility_type,
           departments: doc.visibility_departments,
           users: doc.visibility_users,
+          automatic_users: documentApproverIds(doc),
         },
         workflow_history: previous?._meta?.workflow_history ?? [],
         annotations: previous?._meta?.annotations ?? [],
@@ -1941,6 +1952,7 @@ export class DocumentsService {
         type: doc.visibility_type,
         departments: doc.visibility_departments,
         users: doc.visibility_users,
+        automatic_users: documentApproverIds(doc),
       },
       pr_form: this.cleanResponse(doc.pr_form),
       po_form: this.cleanResponse(doc.po_form),

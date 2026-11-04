@@ -7,6 +7,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { Prisma, AuditAction } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { bangkokDayStart } from '../common/bangkok-time';
 import { EncryptionService } from '../common/encryption/encryption.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { normalizeDashboardPermissions } from '../common/dashboard-permissions';
@@ -661,114 +662,51 @@ export class AdminService {
       actor,
     );
   }
-  async getAuditLogs(
-    search?: string,
-    action?: string,
-    dateFrom?: string,
-    dateTo?: string,
-  ) {
+  async getAuditLogs(search?: string, action?: string, dateFrom?: string, dateTo?: string, page = 1, limit = 500) {
+    page = Number(page); limit = Number(limit);
+    if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 1000)
+      throw new BadRequestException('หน้าหรือจำนวนรายการไม่ถูกต้อง');
+    if (action && action !== 'All' && !Object.values(AuditAction).includes(action as AuditAction))
+      throw new BadRequestException('ประเภทเหตุการณ์ไม่ถูกต้อง');
+    const from = dateFrom ? bangkokDayStart(dateFrom) : undefined;
+    const to = dateTo ? new Date(bangkokDayStart(dateTo).getTime() + 86400000) : undefined;
+    if (from && to && from >= to) throw new BadRequestException('ช่วงวันที่ไม่ถูกต้อง');
+    const terms = search?.trim().replace(/^#/, '').split(/\s+/).filter(Boolean) ?? [];
     const logs = await this.prisma.auditLog.findMany({
       where: {
-        ...(action && action !== 'All'
-          ? { action: action as AuditAction }
-          : {}),
-        ...(dateFrom || dateTo
-          ? {
-              created_at: {
-                ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
-                ...(dateTo
-                  ? {
-                      lte: (() => {
-                        const d = new Date(dateTo);
-                        d.setHours(23, 59, 59, 999);
-                        return d;
-                      })(),
-                    }
-                  : {}),
-              },
-            }
-          : {}),
-        ...(search
-          ? {
-              OR: [
-                { module: { contains: search, mode: 'insensitive' as const } },
-                {
-                  target_id: { contains: search, mode: 'insensitive' as const },
-                },
-                {
-                  user: {
-                    is: {
-                      first_name: {
-                        contains: search,
-                        mode: 'insensitive' as const,
-                      },
-                    },
-                  },
-                },
-                {
-                  user: {
-                    is: {
-                      last_name: {
-                        contains: search,
-                        mode: 'insensitive' as const,
-                      },
-                    },
-                  },
-                },
-                {
-                  user: {
-                    is: {
-                      username: {
-                        contains: search,
-                        mode: 'insensitive' as const,
-                      },
-                    },
-                  },
-                },
-              ],
-            }
-          : {}),
+        ...(action && action !== 'All' ? { action: action as AuditAction } : {}),
+        ...(from || to ? { created_at: { ...(from ? { gte: from } : {}), ...(to ? { lt: to } : {}) } } : {}),
+        AND: terms.map(term => ({ OR: [
+          { user_id: { contains: term, mode: 'insensitive' as const } },
+          { target_id: { contains: term, mode: 'insensitive' as const } },
+          { module: { contains: term, mode: 'insensitive' as const } },
+          { user: { is: { OR: ['first_name', 'last_name', 'username'].map(field => ({ [field]: { contains: term, mode: 'insensitive' } })) } } },
+        ] })),
       },
-      orderBy: {
-        created_at: 'desc',
-      },
-      include: {
-        user: true,
-      },
-      take: 100,
+      orderBy: [{ created_at: 'desc' }, { id: 'desc' }],
+      include: { user: { select: { id: true, username: true, first_name: true, last_name: true } } },
+      take: limit, skip: (page - 1) * limit,
     });
-
-    return logs.map((l) => {
-      let comment = '';
-      let targetLabel = l.target_id;
-
-      const details = l.details as Record<string, unknown> | null;
-      if (details) {
-        const extra = details.extra as Record<string, unknown> | undefined;
-        if (extra?.comment) {
-          comment = extra.comment as string;
-        }
-        if (extra?.doc_number) {
-          targetLabel = extra.doc_number as string;
-        } else if (l.module === 'Auth') {
-          targetLabel = l.user?.username || 'System';
-        }
-      }
-
+    const targets = logs.filter(log => ['document','documents','workflow','approvals','approval'].includes(log.module.toLowerCase())).map(log => log.target_id).filter((id): id is string => !!id);
+    const documents = targets.length ? await this.prisma.document.findMany({
+      where: { OR: [{ id: { in: targets } }, { doc_number: { in: targets } }] },
+      select: { id: true, doc_number: true, is_deleted: true },
+    }) : [];
+    return logs.map(log => {
+      const details = log.details as any;
+      const actor = details?.extra?.actor;
+      const document = documents.find(doc => doc.id === log.target_id || doc.doc_number === log.target_id);
       return {
-        id: l.id,
-        user_id: l.user_id,
-        username: l.user?.username || 'System',
-        user_fullname: l.user
-          ? `${l.user.first_name} ${l.user.last_name}`
-          : 'ระบบ',
-        action: l.action,
-        module: l.module,
-        target_id: l.target_id,
-        target_label: targetLabel,
-        comment: comment,
-        ip_address: l.ip_address || '127.0.0.1',
-        created_at: l.created_at,
+        id: log.id, user_id: log.user_id,
+        username: actor?.username || log.user?.username || '',
+        user_fullname: actor?.full_name || (log.user ? log.user.first_name + ' ' + log.user.last_name : 'ระบบ'),
+        action: log.action, module: log.module, target_id: log.target_id,
+        target_label: document?.doc_number || details?.extra?.doc_number || details?.newState?.doc_number ||
+          (log.module === 'Auth' ? actor?.username || log.user?.username : undefined) || log.target_id || '-',
+        target_deleted: document?.is_deleted ?? false,
+        comment: details?.extra?.comment || details?.extra?.reason || '',
+        ip_address: log.ip_address || null,
+        created_at: log.created_at,
       };
     });
   }

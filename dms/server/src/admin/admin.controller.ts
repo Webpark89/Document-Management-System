@@ -295,7 +295,9 @@ export class AdminController {
     @Query('action') action?: string,
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
   ) {
-    return this.adminService.getAuditLogs(search, action, dateFrom, dateTo);
+    return this.adminService.getAuditLogs(search, action, dateFrom, dateTo, page, limit);
   }
 }

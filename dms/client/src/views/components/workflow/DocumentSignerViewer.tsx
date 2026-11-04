@@ -5,6 +5,7 @@ import { Download, PenLine } from "lucide-react";
 import { usersService } from "@/controllers/services/users.service";
 import { DocumentPreview } from "../documents/DocumentPreview";
 import type { ApprovalSignatureInput } from "@models";
+import { isUploadedPdfDocument } from "@/lib/document-file-source";
 
 interface Props {
   documentId: string;
@@ -41,12 +42,11 @@ export function DocumentSignerViewer({
     | {
         real_id?: string;
         type?: string;
+        _meta?: { file_source?: string };
         versions?: { version_number: number; file_extension?: string }[];
       }
     | undefined;
-  const uploaded =
-    !!document &&
-    !["PR", "PO", "BK", "MEMO", "บันทึก"].includes(document.type ?? "");
+  const uploaded = !!document && isUploadedPdfDocument(document);
   useEffect(() => {
     if (canSign)
       usersService

@@ -187,7 +187,13 @@ export class WorkflowsService {
             details: {
               oldState: { status: doc.status },
               newState: { status: 'Pending' },
-              extra: { total_steps: steps.length, doc_number: doc.doc_number },
+              extra: {
+                total_steps: steps.length,
+                doc_number: doc.doc_number,
+                automatic_visibility_users: steps.map(
+                  (step) => step.approver_id,
+                ),
+              },
             },
           },
         });

@@ -105,7 +105,7 @@ export class DocumentsController {
     const doc = await this.documentsService.getDocument(id);
     await this.documentsService.logAction(
       user.id,
-      'Download',
+      download === 'true' || download === '1' ? 'Download' : 'View',
       doc.id,
       request.ip ?? '',
       doc.doc_number,

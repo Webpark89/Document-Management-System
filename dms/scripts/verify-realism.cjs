@@ -94,3 +94,38 @@ test("fixture builder uses the registered PNG without drawing a substitute stamp
     user.signature_encrypted,
   );
 });
+
+for (const type of ['PR', 'PO', 'BK', 'DOC']) {
+  test(`${type} uploaded-file detection matches the server signing path`, () => {
+    const { isUploadedPdfDocument } = client('../../lib/document-file-source.ts', {});
+    assert.equal(isUploadedPdfDocument({ type, _meta: { file_source: 'uploaded_pdf' } }), true);
+    assert.equal(isUploadedPdfDocument({ type }), type === 'DOC');
+  });
+}
+for (const type of ['PR', 'PO', 'BK']) {
+  test(`${type} uploaded replacement preview renders actual PDF rather than stale form fields`, () => {
+    const React = require('react');
+    const { renderToStaticMarkup } = require('react-dom/server');
+    const { isUploadedPdfDocument } = client('../../lib/document-file-source.ts', {});
+    const source = fs.readFileSync(path.join(__dirname, '../client/src/views/components/documents/DocumentPreview.tsx'), 'utf8');
+    const code = ts.transpileModule(source, { compilerOptions: {
+      module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020,
+      jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
+    } }).outputText;
+    const context = { exports: {}, require: id => {
+      if (id === 'react' || id === 'react/jsx-runtime' || id === 'lucide-react') return require(id);
+      if (id === '@/lib/document-file-source') return { isUploadedPdfDocument };
+      if (id.includes('providers/AuthProvider')) return { useAuth: () => ({ user: { permissions: ['document.preview_document:view'] } }) };
+      if (id.includes('providers/ToastProvider')) return { useToast: () => ({ showToast() {} }) };
+      if (id.includes('features/documents/api')) return { downloadDocument() {} };
+      if (id.includes('components/forms/')) return { __esModule: true, default: () => { throw Error('Stale form renderer must not run'); } };
+      throw Error('Unexpected preview import: ' + id);
+    } };
+    vm.runInNewContext(code, context);
+    const html = renderToStaticMarkup(React.createElement(context.exports.DocumentPreview, {
+      doc: { id: `${type}-2026-1`, real_id: 'actual-document', type, _meta: { file_source: 'uploaded_pdf' } },
+    }));
+    assert.ok(html.includes('<iframe'));
+    assert.ok(html.includes('/api/documents/actual-document/download'));
+  });
+}

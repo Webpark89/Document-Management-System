@@ -12,10 +12,11 @@ interface DashboardSourceDocument {
   creator?: {
     id?: string;
     first_name?: string;
-    department?: { name?: string };
+    department?: { id?: string; name?: string };
   };
   created_at?: string;
   submittedDate?: string;
+  approved_at?: string | null;
   pr_form?: unknown;
   po_form?: unknown;
   approvers?: string[];
@@ -49,6 +50,9 @@ export async function loadDashboardData<TStats>(operations: {
     submittedBy: d.sender || d.creator_name || d.creator?.first_name || "ระบบ",
     creator_id: d.creator_id || d.creator?.id,
     creator: d.creator,
+    department_id: d.creator?.department?.id,
+    approved_at: d.approved_at ?? null,
+    submitted_at: d.submittedDate ?? null,
     date: d.created_at || d.submittedDate,
     value: d.pr_form ? totalAmount(d.pr_form) : totalAmount(d.po_form),
     approvers: d.approvers || [],

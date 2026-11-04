@@ -1,4 +1,5 @@
 "use client";
+import { auditDateKey, auditCsv } from "@/lib/audit-log-data";
 
    
    
@@ -37,13 +38,15 @@ import { useAuth } from '@views/components/providers/AuthProvider';
 // ─── TYPES & MOCK DATA ────────────────────────────────────────────────────────
    
 type ActionType = "Login" | "Upload" | "Download" | "View" | "Edit" | "Delete" | "Approve" | "Reject" | "Signature";
-type ModuleType = "Documents" | "Users" | "Roles" | "Approvals" | "Master Data" | "Auth" | "All";
+type ModuleType = string;
 
 interface AuditLogExtended {
   id: string;
   timestamp: string;
   userId: string;
   userName: string;
+  username: string;
+  targetDeleted?: boolean;
   action: ActionType;
   module: ModuleType;
   targetId: string;
@@ -58,7 +61,7 @@ const ALL_ACTIONS: ActionType[] = ["Login", "Upload", "Download", "View", "Edit"
 const ALL_MODULES: ModuleType[] = ["Documents", "Users", "Roles", "Approvals", "Master Data", "Auth"];
 
 function normalizeModuleName(m?: string): ModuleType {
-  if (!m) return "Documents";
+  if (!m) return "ไม่ระบุ";
   const s = m.trim().toLowerCase();
   if (s === "document" || s === "documents") return "Documents";
   if (s === "user" || s === "users") return "Users";
@@ -66,6 +69,7 @@ function normalizeModuleName(m?: string): ModuleType {
   if (s === "approval" || s === "approvals" || s === "workflow") return "Approvals";
   if (s === "masterdata" || s === "master data" || s === "master_data") return "Master Data";
   if (s === "auth") return "Auth";
+  if (["department", "position", "document type", "approval matrix", "running number"].includes(s)) return "Master Data";
   return (m as ModuleType) || "Documents";
 }
 
@@ -73,7 +77,7 @@ function normalizeModuleName(m?: string): ModuleType {
 function AuditLogsContent() {
   const { user } = useAuth();
   const hasPerm = (itemKey: string, action: string = 'view') =>
-    user?.role === "Administrator" || !!user?.permissions?.includes(`auditlog.${itemKey}:${action}`);
+    !!user?.permissions?.includes(`auditlog.${itemKey}:${action}`);
 
   const searchParams = useSearchParams();
   
@@ -106,8 +110,6 @@ function AuditLogsContent() {
   // Multi-select for actions
   const [selectedActions, setSelectedActions] = useState<Set<ActionType>>(new Set());
 
-  // Expanded rows for Details
-  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -157,15 +159,17 @@ function AuditLogsContent() {
           
           return {
             id: l.id,
-            timestamp: l.created_at || new Date().toISOString(),
+            timestamp: l.created_at || "",
             userId: l.user_id || "-",
             userName: l.user_fullname || l.username || "ระบบ",
-            action: (l.action as ActionType) || "View",
+            username: l.username || "",
+            targetDeleted: l.target_deleted,
+            action: l.action as ActionType,
             module: mod,
             targetId: l.target_id || "",
             targetLabel: l.target_label || l.target_id || "-",
             targetType,
-            ipAddress: l.ip_address || "127.0.0.1",
+            ipAddress: l.ip_address || "-",
             comment: l.comment
           };
         });
@@ -214,13 +218,13 @@ function AuditLogsContent() {
     const data = [...realLogs].filter(log => {
       // 1. Search
       if (searchTerm) {
-        const lowerTerm = searchTerm.toLowerCase();
-        if (!log.userName.toLowerCase().includes(lowerTerm) && !log.userId.toLowerCase().includes(lowerTerm)) {
+        const lowerTerm = searchTerm.toLowerCase().replace(/^#/, "");
+        if (!log.userName.toLowerCase().includes(lowerTerm) && !log.userId.toLowerCase().includes(lowerTerm) && !log.username.toLowerCase().includes(lowerTerm)) {
           return false;
         }
       }
       // 2. Date Range
-      const logDate = log.timestamp.substring(0, 10);
+      const logDate = auditDateKey(log.timestamp);
       if (dateFrom && logDate < dateFrom) return false;
       if (dateTo && logDate > dateTo) return false;
       
@@ -256,6 +260,8 @@ function AuditLogsContent() {
 
     return data;
   }, [realLogs, searchTerm, dateFrom, dateTo, selectedModule, selectedActions, sortKey, sortDirection]);
+
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, dateFrom, dateTo, selectedModule]);
 
   // 2. Pagination
   const totalItems = filteredLogs.length;
@@ -294,28 +300,24 @@ function AuditLogsContent() {
   const getTargetLink = (targetType: string, targetId: string) => {
     if (!targetId) return "#";
     if (targetType === "document") return `/documents/${targetId}`;
-    if (targetType === "user") return `/admin/config/users`; // Placeholder
+    if (targetType === "user") return `/admin/config/users`;
+    if (targetType === "role") return `/admin/config/roles`;
     return "#";
   };
 
   const formatDateTH = (isoString: string) => {
     const d = new Date(isoString);
-    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' });
   };
   const formatTimeTH = (isoString: string) => {
     const d = new Date(isoString);
-    return d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Bangkok' });
   };
 
   // 4. Export CSV
   const handleExportCSV = () => {
     if (filteredLogs.length === 0) return;
-    const headers = ["Timestamp", "User", "Action", "Module", "Target ID", "Target Label", "IP Address", "Comment"];
-    let csvContent = headers.join(",") + "\n";
-    filteredLogs.forEach(log => {
-      const commentStr = (log.comment || "").replace(/"/g, '""');
-      csvContent += `"${log.timestamp}","${log.userName}","${log.action}","${log.module}","${log.targetId}","${log.targetLabel}","${log.ipAddress}","${commentStr}"\n`;
-    });
+    const csvContent = auditCsv(filteredLogs);
 
     const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -325,6 +327,7 @@ function AuditLogsContent() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -471,13 +474,12 @@ function AuditLogsContent() {
                     <DataTableHeader title="Module" sortKey="module" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-24" />
                     <th className="py-3 px-4 w-48 font-bold">Target</th>
                     <DataTableHeader title="IP Address" sortKey="ipAddress" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-3 px-4 w-32" />
-                    <th className="py-3 px-4 w-16 text-center font-bold">Details</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {loading ? (
                       <tr>
-                        <td colSpan={8} className="py-24 text-center">
+                        <td colSpan={7} className="py-24 text-center">
                           <div className="flex flex-col items-center justify-center">
                             <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
                             <p className="text-slate-600 font-bold text-sm">กำลังโหลดข้อมูล Audit Log...</p>
@@ -487,7 +489,7 @@ function AuditLogsContent() {
                       </tr>
                     ) : paginatedLogs.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="py-16 text-center">
+                        <td colSpan={7} className="py-16 text-center">
                           <div className="flex flex-col items-center justify-center">
                             <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3">
                               <Search className="w-6 h-6" />
@@ -521,7 +523,7 @@ function AuditLogsContent() {
                             {log.module}
                           </td>
                           <td className="py-3 px-4">
-                            {log.targetType !== "none" ? (
+                            {log.targetType !== "none" && !log.targetDeleted ? (
                               <div className="flex flex-col">
                                 <Link href={getTargetLink(log.targetType, log.targetId)} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors truncate block">
                                   {log.targetLabel}
@@ -529,38 +531,14 @@ function AuditLogsContent() {
                                 <span className="text-[10px] text-slate-400 font-mono" title={log.targetId}>#{formatID(log.targetId)}</span>
                               </div>
                             ) : (
-                              <span className="text-sm text-slate-400">-</span>
+                              <span className="text-sm text-slate-600">{log.targetLabel}{log.targetDeleted ? " (ลบแล้ว)" : ""}</span>
                             )}
                           </td>
                           <td className="py-3 px-4 text-xs text-slate-500 font-mono">
                               {formatIP(log.ipAddress)}
                             </td>
-                          <td className="py-3 px-4 text-center">
-                            {log.comment ? (
-                              <button 
-                                onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
-                                className={`p-1.5 rounded-lg transition-colors ${expandedRow === log.id ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                                title="ดูหมายเหตุ/เหตุผล"
-                              >
-                                {expandedRow === log.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                              </button>
-                            ) : (
-                              <span className="text-slate-300 font-medium select-none">-</span>
-                            )}
-                          </td>
                         </tr>
                         
-                        {/* EXPANDED DETAILS ROW */}
-                        {expandedRow === log.id && log.comment && (
-                          <tr className="bg-slate-50/80 border-b border-slate-100">
-                            <td colSpan={8} className="p-0">
-                              <div className="px-6 py-3.5 border-l-4 border-indigo-400 ml-4 my-2 rounded-r-xl bg-white shadow-xs">
-                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Reason / Comment</h4>
-                                <p className="text-sm font-semibold text-slate-800 break-words">{log.comment}</p>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
                       </React.Fragment>
                     ))
                   )}

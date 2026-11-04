@@ -925,6 +925,7 @@ export default function POForm({
       {currentStep === 2 && (
         <>
           <Step2Visibility
+            approvers={workflowSteps}
             visibility={visibility}
             onVisibilityChange={setVisibility}
           />
@@ -958,6 +959,7 @@ export default function POForm({
         <>
           {/* WORKFLOW MATRIX SELECTION */}
           <ApprovalWorkflowSection
+            visibilityType={visibility.type}
             steps={workflowSteps}
             onChange={setWorkflowSteps}
           />

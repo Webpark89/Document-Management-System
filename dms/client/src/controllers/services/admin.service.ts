@@ -7,6 +7,20 @@ export interface DepartmentDto {
   employeeCount?: number;
 }
 
+export interface UserDirectoryDto {
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  is_active: boolean;
+  role_id: string | null;
+  role: string;
+  department_id: string | null;
+  department: string;
+  position: string;
+  can_approve: boolean;
+}
+
 export interface PositionDto {
   id: string;
   name: string;
@@ -32,14 +46,15 @@ export interface AuditLogDto {
   module: string;
   target_id?: string;
   target_label?: string;
+  target_deleted?: boolean;
   comment?: string;
-  ip_address: string;
+  ip_address: string | null;
   created_at: string;
 }
 
 export const adminService = {
-  async getUserDirectory(): Promise<unknown[]> {
-    return (await api.get<unknown[]>("/api/lookups/users")).data;
+  async getUserDirectory(): Promise<UserDirectoryDto[]> {
+    return (await api.get<UserDirectoryDto[]>("/api/lookups/users")).data;
   },
   async getDepartmentDirectory(): Promise<DepartmentDto[]> {
     return (await api.get<DepartmentDto[]>("/api/lookups/departments")).data;
@@ -290,11 +305,14 @@ export const adminService = {
       params.append("action", action.trim());
     if (dateFrom) params.append("dateFrom", dateFrom);
     if (dateTo) params.append("dateTo", dateTo);
-    const query = params.toString();
-    const url = query
-      ? `/api/admin/audit-logs?${query}`
-      : `/api/admin/audit-logs`;
-    const res = await api.get<AuditLogDto[]>(url);
-    return res.data;
+    const rows = new Map<string, AuditLogDto>();
+    const limit = 500;
+    params.set('limit', String(limit));
+    for (let page = 1; ; page++) {
+      params.set('page', String(page));
+      const res = await api.get<AuditLogDto[]>(`/api/admin/audit-logs?${params}`);
+      for (const row of res.data) rows.set(row.id, row);
+      if (res.data.length < limit) return [...rows.values()];
+    }
   },
 };

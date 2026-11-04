@@ -1,5 +1,7 @@
 "use client";
 
+import { isApprovedThisMonth, isOwnedDocument, documentStatusData, inBangkokDateRange, pendingLongerThanSevenDays } from "@/lib/dashboard-metrics";
+
 import React, { useMemo } from "react";
 import { hasDashboardPermission } from '@/lib/dashboard-permissions';
 import Link from "next/link";
@@ -53,41 +55,17 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
     }
   };
 
-  const myDocs = useMemo(() => {
-    return documents.filter((d) => {
-      const isMyId = d.creator_id && user?.id && d.creator_id === user.id;
-      const isMyName = d.submittedBy && user && (
-        (user.full_name && d.submittedBy.toLowerCase().includes(user.full_name.toLowerCase())) ||
-        (user.username && d.submittedBy.toLowerCase().includes(user.username.toLowerCase()))
-      );
-      return isMyId || isMyName;
-    });
-  }, [documents, user]);
+  const myDocs = useMemo(() => documents.filter(d => isOwnedDocument(d, user?.id)), [documents, user?.id]);
 
   const total = myDocs.length;
   const pending = myDocs.filter(d => d.status === "Pending").length;
-  const returned = myDocs.filter(d => d.status === "Returned" || d.status === "Rejected").length;
+  const returned = myDocs.filter(d => d.status === "Returned").length;
   
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  const approvedThisMonth = myDocs.filter(d => {
-    if (d.status !== "Approved") return false;
-    const dDate = new Date(d.date);
-    return dDate.getMonth() === currentMonth && dDate.getFullYear() === currentYear;
-  }).length;
+  const approvedThisMonth = myDocs.filter(d => isApprovedThisMonth(d)).length;
 
   const actionRequiredCount = stats?.actionRequired ?? 0;
 
-  const statusData = useMemo(() => {
-    const approved = myDocs.filter(d => d.status === "Approved").length;
-    const cancelled = myDocs.filter(d => d.status === "Cancelled").length;
-    return [
-      { name: "อนุมัติแล้ว", value: approved, fill: STATUS_COLORS.Approved },
-      { name: "รออนุมัติ", value: pending, fill: STATUS_COLORS.Pending },
-      { name: "ส่งกลับแก้ไข", value: returned, fill: STATUS_COLORS.Returned },
-      { name: "ยกเลิก", value: cancelled, fill: STATUS_COLORS.Cancelled }
-    ].filter(d => d.value > 0);
-  }, [myDocs, pending, returned]);
+  const statusData = useMemo(() => documentStatusData(myDocs), [myDocs]);
 
   const recentActivity = useMemo(() => {
     let data = [...myDocs];
@@ -103,9 +81,12 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
     } else {
       data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
+    if (activeStatusFilter === "ApprovedThisMonth") {
+      return data.filter(d => isApprovedThisMonth(d)).slice(0, 8);
+    }
     if (activeStatusFilter) {
       if (activeStatusFilter === "Returned") {
-        data = data.filter(d => d.status === "Returned" || d.status === "Rejected");
+        data = data.filter(d => d.status === "Returned");
       } else {
         data = data.filter(d => d.status === activeStatusFilter);
       }
@@ -131,7 +112,7 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
         <StatCardGrid columns={4}>
         <AppStatCard label="เอกสารที่ฉันสร้าง (ทั้งหมด)" value={total} icon={FileText} iconBg="bg-blue-50" iconColor="text-blue-600" onClick={() => setActiveStatusFilter(null)} isActive={activeStatusFilter === null} />
         <AppStatCard label="รอการอนุมัติ (Pending)" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Pending' ? null : 'Pending')} isActive={activeStatusFilter === 'Pending'} />
-        <AppStatCard label="อนุมัติสำเร็จ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Approved' ? null : 'Approved')} isActive={activeStatusFilter === 'Approved'} />
+        <AppStatCard label="อนุมัติสำเร็จ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'ApprovedThisMonth' ? null : 'ApprovedThisMonth')} isActive={activeStatusFilter === 'ApprovedThisMonth'} />
         <AppStatCard label="รออนุมัติจากฉัน" value={actionRequiredCount} icon={AlertCircle} iconBg="bg-rose-50" iconColor="text-rose-600" onClick={() => router.push('/approvals')} />
         </StatCardGrid>
       )}
@@ -184,7 +165,7 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
                     <DataTableHeader title="รหัสเอกสาร" sortKey="id" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="pl-6 py-4 w-[20%]" />
                     <th className="py-4 px-4 font-bold text-[11px] uppercase tracking-wider text-slate-400 w-[45%]">ชื่อเรื่อง</th>
                     <DataTableHeader title="สถานะ" sortKey="status" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 px-4 w-[15%]" />
-                    <DataTableHeader title="วันที่ส่ง" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 pr-6 pl-4 w-[20%]" />
+                    <DataTableHeader title="วันที่สร้าง" sortKey="date" currentSortKey={sortKey} currentDirection={sortDirection} onSort={handleSort} className="py-4 pr-6 pl-4 w-[20%]" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50/80">

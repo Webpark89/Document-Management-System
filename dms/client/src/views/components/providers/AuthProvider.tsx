@@ -17,6 +17,7 @@ type AuthUser = {
   username: string;
   role: string;
   department: string | null;
+  department_id?: string | null;
   email?: string;
   employee_id?: string;
   position?: string;

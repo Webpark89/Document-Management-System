@@ -76,7 +76,7 @@ export class AuthService {
         ip_address: ipAddress,
         details: {
           newState: { status: 'Success' },
-          extra: { comment: 'เข้าสู่ระบบสำเร็จ' },
+          extra: { comment: 'เข้าสู่ระบบสำเร็จ', actor: { id: user.id, username: user.username, full_name: `${user.first_name} ${user.last_name}` } },
         },
       },
     });

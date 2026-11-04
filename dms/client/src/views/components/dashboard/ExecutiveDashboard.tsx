@@ -1,5 +1,7 @@
 "use client";
 
+import { isApprovedThisMonth, isOwnedDocument, documentStatusData, inBangkokDateRange, pendingLongerThanSevenDays } from "@/lib/dashboard-metrics";
+
 import React, { useMemo, useState } from "react";
 import { hasDashboardPermission } from '@/lib/dashboard-permissions';
 import Link from "next/link";
@@ -90,37 +92,17 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
     return documents.filter((d) => {
       // 1. Scope Filter
       if (viewScope === "MY_DOCS") {
-        const isMyId = d.creator_id && user?.id && d.creator_id === user.id;
-        const isMyName = d.submittedBy && user && (
-          (user.full_name && d.submittedBy.toLowerCase().includes(user.full_name.toLowerCase())) ||
-          (user.username && d.submittedBy.toLowerCase().includes(user.username.toLowerCase()))
-        );
-        if (!isMyId && !isMyName) return false;
+        if (!isOwnedDocument(d, user?.id)) return false;
       } else if (viewScope === "MY_DEPT") {
-        const userDept = user?.department || (user as any)?.department_name || "";
-        if (userDept) {
-          const docDept = d.department || "";
-          const matchesUserDept = docDept.toLowerCase().includes(userDept.toLowerCase()) ||
-                                  userDept.toLowerCase().includes(docDept.toLowerCase());
-          if (!matchesUserDept) return false;
-        }
+        if (user?.department_id && d.department_id) {
+          if (user.department_id !== d.department_id) return false;
+        } else if (!user?.department || d.department !== user.department) return false;
       } else if (viewScope === "CUSTOM_DEPTS") {
-        if (selectedDepartments.length > 0) {
-          const docDept = d.department || "";
-          const matchesCustom = selectedDepartments.some(dept =>
-            docDept.toLowerCase().includes(dept.toLowerCase()) ||
-            dept.toLowerCase().includes(docDept.toLowerCase())
-          );
-          if (!matchesCustom) return false;
-        }
+        if (!selectedDepartments.includes(d.department)) return false;
       }
 
       // 2. Date Range Filter
-      if (dateFrom || dateTo) {
-        const dDate = new Date(d.date).getTime();
-        if (dateFrom && !isNaN(dDate) && dDate < new Date(dateFrom).getTime()) return false;
-        if (dateTo && !isNaN(dDate) && dDate > new Date(dateTo).getTime() + 86400000) return false;
-      }
+      if (!inBangkokDateRange(d.date, dateFrom, dateTo)) return false;
 
       return true;
     });
@@ -128,16 +110,10 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
 
   const total = filteredData.length;
   const pending = filteredData.filter(d => d.status === "Pending").length;
-  const returned = filteredData.filter(d => d.status === "Returned" || d.status === "Rejected").length;
+  const returned = filteredData.filter(d => d.status === "Returned").length;
   const cancelled = filteredData.filter(d => d.status === "Cancelled").length;
   
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  const approvedThisMonth = filteredData.filter(d => {
-    if (d.status !== "Approved") return false;
-    const dDate = new Date(d.date);
-    return dDate.getMonth() === currentMonth && dDate.getFullYear() === currentYear;
-  }).length;
+  const approvedThisMonth = filteredData.filter(d => isApprovedThisMonth(d)).length;
 
   const totalBudget = filteredData
     .filter(d => d.status === "Approved" && (d.type === "PR" || d.type === "PO"))
@@ -146,11 +122,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
   const actionRequiredCount = stats?.actionRequired ?? 0;
 
   // Bottlenecks (Pending > 7 days)
-  const bottlenecks = filteredData.filter(d => {
-    if (d.status !== 'Pending') return false;
-    const diffTime = Date.now() - new Date(d.date).getTime();
-    return diffTime > 7 * 24 * 60 * 60 * 1000;
-  });
+  const bottlenecks = filteredData.filter(d => pendingLongerThanSevenDays(d));
 
   const typeData = useMemo(() => {
     const counts: Record<string, number> = { PR: 0, PO: 0, BK: 0, Other: 0 };
@@ -166,20 +138,12 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
     ];
   }, [filteredData]);
 
-  const statusData = useMemo(() => {
-    const approved = filteredData.filter(d => d.status === "Approved").length;
-    return [
-      { name: "อนุมัติแล้ว", value: approved, fill: STATUS_COLORS.Approved },
-      { name: "รออนุมัติ", value: pending, fill: STATUS_COLORS.Pending },
-      { name: "ส่งกลับแก้ไข", value: returned, fill: STATUS_COLORS.Returned },
-      { name: "ยกเลิก", value: cancelled, fill: STATUS_COLORS.Cancelled }
-    ].filter(d => d.value > 0);
-  }, [filteredData, pending, returned, cancelled]);
+  const statusData = useMemo(() => documentStatusData(filteredData), [filteredData]);
 
   const deptPendingData = useMemo(() => {
     const counts: Record<string, number> = {};
     const docsByDept: Record<string, any[]> = {};
-    filteredData.forEach(d => {
+    filteredData.filter(d => d.status === "Pending").forEach(d => {
       const dept = d.department || 'ไม่ระบุ';
       counts[dept] = (counts[dept] || 0) + 1;
       if (!docsByDept[dept]) docsByDept[dept] = [];
@@ -205,9 +169,12 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
     } else {
       data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
+    if (activeStatusFilter === "ApprovedThisMonth") {
+      return data.filter(d => isApprovedThisMonth(d));
+    }
     if (activeStatusFilter) {
       if (activeStatusFilter === "Returned") {
-        return data.filter(d => d.status === "Returned" || d.status === "Rejected");
+        return data.filter(d => d.status === "Returned");
       }
       return data.filter(d => d.status === activeStatusFilter);
     }
@@ -316,11 +283,11 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
 
       {showStatCards && (
         <StatCardGrid columns={5}>
-          <AppStatCard label="เอกสารทั้งระบบ" value={total} icon={FileText} iconBg="bg-blue-50" iconColor="text-blue-600" onClick={() => setActiveStatusFilter(null)} isActive={activeStatusFilter === null} />
-          <AppStatCard label="รออนุมัติทั้งระบบ" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Pending' ? null : 'Pending')} isActive={activeStatusFilter === 'Pending'} />
-          <AppStatCard label="อนุมัติ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Approved' ? null : 'Approved')} isActive={activeStatusFilter === 'Approved'} />
+          <AppStatCard label="เอกสารที่เข้าถึงได้" value={total} icon={FileText} iconBg="bg-blue-50" iconColor="text-blue-600" onClick={() => setActiveStatusFilter(null)} isActive={activeStatusFilter === null} />
+          <AppStatCard label="รออนุมัติ (ตามขอบเขต)" value={pending} icon={Clock} iconBg="bg-amber-50" iconColor="text-amber-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Pending' ? null : 'Pending')} isActive={activeStatusFilter === 'Pending'} />
+          <AppStatCard label="อนุมัติ (เดือนนี้)" value={approvedThisMonth} icon={CheckCircle2} iconBg="bg-emerald-50" iconColor="text-emerald-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'ApprovedThisMonth' ? null : 'ApprovedThisMonth')} isActive={activeStatusFilter === 'ApprovedThisMonth'} />
           <AppStatCard label="ส่งกลับแก้ไข" value={returned} icon={AlertCircle} iconBg="bg-orange-50" iconColor="text-orange-600" onClick={() => setActiveStatusFilter(activeStatusFilter === 'Returned' ? null : 'Returned')} isActive={activeStatusFilter === 'Returned'} />
-          <AppStatCard label="ยอด PR/PO" value={<>{totalBudget.toLocaleString()}<span className="ml-1 text-sm font-semibold whitespace-nowrap">บาท</span></>} icon={TrendingUp} iconBg="bg-purple-50" iconColor="text-purple-600" />
+          <AppStatCard label="มูลค่า PR/PO ที่อนุมัติ" value={<>{totalBudget.toLocaleString()}<span className="ml-1 text-sm font-semibold whitespace-nowrap">บาท</span></>} icon={TrendingUp} iconBg="bg-purple-50" iconColor="text-purple-600" />
         </StatCardGrid>
       )}
 
