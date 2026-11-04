@@ -672,9 +672,10 @@ function DocumentsContent() {
               {activeFolder && (
                 <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-50/90 border border-blue-200/90 p-4 rounded-2xl flex items-center justify-between shadow-2xs animate-in fade-in slide-in-from-top-1">
                   <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                    <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-xs shrink-0">
                       <FolderIconRenderer
                         iconName={activeFolder.icon}
+                        color={activeFolder.color || "#4F81FF"}
                         className="w-5 h-5"
                       />
                     </div>

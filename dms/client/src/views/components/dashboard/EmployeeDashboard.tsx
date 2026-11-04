@@ -25,12 +25,6 @@ import {
   MD_TR,
 } from '@views/components/ui/design-system';
 
-const STATUS_COLORS = {
-  Approved: "#10b981",
-  Pending: "#f59e0b",
-  Returned: "#f97316",
-  Cancelled: "#64748b"
-};
 
 import { useRouter } from "next/navigation";
 
@@ -208,7 +202,7 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
               <h3 className="text-sm font-bold text-slate-800 mb-2">สัดส่วนสถานะเอกสารของฉัน</h3>
               <div className="flex-1 min-h-[220px]">
                 {statusData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={220}>
+                  <ResponsiveContainer width="100%" height={280}>
                     <PieChart>
                       <Pie
                         data={statusData}
@@ -225,7 +219,7 @@ export function EmployeeDashboard({ documents, stats }: { documents: any[], stat
                         ))}
                       </Pie>
                       <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                      <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }} />
+                      <Legend verticalAlign="bottom" height={64} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (

@@ -18,12 +18,23 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     });
     this.$use(async (params, next) => {
       const request = auditContext.getStore();
-      if (params.model === 'AuditLog' && params.action === 'create' && request) {
+      if (
+        params.model === 'AuditLog' &&
+        params.action === 'create' &&
+        request
+      ) {
         const data = params.args.data;
-        if (!data.ip_address && request.ip) data.ip_address = request.ip.replace(/^::ffff:/, '');
+        const ip = data.ip_address || request.ip;
+        if (ip) data.ip_address = ip.replace(/^::ffff:/, '');
         if (request.actor?.id === data.user_id) {
-          const details = data.details && typeof data.details === 'object' ? data.details : {};
-          data.details = { ...details, extra: { ...details.extra, actor: request.actor } };
+          const details =
+            data.details && typeof data.details === 'object'
+              ? data.details
+              : {};
+          data.details = {
+            ...details,
+            extra: { ...details.extra, actor: request.actor },
+          };
         }
       }
       return next(params);
@@ -51,4 +62,3 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     }
   }
 }
-

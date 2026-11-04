@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-11-04T17:42:19.782Z",
+  "method": "POST",
+  "path": "/api/documents",
+  "status": 503,
+  "name": "ServiceUnavailableException",
+  "message": "ไม่สามารถสร้าง PDF ได้ กรุณาตรวจสอบ Chromium/Edge ของ server",
+  "stack": [
+    "    at DocumentsService.generateFallbackPdf (D:\\Document-Management-System\\dms\\server\\dist\\src\\documents\\documents.service.js:1554:15)",
+    "    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)",
+    "    at async DocumentsService.appendVersion (D:\\Document-Management-System\\dms\\server\\dist\\src\\documents\\documents.service.js:461:34)",
+    "    at async prisma.$transaction.timeout (D:\\Document-Management-System\\dms\\server\\dist\\src\\documents\\documents.service.js:583:13)",
+    "    at async Proxy._transactionWithCallback (D:\\Document-Management-System\\dms\\node_modules\\@prisma\\client\\runtime\\library.js:130:8000)"
+  ]
+}

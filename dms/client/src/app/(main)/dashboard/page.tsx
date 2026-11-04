@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { adminService } from "@/controllers/services/admin.service";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { EmployeeDashboard } from "@views/components/dashboard/EmployeeDashboard";
 import { ExecutiveDashboard } from "@views/components/dashboard/ExecutiveDashboard";
@@ -77,6 +78,7 @@ export default function DashboardPage() {
     loadDashboardData({
       documents: () => getDocuments(),
       stats: () => dashboardService.getStats(),
+      departments: () => adminService.getDepartmentDirectory(),
     })
       .then((result) => {
         if (active) setData({ ...result, userId, permissionKey });

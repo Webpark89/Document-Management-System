@@ -850,12 +850,12 @@ export class DocumentsService {
     remarks?: string,
   ) {
     const actor = await loadActor(this.prisma, userId);
-    requirePermission(actor, permissions.edit);
+    requirePermission(actor, permissions.detail);
     const original = await this.getDocument(id);
     return this.prisma.$transaction(async (tx) => {
       await lockEntity(tx, `document:${original.id}`);
       const doc = await this.getDocument(original.id, tx);
-      requireDocumentOwner(doc, actor);
+      requireDocumentAccess(doc, actor);
       if (!['Draft', 'Returned', 'Approved'].includes(doc.status))
         throw new ConflictException(
           'อัปโหลดฉบับใหม่ได้เมื่อเป็นร่าง ส่งกลับแก้ไข หรืออนุมัติแล้ว',

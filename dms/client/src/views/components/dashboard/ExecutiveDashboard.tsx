@@ -1,6 +1,6 @@
 "use client";
 
-import { isApprovedThisMonth, isOwnedDocument, documentStatusData, inBangkokDateRange, pendingLongerThanSevenDays } from "@/lib/dashboard-metrics";
+import { isApprovedThisMonth, documentStatusData, inBangkokDateRange, pendingLongerThanSevenDays, pendingAgeDays } from "@/lib/dashboard-metrics";
 
 import React, { useMemo, useState } from "react";
 import { hasDashboardPermission } from '@/lib/dashboard-permissions';
@@ -27,7 +27,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
   LabelList
 } from "recharts";
 import { useAuth } from '@views/components/providers/AuthProvider';
@@ -41,12 +40,6 @@ import {
   MD_TR,
 } from '@views/components/ui/design-system';
 
-const STATUS_COLORS = {
-  Approved: "#10b981",
-  Pending: "#f59e0b",
-  Returned: "#f97316",
-  Cancelled: "#64748b"
-};
 
 const TYPE_COLORS = {
   PR: "#3b82f6",
@@ -56,7 +49,7 @@ const TYPE_COLORS = {
   Other: "#64748b"
 };
 
-type ViewScopeOption = "ALL" | "MY_DEPT" | "MY_DOCS" | "CUSTOM_DEPTS";
+type ViewScopeOption = "ALL" | "CUSTOM_DEPTS";
 
 import { useRouter } from "next/navigation";
 
@@ -91,13 +84,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
   const filteredData = useMemo(() => {
     return documents.filter((d) => {
       // 1. Scope Filter
-      if (viewScope === "MY_DOCS") {
-        if (!isOwnedDocument(d, user?.id)) return false;
-      } else if (viewScope === "MY_DEPT") {
-        if (user?.department_id && d.department_id) {
-          if (user.department_id !== d.department_id) return false;
-        } else if (!user?.department || d.department !== user.department) return false;
-      } else if (viewScope === "CUSTOM_DEPTS") {
+      if (viewScope === "CUSTOM_DEPTS") {
         if (!selectedDepartments.includes(d.department)) return false;
       }
 
@@ -106,7 +93,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
 
       return true;
     });
-  }, [documents, viewScope, selectedDepartments, dateFrom, dateTo, user]);
+  }, [documents, viewScope, selectedDepartments, dateFrom, dateTo]);
 
   const total = filteredData.length;
   const pending = filteredData.filter(d => d.status === "Pending").length;
@@ -140,10 +127,11 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
 
   const statusData = useMemo(() => documentStatusData(filteredData), [filteredData]);
 
-  const deptPendingData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    const docsByDept: Record<string, any[]> = {};
-    filteredData.filter(d => d.status === "Pending").forEach(d => {
+  const deptDocumentData = useMemo(() => {
+    const names = viewScope === "CUSTOM_DEPTS" ? selectedDepartments : departments;
+    const counts: Record<string, number> = Object.fromEntries(names.map(name => [name, 0]));
+    const docsByDept: Record<string, any[]> = Object.fromEntries(names.map(name => [name, []]));
+    filteredData.forEach(d => {
       const dept = d.department || 'ไม่ระบุ';
       counts[dept] = (counts[dept] || 0) + 1;
       if (!docsByDept[dept]) docsByDept[dept] = [];
@@ -151,9 +139,9 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
     });
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value, docs: docsByDept[name] }))
-      .sort((a, b) => b.value - a.value)
+      .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "th"))
       
-  }, [filteredData]);
+  }, [filteredData, departments, viewScope, selectedDepartments]);
 
   const recentActivity = useMemo(() => {
     const data = [...filteredData];
@@ -210,9 +198,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
             }}
             className="bg-slate-50 border border-slate-200 rounded-xl py-1.5 px-2.5 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
           >
-            <option value="ALL">🌐 ทั้งหมดในระบบ (All Documents)</option>
-            <option value="MY_DEPT">🏢 แผนกของฉัน (My Department)</option>
-            <option value="MY_DOCS">👤 เอกสารของฉัน (My Documents)</option>
+            <option value="ALL">🌐 เอกสารที่เข้าถึงได้ (Accessible Documents)</option>
             <option value="CUSTOM_DEPTS">📑 เลือกระบุตามแผนก... (Custom Depts)</option>
           </select>
         </div>
@@ -291,17 +277,17 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
         </StatCardGrid>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
+      <div className="grid grid-cols-1 items-stretch xl:grid-cols-2 gap-6 my-6">
         {showDocsTypeChart && (
-          <div className={`lg:col-span-2 ${APP_CARD_LG} flex flex-col`}>
-            <h3 className="text-sm font-bold text-slate-800 mb-6">เอกสารตามประเภท (จำนวนจริง)</h3>
-            <div className="flex-1 min-h-[220px]">
-              <ResponsiveContainer width="100%" height={250}>
+          <div className={`${APP_CARD_LG} flex min-w-0 flex-col`}>
+            <h3 className="text-sm font-bold text-slate-800 mb-4">เอกสารตามประเภท (จำนวนจริง)</h3>
+            <div className="w-full min-w-0">
+              <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={typeData} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600, fill: '#64748b' }} width={60} />
                   <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
+                  <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={24}>
                     {typeData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
@@ -314,29 +300,41 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
         )}
 
         {showDocsStatusChart && (
-          <div className={`${APP_CARD_LG} flex flex-col lg:col-span-1`}>
-            <h3 className="text-sm font-bold text-slate-800 mb-2">สัดส่วนสถานะรวมทั้งระบบ</h3>
-            <div className="flex-1 min-h-[220px]">
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    innerRadius={50}
-                    outerRadius={70}
-                    paddingAngle={5}
-                    dataKey="value"
-                    stroke="none"
-                    label={({ name, value }) => `${value}`}
-                    labelLine={false}
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }} />
-                </PieChart>
-              </ResponsiveContainer>
+          <div className={`${APP_CARD_LG} flex min-w-0 flex-col`}>
+            <h3 className="text-sm font-bold text-slate-800 mb-2">สัดส่วนสถานะตามเอกสารในระบบทั้งหมด</h3>
+            <div className="flex flex-1 flex-col items-center justify-center gap-5 pt-3 sm:flex-row">
+              <div className="relative h-40 w-40 shrink-0" role="img" aria-label={"เอกสารทั้งหมด " + total + " ฉบับ"}>
+                {total > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={statusData} cx="50%" cy="50%" innerRadius={54} outerRadius={74} paddingAngle={statusData.length > 1 ? 3 : 0} cornerRadius={5} dataKey="value" stroke="none">
+                        {statusData.map(entry => <Cell key={entry.status} fill={entry.fill} />)}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : <div className="absolute inset-2 rounded-full border-[22px] border-slate-100" />}
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-extrabold tracking-tight text-slate-800">{total.toLocaleString()}</span>
+                  <span className="mt-1 text-[11px] font-medium text-slate-400">เอกสารทั้งหมด</span>
+                </div>
+              </div>
+              <div className="w-full min-w-0 flex-1 space-y-3">
+                {statusData.map(entry => (
+                  <div key={entry.status} className="space-y-1.5">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: entry.fill }} />
+                      <span className="min-w-0 flex-1 font-medium text-slate-600">{entry.name}</span>
+                      <span className="font-bold tabular-nums text-slate-800">{entry.value.toLocaleString()} <span className="font-normal text-slate-400">ฉบับ</span></span>
+                      <span className="w-11 shrink-0 text-right text-[11px] tabular-nums text-slate-400">{((entry.value / total) * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="h-1 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full" style={{ width: (entry.value / total) * 100 + '%', backgroundColor: entry.fill }} />
+                    </div>
+                  </div>
+                ))}
+                {total === 0 && <p className="py-3 text-center text-xs text-slate-400">ไม่มีเอกสารในขอบเขตที่เลือก</p>}
+              </div>
             </div>
           </div>
         )}
@@ -346,15 +344,15 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
         {showPendingDeptChart && (
           <div className={`lg:col-span-1 ${APP_CARD_LG} flex flex-col`}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-sm font-bold text-slate-800">เอกสารรออนุมัติแยกตามแผนก </h3>
+              <h3 className="text-sm font-bold text-slate-800">เอกสารทั้งหมดแยกตามแผนก</h3>
               <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
                 <Clock className="w-4 h-4" />
               </div>
             </div>
             <div className="flex-1 flex flex-col justify-start">
-              {deptPendingData.length > 0 ? (
+              {deptDocumentData.length > 0 ? (
                 <div className="w-full flex flex-col gap-4">
-                  {deptPendingData.map((dept, index) => {
+                  {deptDocumentData.map((dept, index) => {
                     const typeCounts = dept.docs.reduce((acc: any, d: any) => {
                       const t = d.type || 'Other';
                       acc[t] = (acc[t] || 0) + 1;
@@ -379,7 +377,9 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
                           
                           {/* Pie Chart */}
                           <div className="w-16 h-16 relative -mt-1">
-                            <ResponsiveContainer width="100%" height="100%">
+                            {dept.value === 0 ? (
+                              <div className="w-16 h-16 rounded-full border-[10px] border-slate-100" aria-label="ไม่มีเอกสารในขอบเขตนี้" />
+                            ) : <ResponsiveContainer width="100%" height="100%">
                               <PieChart>
                                 <Pie
                                   data={chartData}
@@ -398,7 +398,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
                                   itemStyle={{ color: '#334155', fontWeight: 700 }}
                                 />
                               </PieChart>
-                            </ResponsiveContainer>
+                            </ResponsiveContainer>}
                           </div>
                         </div>
                         
@@ -417,6 +417,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
                           </div>
                           
                           <div className="flex flex-wrap justify-end gap-x-2 gap-y-1 w-32">
+                            {dept.value === 0 && <span className="text-[10px] text-slate-400">ไม่มีเอกสารในขอบเขตนี้</span>}
                             {chartData.map((c: any) => (
                               <div key={c.name} className="flex items-center gap-1 text-[9px] font-bold text-slate-500">
                                 <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: c.fill }} />
@@ -435,7 +436,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
                   <div className="w-12 h-12 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-2">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
-                  <p className="text-xs font-semibold text-slate-400">เคลียร์งานครบทุกแผนกแล้ว</p>
+                  <p className="text-xs font-semibold text-slate-400">ไม่พบแผนกในขอบเขตที่เลือก</p>
                 </div>
               )}
             </div>
@@ -605,7 +606,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
                   const paginated = bottlenecks.slice(startIndex, startIndex + itemsPerPage);
 
                   return paginated.map((doc, index) => {
-                    const daysPending = Math.floor((new Date().getTime() - new Date(doc.date).getTime()) / (1000 * 3600 * 24));
+                    const daysPending = Math.floor(pendingAgeDays(doc) ?? 0);
                     const approverText = (doc.approvers && doc.approvers.length > 0) ? doc.approvers.join(', ') : '-';
                     return (
                       <tr key={doc.id || index} className={`${MD_TR} group hover:bg-rose-50/30`}>
@@ -627,7 +628,7 @@ export function ExecutiveDashboard({ documents, stats, departments }: { document
                         </td>
                         <td className="py-4 px-4 text-sm font-semibold text-slate-700">{doc.submittedBy}</td>
                         <td className="py-4 px-4 text-sm font-semibold text-slate-700 truncate" title={approverText}>{approverText}</td>
-                        <td className="py-4 pr-6 pl-4 text-sm text-slate-400 font-medium">{formatThaiDate(doc.date)}</td>
+                        <td className="py-4 pr-6 pl-4 text-sm text-slate-400 font-medium">{formatThaiDate(doc.submitted_at)}</td>
                       </tr>
                     );
                   });

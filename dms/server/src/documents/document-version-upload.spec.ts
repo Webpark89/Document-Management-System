@@ -41,8 +41,8 @@ describe('Upload document versions after filing', () => {
             permissions: [
               {
                 permission: {
-                  module: 'document.edit_document',
-                  action: 'edit',
+                  module: 'document.view_detail',
+                  action: 'view',
                 },
               },
             ],
@@ -134,13 +134,24 @@ describe('Upload document versions after filing', () => {
       expect(service.appendVersion).not.toHaveBeenCalled();
     },
   );
-  it('still requires ownership', async () => {
+  it.each(['PR', 'PO', 'BK', 'DOC'])('allows a visible non-owned %s without edit permission', async (prefix) => {
+    doc.type = { prefix };
     doc.creator_id = 'someone-else';
-    await expect(
-      service.uploadNewVersion('doc', 'owner', { buffer: bytes } as any),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    doc.visibility_type = 'CompanyWide';
+    await service.uploadNewVersion('doc', 'owner', { buffer: bytes } as any);
+    expect(doc.status).toBe('Draft');
+    expect(service.appendVersion).toHaveBeenCalledWith(db, expect.anything(), 'owner', expect.anything(), bytes, undefined, expect.anything());
+    expect(db.auditLog.create).toHaveBeenCalledWith(expect.objectContaining({data: expect.objectContaining({user_id: 'owner', action: 'Upload'})}));
   });
-  it('still requires document editing permission', async () => {
+  it('blocks a non-owner outside the document audience', async () => {
+    doc.creator_id = 'someone-else';
+    doc.visibility_type = 'SpecificUsers';
+    doc.visibility_users = ['another-user'];
+    await expect(service.uploadNewVersion('doc', 'owner', { buffer: bytes } as any)).rejects.toBeInstanceOf(ForbiddenException);
+    expect(service.appendVersion).not.toHaveBeenCalled();
+    expect(db.document.update).not.toHaveBeenCalled();
+  });
+  it('still requires document detail access permission', async () => {
     db.user.findUnique.mockResolvedValue({
       id: 'owner',
       is_active: true,

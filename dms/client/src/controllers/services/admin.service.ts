@@ -47,6 +47,7 @@ export interface AuditLogDto {
   target_id?: string;
   target_label?: string;
   target_deleted?: boolean;
+  origin?: 'recorded' | 'imported' | 'system';
   comment?: string;
   ip_address: string | null;
   created_at: string;

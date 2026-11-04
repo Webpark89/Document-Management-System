@@ -149,7 +149,7 @@ export function FolderSidebar({
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0 pr-2">
-                  <span className="text-base shrink-0"><FolderIconRenderer iconName={folder.icon} className="w-4 h-4" /></span>
+                  <span className="text-base shrink-0"><FolderIconRenderer iconName={folder.icon} color={folder.color || "#4F81FF"} className="w-4 h-4" /></span>
                   <span className="truncate text-xs">{folder.name}</span>
                 </div>
 

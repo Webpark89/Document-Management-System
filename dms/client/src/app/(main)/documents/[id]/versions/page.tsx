@@ -413,11 +413,11 @@ export default function DocumentVersionsPage() {
                     disabled={
                       !doc ||
                       !["Draft", "Returned", "Approved"].includes(doc.status) ||
-                      (doc as any).creator_id !== user?.id ||
                       !user?.permissions?.some((p) =>
                         [
-                          "document.edit_document:edit",
-                          "submissions.edit_document:edit",
+                          "document.view_detail:view",
+                          "submissions.open_doc_detail:view",
+                          "approvals.open_doc_detail:view",
                         ].includes(p),
                       )
                     }

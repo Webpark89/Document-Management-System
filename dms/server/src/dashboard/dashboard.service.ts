@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { bangkokDateKey, bangkokDayStart, bangkokMonthRange } from '../common/bangkok-time';
+import {
+  bangkokDateKey,
+  bangkokDayStart,
+  bangkokMonthRange,
+} from '../common/bangkok-time';
 import {
   loadActor,
   requirePermission,
@@ -60,8 +64,29 @@ export class DashboardService {
     const now = new Date();
     const month = bangkokMonthRange(now);
     const [approvedThisMonth, myApprovedThisMonth] = await Promise.all([
-      this.prisma.document.count({ where: { AND: [where, { status: 'Approved', approved_at: { gte: month.start, lt: month.end } }] } }),
-      this.prisma.document.count({ where: { AND: [where, { creator_id: userId, status: 'Approved', approved_at: { gte: month.start, lt: month.end } }] } }),
+      this.prisma.document.count({
+        where: {
+          AND: [
+            where,
+            {
+              status: 'Approved',
+              approved_at: { gte: month.start, lt: month.end },
+            },
+          ],
+        },
+      }),
+      this.prisma.document.count({
+        where: {
+          AND: [
+            where,
+            {
+              creator_id: userId,
+              status: 'Approved',
+              approved_at: { gte: month.start, lt: month.end },
+            },
+          ],
+        },
+      }),
     ]);
     const typeNames = await this.prisma.documentType.findMany({
       select: { id: true, prefix: true, type_name: true },
@@ -78,7 +103,12 @@ export class DashboardService {
           where: { AND: [where, { created_at: { gte: start, lt: end } }] },
         }),
         this.prisma.document.count({
-          where: { AND: [where, { status: 'Approved', approved_at: { gte: start, lt: end } }] },
+          where: {
+            AND: [
+              where,
+              { status: 'Approved', approved_at: { gte: start, lt: end } },
+            ],
+          },
         }),
       ]);
       trend.push({

@@ -298,6 +298,13 @@ export class AdminController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.adminService.getAuditLogs(search, action, dateFrom, dateTo, page, limit);
+    return this.adminService.getAuditLogs(
+      search,
+      action,
+      dateFrom,
+      dateTo,
+      page,
+      limit,
+    );
   }
 }

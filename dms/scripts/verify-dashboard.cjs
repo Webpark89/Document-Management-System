@@ -252,3 +252,32 @@ for (const name of ["EmployeeDashboard", "ExecutiveDashboard"]) {
     );
   });
 }
+
+test("master departments remain visible even without documents or pending work", async () => {
+  const departments = ['ไอที', 'คลังสินค้า', 'จัดซื้อ', 'บุคคล', 'บัญชี'];
+  const result = await data.loadDashboardData({
+    documents: async () => [{id:'PR-1', type:'PR', department:'จัดซื้อ', status:'Pending'}],
+    stats: async () => ({total:1}),
+    departments: async () => departments.map(name => ({name})),
+  });
+  assert.equal(result.departments.length, 5);
+  const component = loader({id:'user', permissions:legacy})(path.join(root, 'client/src/views/components/dashboard/ExecutiveDashboard.tsx')).ExecutiveDashboard;
+  const markup = renderToStaticMarkup(React.createElement(component, {documents:result.documents, stats:{}, departments:result.departments}));
+  for (const name of departments) assert.ok(markup.includes(name), name);
+  assert.equal((markup.match(/aria-label="ไม่มีเอกสารในขอบเขตนี้"/g) || []).length, 4);
+});
+test("department lookup failures are surfaced instead of presenting incomplete departments", async () => {
+  const failure = new Error('Department lookup failed');
+  await assert.rejects(data.loadDashboardData({documents:async()=>[], stats:async()=>({}), departments:async()=>{throw failure;}}), error => error === failure);
+});
+
+test("department totals include all six statuses and status chart shows counts and percentages", () => {
+  const component = loader({id:'user', permissions:legacy})(path.join(root, 'client/src/views/components/dashboard/ExecutiveDashboard.tsx')).ExecutiveDashboard;
+  const documents = ['Draft','Pending','Returned','Rejected','Approved','Cancelled'].map((status,i)=>({id:'DOC-'+i, type:'DOC',department:'แผนกทดสอบ',status}));
+  const markup = renderToStaticMarkup(React.createElement(component,{documents,stats:{},departments:['แผนกทดสอบ','แผนกไม่มีงาน']}));
+  assert.match(markup,/เอกสารทั้งหมดแยกตามแผนก/);
+  assert.match(markup,/aria-label="เอกสารทั้งหมด 6 ฉบับ"/);
+  assert.equal((markup.match(/16.7%/g)||[]).length,6);
+  assert.equal((markup.match(/aria-label="ไม่มีเอกสารในขอบเขตนี้"/g)||[]).length,1);
+  assert.ok(markup.includes('DOC (6)'));
+});

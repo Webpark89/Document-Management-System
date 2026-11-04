@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-05",
+  "completed_at": "2026-11-04T17:43:57.343Z",
+  "kind": "PostgreSQL and Nest HTTP integration using isolated scratch schema",
+  "schema": "codex_flow_1793814224615_d8ea8d",
+  "primaryBefore": {
+    "documents": 77,
+    "versions": 259,
+    "users": 8
+  },
+  "primaryAfter": {
+    "documents": 77,
+    "versions": 259,
+    "users": 8
+  },
+  "total": 1,
+  "passed": 1,
+  "failed": 0,
+  "results": [
+    {
+      "name": "PR non-owner uploaded replacement needs fresh approval and preserves exact PDF bytes",
+      "status": "PASS"
+    }
+  ]
+}

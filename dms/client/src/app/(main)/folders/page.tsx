@@ -1,5 +1,7 @@
 "use client";
 
+import { FolderIconRenderer } from "@views/components/folders/FolderIconRenderer";
+
 import React, { useState, useEffect } from "react";
 import useSWR from "swr";
    
@@ -169,7 +171,7 @@ export default function FoldersPage() {
         {/* Center: Big Icon */}
         <div className="flex-1 flex items-center justify-center py-6">
           <div className="w-20 h-20 rounded-full bg-[#F4F7FE] group-hover:bg-[#EDF2FA] flex items-center justify-center text-4xl transition-colors">
-            <FolderIcon className="w-10 h-10 text-indigo-600" />
+            <FolderIconRenderer className="w-14 h-14 drop-shadow-sm transition-transform group-hover:-translate-y-0.5" color={folder.color || "#4F81FF"} />
           </div>
         </div>
 

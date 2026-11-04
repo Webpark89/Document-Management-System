@@ -32,10 +32,12 @@ function totalAmount(form: unknown): number {
 export async function loadDashboardData<TStats>(operations: {
   documents: () => Promise<DashboardSourceDocument[]>;
   stats: () => Promise<TStats>;
+  departments?: () => Promise<{ name: string }[]>;
 }) {
-  const [source, stats] = await Promise.all([
+  const [source, stats, masterDepartments] = await Promise.all([
     operations.documents(),
     operations.stats(),
+    operations.departments ? operations.departments() : Promise.resolve([]),
   ]);
   const documents = source.map((d) => ({
     id: d.id,
@@ -61,7 +63,7 @@ export async function loadDashboardData<TStats>(operations: {
   return {
     documents,
     stats,
-    departments: [...new Set(documents.map((d) => d.department))].sort(),
+    departments: [...new Set([...masterDepartments.map((d) => d.name), ...documents.map((d) => d.department)])].sort((a, b) => a.localeCompare(b, "th")),
   };
 }
 export type DashboardDocument = Awaited<

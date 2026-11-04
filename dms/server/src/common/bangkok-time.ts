@@ -1,10 +1,19 @@
 import { BadRequestException } from '@nestjs/common';
 export function bangkokDateKey(value: Date) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).format(value);
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(value);
 }
 export function bangkokDayStart(key: string) {
   const date = new Date(`${key}T00:00:00+07:00`);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || Number.isNaN(date.getTime()) || bangkokDateKey(date) !== key)
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(key) ||
+    Number.isNaN(date.getTime()) ||
+    bangkokDateKey(date) !== key
+  )
     throw new BadRequestException('วันที่ไม่ถูกต้อง');
   return date;
 }

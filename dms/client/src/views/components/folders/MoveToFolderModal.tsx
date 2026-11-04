@@ -1,8 +1,9 @@
 "use client";
 
+import { FolderIconRenderer } from "./FolderIconRenderer";
 import React, { useState } from "react";
 import { Folder } from "@views/features/folders/types";
-import { X, FolderInput, Folder as FolderIcon, FileText, Check } from "lucide-react";
+import { X, FolderInput, FileText, Check } from "lucide-react";
 
 interface MoveToFolderModalProps {
   isOpen: boolean;
@@ -98,7 +99,7 @@ export function MoveToFolderModal({
                 }`}
               >
                 <div className="flex min-w-0 items-center gap-2.5">
-                  <FolderIcon className="h-5 w-5 shrink-0 text-indigo-600" />
+                  <FolderIconRenderer className="h-5 w-5 shrink-0" color={folder.color || "#4F81FF"} />
                   <span className="min-w-0 truncate text-left" title={folder.name}>{folder.name}</span>
                 </div>
                 {isSelected && <Check className="h-4 w-4 shrink-0 text-blue-600" />}

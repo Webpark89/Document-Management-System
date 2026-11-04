@@ -995,6 +995,20 @@ async function main() {
         .expect(200);
     },
   );
+  await check("Folder colors persist on create and edit for every preset", async () => {
+    const colors = ['#4F81FF', '#22C55E', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#64748B'];
+    for (const [i, color] of colors.entries()) {
+      const created = (await api('post', '/folders').send({ name: 'Color ' + i, color, icon: 'folder' }).expect(201)).body;
+      assert.equal(created.color, color);
+      assert.equal((await api('get', '/folders/' + created.id).expect(200)).body.color, color);
+      const changed = colors[(i + 1) % colors.length];
+      await api('put', '/folders/' + created.id, 'outsider').send({ color: changed }).expect(200);
+      assert.equal((await api('get', '/folders/' + created.id).expect(200)).body.color, changed);
+      const rows = (await api('get', '/folders').expect(200)).body;
+      assert.equal(rows.find(f => f.id === created.id).color, changed);
+      assert.equal((await prisma.folder.findUniqueOrThrow({where: {id: created.id}})).color, changed);
+    }
+  });
   await check(
     "All users access folders while document visibility stays enforced",
     async () => {
@@ -1612,7 +1626,7 @@ async function main() {
     }
   });
   for (const prefix of ['PR', 'PO', 'BK', 'DOC']) {
-    await check(prefix + ' uploaded replacement needs fresh approval and preserves exact PDF bytes', async () => {
+    await check(prefix + ' non-owner uploaded replacement needs fresh approval and preserves exact PDF bytes', async () => {
       const doc = await create(prefix);
       await submit(doc);
       await approve(doc.real_id, 'manager');
@@ -1623,9 +1637,12 @@ async function main() {
       const pdf = await PDFDocument.create(); pdf.addPage(); pdf.addPage();
       pdf.setTitle(prefix + ' replacement uploaded file');
       const replacement = Buffer.from(await pdf.save());
-      await api('post', '/documents/' + doc.real_id + '/upload-new-version')
+      await api('post', '/documents/' + doc.real_id + '/upload-new-version', 'manager')
         .attach('file', replacement, { filename: 'replacement.pdf', contentType: 'application/pdf' }).expect(201);
       const draft = await detail(doc.real_id);
+      const latest = await prisma.documentVersion.findFirstOrThrow({ where: { document_id: doc.real_id }, orderBy: { version_number: 'desc' } });
+      assert.equal(latest.uploaded_by_id, users.manager.id);
+      assert.equal(draft.creator_id, users.owner.id);
       assert.equal(draft.status, 'Draft'); assert.equal(draft.approved_at, null); assert.equal(draft.workflow, null);
       assert.equal(hash((await download(doc.real_id)).body), hash(replacement));
       assert.equal(hash((await download(doc.real_id, oldNumber)).body), hash(oldBytes));
@@ -1640,6 +1657,7 @@ async function main() {
     });
   }
   await require('./verify-visibility-cases.cjs')({ check, api, prisma, users, types, data, detail, approve, tokens, password, png });
+  await require('./verify-dashboard-audit-cases.cjs')({ check, api, prisma, users, data, detail, approve });
   const summary = {
     date: new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date()),
     completed_at: new Date().toISOString(),

@@ -15,9 +15,6 @@ import {
   ChevronLeft, 
    
   ChevronRight,
-  ChevronDown,
-   
-  ChevronUp,
   X
 } from "lucide-react";
 import DataTableHeader from '@views/components/ui/DataTableHeader';
@@ -35,7 +32,7 @@ import { adminService } from "@/controllers/services/admin.service";
    
 import { useAuth } from '@views/components/providers/AuthProvider';
 
-// ─── TYPES & MOCK DATA ────────────────────────────────────────────────────────
+// ─── TYPES ────────────────────────────────────────────────────────
    
 type ActionType = "Login" | "Upload" | "Download" | "View" | "Edit" | "Delete" | "Approve" | "Reject" | "Signature";
 type ModuleType = string;
@@ -47,6 +44,7 @@ interface AuditLogExtended {
   userName: string;
   username: string;
   targetDeleted?: boolean;
+  origin?: 'recorded' | 'imported' | 'system';
   action: ActionType;
   module: ModuleType;
   targetId: string;
@@ -74,7 +72,7 @@ function normalizeModuleName(m?: string): ModuleType {
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────
-function AuditLogsContent() {
+export function AuditLogsContent() {
   const { user } = useAuth();
   const hasPerm = (itemKey: string, action: string = 'view') =>
     !!user?.permissions?.includes(`auditlog.${itemKey}:${action}`);
@@ -88,6 +86,7 @@ function AuditLogsContent() {
   const [selectedModule, setSelectedModule] = useState<ModuleType | "All">("All");
   const [realLogs, setRealLogs] = useState<AuditLogExtended[]>([]);
   const [loading, setLoading] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
 
   const [sortKey, setSortKey] = useState<string | null>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>("desc");
@@ -164,6 +163,7 @@ function AuditLogsContent() {
             userName: l.user_fullname || l.username || "ระบบ",
             username: l.username || "",
             targetDeleted: l.target_deleted,
+            origin: l.origin,
             action: l.action as ActionType,
             module: mod,
             targetId: l.target_id || "",
@@ -189,7 +189,7 @@ function AuditLogsContent() {
     return () => {
       isMounted = false;
     };
-  }, [searchTerm, dateFrom, dateTo]);
+  }, [searchTerm, dateFrom, dateTo, retryKey]);
 
   const toggleActionFilter = (action: ActionType) => {
     const newSet = new Set(selectedActions);
@@ -218,7 +218,7 @@ function AuditLogsContent() {
     const data = [...realLogs].filter(log => {
       // 1. Search
       if (searchTerm) {
-        const lowerTerm = searchTerm.toLowerCase().replace(/^#/, "");
+        const lowerTerm = searchTerm.trim().toLowerCase().replace(/^#/, "").replace(/\s+/g, " ");
         if (!log.userName.toLowerCase().includes(lowerTerm) && !log.userId.toLowerCase().includes(lowerTerm) && !log.username.toLowerCase().includes(lowerTerm)) {
           return false;
         }
@@ -307,10 +307,12 @@ function AuditLogsContent() {
 
   const formatDateTH = (isoString: string) => {
     const d = new Date(isoString);
+    if (Number.isNaN(d.getTime())) return '-';
     return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' });
   };
   const formatTimeTH = (isoString: string) => {
     const d = new Date(isoString);
+    if (Number.isNaN(d.getTime())) return '-';
     return d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Bangkok' });
   };
 
@@ -494,8 +496,9 @@ function AuditLogsContent() {
                             <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3">
                               <Search className="w-6 h-6" />
                             </div>
-                            <p className="text-slate-600 font-bold text-sm">ไม่พบข้อมูล Audit Log</p>
-                            <p className="text-slate-400 text-xs mt-1">ลองปรับเงื่อนไขการค้นหาหรือช่วงเวลาใหม่อีกครั้ง</p>
+                            <p className="text-slate-600 font-bold text-sm">{fetchError ? 'โหลด Audit Log ไม่สำเร็จ' : 'ไม่พบข้อมูล Audit Log'}</p>
+                            <p className="text-slate-400 text-xs mt-1">{fetchError ? 'กรุณาลองโหลดข้อมูลอีกครั้ง' : 'ลองปรับเงื่อนไขการค้นหาหรือช่วงเวลาใหม่อีกครั้ง'}</p>
+                            {fetchError && <button type="button" className="mt-2 text-blue-600 underline" onClick={() => setRetryKey(key => key + 1)}>ลองใหม่</button>}
                             {fetchError && <p className="text-red-500 font-mono text-xs mt-2 border border-red-200 bg-red-50 p-2 rounded w-full max-w-lg text-left overflow-auto">Error: {fetchError}</p>}
                           </div>
                         </td>
@@ -518,6 +521,8 @@ function AuditLogsContent() {
                             <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold border ${getActionBadge(log.action)}`}>
                               {log.action}
                             </span>
+                            {log.origin === 'imported' && <span className="mt-1 block text-[10px] text-slate-500">ประวัตินำเข้า</span>}
+                            {log.origin === 'system' && <span className="mt-1 block text-[10px] text-slate-500">งานบำรุงข้อมูล</span>}
                           </td>
                           <td className="py-3 px-4 text-sm font-bold text-slate-600">
                             {log.module}

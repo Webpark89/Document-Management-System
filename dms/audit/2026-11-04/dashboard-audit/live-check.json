@@ -1,0 +1,42 @@
+{
+  "checked_at": "2026-11-04T15:41:24.692Z",
+  "time_zone": "Asia/Bangkok",
+  "period_start": "2026-10-31T17:00:00.000Z",
+  "period_end_exclusive": "2026-11-30T17:00:00.000Z",
+  "active_documents": 66,
+  "status_counts": {
+    "Draft": 8,
+    "Pending": 17,
+    "Approved": 24,
+    "Returned": 8,
+    "Rejected": 4,
+    "Cancelled": 5
+  },
+  "type_counts": {
+    "BK": 16,
+    "DOC": 16,
+    "PO": 16,
+    "PR": 18
+  },
+  "approved_this_month": 0,
+  "approved_pr_po_value": 194673.15,
+  "personal": [
+    {
+      "username": "admin",
+      "own_documents": 0,
+      "own_pending": 0,
+      "own_approved_this_month": 0,
+      "current_approval_queue": 0
+    },
+    {
+      "username": "manager01",
+      "own_documents": 6,
+      "own_pending": 0,
+      "own_approved_this_month": 0,
+      "current_approval_queue": 12
+    }
+  ],
+  "audit_records": 626,
+  "audit_missing_ip": 65,
+  "imported_audit_records": 394
+}

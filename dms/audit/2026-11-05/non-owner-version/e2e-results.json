@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-05",
+  "completed_at": "2026-11-04T17:43:25.738Z",
+  "kind": "PostgreSQL and Nest HTTP integration using isolated scratch schema",
+  "schema": "codex_flow_1793814179597_8ddc32",
+  "primaryBefore": {
+    "documents": 77,
+    "versions": 259,
+    "users": 8
+  },
+  "primaryAfter": {
+    "documents": 77,
+    "versions": 259,
+    "users": 8
+  },
+  "total": 4,
+  "passed": 3,
+  "failed": 1,
+  "results": [
+    {
+      "name": "PR non-owner uploaded replacement needs fresh approval and preserves exact PDF bytes",
+      "status": "FAIL",
+      "detail": "expected 201 \"Created\", got 503 \"Service Unavailable\" | post /documents ไม่สามารถสร้าง PDF ได้ กรุณาตรวจสอบ Chromium/Edge ของ server"
+    },
+    {
+      "name": "PO non-owner uploaded replacement needs fresh approval and preserves exact PDF bytes",
+      "status": "PASS"
+    },
+    {
+      "name": "BK non-owner uploaded replacement needs fresh approval and preserves exact PDF bytes",
+      "status": "PASS"
+    },
+    {
+      "name": "DOC non-owner uploaded replacement needs fresh approval and preserves exact PDF bytes",
+      "status": "PASS"
+    }
+  ]
+}

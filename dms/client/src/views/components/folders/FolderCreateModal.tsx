@@ -6,7 +6,9 @@ import {
   CreateFolderPayload,
 } from "@views/features/folders/types";
 
-import { X, FolderPlus } from "lucide-react";
+import { FolderIconRenderer } from "./FolderIconRenderer";
+
+import { X } from "lucide-react";
 
 interface FolderCreateModalProps {
   isOpen: boolean;
@@ -17,18 +19,6 @@ interface FolderCreateModalProps {
   parentFolderId?: string | null;
 }
 
-const PRESET_ICONS = [
-  "📁",
-  "📢",
-  "📑",
-  "📂",
-  "💼",
-  "🔒",
-  "📊",
-  "📝",
-  "📌",
-  "⭐",
-];
 const PRESET_COLORS = [
   "#4F81FF",
   "#22C55E",
@@ -49,7 +39,6 @@ export function FolderCreateModal({
 }: FolderCreateModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [icon, setIcon] = useState("📁");
   const [color, setColor] = useState("#4F81FF");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,12 +46,10 @@ export function FolderCreateModal({
     if (editingFolder) {
       setName(editingFolder.name);
       setDescription(editingFolder.description || "");
-      setIcon(editingFolder.icon || "📁");
       setColor(editingFolder.color || "#4F81FF");
     } else {
       setName("");
       setDescription("");
-      setIcon("📁");
       setColor("#4F81FF");
     }
   }, [editingFolder, isOpen]);
@@ -78,7 +65,7 @@ export function FolderCreateModal({
       await onSubmit({
         name: name.trim(),
         description: description.trim() || undefined,
-        icon,
+        icon: editingFolder?.icon || "folder",
         color,
         visibility: "CompanyWide",
         parent_id: parentFolderId || null,
@@ -103,8 +90,8 @@ export function FolderCreateModal({
         </button>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-            <FolderPlus className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center font-bold" style={{ color }}>
+            <FolderIconRenderer className="w-7 h-7" color={color} />
           </div>
           <div>
             <h2 className="text-base font-bold text-slate-800">
@@ -117,34 +104,19 @@ export function FolderCreateModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name & Icon */}
+          {/* Name */}
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1.5">
               ชื่อโฟลเดอร์ *
             </label>
-            <div className="flex items-center gap-2">
-              {/* Icon selector */}
-              <select
-                value={icon}
-                onChange={(e) => setIcon(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 text-base focus:outline-none cursor-pointer"
-              >
-                {PRESET_ICONS.map((i) => (
-                  <option key={i} value={i}>
-                    {i}
-                  </option>
-                ))}
-              </select>
-
-              <input
+            <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="เช่น เอกสารแผนกจัดซื้อ, สัญญาปี 2569"
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500"
               />
-            </div>
           </div>
 
           {/* Description */}
@@ -172,8 +144,11 @@ export function FolderCreateModal({
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className={`w-6 h-6 rounded-full transition-transform ${
-                    color === c
+                  aria-label={`เลือกสี ${c}`}
+                  aria-pressed={color.toLowerCase() === c.toLowerCase()}
+                  title={c}
+                  className={`w-6 h-6 rounded-full cursor-pointer transition-transform ${
+                    color.toLowerCase() === c.toLowerCase()
                       ? "scale-125 ring-2 ring-blue-500 ring-offset-2"
                       : "hover:scale-110"
                   }`}

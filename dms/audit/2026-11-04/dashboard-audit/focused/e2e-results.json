@@ -1,0 +1,49 @@
+{
+  "date": "2026-11-04",
+  "completed_at": "2026-11-04T15:44:16.586Z",
+  "kind": "PostgreSQL and Nest HTTP integration using isolated scratch schema",
+  "schema": "codex_flow_1793807048336_44d419",
+  "primaryBefore": {
+    "documents": 77,
+    "versions": 259,
+    "users": 8
+  },
+  "primaryAfter": {
+    "documents": 77,
+    "versions": 259,
+    "users": 8
+  },
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Dashboard audit: old document approved now increases the actual monthly completion count",
+      "status": "PASS"
+    },
+    {
+      "name": "Dashboard audit: successful actions have correct actor, IP, preview/download type and frozen identity",
+      "status": "PASS"
+    },
+    {
+      "name": "Dashboard audit: paged history retrieves every real view beyond 100 records",
+      "status": "PASS"
+    },
+    {
+      "name": "Dashboard audit: date filters use whole Thai days and unknown historical IP remains null",
+      "status": "PASS"
+    },
+    {
+      "name": "Dashboard audit: role scopes and current-step approval queue match database records",
+      "status": "PASS"
+    },
+    {
+      "name": "Dashboard audit: imported histories are identified instead of presenting sample IP as captured evidence",
+      "status": "PASS"
+    },
+    {
+      "name": "Dashboard audit: deletion remains auditable with its document number and requires audit permission",
+      "status": "PASS"
+    }
+  ]
+}
